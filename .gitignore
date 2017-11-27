@@ -1,0 +1,36 @@
+# EDITOR
+*.swp
+*~
+\#*\#
+
+# BIN
+*.o
+*.a
+*.d
+*.so
+*.out
+
+/42sh
+
+# AUTOTOOLS
+Makefile
+aclocal.m4
+/config.*
+/configure
+/depcomp
+/install-sh
+/missing
+/my-bittorrent
+/stamp-h1
+/compile
+/m4
+/.libs
+/ar-lib
+/libtool
+/ltmain.sh
+*.cache
+*.deps
+*.dirstamp
+*.in
+*.lo
+*.la

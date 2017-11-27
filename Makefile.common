@@ -1,0 +1,3 @@
+AM_CPPFLAGS = -iquote $(top_srcdir)/includes -D_POSIX_C_SOURCE=200809L -D_GNU_SOURCE
+AM_CFLAGS = -Wall -Wextra -Werror -std=c99 -pedantic #-fsanitize=address
+# AM_LDFLAGS = -fsanitize=address
