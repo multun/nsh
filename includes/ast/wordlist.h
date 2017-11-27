@@ -1,7 +1,7 @@
-#pragma-once
+#pragma once
 
 #include <stdbool.h>
-
+#include <stddef.h>
 
 typedef struct wordlist
 {

@@ -1,8 +1,7 @@
-#pragma-once
+#pragma once
 
-
-typedef struct awhile
+typedef struct auntil
 {
   struct ast *condition;
   struct ast *actions;
-} s_awhile;
+} s_auntil;
