@@ -28,6 +28,8 @@ typedef struct token
     TOK_LESSDASH,   // <<-
 
     TOK_CLOBBER,    // >|
+    TOK_LESS,       // <
+    TOK_GREAT,      // >
 
     TOK_SEMI,       // ;
     TOK_AND,        // &
@@ -67,7 +69,7 @@ typedef struct token
 } s_token;
 
 
-#define TOK_STR(Tok) ((Tok)->data.str.buf)
+#define TOK_STR(Tok) ((Tok)->data.str.data)
 
 typedef struct lexer
 {
