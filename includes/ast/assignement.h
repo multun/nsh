@@ -5,12 +5,15 @@
 typedef struct aassignement
 {
   s_wordlist *name;
-  struct ast *value;
+  s_wordlist *value;
+  struct ast *action;
 } s_aassignement;
 
 
-#define AASSIGNEMENT(Name, Value)               \
+#define AASSIGNEMENT(Name, Value, Action)       \
   ((s_aassignement)                             \
   {                                             \
-    (Name), (Value)                             \
+    .name = Name                                \
+    .value = Value                              \
+    .action = Action                            \
   })
