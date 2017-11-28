@@ -17,5 +17,5 @@ typedef struct abool_op
 #define ABOOL_OP(Type, Left, Right)               \
   ((s_abool_op)                                   \
   {                                               \
-    (Type), (Left) (Right)                        \
+    (Type), (Left), (Right)                       \
   })
