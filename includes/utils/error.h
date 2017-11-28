@@ -16,3 +16,7 @@ typedef struct sherror
     .lineinfo = (Lineinfo),                     \
     .message = (Message),                       \
   }
+
+
+s_sherror *sherror_alloc(s_lineinfo *lineinfo, char *message);
+s_sherror *sherror_free(s_sherror *error);
