@@ -3,28 +3,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "utils/lineinfo.h"
+
+
 typedef enum cstream_backend
 {
   CSTREAM_BACKEND_FILE,
   CSTREAM_BACKEND_STRING,
 } e_cstream_backend;
-
-
-typedef struct lineinfo
-{
-  size_t line;
-  size_t column;
-  char *source;
-} s_lineinfo;
-
-
-#define LINEINFO(Source) \
-  (s_lineinfo)           \
-  {                      \
-    .line = 1,           \
-    .column = 1,         \
-    .source = (Source),  \
-  }
 
 
 typedef struct cstream
