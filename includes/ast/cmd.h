@@ -10,7 +10,7 @@ typedef struct acmd
 
 
 #define ACMD(Wordlist)                          \
-  ((s_wordlist)                                 \
+  ((s_acmd)                                     \
   {                                             \
     (Wordlist)                                  \
   })
