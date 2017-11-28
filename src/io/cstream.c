@@ -7,6 +7,7 @@ void cstream_init_file(s_cstream *cs, FILE *stream, char *source)
 {
   cs->line_info = LINEINFO(source);
   cs->has_buf = false;
+  cs->eof = false;
 
   cs->type = CSTREAM_BACKEND_FILE;
   cs->data.stream = stream;
@@ -17,19 +18,33 @@ void cstream_init_string(s_cstream *cs, char *string, char *source)
 {
   cs->line_info = LINEINFO(source);
   cs->has_buf = false;
+  cs->eof = false;
 
   cs->type = CSTREAM_BACKEND_STRING;
   cs->data.string = string;
 }
 
 
+bool cstream_eof(s_cstream *cs)
+{
+  return !cs->has_buf && cs->eof;
+}
+
+
 static inline int cstream_get(s_cstream *cs)
 {
+  int res;
   if (cs->type == CSTREAM_BACKEND_FILE)
-    return getc(cs->data.stream);
-  if (cs->type == CSTREAM_BACKEND_STRING)
-    return !*cs->data.string ? EOF : *(cs->data.string++);
-  abort();
+    res = getc(cs->data.stream);
+  else if (cs->type == CSTREAM_BACKEND_STRING)
+    res = !*cs->data.string ? EOF : *(cs->data.string++);
+  else
+    abort();
+
+  if (res == EOF)
+    cs->eof = true;
+
+  return res;
 }
 
 

@@ -24,6 +24,7 @@ typedef struct cstream
   s_lineinfo line_info;
   bool has_buf;
   int buf;
+  bool eof;
 } s_cstream;
 
 
@@ -31,3 +32,4 @@ void cstream_init_file(s_cstream *cs, FILE *stream, char *source);
 void cstream_init_string(s_cstream *cs, char *string, char *source);
 int cstream_peek(s_cstream *cs);
 int cstream_pop(s_cstream *cs);
+bool cstream_eof(s_cstream *cs);
