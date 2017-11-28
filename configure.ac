@@ -14,6 +14,7 @@ AC_CHECK_HEADERS([stdio.h])
 AC_CHECK_HEADERS([stdlib.h])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile src/shlex/Makefile src/io/Makefile])
+AC_CONFIG_FILES([Makefile src/shlex/Makefile src/io/Makefile
+                 src/shparse/Makefile])
 
 AC_OUTPUT
