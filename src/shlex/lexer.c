@@ -19,14 +19,29 @@ void lexer_free(s_lexer *lexer)
   // TODO: free other fields
 }
 
-const s_token *lexer_peek(s_lexer *lexer)
+
+static s_token *lexer_lex(s_lexer *lexer)
 {
   (void)lexer;
   return NULL;
 }
 
+
+const s_token *lexer_peek(s_lexer *lexer)
+{
+  if (!lexer->head)
+    lexer->head = lexer_lex(lexer);
+  return lexer->head;
+}
+
+
 s_token *lexer_pop(s_lexer *lexer)
 {
-  (void)lexer;
-  return NULL;
+  if (lexer->head)
+  {
+    s_token *ret = lexer->head;
+    lexer->head = NULL;
+    return ret;
+  }
+  return lexer_lex(lexer);
 }
