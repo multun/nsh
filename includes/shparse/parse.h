@@ -27,3 +27,5 @@ s_ast *parse_else_clause(s_lexer *lexer);
 s_ast *parse_do_group(s_lexer *lexer);
 s_ast *parse_case_clause(s_lexer *lexer);
 s_ast *parse_case_item(s_lexer *lexer);
+
+s_wordlist *parse_word(s_lexer *lexer);
