@@ -2,8 +2,8 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-#include "ast/bool_op.h"
 
+#include "ast/bool_op.h"
 #include "ast/cmd.h"
 #include "ast/if.h"
 #include "ast/for.h"
@@ -16,6 +16,7 @@
 #include "ast/list.h"
 #include "ast/assignement.h"
 #include "ast/function.h"
+#include "ast/block.h"
 
 
 typedef struct ast
@@ -34,6 +35,7 @@ typedef struct ast
     SHNODE_LIST,
     SHNODE_ASSIGNEMENT,
     SHNODE_FUNCTION,
+    SHNODE_BLOCK,
   } type;
 
   union
@@ -50,6 +52,7 @@ typedef struct ast
     s_alist ast_list;
     s_aassignement ast_assignement;
     s_afunction ast_function;
+    s_ablock ast_block;
   } data;
 } s_ast;
 
@@ -58,7 +61,7 @@ typedef struct ast
   ((s_ast)                                      \
   {                                             \
     .type = (Type),                             \
-    .data.ast_ ## Field = (Data),                   \
+    .data.ast_ ## Field = (Data),               \
   })
 
 
