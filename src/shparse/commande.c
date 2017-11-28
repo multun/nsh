@@ -40,36 +40,37 @@ s_ast *parse_command(s_lexer *lexer)
 
 static bool start_redir(const s_token *tok)
 {
-  (void)tok;
-  return false;
+  return tok_is(tok, TOK_IO_NUMBER) || tok_is(tok, TOK_DLESS)
+         || tok_is(tok, TOK_DGREAT) || tok_is(tok, TOK_LESSAND)
+         || tok_is(tok, TOK_GREATAND) || tok_is(tok, TOK_LESSGREAT)
+         || tok_is(tok, TOK_LESSDASH) || tok_is(tok, TOK_CLOBBER)
+         || tok_is(tok, TOK_LESS) || tok_is(tok, TOK_GREAT);
+ 
 }
 
-#define P_ASSIGNEMENT(name, value)            \
-{                                             \
-  .name = WORDLIST(name, true, true, NULL),   \
-  .value = WORDLIST(value, true, true, NULL), \
-  .action = NULL,                             \
-}
+#define P_ASSIGNEMENT(name, value)              \
+  ((s_assignement)                              \
+  {                                             \
+    .name = WORDLIST(name, true, true, NULL),   \
+    .value = WORDLIST(value, true, true, NULL), \
+    .action = NULL,                             \
+  })
 
-s_ast *parse_simple_command(s_lexer *lexer, s_token *word)
+static int prefix_loop(s_lexer *lexer, s_ablock *block, s_ast **redirect,
+                       const s_token **tok)
 {
-  const s_token *tok = word;
-  s_ast *redir_head = NULL;
-  s_ast *assign_head = NULL;
-  s_ast *elm_head = NULL;
-  s_ast *redir = NULL;
   s_ast *assign = NULL;
-  s_wordlist *elm = NULL;
-  while (tok_is(tok, TOK_ASSIGNEMENT_WORD) || start_redir(tok))
+  s_ast *redir = NULL;
+  while (tok_is(*tok, TOK_ASSIGNEMENT_WORD) || start_redir(*tok))
   {
     s_ast *tmp = NULL;
-    if (tok_is(tok, TOK_ASSIGNEMENT_WORD))
+    if (tok_is(*tok, TOK_ASSIGNEMENT_WORD))
     {
       tmp = parse_prefix(lexer);
       if (assign)
         assign->data.ast_assignement.action = tmp;
       else
-        assign_head = tmp;
+        block->def = tmp;
       assign = tmp;
     }
     else
@@ -78,23 +79,31 @@ s_ast *parse_simple_command(s_lexer *lexer, s_token *word)
       if (redir)
         redir->data.ast_redirection.action = tmp;
       else
-        redir_head = tmp;
+        block->redir = tmp;
       redir = tmp;
     }
-    tok = lexer_peek(lexer);
+    *tok = lexer_peek(lexer);
   }
-  while (tok_is(tok, TOK_WORD) || start_redir(tok))
+  *redirect = redir;
+  return 1;
+}
+
+static int element_loop(s_lexer *lexer, s_ablock *block, s_ast *redir,
+                        const s_token **tok)
+{
+  s_wordlist *elm = NULL;
+  while (tok_is(*tok, TOK_WORD) || start_redir(*tok))
   {
-    if (tok_is(tok, TOK_WORD))
+    if (tok_is(*tok, TOK_WORD))
     {
       s_wordlist *tmp = parse_word(lexer);
       if (elm)
         elm->next = tmp;
       else
       {
-        elm_head = xmalloc(sizeof(s_ast));
-        elm_head->type = SHNODE_CMD;
-        elm_head->data.ast_cmd = ACMD(tmp);
+        block->cmd = xmalloc(sizeof(s_ast));
+        block->cmd->type = SHNODE_CMD;
+        block->cmd->data.ast_cmd = ACMD(tmp);
       }
       elm = tmp;
     }
@@ -105,25 +114,28 @@ s_ast *parse_simple_command(s_lexer *lexer, s_token *word)
       if (redir)
         redir->data.ast_redirection.action = tmp;
       else
-        redir_head = tmp;
+        block->redir = tmp;
       redir = tmp;
     }
-    tok = lexer_peek(lexer);
+    *tok = lexer_peek(lexer);
   }
-  if (!redir_head && !elm_head && !assign_head)
+  return 1;
+}
+
+s_ast *parse_simple_command(s_lexer *lexer, s_token *word)
+{
+  const s_token *tok = word;
+  s_ast *res = xmalloc(sizeof(s_ast));
+  res->type = SHNODE_BLOCK;
+  res->data.ast_block = ABLOCK(NULL, NULL, NULL);
+  s_ast *redir = NULL;
+  if (!prefix_loop(lexer, &res->data.ast_block, &redir, &tok)
+      || !element_loop(lexer, &res->data.ast_block, redir, &tok))
+    return NULL; // TODO: handle parsing error
+  if (!res->data.ast_block.redir && !res->data.ast_block.def
+      && !res->data.ast_block.cmd)
   { // TODO: handle parsing error
     return NULL;
-  }
-  s_ast *res = elm_head;
-  if (assign_head)
-  {
-    assign->data.ast_assignement.action = res;
-    res = assign_head;
-  }
-  if (redir_head)
-  {
-    redir->data.ast_redirection.action = res;
-    res = redir_head;
   }
   return res;
 }
