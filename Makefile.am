@@ -1,3 +1,5 @@
+include $(top_srcdir)/Makefile.common
+
 ACLOCAL_AMFLAGS = -I m4
 
 bin_PROGRAMS = 42sh
