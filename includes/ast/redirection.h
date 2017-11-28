@@ -2,6 +2,7 @@
 
 #include "wordlist.h"
 
+
 typedef struct aredirection
 {
   enum redir_type
@@ -15,3 +16,10 @@ typedef struct aredirection
   struct wordlist *right;
   struct ast *action;
 } s_aredirection;
+
+
+#define AREDIRECTION(Type, Left, Right, Action)     \
+  ((s_aredirection)                                 \
+  {                                                 \
+    (Type), (Left), (Right), (Action)               \
+  })
