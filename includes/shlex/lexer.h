@@ -29,6 +29,9 @@ typedef struct token
 
     TOK_CLOBBER,    // >|
 
+    TOK_SEMI        // ;
+    TOK_AND         // &
+
     TOK_IF,
     TOK_THEN,
     TOK_ELSE,
