@@ -1,6 +1,7 @@
 #include "shlex/lexer.h"
 #include "utils/alloc.h"
 
+#include <assert.h>
 #include <stdlib.h>
 
 
@@ -16,14 +17,24 @@ s_lexer *lexer_create(s_cstream *stream)
 void lexer_free(s_lexer *lexer)
 {
   free(lexer);
-  // TODO: free other fields
 }
 
 
 static s_token *lexer_lex(s_lexer *lexer)
 {
-  (void)lexer;
-  return NULL;
+  s_token *res = tok_alloc();
+  word_read(lexer->stream, res, false);
+
+  // TODO: if the word is a single carriage
+  // return, this function should detect it
+  if (!res->str.size)
+  {
+    tok_free(res, true);
+    return NULL;
+  }
+
+  TOK_PUSH(res, '\0');
+  return res;
 }
 
 

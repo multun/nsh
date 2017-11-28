@@ -4,8 +4,11 @@
 #include <stdbool.h>
 
 #include "io/cstream.h"
-#include "utils/dbuf.h"
+#include "utils/error.h"
+#include "utils/evect.h"
 
+
+#define TOK_BUF_MIN_SIZE 10
 
 typedef struct token
 {
@@ -61,15 +64,13 @@ typedef struct token
     TOK_EOF,
   } type;
 
-  union
-  {
-    int io_number;
-    struct dbuf str;
-  } data;
+  struct evect str;
 } s_token;
 
 
-#define TOK_STR(Tok) ((Tok)->data.str.data)
+#define TOK_PUSH(Tok, C) evect_push(&(Tok)->str, C)
+#define TOK_SIZE(Tok) (Tok)->str.size
+#define TOK_STR(Tok) ((Tok)->str.data)
 
 typedef struct lexer
 {
@@ -77,6 +78,8 @@ typedef struct lexer
   s_cstream *stream;
 } s_lexer;
 
+s_token *tok_alloc(void);
+void tok_free(s_token *free, bool free_buf);
 
 bool tok_is(const s_token *tok, enum token_type type);
 s_token *tok_as(s_token *tok, enum token_type type);
@@ -86,3 +89,5 @@ void lexer_free(s_lexer *lexer);
 
 const s_token *lexer_peek(s_lexer *lexer);
 s_token *lexer_pop(s_lexer *lexer);
+
+bool word_read(s_cstream *cs, s_token *tok, s_sherror **error);
