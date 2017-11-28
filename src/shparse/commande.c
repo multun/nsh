@@ -3,11 +3,41 @@
 #include "shparse/parse.h"
 #include "utils/alloc.h"
 
+static bool start_redir(const s_token *tok)
+{
+  return tok_is(tok, TOK_IO_NUMBER) || tok_is(tok, TOK_DLESS)
+         || tok_is(tok, TOK_DGREAT) || tok_is(tok, TOK_LESSAND)
+         || tok_is(tok, TOK_GREATAND) || tok_is(tok, TOK_LESSGREAT)
+         || tok_is(tok, TOK_LESSDASH) || tok_is(tok, TOK_CLOBBER)
+         || tok_is(tok, TOK_LESS) || tok_is(tok, TOK_GREAT);
+ 
+}
+
 static bool is_first_keyword(const s_token *tok)
 {
   return tok_is(tok, TOK_IF) || tok_is(tok, TOK_FOR)
          || tok_is(tok, TOK_WHILE) || tok_is(tok, TOK_UNTIL)
          || tok_is(tok, TOK_CASE);
+}
+
+static s_ast *redirection_loop(s_lexer *lexer, s_ast *cmd)
+{
+  const s_token *tok = lexer_peek(lexer);
+  s_ast *res = xmalloc(sizeof(s_ast));
+  res->type = SHNODE_BLOCK;
+  res->data.ast_block = ABLOCK(NULL, NULL, cmd);
+  s_ast *redir = NULL;
+  while (start_redir(tok))
+  {// TODO: HEREDOC
+    s_ast *tmp = parse_redirection(lexer);
+    if (redir)
+      redir->data.ast_redirection.action = tmp;
+    else
+      res->data.ast_block.redir = tmp;
+    redir = tmp;
+    tok = lexer_peek(lexer);
+  }
+  return res;
 }
 
 s_ast *parse_command(s_lexer *lexer)
@@ -34,18 +64,8 @@ s_ast *parse_command(s_lexer *lexer)
     else
       return parse_simple_command(lexer, word);
   }
-  // parse redirection*
-  return res;
-}
-
-static bool start_redir(const s_token *tok)
-{
-  return tok_is(tok, TOK_IO_NUMBER) || tok_is(tok, TOK_DLESS)
-         || tok_is(tok, TOK_DGREAT) || tok_is(tok, TOK_LESSAND)
-         || tok_is(tok, TOK_GREATAND) || tok_is(tok, TOK_LESSGREAT)
-         || tok_is(tok, TOK_LESSDASH) || tok_is(tok, TOK_CLOBBER)
-         || tok_is(tok, TOK_LESS) || tok_is(tok, TOK_GREAT);
- 
+  // TODO: handle parsing error
+  return redirection_loop(lexer, res);
 }
 
 #define P_ASSIGNEMENT(name, value)              \
