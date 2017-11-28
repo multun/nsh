@@ -1,17 +1,17 @@
 #pragma once
 
+#include "wordlist.h"
 
 typedef struct aredirection
 {
-  enum type
+  enum redir_type
   {
-    IN,
-    OUT,
-    IN_CONC,
-    OUT_CONC,
+    REDIR_IN,
+    REDIR_OUT,
+    REDIR_AOUT,
     // TODO
   } type;
   int left;
-  wordlist *right;
+  struct wordlist *right;
   struct ast *action;
 } s_aredirection;

@@ -3,11 +3,11 @@
 
 typedef struct abool_op
 {
-  enum type
+  enum bool_type
   {
-    OR,
-    AND,
-    NOT,
+    BOOL_OR,
+    BOOL_AND,
+    BOOL_NOT,
   } type;
   struct ast *left;
   struct ast *right;
