@@ -29,8 +29,9 @@ typedef struct token
 
     TOK_CLOBBER,    // >|
 
-    TOK_SEMI        // ;
-    TOK_AND         // &
+    TOK_SEMI,       // ;
+    TOK_AND,        // &
+    TOK_PIPE,       // |
 
     TOK_IF,
     TOK_THEN,
@@ -46,10 +47,14 @@ typedef struct token
     TOK_UNTIL,
     TOK_FOR,
 
+    TOK_LPAR,
+    TOK_RPAR,
     TOK_LBRACE,
     TOK_RBRACE,
     TOK_BANG,
     TOK_IN,
+
+    TOK_FUNC,
 
     TOK_EOF,
   } type;
