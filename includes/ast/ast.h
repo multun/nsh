@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdio.h>
 #include "ast/bool_op.h"
 
 #include "ast/cmd.h"
@@ -53,10 +54,11 @@ typedef struct ast
 } s_ast;
 
 
-#define AST(Type, Data)                         \
+#define AST(Type, Field, Data)                  \
   ((s_ast)                                      \
   {                                             \
-    (Type), (Data)                              \
+    .type = (Type),                             \
+    .data.ast_ ## Field = (Data),                   \
   })
 
 
