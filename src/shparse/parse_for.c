@@ -48,10 +48,10 @@ static s_wordlist *parse_in(s_lexer *lexer, bool *in)
 
 s_ast *parse_rule_for(s_lexer *lexer)
 {
-  /*tok_free*/(lexer_pop());
+  /*tok_free*/(lexer_pop(lexer));
   s_ast *res = xmalloc(sizeof(s_ast));
   res->type = SHNODE_FOR;
-  s_wordlist *name = parse_word(); // TODO: handle parsing error
+  s_wordlist *name = parse_word(lexer); // TODO: handle parsing error
   bool in = false;
   s_wordlist *words = parse_in(lexer, &in);
   const s_token *tok = lexer_peek(lexer);

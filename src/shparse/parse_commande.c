@@ -54,12 +54,12 @@ s_ast *parse_command(s_lexer *lexer)
   s_ast *res = NULL;
   if (shell)
   {
-    //tok_free(lexer_pop(lexer));
+    /*tok_free*/(lexer_pop(lexer));
     res = parse_shell_command(lexer);
   }
   else if (tok_is(tok, TOK_FUNC))
   { // discard tokken 'function' and create token NAME to match latter use
-    //tok_free(lexer_pop(lexer));
+    /*tok_free*/(lexer_pop(lexer));
     res = parse_funcdec(lexer, lexer_pop(lexer));
   }  
   else 
@@ -189,13 +189,13 @@ s_ast *parse_shell_command(s_lexer *lexer)
   if (tok_is(tok, TOK_LBRACE) || tok_is(tok, TOK_LPAR))
   {
     bool par = tok_is(tok, TOK_LPAR);
-    //tok_free(lexer_pop(lexer));
+    /*tok_free*/(lexer_pop(lexer));
     s_ast *res = parse_compound_list(lexer);
     tok = lexer_peek(lexer);
     if ((tok_is(tok, TOK_LBRACE) && !par)
         || (tok_is(tok, TOK_LPAR) && par))
     {
-      //tok_free(lexer_pop(lexer));
+      /*tok_free*/(lexer_pop(lexer));
       return res;
     }
     return NULL;
@@ -209,16 +209,16 @@ s_ast *parse_shell_command(s_lexer *lexer)
 
 s_ast *parse_funcdec(s_lexer *lexer, s_token *word)
 {
-  //tok_free(lexer_pop(lexer)); // first '(' was checked in commande
+  /*tok_free*/(lexer_pop(lexer)); // first '(' was checked in commande
   if (!tok_is(lexer_peek(lexer), TOK_RPAR))
   { // TODO: handle parsing error
     return NULL;
   }
-  //tok_free(lexer_pop(lexer));
+  /*tok_free*/(lexer_pop(lexer));
   const s_token *tok = lexer_peek(lexer);
   while (tok_is(tok, TOK_NEWLINE))
   {
-    //tok_free(lexer_pop(lexer));
+    /*tok_free*/(lexer_pop(lexer));
     tok = lexer_peek(lexer);
   }
   s_ast *res = xmalloc(sizeof(s_ast));

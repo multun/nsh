@@ -11,20 +11,21 @@ static bool compound_list_end(const s_token *tok)
          || tok_is(tok, TOK_DSEMI) || tok_is(tok, TOK_DO);
 }
 
-static void compound_list_loop(s_lexer *lexer, s_alist **tail)
+static bool compound_list_loop(s_lexer *lexer, s_alist **tail)
 {
   const s_token *tok = lexer_peek(lexer);
   while (tok_is(tok, TOK_NEWLINE))
   {
-    //tok_free(lexer_pop(lexer));
+    /*tok_free*/(lexer_pop(lexer));
     tok = lexer_peek(lexer);
   }
   if (compound_list_end(tok))
-    break;
+    return true;
   (*tail)->next = xmalloc(sizeof(s_alist));
   *(*tail)->next = ALIST(parse_and_or(lexer), NULL);
   // TODO: handle parsing error
   *tail = (*tail)->next;
+  return false;
 }
 
 s_ast *parse_compound_list(s_lexer *lexer)
@@ -32,7 +33,7 @@ s_ast *parse_compound_list(s_lexer *lexer)
   const s_token *tok = lexer_peek(lexer);
   while (tok_is(tok, TOK_NEWLINE))
   {
-    //tok_free(lexer_pop(lexer));
+    /*tok_free*/(lexer_pop(lexer));
     tok = lexer_peek(lexer);
   }
   tok = lexer_peek(lexer);
@@ -44,9 +45,9 @@ s_ast *parse_compound_list(s_lexer *lexer)
   while (tok_is(tok, TOK_SEMI) || tok_is(tok, TOK_AND)
          || tok_is(tok, TOK_NEWLINE))
   { // TODO: & = background task
-    //tok_free(lexer_pop(lexer));
-    compound_list_loop(lexer, tmp);
-    tok = lexer_peek(lexer);
+    /*tok_free*/(lexer_pop(lexer));
+    if (compound_list_loop(lexer, &tmp))
+      break;
   }
   return res;
 }

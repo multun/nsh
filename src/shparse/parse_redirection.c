@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "shparse/parse.h"
 #include "utils/alloc.h"
@@ -18,8 +19,8 @@ s_ast *parse_pipeline(s_lexer *lexer)
 {
   const s_token *tok = lexer_peek(lexer);
   bool negation = tok_is(tok, TOK_BANG);
-  //if (negation)
-  //  tok_free(lexer_pop(lexer));
+  /*if (negation)
+    tok_free*/(lexer_pop(lexer));
 
   s_ast *res = parse_command(lexer);
   // TODO: handle parsing error
@@ -27,11 +28,11 @@ s_ast *parse_pipeline(s_lexer *lexer)
   tok = lexer_peek(lexer);
   while (tok_is(tok, TOK_PIPE))
   {
-    //tok_free(lexer_pop(lexer));
+    /*tok_free*/(lexer_pop(lexer));
     tok = lexer_peek(lexer);
     while (tok_is(tok, TOK_NEWLINE))
     {
-      //tok_free(lexer_pop(lexer));
+      /*tok_free*/(lexer_pop(lexer));
       tok = lexer_peek(lexer);
     }
     s_ast *pipe = xmalloc(sizeof(s_ast));
@@ -71,7 +72,7 @@ s_ast *parse_redirection(s_lexer *lexer)
 {
   s_token *tok = lexer_pop(lexer);
   s_ast *res = xmalloc(sizeof(s_ast));
-  redir->type = SHNODE_REDIRECTION;
+  res->type = SHNODE_REDIRECTION;
   int left = -1;
   if (tok_is(tok, TOK_IO_NUMBER))
   {
