@@ -16,3 +16,7 @@ typedef struct aif
   {                                           \
     (Condition), (Success), (Failure)         \
   })
+
+#define AST_AIF(Condition, Success, Failure)  \
+  AST(SHNODE_IF, if,                          \
+      AIF(Condition, Success, Failure))
