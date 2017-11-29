@@ -72,6 +72,15 @@ static void skip_spaces(s_cstream *cs)
 }
 
 
+static bool handle_break(s_cstream *cs, s_token *tok)
+{
+  if (TOK_SIZE(tok))
+    return false;
+  read_breaking(cs, tok);
+  return true;
+}
+
+
 /**
 ** \brief reads characters from a stream, to a word.
 ** \param cs the stream to read from
@@ -87,12 +96,7 @@ bool word_read(s_cstream *cs, s_token *tok, s_sherror **error)
       return false;
 
     if (is_breaking(c))
-    {
-      if (TOK_SIZE(tok))
-        return false;
-      read_breaking(cs, tok);
-      return true;
-    }
+      return handle_break(cs, tok);
 
     bool push = true;
     for (size_t i = 0; i < ARR_SIZE(word_readers); i++)
