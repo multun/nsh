@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <string.h>
 
 #include "shparse/parse.h"
 #include "utils/alloc.h"
@@ -43,8 +44,44 @@ s_ast *parse_pipeline(s_lexer *lexer)
   return negate_ast(res, negation);
 }
 
+enum redir_type parse_redir_type(const s_token *tok)
+{
+  if (tok_is(tok, TOK_LESS))
+    return REDIR_LESS;
+  if (tok_is(tok, TOK_DLESS))
+    return REDIR_DLESS;
+  if (tok_is(tok, TOK_GREAT))
+    return REDIR_GREAT;
+  if (tok_is(tok, TOK_DGREAT))
+    return REDIR_DGREAT;
+  if (tok_is(tok, TOK_LESSAND))
+    return REDIR_LESSAND;
+  if (tok_is(tok, TOK_GREATAND))
+    return REDIR_GREATAND;
+  if (tok_is(tok, TOK_LESSDASH))
+    return REDIR_LESSDASH;
+  if (tok_is(tok, TOK_LESSGREAT))
+    return REDIR_LESSGREAT;
+  if (tok_is(tok, TOK_CLOBBER))
+    return REDIR_CLOBBER;
+  abort();
+}
+
 s_ast *parse_redirection(s_lexer *lexer)
 {
-  (void)lexer;
-  return NULL;
+  s_token *tok = lexer_pop(lexer);
+  s_ast *res = xmalloc(sizeof(s_ast));
+  redir->type = SHNODE_REDIRECTION;
+  int left = -1;
+  if (tok_is(tok, TOK_IO_NUMBER))
+  {
+    left = atoi(TOK_STR(tok));
+    //tok_free(tok);
+    tok = lexer_pop(lexer);
+  }
+  enum redir_type type = parse_redir_type(tok);
+  //tok_free(tok);
+  s_wordlist *word = parse_word(lexer);
+  res->data.ast_redirection = AREDIRECTION(type, left, word, NULL);
+  return res;
 }

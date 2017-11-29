@@ -7,10 +7,15 @@ typedef struct aredirection
 {
   enum redir_type
   {
-    REDIR_IN,
-    REDIR_OUT,
-    REDIR_AOUT,
-    // TODO
+    REDIR_LESS,
+    REDIR_DLESS,
+    REDIR_GREAT,
+    REDIR_DGREAT,
+    REDIR_LESSAND,
+    REDIR_GREATAND,
+    REDIR_LESSDASH,
+    REDIR_LESSGREAT,
+    REDIR_CLOBBER,
   } type;
   int left;
   struct wordlist *right;
