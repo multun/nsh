@@ -80,20 +80,28 @@ static void skip_spaces(s_cstream *cs)
 */
 bool word_read(s_cstream *cs, s_token *tok, s_sherror **error)
 {
-  (void)error;
   skip_spaces(cs);
   do {
     int c = cstream_peek(cs);
     if (c == -1)
       return false;
 
-    if (is_breaking(c, 0))
-      return !TOK_SIZE(tok) ? read_breaking(cs, tok, error) : false;
+    if (is_breaking(c))
+    {
+      if (TOK_SIZE(tok))
+        return false;
+      read_breaking(cs, tok);
+      return true;
+    }
 
     bool push = true;
     for (size_t i = 0; i < ARR_SIZE(word_readers); i++)
       if (word_readers[i](cs, tok, error))
+      {
         push = false;
+        if (*error)
+          return true;
+      }
 
     if (push)
       TOK_PUSH(tok, cstream_pop(cs));

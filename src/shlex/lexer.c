@@ -20,10 +20,10 @@ void lexer_free(s_lexer *lexer)
 }
 
 
-static s_token *lexer_lex(s_lexer *lexer)
+static s_token *lexer_lex(s_lexer *lexer, s_sherror **error)
 {
   s_token *res = tok_alloc();
-  word_read(lexer->stream, res, false);
+  word_read(lexer->stream, res, error);
 
   // TODO: if the word is a single carriage
   // return, this function should detect it
@@ -40,8 +40,9 @@ static s_token *lexer_lex(s_lexer *lexer)
 
 const s_token *lexer_peek(s_lexer *lexer)
 {
+  s_sherror *error = NULL; // TODO: removeme
   if (!lexer->head)
-    lexer->head = lexer_lex(lexer);
+    lexer->head = lexer_lex(lexer, &error);
   return lexer->head;
 }
 
@@ -54,5 +55,6 @@ s_token *lexer_pop(s_lexer *lexer)
     lexer->head = NULL;
     return ret;
   }
-  return lexer_lex(lexer);
+  s_sherror *error = NULL;  // TODO: removeme
+  return lexer_lex(lexer, &error);
 }

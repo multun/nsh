@@ -1,35 +1,83 @@
 #include "shlex/breaking.h"
 #include "utils/error.h"
+#include "utils/macros.h"
 
-#include <stddef.h>
+#include <assert.h>
 #include <ctype.h>
+#include <stddef.h>
+#include <string.h>
 
 
-static bool is_operator(char c, size_t pos)
+#define LEX_OPS_MAP(TokName, Value) { Value, sizeof(Value) - 1, TokName },
+
+
+static const struct operator
 {
-  (void)pos;
-  // TODO: actual selection
-  return c == '<';
-}
-
-
-bool is_breaking(char c, size_t pos)
+  const char *repr;
+  size_t repr_size;
+  enum token_type type;
+} g_operators[] =
 {
-  return isblank(c) || c == '\n' || is_operator(c, pos);
-}
+  LEX_OPS(LEX_OPS_MAP)
+};
 
 
-static bool read_operator(s_cstream *cs, s_token *tok, s_sherror **error)
+static bool starts_operator(char c)
 {
-  (void)error;
-  // TODO: actual code
-  TOK_PUSH(tok, cstream_pop(cs));
+  for (size_t i = 0; i < ARR_SIZE(g_operators); i++)
+    if (c ==  g_operators[i].repr[0])
+      return true;
   return false;
 }
 
 
-bool read_breaking(s_cstream *cs, s_token *tok, s_sherror **error)
+bool is_breaking(char c)
 {
-  // TODO: handle \n separatly
-  return read_operator(cs, tok, error);
+  return isblank(c) || c == '\n' || starts_operator(c);
+}
+
+
+static const struct operator *recognise_operator(s_token *tok, char c)
+{
+  for (size_t i = 0; i < ARR_SIZE(g_operators); i++)
+    // TODO: handle null bytes
+    if (!strncmp(TOK_STR(tok), g_operators[i].repr, TOK_SIZE(tok))
+        && g_operators[i].repr[TOK_SIZE(tok)] == c)
+      return &g_operators[i];
+  return NULL;
+}
+
+
+static void read_operator(s_cstream *cs, s_token *tok)
+{
+  const struct operator *op;
+
+  for (int c;; )
+  {
+    // even if peek fails, we should have read at least a single op char
+    if ((c = cstream_peek(cs)) == -1)
+    {
+      assert(TOK_SIZE(tok));
+      break;
+    }
+    const struct operator *next_op = recognise_operator(tok, c);
+    if (!next_op)
+      break;
+    op = next_op;
+    TOK_PUSH(tok, cstream_pop(cs));
+  }
+  assert(op);
+  tok->type = op->type;
+}
+
+
+void read_breaking(s_cstream *cs, s_token *tok)
+{
+  if (cstream_peek(cs) == '\n')
+  {
+    tok->type = TOK_NEWLINE;
+    TOK_PUSH(tok, cstream_pop(cs));
+  }
+  else
+    read_operator(cs, tok);
 }
