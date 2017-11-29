@@ -1,3 +1,4 @@
+#include "shlex/breaking.h"
 #include "shlex/lexer.h"
 #include "utils/error.h"
 #include "utils/macros.h"
@@ -71,35 +72,6 @@ static void skip_spaces(s_cstream *cs)
 }
 
 
-static bool is_operator(char c, size_t pos)
-{
-  (void)pos;
-  // TODO: actual selection
-  return c == '<';
-}
-
-
-static bool is_breaking(char c, size_t pos)
-{
-  return c == '\n' || is_operator(c, pos);
-}
-
-
-static bool read_operator(s_cstream *cs, s_token *tok, s_sherror **error)
-{
-  (void)error;
-  // TODO: actual code
-  TOK_PUSH(tok, cstream_pop(cs));
-  return false;
-}
-
-static bool read_breaking(s_cstream *cs, s_token *tok, s_sherror **error)
-{
-  // TODO: handle \n separatly
-  return read_operator(cs, tok, error);
-}
-
-
 /**
 ** \brief reads characters from a stream, to a word.
 ** \param cs the stream to read from
@@ -118,20 +90,13 @@ bool word_read(s_cstream *cs, s_token *tok, s_sherror **error)
     if (is_breaking(c, 0))
       return !TOK_SIZE(tok) ? read_breaking(cs, tok, error) : false;
 
-    bool cont = true;
+    bool push = true;
     for (size_t i = 0; i < ARR_SIZE(word_readers); i++)
       if (word_readers[i](cs, tok, error))
-        cont = false;
+        push = false;
 
-    if (cont)
-    {
-      if (c == '#' || isblank(c))
-        break;
-
+    if (push)
       TOK_PUSH(tok, cstream_pop(cs));
-      if (c == '\n')
-        break;
-    }
   } while (true);
   return false;
 }
