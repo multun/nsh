@@ -14,3 +14,6 @@ typedef struct acmd
   {                                             \
     (Wordlist)                                  \
   })
+
+#define AST_ACMD(Wordlist)                           \
+  AST(SHNODE_CMD, cmd, ACMD(Wordlist))
