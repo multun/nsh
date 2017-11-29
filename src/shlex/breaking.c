@@ -52,15 +52,15 @@ static void read_operator(s_cstream *cs, s_token *tok)
 {
   const struct operator *op;
 
-  for (int c;; )
+  while (true)
   {
     // even if peek fails, we should have read at least a single op char
-    if ((c = cstream_peek(cs)) == -1)
+    if ((tok->delim = cstream_peek(cs)) == -1)
     {
       assert(TOK_SIZE(tok));
       break;
     }
-    const struct operator *next_op = recognise_operator(tok, c);
+    const struct operator *next_op = recognise_operator(tok, tok->delim);
     if (!next_op)
       break;
     op = next_op;
@@ -77,7 +77,9 @@ void read_breaking(s_cstream *cs, s_token *tok)
   {
     tok->type = TOK_NEWLINE;
     TOK_PUSH(tok, cstream_pop(cs));
+    tok->delim = cstream_peek(cs);
   }
   else
     read_operator(cs, tok);
+  tok->specified = true;
 }

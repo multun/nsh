@@ -2,6 +2,7 @@
 #include "utils/alloc.h"
 
 #include <assert.h>
+#include <ctype.h>
 #include <stdlib.h>
 
 
@@ -20,6 +21,15 @@ void lexer_free(s_lexer *lexer)
 }
 
 
+static bool is_only_digits(s_token *tok)
+{
+  for (size_t i = 0; i < TOK_SIZE(tok); i++)
+    if (!isdigit(TOK_STR(tok)[i]))
+      return false;
+  return true;
+}
+
+
 static s_token *lexer_lex(s_lexer *lexer, s_sherror **error)
 {
   s_token *res = tok_alloc();
@@ -32,6 +42,12 @@ static s_token *lexer_lex(s_lexer *lexer, s_sherror **error)
     tok_free(res, true);
     return NULL;
   }
+
+  // this case is super annoying to handle inside word_read
+  // TODO: move inside word_read and deepen the abstraction
+  if (is_only_digits(res)
+      && (res->delim == '<' || res->delim == '>'))
+    res->type = TOK_IO_NUMBER;
 
   TOK_PUSH(res, '\0');
   return res;

@@ -13,15 +13,14 @@ static bool read_single_quote(s_cstream *cs, s_token *tok, s_sherror **error)
     return false;
 
   TOK_PUSH(tok, cstream_pop(cs));
-  int c;
-  while ((c = cstream_pop(cs)) != '\'')
-    if (c == -1)
+  while ((tok->delim = cstream_pop(cs)) != '\'')
+    if (tok->delim == -1)
       // TODO: error message
       return true;
     else
-      TOK_PUSH(tok, c);
-  TOK_PUSH(tok, c);
-
+      TOK_PUSH(tok, tok->delim);
+  TOK_PUSH(tok, tok->delim);
+  tok->delim = cstream_peek(cs);
   return true;
 }
 
@@ -29,15 +28,17 @@ static bool read_single_quote(s_cstream *cs, s_token *tok, s_sherror **error)
 static bool read_backslash(s_cstream *cs, s_token *tok, s_sherror **error)
 {
   (void)error;
-  if (cstream_peek(cs) != '\\')
+  if (tok->delim != '\\')
     return false;
 
-  int c = cstream_pop(cs);
+  TOK_PUSH(tok, cstream_pop(cs));
   // TODO: handle errors
-  if (c != '\n')
-    TOK_PUSH(tok, c);
+  if ((tok->delim = cstream_pop(cs)) != '\n')
+    TOK_PUSH(tok, tok->delim);
+  tok->delim = cstream_peek(cs);
   return true;
 }
+
 
 static bool read_double_quote(s_cstream *cs, s_token *tok, s_sherror **error)
 {
@@ -91,11 +92,10 @@ bool word_read(s_cstream *cs, s_token *tok, s_sherror **error)
 {
   skip_spaces(cs);
   do {
-    int c = cstream_peek(cs);
-    if (c == -1)
+    if ((tok->delim = cstream_peek(cs)) == -1)
       return false;
 
-    if (is_breaking(c))
+    if (is_breaking(tok->delim))
       return handle_break(cs, tok);
 
     bool push = true;

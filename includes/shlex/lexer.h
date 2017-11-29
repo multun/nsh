@@ -73,6 +73,8 @@ typedef struct token
     LEX_GEN_TOKS(LEX_GEN_TOKS_ENUM)
   } type;
 
+  int delim;
+  bool specified;
   struct evect str;
 } s_token;
 
