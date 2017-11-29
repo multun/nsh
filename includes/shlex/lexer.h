@@ -8,60 +8,69 @@
 #include "utils/evect.h"
 
 
+#define LEX_OPS(F)        \
+  F(TOK_AND_IF,    "&&")  \
+  F(TOK_OR_IF,     "||")  \
+  F(TOK_DSEMI,     ";;")  \
+  F(TOK_DLESS,     "<<")  \
+  F(TOK_DGREAT,    ">>")  \
+  F(TOK_LESSAND,   "<&")  \
+  F(TOK_GREATAND,  ">&")  \
+  F(TOK_LESSGREAT, "<>")  \
+  F(TOK_LESSDASH,  "<<-") \
+                          \
+  F(TOK_CLOBBER,   ">|")  \
+  F(TOK_LESS,      "<")   \
+  F(TOK_GREAT,     ">")   \
+                          \
+  F(TOK_SEMI,      ";")   \
+  F(TOK_AND,       "&")   \
+  F(TOK_PIPE,      "|")
+
+#define LEX_OPS_ENUM(TokName, Value) TokName,
+
+
+#define LEX_GEN_TOKS(F)   \
+  F(TOK_WORD)             \
+  F(TOK_ASSIGNEMENT_WORD) \
+  F(TOK_NAME)             \
+  F(TOK_NEWLINE)          \
+  F(TOK_IO_NUMBER)        \
+                          \
+  F(TOK_IF)               \
+  F(TOK_THEN)             \
+  F(TOK_ELSE)             \
+  F(TOK_ELIF)             \
+  F(TOK_FI)               \
+  F(TOK_DO)               \
+  F(TOK_DONE)             \
+                          \
+  F(TOK_CASE)             \
+  F(TOK_ESAC)             \
+  F(TOK_WHILE)            \
+  F(TOK_UNTIL)            \
+  F(TOK_FOR)              \
+  F(TOK_LPAR)             \
+  F(TOK_RPAR)             \
+  F(TOK_LBRACE)           \
+  F(TOK_RBRACE)           \
+  F(TOK_BANG)             \
+  F(TOK_IN)               \
+                          \
+  F(TOK_FUNC)             \
+                          \
+  F(TOK_EOF)
+
+#define LEX_GEN_TOKS_ENUM(Tokname) Tokname,
+
 #define TOK_BUF_MIN_SIZE 10
 
 typedef struct token
 {
   enum token_type
   {
-    TOK_WORD,
-    TOK_ASSIGNEMENT_WORD,
-    TOK_NAME,
-    TOK_NEWLINE,
-    TOK_IO_NUMBER,
-
-    TOK_AND_IF,     // &&
-    TOK_OR_IF,      // ||
-    TOK_DSEMI,      // ;;
-    TOK_DLESS,      // <<
-    TOK_DGREAT,     // >>
-    TOK_LESSAND,    // <&
-    TOK_GREATAND,   // >&
-    TOK_LESSGREAT,  // <>
-    TOK_LESSDASH,   // <<-
-
-    TOK_CLOBBER,    // >|
-    TOK_LESS,       // <
-    TOK_GREAT,      // >
-
-    TOK_SEMI,       // ;
-    TOK_AND,        // &
-    TOK_PIPE,       // |
-
-    TOK_IF,
-    TOK_THEN,
-    TOK_ELSE,
-    TOK_ELIF,
-    TOK_FI,
-    TOK_DO,
-    TOK_DONE,
-
-    TOK_CASE,
-    TOK_ESAC,
-    TOK_WHILE,
-    TOK_UNTIL,
-    TOK_FOR,
-
-    TOK_LPAR,
-    TOK_RPAR,
-    TOK_LBRACE,
-    TOK_RBRACE,
-    TOK_BANG,
-    TOK_IN,
-
-    TOK_FUNC,
-
-    TOK_EOF,
+    LEX_OPS(LEX_OPS_ENUM)
+    LEX_GEN_TOKS(LEX_GEN_TOKS_ENUM)
   } type;
 
   struct evect str;
