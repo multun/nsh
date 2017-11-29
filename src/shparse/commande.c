@@ -37,6 +37,12 @@ static s_ast *redirection_loop(s_lexer *lexer, s_ast *cmd)
     redir = tmp;
     tok = lexer_peek(lexer);
   }
+  if (cmd->type == SHNODE_FUNCTION)
+  {
+    res->data.ast_block.cmd = cmd->data.ast_function.value;
+    cmd->data.ast_function.value = res;
+    return cmd;
+  }
   return res;
 }
 
