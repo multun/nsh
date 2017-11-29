@@ -17,3 +17,6 @@ typedef struct wordlist
   {                                               \
     (Str), (Split), (Expand), (Next)              \
   })
+
+#define WL(Str)                                   \
+  WORDLIST(Str, false, false, NULL)
