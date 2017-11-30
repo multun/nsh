@@ -50,7 +50,7 @@ static const struct operator *recognise_operator(s_token *tok, char c)
 
 static void read_operator(s_cstream *cs, s_token *tok)
 {
-  const struct operator *op;
+  const struct operator *op = NULL;
   const struct operator *next_op;
 
   while ((tok->delim = cstream_peek(cs)) != EOF
