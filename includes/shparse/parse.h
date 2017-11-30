@@ -13,8 +13,6 @@ s_ast *parse_simple_command(s_lexer *lexer, s_token *word);
 s_ast *parse_shell_command(s_lexer *lexer);
 s_ast *parse_funcdec(s_lexer *lexer, s_token *word);
 s_ast *parse_redirection(s_lexer *lexer);
-s_ast *parse_prefix(s_lexer *lexer);
-s_ast *parse_element(s_lexer *lexer);
 s_ast *parse_compound_list(s_lexer *lexer);
 
 s_ast *parse_rule_for(s_lexer *lexer);
@@ -25,7 +23,8 @@ s_ast *parse_rule_if(s_lexer *lexer);
 
 s_ast *parse_else_clause(s_lexer *lexer);
 s_ast *parse_do_group(s_lexer *lexer);
-s_ast *parse_case_clause(s_lexer *lexer);
-s_ast *parse_case_item(s_lexer *lexer);
+s_acase_node *parse_case_clause(s_lexer *lexer);
+s_acase_node *parse_case_item(s_lexer *lexer);
 
 s_wordlist *parse_word(s_lexer *lexer);
+void parse_newlines(s_lexer *lexer);
