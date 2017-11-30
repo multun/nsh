@@ -8,7 +8,7 @@
 #include "utils/evect.h"
 
 
-#define LEX_OP_TOKS(F)        \
+#define LEX_OP_TOKS(F)    \
   F(TOK_AND_IF,    "&&")  \
   F(TOK_OR_IF,     "||")  \
   F(TOK_DSEMI,     ";;")  \
@@ -79,6 +79,7 @@ typedef struct token
     LEX_GEN_TOKS(LEX_GEN_TOKS_ENUM)
   } type;
 
+  s_lineinfo lineinfo;
   int delim;
   bool specified;
   struct evect str;
@@ -95,7 +96,7 @@ typedef struct lexer
   s_cstream *stream;
 } s_lexer;
 
-s_token *tok_alloc(void);
+s_token *tok_alloc(s_lexer *lexer);
 void tok_free(s_token *free, bool free_buf);
 
 bool tok_is(const s_token *tok, enum token_type type);
@@ -107,4 +108,4 @@ void lexer_free(s_lexer *lexer);
 const s_token *lexer_peek(s_lexer *lexer);
 s_token *lexer_pop(s_lexer *lexer);
 
-void word_read(s_cstream *cs, s_token *tok, s_sherror **error);
+void word_read(s_cstream *cs, s_token *tok, s_errman *errman);

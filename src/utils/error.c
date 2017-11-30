@@ -1,17 +1,26 @@
 #include "utils/alloc.h"
 #include "utils/error.h"
 
+#include <assert.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-s_sherror *sherror_alloc(s_lineinfo *lineinfo, char *message)
+
+int sherror(s_lineinfo *li, s_errman *errman, const char *format, ...)
 {
-  s_sherror *res = xmalloc(sizeof(*res));
-  res->lineinfo = lineinfo;
-  res->message = message;
-  return res;
-}
+  va_list ap;
+  va_start(ap, format);
 
+  assert(errman);
+  errman->panic = true;
 
-s_sherror *sherror_free(s_sherror *error)
-{
-  free(error);
+  fprintf(stderr, "%s:%zu:%zu: ", li->source, li->line,
+          li->column);
+
+  vfprintf(stderr, format, ap);
+  fputc('\n', stderr);
+
+  va_end(ap);
+  return true;
 }

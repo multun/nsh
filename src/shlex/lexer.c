@@ -31,16 +31,14 @@ static bool is_only_digits(s_token *tok)
 }
 
 
-static s_token *lexer_lex(s_lexer *lexer, s_sherror **error)
+static s_token *lexer_lex(s_lexer *lexer, s_errman *errman)
 {
-  assert(!*error);
-  s_token *res = tok_alloc();
-  word_read(lexer->stream, res, error);
-  if (*error)
-    warnx("lexing error");
+  assert(!ERRMAN_FAILING(errman));
+  s_token *res = tok_alloc(lexer);
+  word_read(lexer->stream, res, errman);
 
-  // TODO: hm dafuk ?
-  if (!res->str.size)
+  // TODO: handle EOF token
+  if (ERRMAN_FAILING(errman) || !TOK_SIZE(res))
   {
     tok_free(res, true);
     return NULL;
@@ -59,9 +57,9 @@ static s_token *lexer_lex(s_lexer *lexer, s_sherror **error)
 
 const s_token *lexer_peek(s_lexer *lexer)
 {
-  s_sherror *error = NULL; // TODO: removeme
+  s_errman errman = ERRMAN; // TODO: removeme
   if (!lexer->head)
-    lexer->head = lexer_lex(lexer, &error);
+    lexer->head = lexer_lex(lexer, &errman);
   return lexer->head;
 }
 
@@ -74,6 +72,7 @@ s_token *lexer_pop(s_lexer *lexer)
     lexer->head = NULL;
     return ret;
   }
-  s_sherror *error = NULL;  // TODO: removeme
-  return lexer_lex(lexer, &error);
+
+  s_errman errman = ERRMAN; // TODO: removeme
+  return lexer_lex(lexer, &errman);
 }

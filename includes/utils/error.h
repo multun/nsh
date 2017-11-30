@@ -2,21 +2,24 @@
 
 #include "utils/lineinfo.h"
 
+#include <stdbool.h>
+#include <stdio.h>
 
-typedef struct sherror
+
+typedef struct errman
 {
-  s_lineinfo lineinfo;
-  char *message;
-} s_sherror;
+  bool panic;
+} s_errman;
 
 
-#define SHERROR(Lineinfo, Message)              \
-  (s_sherror)                                   \
-  {                                             \
-    .lineinfo = (Lineinfo),                     \
-    .message = (Message),                       \
+#define ERRMAN_FAILING(Errman) ((Errman)->panic)
+
+
+#define ERRMAN      \
+  (s_errman)        \
+  {                 \
+    .panic = false, \
   }
 
 
-s_sherror *sherror_alloc(s_lineinfo *lineinfo, char *message);
-s_sherror *sherror_free(s_sherror *error);
+int sherror(s_lineinfo *lineinfo, s_errman *errman, const char *format, ...);

@@ -6,15 +6,15 @@
 #include <ctype.h>
 
 
-static bool read_single_quote(s_cstream *cs, s_token *tok, s_sherror **error)
+static bool read_single_quote(s_cstream *cs, s_token *tok, s_errman *errman)
 {
-  (void)error;
+  (void)errman;
   if (cstream_peek(cs) != '\'')
     return false;
 
   TOK_PUSH(tok, cstream_pop(cs));
   while ((tok->delim = cstream_pop(cs)) != '\'')
-    if (tok->delim == -1)
+    if (tok->delim == EOF)
       // TODO: error message
       return true;
     else
@@ -25,22 +25,25 @@ static bool read_single_quote(s_cstream *cs, s_token *tok, s_sherror **error)
 }
 
 
-static bool read_backslash(s_cstream *cs, s_token *tok, s_sherror **error)
+static bool read_backslash(s_cstream *cs, s_token *tok, s_errman *errman)
 {
-  (void)error;
+  (void)errman;
   if (tok->delim != '\\')
     return false;
 
   TOK_PUSH(tok, cstream_pop(cs));
-  // TODO: handle errors
-  if ((tok->delim = cstream_pop(cs)) != '\n')
+  if ((tok->delim = cstream_pop(cs)) == EOF)
+    return sherror(&cs->line_info, errman, "can't escape EOF");
+
+  if (tok->delim != '\n')
     TOK_PUSH(tok, tok->delim);
+
   tok->delim = cstream_peek(cs);
   return true;
 }
 
 
-static bool read_double_quote(s_cstream *cs, s_token *tok, s_sherror **error)
+static bool read_double_quote(s_cstream *cs, s_token *tok, s_errman *errman)
 {
   if (cstream_peek(cs) != '"')
     return false;
@@ -53,7 +56,7 @@ static bool read_double_quote(s_cstream *cs, s_token *tok, s_sherror **error)
       return true;
     else if (tok->delim == '\\')
       // TODO: error handling
-      read_backslash(cs, tok, error);
+      read_backslash(cs, tok, errman);
     else
       TOK_PUSH(tok, cstream_pop(cs));
   }
@@ -66,7 +69,7 @@ static bool read_double_quote(s_cstream *cs, s_token *tok, s_sherror **error)
 /**
 ** \return whether some special sequence was read
 */
-typedef bool (*f_tok_reader)(s_cstream *cs, s_token *tok, s_sherror **error);
+typedef bool (*f_tok_reader)(s_cstream *cs, s_token *tok, s_errman *errman);
 
 static const f_tok_reader word_readers[] =
 {
@@ -102,7 +105,7 @@ static void handle_break(s_cstream *cs, s_token *tok)
 ** \param error an error location
 ** \return whether we hit EOF
 */
-void word_read(s_cstream *cs, s_token *tok, s_sherror **error)
+void word_read(s_cstream *cs, s_token *tok, s_errman *errman)
 {
   skip_spaces(cs);
   while ((tok->delim = cstream_peek(cs)) != EOF)
@@ -115,10 +118,10 @@ void word_read(s_cstream *cs, s_token *tok, s_sherror **error)
 
     bool push = true;
     for (size_t i = 0; i < ARR_SIZE(word_readers); i++)
-      if (word_readers[i](cs, tok, error))
+      if (word_readers[i](cs, tok, errman))
       {
         push = false;
-        if (*error)
+        if (ERRMAN_FAILING(errman))
           return;
       }
 
