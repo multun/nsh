@@ -20,3 +20,6 @@ typedef struct wordlist
 
 #define WL(Str)                                   \
   WORDLIST(Str, false, false, NULL)
+
+
+char **wordlist_to_argc(s_wordlist *wl);

@@ -20,3 +20,4 @@ typedef struct acmd
 
 
 void cmd_print(FILE *f, struct ast *node);
+int cmd_exec(struct ast *node);
