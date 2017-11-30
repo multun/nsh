@@ -2,6 +2,7 @@
 #include "utils/alloc.h"
 
 #include <assert.h>
+#include <err.h>
 #include <ctype.h>
 #include <stdlib.h>
 
@@ -32,11 +33,13 @@ static bool is_only_digits(s_token *tok)
 
 static s_token *lexer_lex(s_lexer *lexer, s_sherror **error)
 {
+  assert(!*error);
   s_token *res = tok_alloc();
   word_read(lexer->stream, res, error);
+  if (*error)
+    warnx("lexing error");
 
-  // TODO: if the word is a single carriage
-  // return, this function should detect it
+  // TODO: hm dafuk ?
   if (!res->str.size)
   {
     tok_free(res, true);

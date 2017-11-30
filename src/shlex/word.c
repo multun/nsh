@@ -87,12 +87,11 @@ static void skip_spaces(s_cstream *cs)
 }
 
 
-static bool handle_break(s_cstream *cs, s_token *tok)
+static void handle_break(s_cstream *cs, s_token *tok)
 {
   if (TOK_SIZE(tok))
-    return false;
+    return;
   read_breaking(cs, tok);
-  return true;
 }
 
 
@@ -100,17 +99,19 @@ static bool handle_break(s_cstream *cs, s_token *tok)
 ** \brief reads characters from a stream, to a word.
 ** \param cs the stream to read from
 ** \param tok the token to write into
-** \param quoted whether we're inside a double quote
+** \param error an error location
+** \return whether we hit EOF
 */
-bool word_read(s_cstream *cs, s_token *tok, s_sherror **error)
+void word_read(s_cstream *cs, s_token *tok, s_sherror **error)
 {
   skip_spaces(cs);
-  do {
-    if ((tok->delim = cstream_peek(cs)) == -1)
-      return false;
-
+  while ((tok->delim = cstream_peek(cs)) != EOF)
+  {
     if (is_breaking(tok->delim))
-      return handle_break(cs, tok);
+    {
+      handle_break(cs, tok);
+      break;
+    }
 
     bool push = true;
     for (size_t i = 0; i < ARR_SIZE(word_readers); i++)
@@ -118,11 +119,11 @@ bool word_read(s_cstream *cs, s_token *tok, s_sherror **error)
       {
         push = false;
         if (*error)
-          return true;
+          return;
       }
 
     if (push)
       TOK_PUSH(tok, cstream_pop(cs));
-  } while (true);
-  return false;
+  }
+  return;
 }

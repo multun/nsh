@@ -107,4 +107,4 @@ void lexer_free(s_lexer *lexer);
 const s_token *lexer_peek(s_lexer *lexer);
 s_token *lexer_pop(s_lexer *lexer);
 
-bool word_read(s_cstream *cs, s_token *tok, s_sherror **error);
+void word_read(s_cstream *cs, s_token *tok, s_sherror **error);
