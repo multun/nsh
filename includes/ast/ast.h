@@ -14,7 +14,7 @@
 #include "ast/case.h"
 #include "ast/bool_op.h"
 #include "ast/list.h"
-#include "ast/assignement.h"
+#include "ast/assignment.h"
 #include "ast/function.h"
 #include "ast/block.h"
 
@@ -36,7 +36,7 @@
   F(SHNODE_CASE, case_print, NULL)                                       \
   F(SHNODE_BOOL_OP, bool_op_print, NULL)                                 \
   F(SHNODE_LIST, list_print, NULL)                                       \
-  F(SHNODE_ASSIGNEMENT, assignement_print, NULL)                         \
+  F(SHNODE_ASSIGNMENT, assignment_print, NULL)                         \
   F(SHNODE_FUNCTION, function_print, NULL)                               \
   F(SHNODE_BLOCK, if_print, NULL)
 
@@ -60,7 +60,7 @@ typedef struct ast
     s_acase ast_case;
     s_abool_op ast_bool_op;
     s_alist ast_list;
-    s_aassignement ast_assignement;
+    s_aassignment ast_assignment;
     s_afunction ast_function;
     s_ablock ast_block;
   } data;
