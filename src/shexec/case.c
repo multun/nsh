@@ -14,8 +14,15 @@ void case_print(FILE *f, s_ast *ast)
   {
     ast_print_rec(f, node->action);
     void *id_next = node->action;
-    fprintf(f, "\"%p\" -> \"%p\" [label=\"%s\"];\n", id, id_next,
-            node->pattern->str);
+    s_wordlist *pattern = node->pattern;
+    fprintf(f, "\"%p\" -> \"%p\" [label=\"%s", id, id_next, pattern->str);
+    pattern = pattern->next;
+    while (pattern)
+    {
+      fprintf(f, "\n%s", pattern->str);
+      pattern = pattern->next;
+    }
+    fprintf(f, "\"];\n");
     node = node->next;
   }
 }
