@@ -15,3 +15,6 @@ typedef struct apipe
 
 #define AST_PIPE(Left, Right)                                     \
   AST(SHNODE_PIPE, pipe, APIPE(Left, Right))
+
+
+void pipe_print(FILE *f, struct ast *ast);
