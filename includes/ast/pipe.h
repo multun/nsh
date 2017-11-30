@@ -7,8 +7,11 @@ typedef struct apipe
 } s_apipe;
 
 
-#define APIPE(Left, Right)                      \
-  ((s_apipe)                                    \
-  {                                             \
-    (Left), (Right)                             \
+#define APIPE(Left, Right)                                        \
+  ((s_apipe)                                                      \
+  {                                                               \
+    (Left), (Right)                                               \
   })
+
+#define AST_PIPE(Left, Right)                                     \
+  AST(SHNODE_PIPE, pipe, APIPE(Left, Right))

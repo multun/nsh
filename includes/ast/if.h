@@ -20,3 +20,6 @@ typedef struct aif
 #define AST_AIF(Condition, Success, Failure)  \
   AST(SHNODE_IF, if,                          \
       AIF(Condition, Success, Failure))
+
+
+void if_print(FILE *f, struct ast *node);

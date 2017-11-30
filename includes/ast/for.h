@@ -19,3 +19,6 @@ typedef struct afor
 
 #define AST_AFOR(Var, Collection, Actions)                        \
   AST(SHNODE_FOR, for, AFOR(Var, Collection, Actions))
+
+
+void for_print(FILE *f, struct ast *ast);

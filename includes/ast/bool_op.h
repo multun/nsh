@@ -14,8 +14,14 @@ typedef struct abool_op
 } s_abool_op;
 
 
-#define ABOOL_OP(Type, Left, Right)               \
-  ((s_abool_op)                                   \
-  {                                               \
-    (Type), (Left), (Right)                       \
+#define ABOOL_OP(Type, Left, Right)                               \
+  ((s_abool_op)                                                   \
+  {                                                               \
+    (Type), (Left), (Right)                                       \
   })
+
+#define AST_ABOOL_OP(Type, Left, Right)                           \
+  AST(SHNODE_BOOL_OP, bool_op, ABOOL_OP(Type, Left, Right))
+
+
+void bool_op_print(FILE *f, struct ast *ast);

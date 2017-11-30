@@ -17,3 +17,6 @@ typedef struct acmd
 
 #define AST_ACMD(Wordlist)                           \
   AST(SHNODE_CMD, cmd, ACMD(Wordlist))
+
+
+void cmd_print(FILE *f, struct ast *node);

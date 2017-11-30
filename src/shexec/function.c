@@ -1,0 +1,14 @@
+#include <stdio.h>
+
+#include "ast/ast.h"
+
+
+void function_print(FILE *f, s_ast *ast)
+{
+  s_afunction *function = &ast->data.ast_function;
+  void *id = ast;
+  fprintf(f, "\"%p\" [label=\"FUNC\n%s\"];\n", id, function->name->str);
+  void *id_next = function->value;
+  ast_print_rec(f, function->value);
+  fprintf(f, "\"%p\" -> \"%p\";\n", id, id_next);
+}

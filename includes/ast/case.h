@@ -11,10 +11,10 @@ typedef struct acase_node
 } s_acase_node;
 
 
-#define ACASE_NODE(Pattern, Action, Next)       \
-  ((s_acase_node)                               \
-  {                                             \
-    (Pattern), (Action), (Next)                 \
+#define ACASE_NODE(Pattern, Action, Next)                           \
+  ((s_acase_node)                                                   \
+  {                                                                 \
+    (Pattern), (Action), (Next)                                     \
   })
 
 
@@ -25,8 +25,14 @@ typedef struct acase
 } s_acase;
 
 
-#define ACASE(Var, Nodes)                       \
-  ((s_acase)                                    \
-  {                                             \
-    (Var), (Nodes)                              \
+#define ACASE(Var, Nodes)                                           \
+  ((s_acase)                                                        \
+  {                                                                 \
+    (Var), (Nodes)                                                  \
   })
+
+#define AST_ACAST(Var, Nodes)                                       \
+  AST(SHNODE_CASE, case, ACASE(Var, Nodes))
+
+
+void case_print(FILE *f, struct ast *ast);

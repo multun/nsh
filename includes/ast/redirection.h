@@ -23,8 +23,12 @@ typedef struct aredirection
 } s_aredirection;
 
 
-#define AREDIRECTION(Type, Left, Right, Action)     \
-  ((s_aredirection)                                 \
-  {                                                 \
-    (Type), (Left), (Right), (Action)               \
+#define AREDIRECTION(Type, Left, Right, Action)                   \
+  ((s_aredirection)                                               \
+  {                                                               \
+    (Type), (Left), (Right), (Action)                             \
   })
+
+#define AST_AREDIRECTION(Type, Left, Right, Action)               \
+  AST(SHNODE_REDIRECTION, redirection,                            \
+      AREDIRECTION(Type, Left, Right, Action))

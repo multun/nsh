@@ -19,23 +19,33 @@
 #include "ast/block.h"
 
 
+#define DECLARE_AST_TYPE_ENUM(Name, Printer, Exec)                       \
+  Name,
+
+#define DECLARE_AST_PRINT_UTILS(Name, Printer, Exec)                     \
+  Printer,
+
+#define AST_TYPE_APPLY(F)                                                \
+  F(SHNODE_CMD, cmd_print, NULL)                                         \
+  F(SHNODE_IF, if_print, NULL)                                           \
+  F(SHNODE_FOR, for_print, NULL)                                         \
+  F(SHNODE_WHILE, while_print, NULL)                                     \
+  F(SHNODE_UNTIL, until_print, NULL)                                     \
+  F(SHNODE_REDIRECTION, NULL, NULL)                                      \
+  F(SHNODE_PIPE, NULL, NULL)                                             \
+  F(SHNODE_CASE, case_print, NULL)                                       \
+  F(SHNODE_BOOL_OP, bool_op_print, NULL)                                 \
+  F(SHNODE_LIST, list_print, NULL)                                       \
+  F(SHNODE_ASSIGNEMENT, assignement_print, NULL)                         \
+  F(SHNODE_FUNCTION, function_print, NULL)                               \
+  F(SHNODE_BLOCK, if_print, NULL)
+
+
 typedef struct ast
 {
   enum shnode_type
   {
-    SHNODE_CMD,
-    SHNODE_IF,
-    SHNODE_FOR,
-    SHNODE_WHILE,
-    SHNODE_UNTIL,
-    SHNODE_REDIRECTION,
-    SHNODE_PIPE,
-    SHNODE_CASE,
-    SHNODE_BOOL_OP,
-    SHNODE_LIST,
-    SHNODE_ASSIGNEMENT,
-    SHNODE_FUNCTION,
-    SHNODE_BLOCK,
+    AST_TYPE_APPLY(DECLARE_AST_TYPE_ENUM)
   } type;
 
   union
@@ -65,4 +75,6 @@ typedef struct ast
   })
 
 
+
+void ast_print_rec(FILE *f, s_ast *ast);
 void ast_print(FILE *f, s_ast *ast);

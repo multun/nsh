@@ -10,8 +10,14 @@ typedef struct afunction
 } s_afunction;
 
 
-#define AFUNCTION(Name, Value)                  \
-  ((s_afunction)                                \
-  {                                             \
-    (Name), (Value)                             \
+#define AFUNCTION(Name, Value)                                                \
+  ((s_afunction)                                                              \
+  {                                                                           \
+    (Name), (Value)                                                           \
   })
+
+#define AST_AFUNCTION(Name, Value)                                            \
+  AST(SHNODE_FUNCTION, function, AFUNCTION(Name, Value)
+
+
+void function_print(FILE *f, struct ast *ast);

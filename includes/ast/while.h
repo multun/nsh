@@ -16,3 +16,6 @@ typedef struct awhile
 
 #define AST_AWHILE(Condition, Actions)                    \
   AST(SHNODE_WHILE, while, AWHILE(Condition, Actions))
+
+
+void while_print(FILE *f, struct ast *ast);

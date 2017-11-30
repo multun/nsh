@@ -7,8 +7,14 @@ typedef struct auntil
 } s_auntil;
 
 
-#define AUNTIL(Condition, Actions)                \
-  ((s_auntil)                                     \
-  {                                               \
-    (Condition), (Actions)                        \
+#define AUNTIL(Condition, Actions)                                \
+  ((s_auntil)                                                     \
+  {                                                               \
+    (Condition), (Actions)                                        \
   })
+
+#define AST_AUNTIL(Condition, Actions)                            \
+  AST(SHNODE_UNTIL, until, AUNTIL(Condition, Actions))
+
+
+void until_print(FILE *f, struct ast *ast);
