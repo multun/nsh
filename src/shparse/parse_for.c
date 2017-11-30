@@ -8,20 +8,18 @@ static s_wordlist *for_word_loop(s_lexer *lexer)
   const s_token *tok = lexer_peek(lexer);
   s_wordlist *res = NULL;
   s_wordlist *tail = NULL;
-  while (tok_is(tok, TOK_WORD))
+  while (!tok_is(tok, TOK_SEMI) && !tok_is(tok, TOK_NEWLINE))
   {
-    s_token *w = lexer_pop(lexer);
-    s_wordlist *tmp = xmalloc(sizeof(s_wordlist));
-    *tmp = WORDLIST(TOK_STR(w), true, true, NULL);
+    s_wordlist *tmp = parse_word(lexer);
     if (!res)
       res = tmp;
     else
       tail->next = tmp;
     tail = tmp;
-    //tok_free(w);
     tok = lexer_peek(lexer);
   }
   // TODO: handle parsing error
+  tok_free(lexer_pop(lexer), true);
   return res;
 }
 
@@ -29,17 +27,14 @@ static s_wordlist *parse_in(s_lexer *lexer, bool *in)
 {
   s_wordlist *words = NULL;
   const s_token *tok = lexer_peek(lexer);
-  if (tok_is(tok, TOK_NEWLINE))
+  if (tok_is(tok, TOK_NEWLINE) || tok_is(tok, TOK_IN))
   {
-    while (tok_is(tok, TOK_NEWLINE))
-    {
-      /*tok_free*/(lexer_pop(lexer));
-      tok = lexer_peek(lexer);
-    }
+    parse_newlines(lexer);
+    tok = lexer_peek(lexer);
     if (tok_is(tok, TOK_IN))
     {
       *in = true;
-      /*tok_free*/(lexer_pop(lexer));
+      tok_free(lexer_pop(lexer), true);
       words = for_word_loop(lexer);
     }
   }
@@ -48,22 +43,23 @@ static s_wordlist *parse_in(s_lexer *lexer, bool *in)
 
 s_ast *parse_rule_for(s_lexer *lexer)
 {
-  /*tok_free*/(lexer_pop(lexer));
+  tok_free(lexer_pop(lexer), true);
   s_ast *res = xmalloc(sizeof(s_ast));
   res->type = SHNODE_FOR;
   s_wordlist *name = parse_word(lexer); // TODO: handle parsing error
+  s_wordlist *words = NULL;
   bool in = false;
-  s_wordlist *words = parse_in(lexer, &in);
   const s_token *tok = lexer_peek(lexer);
-  if (!tok_is(tok, TOK_NEWLINE) && !tok_is(tok, TOK_SEMI))
-    return NULL; // TODO: handle parsing error
-  /*tok_free*/(lexer_pop(lexer));
-  tok = lexer_peek(lexer);
-  while (tok_is(tok, TOK_NEWLINE))
+  if (!tok_is(tok, TOK_DO))
   {
-    /*tok_free*/(lexer_pop(lexer));
+    if (!tok_is(tok, TOK_NEWLINE) && !tok_is(tok, TOK_SEMI))
+      return NULL; // TODO: handle parsing error
+    words = parse_in(lexer, &in);
+    parse_newlines(lexer);
     tok = lexer_peek(lexer);
   }
+  if (!tok_is(tok, TOK_DO))
+    return NULL; // TODO: raise unexpected token
   res->data.ast_for = AFOR(name, words, parse_do_group(lexer));
   return res; // TODO: handle parsing error
 }
