@@ -8,15 +8,14 @@
 
 static bool read_single_quote(s_cstream *cs, s_token *tok, s_errman *errman)
 {
-  (void)errman;
   if (cstream_peek(cs) != '\'')
     return false;
 
   TOK_PUSH(tok, cstream_pop(cs));
   while ((tok->delim = cstream_pop(cs)) != '\'')
     if (tok->delim == EOF)
-      // TODO: error message
-      return true;
+      return sherror(&cs->line_info, errman, "unexpected EOF"
+                     " while reading simple quoted string");
     else
       TOK_PUSH(tok, tok->delim);
   TOK_PUSH(tok, tok->delim);
@@ -27,7 +26,6 @@ static bool read_single_quote(s_cstream *cs, s_token *tok, s_errman *errman)
 
 static bool read_backslash(s_cstream *cs, s_token *tok, s_errman *errman)
 {
-  (void)errman;
   if (tok->delim != '\\')
     return false;
 
@@ -52,11 +50,14 @@ static bool read_double_quote(s_cstream *cs, s_token *tok, s_errman *errman)
   while ((tok->delim = cstream_peek(cs)) != '"')
   {
     if (tok->delim == EOF)
-      // TODO: error message
-      return true;
+      return sherror(&cs->line_info, errman, "unexpected EOF"
+                     " while reading double quoted string");
     else if (tok->delim == '\\')
-      // TODO: error handling
+    {
       read_backslash(cs, tok, errman);
+      if (ERRMAN_FAILING(errman))
+        return true;
+    }
     else
       TOK_PUSH(tok, cstream_pop(cs));
   }
