@@ -12,6 +12,7 @@
 
 /42sh
 
+
 # AUTOTOOLS
 Makefile
 aclocal.m4
@@ -34,3 +35,5 @@ aclocal.m4
 *.in
 *.lo
 *.la
+
+/includes/gen
