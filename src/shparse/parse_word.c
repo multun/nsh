@@ -11,6 +11,6 @@ s_wordlist *parse_word(s_lexer *lexer)
   s_wordlist *res = xmalloc(sizeof(s_wordlist));
   s_token *wrd = lexer_pop(lexer);
   *res = WORDLIST(TOK_STR(wrd), true, true, NULL);
-  //tok_free(wrd);
+  tok_free(wrd, false);
   return res;
 }

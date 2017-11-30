@@ -13,12 +13,8 @@ static bool compound_list_end(const s_token *tok)
 
 static bool compound_list_loop(s_lexer *lexer, s_alist **tail)
 {
+  parse_newlines(lexer);
   const s_token *tok = lexer_peek(lexer);
-  while (tok_is(tok, TOK_NEWLINE))
-  {
-    /*tok_free*/(lexer_pop(lexer));
-    tok = lexer_peek(lexer);
-  }
   if (compound_list_end(tok))
     return true;
   (*tail)->next = xmalloc(sizeof(s_alist));
@@ -30,12 +26,8 @@ static bool compound_list_loop(s_lexer *lexer, s_alist **tail)
 
 s_ast *parse_compound_list(s_lexer *lexer)
 {
+  parse_newlines(lexer);
   const s_token *tok = lexer_peek(lexer);
-  while (tok_is(tok, TOK_NEWLINE))
-  {
-    /*tok_free*/(lexer_pop(lexer));
-    tok = lexer_peek(lexer);
-  }
   tok = lexer_peek(lexer);
   s_ast *res = xmalloc(sizeof(s_ast));
   res->type = SHNODE_LIST;
@@ -45,7 +37,7 @@ s_ast *parse_compound_list(s_lexer *lexer)
   while (tok_is(tok, TOK_SEMI) || tok_is(tok, TOK_AND)
          || tok_is(tok, TOK_NEWLINE))
   { // TODO: & = background task
-    /*tok_free*/(lexer_pop(lexer));
+    tok_free(lexer_pop(lexer), true);
     if (compound_list_loop(lexer, &tmp))
       break;
   }

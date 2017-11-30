@@ -19,8 +19,8 @@ s_ast *parse_pipeline(s_lexer *lexer)
 {
   const s_token *tok = lexer_peek(lexer);
   bool negation = tok_is(tok, TOK_BANG);
-  /*if (negation)
-    tok_free*/(lexer_pop(lexer));
+  if (negation)
+    tok_free(lexer_pop(lexer), true);
 
   s_ast *res = parse_command(lexer);
   // TODO: handle parsing error
@@ -28,13 +28,9 @@ s_ast *parse_pipeline(s_lexer *lexer)
   tok = lexer_peek(lexer);
   while (tok_is(tok, TOK_PIPE))
   {
-    /*tok_free*/(lexer_pop(lexer));
+    tok_free(lexer_pop(lexer), true);
+    parse_newlines(lexer);
     tok = lexer_peek(lexer);
-    while (tok_is(tok, TOK_NEWLINE))
-    {
-      /*tok_free*/(lexer_pop(lexer));
-      tok = lexer_peek(lexer);
-    }
     s_ast *pipe = xmalloc(sizeof(s_ast));
     pipe->type = SHNODE_PIPE;
     pipe->data.ast_pipe = APIPE(res, parse_command(lexer));
@@ -77,11 +73,11 @@ s_ast *parse_redirection(s_lexer *lexer)
   if (tok_is(tok, TOK_IO_NUMBER))
   {
     left = atoi(TOK_STR(tok));
-    //tok_free(tok);
+    tok_free(tok, true);
     tok = lexer_pop(lexer);
   }
   enum redir_type type = parse_redir_type(tok);
-  //tok_free(tok);
+  tok_free(tok, true);
   s_wordlist *word = parse_word(lexer);
   res->data.ast_redirection = AREDIRECTION(type, left, word, NULL);
   return res;
