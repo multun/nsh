@@ -2,6 +2,7 @@
 #include "utils/alloc.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 
 s_token *tok_alloc(void)
@@ -21,11 +22,31 @@ void tok_free(s_token *tok, bool free_buf)
 }
 
 
+
+#define LEX_OPS_MAP(TokName, Value) Value,
+
+
+static const char *g_keywords[] =
+{
+  LEX_KW_TOKS(LEX_OPS_MAP)
+};
+
+
+
+
 bool tok_is(const s_token *tok, enum token_type type)
 {
-  (void)tok;
-  (void)type;
-  return false;
+  if (tok->specified)
+    return tok->type == type;
+
+  if (type == TOK_WORD)
+    return true;
+
+  if (TOK_IS_KW(type))
+    return !strcmp(g_keywords[TOK_KW_ALIGN(type)], TOK_STR(tok));
+
+  // TODO: handle name and assignment word
+  return true;
 }
 
 

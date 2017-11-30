@@ -8,7 +8,7 @@
 #include "utils/evect.h"
 
 
-#define LEX_OPS(F)        \
+#define LEX_OP_TOKS(F)        \
   F(TOK_AND_IF,    "&&")  \
   F(TOK_OR_IF,     "||")  \
   F(TOK_DSEMI,     ";;")  \
@@ -27,8 +27,35 @@
   F(TOK_AND,       "&")   \
   F(TOK_PIPE,      "|")
 
-#define LEX_OPS_ENUM(TokName, Value) TokName,
 
+#define TOK_IS_KW(Type) ((Type) >= TOK_IF && (Type) <= TOK_FUNC)
+#define TOK_KW_ALIGN(Type) ((Type) - TOK_IF)
+
+#define LEX_KW_TOKS(F)   \
+  F(TOK_IF,     "if")    \
+  F(TOK_THEN,   "then")  \
+  F(TOK_ELSE,   "else")  \
+  F(TOK_ELIF,   "elif")  \
+  F(TOK_FI,     "fi")    \
+  F(TOK_DO,     "do")    \
+  F(TOK_DONE,   "done")  \
+                         \
+  F(TOK_CASE,   "case")  \
+  F(TOK_ESAC,   "esac")  \
+  F(TOK_WHILE,  "while") \
+  F(TOK_UNTIL,  "until") \
+  F(TOK_FOR,    "for")   \
+  F(TOK_LPAR,   "(")     \
+  F(TOK_RPAR,   ")")     \
+  F(TOK_LBRACE, "{")     \
+  F(TOK_RBRACE, "}")     \
+  F(TOK_BANG,   "!")     \
+  F(TOK_IN,     "in")    \
+                         \
+  F(TOK_FUNC  , "function")
+
+
+#define LEX_CONST_ENUM(TokName, Value) TokName,
 
 #define LEX_GEN_TOKS(F)   \
   F(TOK_WORD)             \
@@ -36,28 +63,6 @@
   F(TOK_NAME)             \
   F(TOK_NEWLINE)          \
   F(TOK_IO_NUMBER)        \
-                          \
-  F(TOK_IF)               \
-  F(TOK_THEN)             \
-  F(TOK_ELSE)             \
-  F(TOK_ELIF)             \
-  F(TOK_FI)               \
-  F(TOK_DO)               \
-  F(TOK_DONE)             \
-                          \
-  F(TOK_CASE)             \
-  F(TOK_ESAC)             \
-  F(TOK_WHILE)            \
-  F(TOK_UNTIL)            \
-  F(TOK_FOR)              \
-  F(TOK_LPAR)             \
-  F(TOK_RPAR)             \
-  F(TOK_LBRACE)           \
-  F(TOK_RBRACE)           \
-  F(TOK_BANG)             \
-  F(TOK_IN)               \
-                          \
-  F(TOK_FUNC)             \
                           \
   F(TOK_EOF)
 
@@ -69,7 +74,8 @@ typedef struct token
 {
   enum token_type
   {
-    LEX_OPS(LEX_OPS_ENUM)
+    LEX_OP_TOKS(LEX_CONST_ENUM)
+    LEX_KW_TOKS(LEX_CONST_ENUM)
     LEX_GEN_TOKS(LEX_GEN_TOKS_ENUM)
   } type;
 

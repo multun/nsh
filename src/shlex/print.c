@@ -2,12 +2,13 @@
 #include "utils/macros.h"
 
 #define LEX_GEN_TOKS_STR_ENUM(Tokname) #Tokname,
-#define LEX_OPS_STR_ENUM(TokName, Value) #TokName,
+#define LEX_CONST_STR_ENUM(TokName, Value) #TokName,
 
 
 static const char *g_token_type_tab[] =
 {
-  LEX_OPS(LEX_OPS_STR_ENUM)
+  LEX_OP_TOKS(LEX_CONST_STR_ENUM)
+  LEX_KW_TOKS(LEX_CONST_STR_ENUM)
   LEX_GEN_TOKS(LEX_GEN_TOKS_STR_ENUM)
 };
 

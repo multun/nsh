@@ -18,7 +18,7 @@ static const struct operator
   enum token_type type;
 } g_operators[] =
 {
-  LEX_OPS(LEX_OPS_MAP)
+  LEX_OP_TOKS(LEX_OPS_MAP)
 };
 
 
