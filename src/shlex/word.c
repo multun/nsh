@@ -51,7 +51,7 @@ static bool read_double_quote(s_cstream *cs, s_token *tok, s_errman *errman)
   TOK_PUSH(tok, cstream_pop(cs));
   while ((tok->delim = cstream_peek(cs)) != '"')
   {
-    if (tok->delim == -1)
+    if (tok->delim == EOF)
       // TODO: error message
       return true;
     else if (tok->delim == '\\')
@@ -82,7 +82,7 @@ static const f_tok_reader word_readers[] =
 static void skip_spaces(s_cstream *cs)
 {
   int c;
-  while ((c = cstream_peek(cs)) != -1)
+  while ((c = cstream_peek(cs)) != EOF)
     if (isblank(c))
       cstream_pop(cs);
     else
