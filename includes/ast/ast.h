@@ -31,8 +31,8 @@
   F(SHNODE_FOR, for_print, NULL)                                         \
   F(SHNODE_WHILE, while_print, NULL)                                     \
   F(SHNODE_UNTIL, until_print, NULL)                                     \
-  F(SHNODE_REDIRECTION, NULL, NULL)                                      \
-  F(SHNODE_PIPE, NULL, NULL)                                             \
+  F(SHNODE_REDIRECTION, redirection_print, NULL)                         \
+  F(SHNODE_PIPE, pipe_print, NULL)                                             \
   F(SHNODE_CASE, case_print, NULL)                                       \
   F(SHNODE_BOOL_OP, bool_op_print, NULL)                                 \
   F(SHNODE_LIST, list_print, NULL)                                       \
