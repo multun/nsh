@@ -51,21 +51,16 @@ static const struct operator *recognise_operator(s_token *tok, char c)
 static void read_operator(s_cstream *cs, s_token *tok)
 {
   const struct operator *op;
+  const struct operator *next_op;
 
-  while (true)
+  while ((tok->delim = cstream_peek(cs)) != EOF
+         && (next_op = recognise_operator(tok, tok->delim)))
   {
-    // even if peek fails, we should have read at least a single op char
-    if ((tok->delim = cstream_peek(cs)) == -1)
-    {
-      assert(TOK_SIZE(tok));
-      break;
-    }
-    const struct operator *next_op = recognise_operator(tok, tok->delim);
-    if (!next_op)
-      break;
     op = next_op;
     TOK_PUSH(tok, cstream_pop(cs));
   }
+  // even if peek fails, we should have read at least a single op char
+  assert(TOK_SIZE(tok));
   assert(op);
   tok->type = op->type;
 }
