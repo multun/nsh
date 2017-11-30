@@ -59,7 +59,7 @@
 
 #define LEX_GEN_TOKS(F)   \
   F(TOK_WORD)             \
-  F(TOK_ASSIGNEMENT_WORD) \
+  F(TOK_ASSIGNMENT_WORD)  \
   F(TOK_NAME)             \
   F(TOK_NEWLINE)          \
   F(TOK_IO_NUMBER)        \

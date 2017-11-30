@@ -11,7 +11,7 @@ typedef struct aassignment
 
 
 #define AASSIGNMENT(Name, Value, Action)                                     \
-  ((s_aassignement)                                                           \
+  ((s_aassignment)                                                           \
   {                                                                           \
     .name = Name,                                                             \
     .value = Value,                                                           \
