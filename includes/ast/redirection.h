@@ -32,3 +32,6 @@ typedef struct aredirection
 #define AST_AREDIRECTION(Type, Left, Right, Action)               \
   AST(SHNODE_REDIRECTION, redirection,                            \
       AREDIRECTION(Type, Left, Right, Action))
+
+
+void redirection_print(FILE *f, struct ast *ast);
