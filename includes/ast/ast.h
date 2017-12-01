@@ -34,7 +34,7 @@
   F(SHNODE_IF, if_print, if_exec)                                        \
   F(SHNODE_FOR, for_print, for_exec)                                     \
   F(SHNODE_WHILE, while_print, while_exec)                               \
-  F(SHNODE_UNTIL, until_print, NULL)                                     \
+  F(SHNODE_UNTIL, until_print, until_exec)                               \
   F(SHNODE_REDIRECTION, redirection_print, NULL)                         \
   F(SHNODE_PIPE, pipe_print, NULL)                                       \
   F(SHNODE_CASE, case_print, NULL)                                       \

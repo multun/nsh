@@ -1,5 +1,9 @@
 #pragma once
 
+#include "ast/ast.h"
+#include "shexec/environment.h"
+
+
 typedef struct auntil
 {
   struct ast *condition;
@@ -18,3 +22,4 @@ typedef struct auntil
 
 
 void until_print(FILE *f, struct ast *ast);
+int until_exec(s_env *env, struct ast *ast);

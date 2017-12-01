@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "ast/ast.h"
+#include "shexec/environment.h"
 
 
 void until_print(FILE *f, s_ast *ast)
@@ -16,4 +17,13 @@ void until_print(FILE *f, s_ast *ast)
   ast_print_rec(f, auntil->actions);
   void *id_do = auntil->actions;
   fprintf(f, "\"%p\" -> \"%p\" [label=\"DO\"];\n", id, id_do);
+}
+
+
+int until_exec(s_env *env, s_ast *ast)
+{
+  s_auntil *auntil = &ast->data.ast_until;
+  while (ast_exec(env, auntil->condition))
+    ast_exec(env, auntil->actions);
+  return 0;
 }
