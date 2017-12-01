@@ -1,15 +1,16 @@
 #include <stdlib.h>
 
+#include "utils/alloc.h"
 #include "utils/dbuf.h"
 
 
 s_dbuf *dbuf_create(size_t size)
 {
-  s_dbuf *ret = malloc(sizeof(*ret));
+  s_dbuf *ret = xmalloc(sizeof(*ret));
   if (!ret)
     return NULL;
 
-  if (!((ret->data = malloc(size)) || !size))
+  if (!((ret->data = xmalloc(size)) || !size))
   {
     free(ret);
     return NULL;
