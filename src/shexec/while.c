@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "ast/ast.h"
+#include "shexec/environment.h"
 
 
 void while_print(FILE *f, s_ast *ast)
@@ -16,4 +17,13 @@ void while_print(FILE *f, s_ast *ast)
   ast_print_rec(f, awhile->actions);
   void *id_do = awhile->actions;
   fprintf(f, "\"%p\" -> \"%p\" [label=\"DO\"];\n", id, id_do);
+}
+
+
+int while_exec(s_env *env, s_ast *ast)
+{
+  s_awhile *awhile = &ast->data.ast_while;
+  while (!ast_exec(env, awhile->condition))
+    ast_exec(env, awhile->actions);
+  return 0;
 }

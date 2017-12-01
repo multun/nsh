@@ -1,5 +1,8 @@
 #pragma once
 
+#include "ast/ast.h"
+#include "shexec/environment.h"
+
 
 typedef struct awhile
 {
@@ -19,3 +22,4 @@ typedef struct awhile
 
 
 void while_print(FILE *f, struct ast *ast);
+int while_exec(s_env *env, struct ast *ast);
