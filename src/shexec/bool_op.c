@@ -25,3 +25,24 @@ void bool_op_print(FILE *f, s_ast *ast)
     fprintf(f, "\"%p\" -> \"%p\";\n", id, id_right);
   }
 }
+
+
+int bool_op_exec(s_ast *ast)
+{
+  s_abool_op *abool = &ast->data.ast_bool_op;
+  if (abool->type == BOOL_AND)
+  {
+    int left = ast_exec(abool->left);
+    if (left)
+      return left;
+    return ast_exec(abool->right);
+  }
+  if (abool->type == BOOL_OR)
+  {
+    if (!ast_exec(abool->left))
+      return 0;
+    return ast_exec(abool->right);
+  }
+  else
+    return !ast_exec(abool->left);
+}

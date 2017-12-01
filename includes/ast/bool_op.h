@@ -25,3 +25,4 @@ typedef struct abool_op
 
 
 void bool_op_print(FILE *f, struct ast *ast);
+int bool_op_exec(struct ast *ast);

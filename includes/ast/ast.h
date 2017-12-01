@@ -25,18 +25,21 @@
 #define DECLARE_AST_PRINT_UTILS(Name, Printer, Exec)                     \
   Printer,
 
+#define DECLARE_AST_EXEC_UTILS(Name, Printer, Exec)                      \
+  Exec,
+
 #define AST_TYPE_APPLY(F)                                                \
-  F(SHNODE_CMD, cmd_print, NULL)                                         \
+  F(SHNODE_CMD, cmd_print, cmd_exec)                                     \
   F(SHNODE_IF, if_print, NULL)                                           \
   F(SHNODE_FOR, for_print, NULL)                                         \
   F(SHNODE_WHILE, while_print, NULL)                                     \
   F(SHNODE_UNTIL, until_print, NULL)                                     \
   F(SHNODE_REDIRECTION, redirection_print, NULL)                         \
-  F(SHNODE_PIPE, pipe_print, NULL)                                             \
+  F(SHNODE_PIPE, pipe_print, NULL)                                       \
   F(SHNODE_CASE, case_print, NULL)                                       \
-  F(SHNODE_BOOL_OP, bool_op_print, NULL)                                 \
+  F(SHNODE_BOOL_OP, bool_op_print, bool_op_exec)                         \
   F(SHNODE_LIST, list_print, NULL)                                       \
-  F(SHNODE_ASSIGNMENT, assignment_print, NULL)                         \
+  F(SHNODE_ASSIGNMENT, assignment_print, NULL)                           \
   F(SHNODE_FUNCTION, function_print, NULL)                               \
   F(SHNODE_BLOCK, if_print, NULL)
 
@@ -78,3 +81,4 @@ typedef struct ast
 
 void ast_print_rec(FILE *f, s_ast *ast);
 void ast_print(FILE *f, s_ast *ast);
+int ast_exec(s_ast *ast);

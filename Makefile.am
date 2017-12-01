@@ -13,6 +13,6 @@ check-local:
 
 
 42sh_LDADD = src/shlex/libshlex.la src/io/libio.la src/shparse/libparse.la \
-             src/utils/libutils.la src/shexec/libshexec.la
+             src/shexec/libshexec.la src/utils/libutils.la
 
 42sh_SOURCES = src/main.c

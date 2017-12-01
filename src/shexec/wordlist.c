@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "ast/wordlist.h"
+#include "utils/alloc.h"
 
 
 char **wordlist_to_argc(s_wordlist *wl)
@@ -13,7 +14,7 @@ char **wordlist_to_argc(s_wordlist *wl)
     tmp = tmp->next;
   }
 
-  char **argv = malloc(sizeof (char*) * (argc + 1));
+  char **argv = xmalloc(sizeof (char*) * (argc + 1));
   argv[argc] = NULL;
   for (size_t i = 0; i < argc; i++)
   {
