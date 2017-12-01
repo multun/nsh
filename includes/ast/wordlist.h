@@ -3,6 +3,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "shexec/environment.h"
+
+
 typedef struct wordlist
 {
   char *str;
@@ -22,4 +25,4 @@ typedef struct wordlist
   WORDLIST(Str, false, false, NULL)
 
 
-char **wordlist_to_argc(s_wordlist *wl);
+char **wordlist_to_argc(s_wordlist *wl, s_env *env);

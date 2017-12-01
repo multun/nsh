@@ -3,20 +3,21 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "ast/bool_op.h"
-#include "ast/cmd.h"
-#include "ast/if.h"
-#include "ast/for.h"
-#include "ast/while.h"
-#include "ast/until.h"
-#include "ast/redirection.h"
-#include "ast/pipe.h"
-#include "ast/case.h"
-#include "ast/bool_op.h"
-#include "ast/list.h"
 #include "ast/assignment.h"
-#include "ast/function.h"
 #include "ast/block.h"
+#include "ast/bool_op.h"
+#include "ast/bool_op.h"
+#include "ast/case.h"
+#include "ast/cmd.h"
+#include "ast/for.h"
+#include "ast/function.h"
+#include "ast/if.h"
+#include "ast/list.h"
+#include "ast/pipe.h"
+#include "ast/redirection.h"
+#include "ast/until.h"
+#include "ast/while.h"
+#include "shexec/environment.h"
 
 
 #define DECLARE_AST_TYPE_ENUM(Name, Printer, Exec)                       \
@@ -81,4 +82,4 @@ typedef struct ast
 
 void ast_print_rec(FILE *f, s_ast *ast);
 void ast_print(FILE *f, s_ast *ast);
-int ast_exec(s_ast *ast);
+int ast_exec(s_env *env, s_ast *ast);

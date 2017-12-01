@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "ast/ast.h"
+#include "shexec/environment.h"
 
 
 void cmd_print(FILE *f, s_ast *node)
@@ -23,10 +24,10 @@ void cmd_print(FILE *f, s_ast *node)
 }
 
 
-int cmd_exec(s_ast *node)
+int cmd_exec(s_env *env, s_ast *node)
 {
   s_wordlist *wl = node->data.ast_cmd.wordlist;
-  char **argv = wordlist_to_argc(wl);
+  char **argv = wordlist_to_argc(wl, env);
 
   int status;
   pid_t pid = fork();

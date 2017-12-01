@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shexec/environment.h"
 #include "wordlist.h"
 
 
@@ -20,4 +21,4 @@ typedef struct acmd
 
 
 void cmd_print(FILE *f, struct ast *node);
-int cmd_exec(struct ast *node);
+int cmd_exec(s_env *env, struct ast *node);

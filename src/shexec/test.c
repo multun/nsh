@@ -1,8 +1,7 @@
 #include <stdio.h>
 
 #include "ast/ast.h"
-#include "ast/wordlist.h"
-#include "ast/cmd.h"
+#include "shexec/environment.h"
 
 
 void ast_print_test()
@@ -16,4 +15,13 @@ void ast_print_test()
   s_ast root = AST_AIF(&nodecond, &nodethen, &nodefor);
 
   ast_print(stdout, &root);
+}
+
+
+void ast_exec_test()
+{
+  s_ast root = AST_ACMD(&WL("/usr/bin/tree"));
+  s_env *env = environment_create();
+  ast_exec(env, &root);
+  environment_free(env);
 }

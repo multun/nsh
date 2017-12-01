@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "ast/ast.h"
+#include "shexec/environment.h"
 
 
 void bool_op_print(FILE *f, s_ast *ast)
@@ -27,22 +28,22 @@ void bool_op_print(FILE *f, s_ast *ast)
 }
 
 
-int bool_op_exec(s_ast *ast)
+int bool_op_exec(s_env *env, s_ast *ast)
 {
   s_abool_op *abool = &ast->data.ast_bool_op;
   if (abool->type == BOOL_AND)
   {
-    int left = ast_exec(abool->left);
+    int left = ast_exec(env, abool->left);
     if (left)
       return left;
-    return ast_exec(abool->right);
+    return ast_exec(env, abool->right);
   }
   if (abool->type == BOOL_OR)
   {
-    if (!ast_exec(abool->left))
+    if (!ast_exec(env, abool->left))
       return 0;
-    return ast_exec(abool->right);
+    return ast_exec(env, abool->right);
   }
   else
-    return !ast_exec(abool->left);
+    return !ast_exec(env, abool->left);
 }

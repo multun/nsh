@@ -4,4 +4,4 @@ noinst_LTLIBRARIES = libshexec.la
 
 libshexec_la_SOURCES = ast_print.c test.c assignment.c case.c function.c  \
                        cmd.c if.c until.c bool_op.c for.c list.c while.c  \
-                       redirection.c pipe.c wordlist.c ast_exec.c
+                       redirection.c pipe.c wordlist.c ast_exec.c environment.c
