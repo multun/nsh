@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shexec/environment.h"
 #include "wordlist.h"
 
 
@@ -22,3 +23,4 @@ typedef struct afor
 
 
 void for_print(FILE *f, struct ast *ast);
+int for_exec(s_env *env, struct ast *ast);
