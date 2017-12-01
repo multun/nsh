@@ -8,25 +8,6 @@
 #include <err.h>
 
 
-static int print_tokens(s_cstream *cs)
-{
-  s_lexer *lex = lexer_create(cs);
-  while (!cstream_eof(cs))
-  {
-    s_token *tok = lexer_pop(lex);
-    if (!tok)
-      break;
-
-    printf("%zu:%zu\t%s(%s)[%c]\n", tok->lineinfo.line, tok->lineinfo.column,
-           token_type_to_string(tok->type),
-           TOK_STR(tok), tok->delim);
-    tok_free(tok, true);
-  }
-  lexer_free(lex);
-  return 0;
-}
-
-
 static s_cstream *load_stream(int argc, char *argv[])
 {
   if (g_cmdopts.src == SHSRC_COMMAND)

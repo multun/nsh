@@ -19,3 +19,22 @@ const char *token_type_to_string(enum token_type type)
     return NULL;
   return g_token_type_tab[type];
 }
+
+
+int print_tokens(FILE *f, s_cstream *cs)
+{
+  s_lexer *lex = lexer_create(cs);
+  while (!cstream_eof(cs))
+  {
+    s_token *tok = lexer_pop(lex);
+    if (!tok)
+      break;
+
+    fprintf(f, "%zu:%zu\t%s(%s)[%c]\n", tok->lineinfo.line, tok->lineinfo.column,
+           token_type_to_string(tok->type),
+           TOK_STR(tok), tok->delim);
+    tok_free(tok, true);
+  }
+  lexer_free(lex);
+  return 0;
+}
