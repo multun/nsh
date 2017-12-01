@@ -29,7 +29,7 @@ static bool read_backslash(s_cstream *cs, s_token *tok, s_errman *errman)
   if (tok->delim != '\\')
     return false;
 
-  TOK_PUSH(tok, cstream_pop(cs));
+  cstream_pop(cs);
   if ((tok->delim = cstream_pop(cs)) == EOF)
     return sherror(&cs->line_info, errman, "can't escape EOF");
 
@@ -80,14 +80,14 @@ static const f_tok_reader word_readers[] =
 };
 
 
-static void skip_spaces(s_cstream *cs)
+static bool skip_spaces(s_cstream *cs, s_token *tok)
 {
-  int c;
-  while ((c = cstream_peek(cs)) != EOF)
-    if (isblank(c))
+  while ((tok->delim = cstream_peek(cs)) != EOF)
+    if (isblank(tok->delim))
       cstream_pop(cs);
     else
-      break;
+      return false;
+  return true;
 }
 
 
@@ -108,14 +108,20 @@ static void handle_break(s_cstream *cs, s_token *tok)
 */
 void word_read(s_cstream *cs, s_token *tok, s_errman *errman)
 {
-  skip_spaces(cs);
-  while ((tok->delim = cstream_peek(cs)) != EOF)
+  while ((tok->delim = cstream_peek(cs)) != EOF
+         && !(!TOK_SIZE(tok) && skip_spaces(cs, tok)))
   {
+    if (read_backslash(cs, tok, errman))
+      continue;
+
     if (is_breaking(tok->delim))
     {
       handle_break(cs, tok);
       break;
     }
+
+    if (ERRMAN_FAILING(errman))
+      return;
 
     bool push = true;
     for (size_t i = 0; i < ARR_SIZE(word_readers); i++)
