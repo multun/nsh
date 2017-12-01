@@ -100,7 +100,6 @@ s_token *tok_alloc(s_lexer *lexer);
 void tok_free(s_token *free, bool free_buf);
 
 bool tok_is(const s_token *tok, enum token_type type);
-s_token *tok_as(s_token *tok, enum token_type type);
 
 s_lexer *lexer_create(s_cstream *stream);
 void lexer_free(s_lexer *lexer);

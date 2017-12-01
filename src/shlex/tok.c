@@ -33,8 +33,6 @@ static const char *g_keywords[] =
 };
 
 
-
-
 bool tok_is(const s_token *tok, enum token_type type)
 {
   if (tok->specified)
@@ -48,12 +46,4 @@ bool tok_is(const s_token *tok, enum token_type type)
 
   // TODO: handle name and assignment word
   return true;
-}
-
-
-s_token *tok_as(s_token *tok, enum token_type type)
-{
-  (void)tok;
-  (void)type;
-  return NULL;
 }
