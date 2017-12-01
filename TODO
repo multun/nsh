@@ -3,3 +3,9 @@
   * [x] Quoted
   * [ ] Expansions
   * [ ] Proper error handling
+* [ ] Argument parsing
+  * [x] Version
+  * [x] Major modes
+  * [x] Input modes
+  * [ ] Shopts
+    * [ ] Handle +O
