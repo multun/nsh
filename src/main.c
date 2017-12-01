@@ -1,27 +1,10 @@
 #include "cli/cmdopts.h"
+#include "gen/config.h"
 #include "io/cstream.h"
+#include "io/managed_stream.h"
 #include "shlex/lexer.h"
 #include "shlex/print.h"
-#include "gen/config.h"
 
-#include <stdio.h>
-#include <err.h>
-
-
-static s_cstream *load_stream(int argc, char *argv[])
-{
-  if (g_cmdopts.src == SHSRC_COMMAND)
-  {
-    if (argc < 1)
-      errx(1, "missing source");
-    return cstream_from_string(argv[0], "<command line>");
-  }
-  else
-  {
-    FILE *f = argc > 0 ? fopen(argv[0], "r") : stdin;
-    return cstream_from_file(f, argv[1]);
-  }
-}
 
 
 int main(int argc, char *argv[])
@@ -38,7 +21,10 @@ int main(int argc, char *argv[])
   if (g_cmdopts.norc)
     puts("norc");
 
-  s_cstream *cs = load_stream(argc, argv);
+  struct managed_stream ms;
+  int load_res = managed_stream_init(&ms, argc, argv);
+  if (load_res)
+    return load_res;
 
   int res = 0;
   switch (g_cmdopts.shmode)
@@ -51,13 +37,13 @@ int main(int argc, char *argv[])
     res = 1;
     break;
   case SHMODE_TOKEN_PRINT:
-    res = print_tokens(cs);
+    res = print_tokens(stdout, ms.cs);
     break;
   case SHMODE_REGULAR:
     res = 3;
     break;
   }
 
-  cstream_free(cs);
+  managed_stream_destroy(&ms);
   return res;
 }
