@@ -13,40 +13,40 @@ struct pair
   struct pair *next;
 };
 
-struct htable
+typedef struct htable
 {
   size_t size;
   size_t capacity;
   struct pair **tab;
-};
+} s_htable;
 
 
 /*
  * htable_create(capacity):
  * build a new hash table with initial capacity.
  */
-struct htable *htable_create(size_t capacity);
+s_htable *htable_create(size_t capacity);
 
 /*
  * htable_access(htable, key):
  * returns a pointer to the value containing the given key
  */
-void *htable_access(struct htable *htable, char *key);
+void *htable_access(s_htable *htable, char *key);
 
 /*
  * htable_add(htable,key,value):
  * add the pair (key,value) to the hash table
  */
-bool htable_add(struct htable *htable, char *key, void *value);
+bool htable_add(s_htable *htable, char *key, void *value);
 
 /*
  * htable_remove(htable, key):
  * removes the pair containing the given key from the hash table
  */
-void htable_remove(struct htable *htable, char *key);
+void htable_remove(s_htable *htable, char *key);
 
 /*
  * htable_clear(htable):
  * delete all pairs in the table
  */
-void htable_clear(struct htable *htable);
+void htable_clear(s_htable *htable);
