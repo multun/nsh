@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shexec/environment.h"
 #include "wordlist.h"
 
 
@@ -23,3 +24,4 @@ typedef struct aif
 
 
 void if_print(FILE *f, struct ast *node);
+int if_exec(s_env *env, struct ast *ast);

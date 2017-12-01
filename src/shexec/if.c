@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "ast/ast.h"
+#include "shexec/environment.h"
 
 
 void if_print(FILE *f, s_ast *node)
@@ -20,4 +21,16 @@ void if_print(FILE *f, s_ast *node)
     void *id_fail = aif->failure;
     fprintf(f, "\"%p\" -> \"%p\" [label=\"ELSE\"];\n", id, id_fail);
   }
+}
+
+
+int if_exec(s_env *env, s_ast *ast)
+{
+  s_aif *aif = &ast->data.ast_if;
+  int cond = ast_exec(env, aif->condition);
+  if (!cond)
+    return ast_exec(env, aif->success);
+  else if (aif->failure)
+    return ast_exec(env, aif->failure);
+  return 0;
 }

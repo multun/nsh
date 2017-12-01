@@ -31,7 +31,7 @@
 
 #define AST_TYPE_APPLY(F)                                                \
   F(SHNODE_CMD, cmd_print, cmd_exec)                                     \
-  F(SHNODE_IF, if_print, NULL)                                           \
+  F(SHNODE_IF, if_print, if_exec)                                           \
   F(SHNODE_FOR, for_print, NULL)                                         \
   F(SHNODE_WHILE, while_print, NULL)                                     \
   F(SHNODE_UNTIL, until_print, NULL)                                     \
