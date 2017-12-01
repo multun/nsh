@@ -28,8 +28,10 @@ typedef struct cstream
 } s_cstream;
 
 
-void cstream_init_file(s_cstream *cs, FILE *stream, char *source);
-void cstream_init_string(s_cstream *cs, char *string, char *source);
+s_cstream *cstream_from_file(FILE *stream, char *source);
+s_cstream *cstream_from_string(char *string, char *source);
+void cstream_free(s_cstream *cs);
+
 int cstream_peek(s_cstream *cs);
 int cstream_pop(s_cstream *cs);
 bool cstream_eof(s_cstream *cs);
