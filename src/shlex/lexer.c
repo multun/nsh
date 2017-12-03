@@ -37,6 +37,13 @@ static s_token *lexer_lex(s_lexer *lexer, s_errman *errman)
   s_token *res = tok_alloc(lexer);
   word_read(lexer->stream, res, errman);
 
+  if (!TOK_SIZE(res) && res->delim == EOF)
+  {
+    res->type = TOK_EOF;
+    res->specified = true;
+    return res;
+  }
+
   // TODO: handle EOF token
   if (ERRMAN_FAILING(errman) || !TOK_SIZE(res))
   {
