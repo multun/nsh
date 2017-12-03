@@ -42,7 +42,7 @@
   F(SHNODE_LIST, list_print, NULL)                                       \
   F(SHNODE_ASSIGNMENT, assignment_print, NULL)                           \
   F(SHNODE_FUNCTION, function_print, NULL)                               \
-  F(SHNODE_BLOCK, if_print, NULL)
+  F(SHNODE_BLOCK, block_print, NULL)
 
 
 typedef struct ast

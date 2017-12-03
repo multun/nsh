@@ -14,3 +14,7 @@ typedef struct ablock
     .def = Def,                   \
     .cmd = Cmd,                   \
   })
+
+
+
+void block_print(FILE *f, struct ast *node);
