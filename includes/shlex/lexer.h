@@ -8,6 +8,7 @@
 #include "utils/evect.h"
 
 
+#define TOK_IS_OP(Type) ((Type) >= TOK_AND_IF && (Type) <= TOK_PIPE)
 #define LEX_OP_TOKS(F)    \
   F(TOK_AND_IF,    "&&")  \
   F(TOK_OR_IF,     "||")  \
@@ -57,6 +58,8 @@
 
 #define LEX_CONST_ENUM(TokName, Value) TokName,
 
+#define TOK_IS_GEN_DET(Type)                    \
+  ((Type) == TOK_NEWLINE || (Type) == TOK_EOF || (Type) == TOK_IO_NUMBER)
 #define LEX_GEN_TOKS(F)   \
   F(TOK_WORD)             \
   F(TOK_ASSIGNMENT_WORD)  \
@@ -65,6 +68,8 @@
   F(TOK_IO_NUMBER)        \
                           \
   F(TOK_EOF)
+
+#define TOK_IS_DET(Type) (TOK_IS_GEN_DET(Type) || TOK_IS_OP(Type))
 
 #define LEX_GEN_TOKS_ENUM(Tokname) Tokname,
 

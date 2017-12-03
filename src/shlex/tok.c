@@ -8,6 +8,7 @@
 s_token *tok_alloc(s_lexer *lexer)
 {
   s_token *res = xmalloc(sizeof(*res));
+  res->specified = false;
   res->lineinfo = lexer->stream->line_info;
   res->type = TOK_WORD;
   evect_init(&res->str, TOK_BUF_MIN_SIZE);
@@ -35,7 +36,7 @@ static const char *g_keywords[] =
 
 bool tok_is(const s_token *tok, enum token_type type)
 {
-  if (tok->specified)
+  if (tok->specified || TOK_IS_DET(type))
     return tok->type == type;
 
   if (type == TOK_WORD)
