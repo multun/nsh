@@ -39,12 +39,15 @@ bool tok_is(const s_token *tok, enum token_type type)
   if (tok->specified || TOK_IS_DET(type))
     return tok->type == type;
 
-  if (type == TOK_WORD)
+  if (type == TOK_ASSIGNMENT_WORD)
+    return TOK_STR(tok)[0] != '=' && !!strchr(TOK_STR(tok), '=');
+
+  // TODO: handle name
+  if (type == TOK_WORD || type == TOK_NAME)
     return true;
 
   if (TOK_IS_KW(type))
     return !strcmp(g_keywords[TOK_KW_ALIGN(type)], TOK_STR(tok));
 
-  // TODO: handle name and assignment word
   return true;
 }
