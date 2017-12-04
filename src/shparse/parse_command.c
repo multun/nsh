@@ -67,9 +67,11 @@ s_ast *parse_command(s_lexer *lexer, s_errman *errman)
                || tok_is(tok, TOK_LPAR);
   s_ast *res = NULL;
   if (shell)
+  {
     res = parse_shell_command(lexer, errman);
-  if (ERRMAN_FAILING(errman))
-    return res;
+    if (ERRMAN_FAILING(errman))
+      return res;
+  }
   else if (tok_is(tok, TOK_FUNC))
   { // discard tokken 'function' and create token NAME to match latter use
     tok_free(lexer_pop(lexer, errman), true);
