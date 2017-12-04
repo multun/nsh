@@ -5,7 +5,7 @@
 
 bool cstream_eof(s_cstream *cs)
 {
-  return !cs->has_buf && cs->eof;
+  return !(cs->has_buf && cs->buf != EOF) && cs->eof;
 }
 
 
