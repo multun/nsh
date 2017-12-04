@@ -1,7 +1,10 @@
 #include <string.h>
+#include <assert.h>
 
 #include "shparse/parse.h"
+#include "shlex/print.h"
 #include "utils/alloc.h"
+#include "utils/error.h"
 
 
 static bool start_redir(const s_token *tok)
@@ -25,6 +28,8 @@ static bool is_first_keyword(const s_token *tok)
 static s_ast *redirection_loop(s_lexer *lexer, s_ast *cmd, s_errman *errman)
 {
   const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return NULL;
   s_ast *res = xmalloc(sizeof(s_ast));
   res->type = SHNODE_BLOCK;
   res->data.ast_block = ABLOCK(NULL, NULL, cmd);
@@ -32,12 +37,16 @@ static s_ast *redirection_loop(s_lexer *lexer, s_ast *cmd, s_errman *errman)
   while (start_redir(tok))
   {// TODO: HEREDOC
     s_ast *tmp = parse_redirection(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return res;
     if (redir)
       redir->data.ast_redirection.action = tmp;
     else
       res->data.ast_block.redir = tmp;
     redir = tmp;
     tok = lexer_peek(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return res;
   }
   if (cmd->type == SHNODE_FUNCTION)
   {
@@ -52,19 +61,27 @@ static s_ast *redirection_loop(s_lexer *lexer, s_ast *cmd, s_errman *errman)
 s_ast *parse_command(s_lexer *lexer, s_errman *errman)
 {
   const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return NULL;
   bool shell = is_first_keyword(tok) || tok_is(tok, TOK_LBRACE)
                || tok_is(tok, TOK_LPAR);
   s_ast *res = NULL;
   if (shell)
     res = parse_shell_command(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
   else if (tok_is(tok, TOK_FUNC))
   { // discard tokken 'function' and create token NAME to match latter use
     tok_free(lexer_pop(lexer, errman), true);
     res = parse_funcdec(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return res;
   }
   else
   {
     s_token *word = lexer_pop(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return res;
     bool is_par = tok_is(lexer_peek(lexer, errman), TOK_LPAR);
     lexer_push(lexer, word);
     if (is_par)
@@ -72,7 +89,8 @@ s_ast *parse_command(s_lexer *lexer, s_errman *errman)
     else
       return parse_simple_command(lexer, errman);
   }
-  // TODO: handle parsing error
+  if (ERRMAN_FAILING(errman))
+    return res;
   return redirection_loop(lexer, res, errman);
 }
 
@@ -82,6 +100,8 @@ static s_ast *parse_assignment(s_lexer *lexer, s_errman *errman)
   s_ast *res = xmalloc(sizeof(s_ast));
   res->type = SHNODE_ASSIGNMENT;
   s_token *tok = lexer_pop(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
   char * val = strchr(TOK_STR(tok), '=');
   *val = '\0';
   val++;
@@ -95,18 +115,22 @@ static s_ast *parse_assignment(s_lexer *lexer, s_errman *errman)
 }
 
 
-static int prefix_loop(s_lexer *lexer, s_ablock *block, s_ast **redirect,
+static bool prefix_loop(s_lexer *lexer, s_ablock *block, s_ast **redirect,
                        s_errman *errman)
 {
   s_ast *assign = NULL;
   s_ast *redir = NULL;
   const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return false;
   while (tok_is(tok, TOK_ASSIGNMENT_WORD) || start_redir(tok))
   {
     s_ast *tmp = NULL;
     if (tok_is(tok, TOK_ASSIGNMENT_WORD))
     {
       tmp = parse_assignment(lexer, errman);
+      if (ERRMAN_FAILING(errman))
+        return false;
       if (assign)
         assign->data.ast_assignment.action = tmp;
       else
@@ -116,6 +140,8 @@ static int prefix_loop(s_lexer *lexer, s_ablock *block, s_ast **redirect,
     else
     { // TODO: HEREDOC
       tmp = parse_redirection(lexer, errman);
+      if (ERRMAN_FAILING(errman))
+        return false;
       if (redir)
         redir->data.ast_redirection.action = tmp;
       else
@@ -123,22 +149,28 @@ static int prefix_loop(s_lexer *lexer, s_ablock *block, s_ast **redirect,
       redir = tmp;
     }
     tok = lexer_peek(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return false;
   }
   *redirect = redir;
-  return 1;
+  return true;
 }
 
 
-static int element_loop(s_lexer *lexer, s_ablock *block, s_ast *redir,
+static bool element_loop(s_lexer *lexer, s_ablock *block, s_ast *redir,
                         s_errman *errman)
 {
   s_wordlist *elm = NULL;
   const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return false;
   while (tok_is(tok, TOK_WORD) || start_redir(tok))
   {
     if (tok_is(tok, TOK_WORD))
     {
       s_wordlist *tmp = parse_word(lexer, errman);
+      if (ERRMAN_FAILING(errman))
+        return false;
       if (elm)
         elm->next = tmp;
       else
@@ -153,6 +185,8 @@ static int element_loop(s_lexer *lexer, s_ablock *block, s_ast *redir,
     { // TODO: HEREDOC
       s_ast *tmp = NULL;
       tmp = parse_redirection(lexer, errman);
+      if (ERRMAN_FAILING(errman))
+        return false;
       if (redir)
         redir->data.ast_redirection.action = tmp;
       else
@@ -160,8 +194,10 @@ static int element_loop(s_lexer *lexer, s_ablock *block, s_ast *redir,
       redir = tmp;
     }
     tok = lexer_peek(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return false;
   }
-  return 1;
+  return true;
 }
 
 
@@ -173,11 +209,14 @@ s_ast *parse_simple_command(s_lexer *lexer, s_errman *errman)
   s_ast *redir = NULL;
   if (!prefix_loop(lexer, &res->data.ast_block, &redir, errman)
       || !element_loop(lexer, &res->data.ast_block, redir, errman))
-    return NULL; // TODO: handle parsing error
+    return res;
   if (!res->data.ast_block.redir && !res->data.ast_block.def
       && !res->data.ast_block.cmd)
-  { // TODO: handle parsing error
-    return NULL;
+  {
+    const s_token *tok = lexer_peek(lexer, errman);
+    assert(!ERRMAN_FAILING(errman));
+    sherror(&tok->lineinfo, errman, "parsing error");
+    return res;
   }
   return res;
 }
@@ -186,6 +225,8 @@ s_ast *parse_simple_command(s_lexer *lexer, s_errman *errman)
 static s_ast *switch_first_keyword(s_lexer *lexer, s_errman *errman)
 {
   const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return NULL;
   if (tok_is(tok, TOK_IF))
     return parse_rule_if(lexer, errman);
   else if (tok_is(tok, TOK_FOR))
@@ -196,6 +237,7 @@ static s_ast *switch_first_keyword(s_lexer *lexer, s_errman *errman)
     return parse_rule_until(lexer, errman);
   else if (tok_is(tok, TOK_CASE))
     return parse_rule_case(lexer, errman);
+  sherror(&tok->lineinfo, errman, "unexpected token %s", TOKT_STR(tok));
   // TODO: handle parsing error
   return NULL;
 }
@@ -204,45 +246,62 @@ static s_ast *switch_first_keyword(s_lexer *lexer, s_errman *errman)
 s_ast *parse_shell_command(s_lexer *lexer, s_errman *errman)
 {
   const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return NULL;
   if (tok_is(tok, TOK_LBRACE) || tok_is(tok, TOK_LPAR))
   {
     bool par = tok_is(tok, TOK_LPAR);
     tok_free(lexer_pop(lexer, errman), true);
     s_ast *res = parse_compound_list(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return res;
     tok = lexer_peek(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return res;
     if ((tok_is(tok, TOK_LBRACE) && !par)
         || (tok_is(tok, TOK_LPAR) && par))
     {
       tok_free(lexer_pop(lexer, errman), true);
       return res;
     }
-    return NULL;
-  }
-  else
-  {
-    s_ast *res = switch_first_keyword(lexer, errman);
+    sherror(&tok->lineinfo, errman, "unexpected token %s, expected '{' or '('", TOKT_STR(tok));
     return res;
   }
+  else
+    return switch_first_keyword(lexer, errman);
 }
 
 
 s_ast *parse_funcdec(s_lexer *lexer, s_errman *errman)
 {
   s_token *word = lexer_pop(lexer, errman);
-  if (!tok_is(lexer_peek(lexer, errman), TOK_LPAR))
-    return NULL; // TODO: handle error
+  if (ERRMAN_FAILING(errman))
+    return NULL;
+  const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return NULL;
+  if (!tok_is(tok, TOK_LPAR))
+  {
+    sherror(&tok->lineinfo, errman, "unexpected token %s, expected '('", TOKT_STR(tok));
+    return NULL;
+  }
   tok_free(lexer_pop(lexer, errman), true);
-  if (!tok_is(lexer_peek(lexer, errman), TOK_RPAR))
-  { // TODO: handle parsing error
+  tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return NULL;
+  if (!tok_is(tok, TOK_RPAR))
+  {
+    sherror(&tok->lineinfo, errman, "unexpected token %s, expected '('", TOKT_STR(tok));
     return NULL;
   }
   tok_free(lexer_pop(lexer, errman), true);
   parse_newlines(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return NULL;
   s_ast *res = xmalloc(sizeof(s_ast));
   res->type = SHNODE_FUNCTION;
   s_wordlist *name = xmalloc(sizeof(word));
   *name = WORDLIST(TOK_STR(word), true, true, NULL);
   res->data.ast_function = AFUNCTION(name, parse_shell_command(lexer, errman));
-  // TODO: handle parsing error
   return res;
 }
