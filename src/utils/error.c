@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 
-int sherror(s_lineinfo *li, s_errman *errman, const char *format, ...)
+int sherror(const s_lineinfo *li, s_errman *errman, const char *format, ...)
 {
   va_list ap;
   va_start(ap, format);
