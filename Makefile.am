@@ -6,7 +6,7 @@ bin_PROGRAMS = 42sh
 
 SUBDIRS = src/shlex src/io src/shparse src/utils src/shexec src/cli src/repl
 
-EXTRA_DIST = $(srcdir)/tests
+#EXTRA_DIST = $(srcdir)/tests
 
 check-local:
 	$(srcdir)/tests/check.sh
