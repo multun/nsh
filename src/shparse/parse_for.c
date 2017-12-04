@@ -53,6 +53,8 @@ static s_wordlist *parse_in(s_lexer *lexer, bool *in, s_errman *errman)
         return words;
     }
   }
+  if (tok_is(tok, TOK_SEMI))
+    tok_free(lexer_pop(lexer, errman), true);
   return words;
 }
 
