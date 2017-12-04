@@ -37,6 +37,17 @@ static int token_print_consumer(s_cstream *cs)
 }
 
 
+static int ast_exec_consumer(s_cstream *cs)
+{
+  s_lexer *lex = lexer_create(cs);
+  s_ast *ast = parse(lex);
+  if (!ast)
+    return 1;
+  ast_exec(NULL, ast);
+  return 0;
+}
+
+
 static int producer(f_stream_consumer consumer,
                     int cmdstart, int argc, char *argv[])
 {
@@ -70,11 +81,9 @@ static int run(int cmdstart, int argc, char *argv[])
     consumer = token_print_consumer;
     break;
   case SHMODE_REGULAR:
+    consumer = ast_exec_consumer;
     break;
   }
-
-  if (!consumer)
-    errx(1, "execution mode not implemented");
 
   if (is_interactive(argc))
     return repl(consumer);
