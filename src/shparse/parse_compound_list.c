@@ -14,12 +14,17 @@ static bool compound_list_end(const s_token *tok)
 static bool compound_list_loop(s_lexer *lexer, s_alist **tail, s_errman *errman)
 {
   parse_newlines(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return true;
   const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return true;
   if (compound_list_end(tok))
     return true;
   (*tail)->next = xmalloc(sizeof(s_alist));
   *(*tail)->next = ALIST(parse_and_or(lexer, errman), NULL);
-  // TODO: handle parsing error
+  if (ERRMAN_FAILING(errman))
+    return true;
   *tail = (*tail)->next;
   return false;
 }
@@ -27,12 +32,17 @@ static bool compound_list_loop(s_lexer *lexer, s_alist **tail, s_errman *errman)
 s_ast *parse_compound_list(s_lexer *lexer, s_errman *errman)
 {
   parse_newlines(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return NULL;
   s_ast *res = xmalloc(sizeof(s_ast));
   res->type = SHNODE_LIST;
   res->data.ast_list = ALIST(parse_and_or(lexer, errman), NULL);
-  // TODO: handle parsing error
+  if (ERRMAN_FAILING(errman))
+    return res;
   s_alist *tmp = &res->data.ast_list;
   const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
   while (tok_is(tok, TOK_SEMI) || tok_is(tok, TOK_AND)
          || tok_is(tok, TOK_NEWLINE))
   { // TODO: & = background task
