@@ -27,13 +27,12 @@ static bool compound_list_loop(s_lexer *lexer, s_alist **tail)
 s_ast *parse_compound_list(s_lexer *lexer)
 {
   parse_newlines(lexer);
-  const s_token *tok = lexer_peek(lexer);
-  tok = lexer_peek(lexer);
   s_ast *res = xmalloc(sizeof(s_ast));
   res->type = SHNODE_LIST;
   res->data.ast_list = ALIST(parse_and_or(lexer), NULL);
   // TODO: handle parsing error
   s_alist *tmp = &res->data.ast_list;
+  const s_token *tok = lexer_peek(lexer);
   while (tok_is(tok, TOK_SEMI) || tok_is(tok, TOK_AND)
          || tok_is(tok, TOK_NEWLINE))
   { // TODO: & = background task
