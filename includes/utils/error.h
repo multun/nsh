@@ -22,4 +22,4 @@ typedef struct errman
   }
 
 
-int sherror(s_lineinfo *lineinfo, s_errman *errman, const char *format, ...);
+int sherror(const s_lineinfo *lineinfo, s_errman *errman, const char *format, ...);
