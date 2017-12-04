@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <err.h>
 
 #include "ast/wordlist.h"
 #include "shexec/environment.h"
@@ -7,9 +8,10 @@
 
 static void expand(char *str, s_env *env)
 {
-  str = str;
-  env = env;
   // TODO
+  if (!str || !env)
+    warnx("expand: not implemented yet.");
+  return;
 }
 
 char **wordlist_to_argc(s_wordlist *wl, s_env *env)

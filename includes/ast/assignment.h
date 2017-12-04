@@ -23,3 +23,4 @@ typedef struct aassignment
 
 
 void assignment_print(FILE *f, struct ast *ast);
+int assignment_exec(s_env *env, struct ast *ast);

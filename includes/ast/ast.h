@@ -37,10 +37,10 @@
   F(SHNODE_UNTIL, until_print, until_exec)                               \
   F(SHNODE_REDIRECTION, redirection_print, NULL)                         \
   F(SHNODE_PIPE, pipe_print, NULL)                                       \
-  F(SHNODE_CASE, case_print, case_exec)                                       \
+  F(SHNODE_CASE, case_print, case_exec)                                  \
   F(SHNODE_BOOL_OP, bool_op_print, bool_op_exec)                         \
-  F(SHNODE_LIST, list_print, list_exec)                                       \
-  F(SHNODE_ASSIGNMENT, assignment_print, NULL)                           \
+  F(SHNODE_LIST, list_print, list_exec)                                  \
+  F(SHNODE_ASSIGNMENT, assignment_print, assignment_exec)                \
   F(SHNODE_FUNCTION, function_print, NULL)                               \
   F(SHNODE_BLOCK, block_print, block_exec)
 

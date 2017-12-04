@@ -13,3 +13,12 @@ void assignment_print(FILE *f, s_ast *ast)
   ast_print_rec(f, aassignment->action);
   fprintf(f, "\"%p\" -> \"%p\";\n", id, id_next);
 }
+
+
+int assignment_exec(s_env *env, s_ast *ast)
+{
+  // TODO
+  if (env && ast)
+    return 0;
+  return 0;
+}
