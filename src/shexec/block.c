@@ -28,3 +28,18 @@ void block_print(FILE *f, struct ast *node)
     fprintf(f, "\"%p\" -> \"%p\" [label=\"CMD\"];\n", id, id_next);
   }
 }
+
+
+int block_exec(s_env *env, s_ast *ast)
+{
+  s_ablock *ablock = &ast->data.ast_block;
+
+  if (ablock->redir)
+    ast_exec(env, ablock->redir);
+  if (ablock->def)
+    ast_exec(env, ablock->def);
+  if (ablock->cmd)
+    return ast_exec(env, ablock->cmd);
+
+  return 0;
+}
