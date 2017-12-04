@@ -19,3 +19,4 @@ typedef struct alist
 
 
 void list_print(FILE *f, struct ast *ast);
+int list_exec(s_env *env, struct ast *ast);

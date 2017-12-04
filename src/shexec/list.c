@@ -18,3 +18,15 @@ void list_print(FILE *f, s_ast *ast)
     alist = alist->next;
   }
 }
+
+
+int list_exec(s_env *env, s_ast *ast)
+{
+  s_alist *alist = &ast->data.ast_list;
+  while (alist->next)
+  {
+    ast_exec(env, alist->action);
+    alist = alist->next;
+  }
+  return ast_exec(env, alist->action);
+}
