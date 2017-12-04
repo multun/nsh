@@ -1,7 +1,9 @@
 #include <stdbool.h>
 
 #include "shparse/parse.h"
+#include "shlex/print.h"
 #include "utils/alloc.h"
+#include "utils/error.h"
 
 static bool start_else_clause(const s_token *tok)
 {
@@ -14,26 +16,45 @@ s_ast *parse_rule_if(s_lexer *lexer, s_errman *errman)
   s_ast *res = xmalloc(sizeof(s_ast));
   res->type = SHNODE_IF;
   s_ast *cond = parse_compound_list(lexer, errman);
-  // TODO: handle parsing error
+  if (ERRMAN_FAILING(errman))
+    return res;
   const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
   if (!tok_is(tok, TOK_THEN))
-    return NULL; // TODO: raise unexpected token
+  {
+    sherror(&tok->lineinfo, errman, "unexpected token %s, expected 'then'", TOKT_STR(tok));
+    return res;
+  }
   tok_free(lexer_pop(lexer, errman), true);
   s_ast *then = parse_compound_list(lexer, errman);
-  // TODO: handle parsing error
+  if (ERRMAN_FAILING(errman))
+    return res;
   res->data.ast_if = AIF(cond, then, NULL);
   tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
   if (tok_is(tok, TOK_FI))
   {
     tok_free(lexer_pop(lexer, errman), true);
     return res;
   }
   else if (!start_else_clause(tok))
-    return NULL; // TODO: raise unexpected token
+  {
+    sherror(&tok->lineinfo, errman, "unexpected token %s, expected 'fi', 'else' or 'elif'", TOKT_STR(tok));
+    return res;
+  }
   res->data.ast_if.failure = parse_else_clause(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
   tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
   if (!tok_is(tok, TOK_FI))
-    return  NULL; // TODO: raise unexpected token
+  {
+    sherror(&tok->lineinfo, errman, "unexpected token %s, expected 'fi'", TOKT_STR(tok));
+    return  res;
+  }
   tok_free(lexer_pop(lexer, errman), true);
   return res;
 }
@@ -41,6 +62,8 @@ s_ast *parse_rule_if(s_lexer *lexer, s_errman *errman)
 s_ast *parse_else_clause(s_lexer *lexer, s_errman *errman)
 {
   const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return NULL;
   bool elif = tok_is(tok, TOK_ELIF);
   tok_free(lexer_pop(lexer, errman), true);
   if (!elif)
@@ -48,16 +71,27 @@ s_ast *parse_else_clause(s_lexer *lexer, s_errman *errman)
   s_ast *res = xmalloc(sizeof(s_ast));
   res->type = SHNODE_IF;
   s_ast *cond = parse_compound_list(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
   tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
   if (!tok_is(tok, TOK_THEN))
-    return NULL; // TODO: raise unexpected token
+  {
+    sherror(&tok->lineinfo, errman, "unexpected token %s, expected 'then'", TOKT_STR(tok));
+    return res;
+  }
   tok_free(lexer_pop(lexer, errman), true);
   s_ast *then = parse_compound_list(lexer, errman);
-  // TODO: handle parsing error
+  if (ERRMAN_FAILING(errman))
+    return res;
   res->data.ast_if = AIF(cond, then, NULL);
   tok = lexer_peek(lexer, errman);
   if (!start_else_clause(tok))
-    return res; // TODO: raise unexpected token
+  {
+    sherror(&tok->lineinfo, errman, "unexpected token %s, expected 'else' or 'elif'", TOKT_STR(tok));
+    return res;
+  }
   res->data.ast_if.failure = parse_else_clause(lexer, errman);
   return res;
 }
