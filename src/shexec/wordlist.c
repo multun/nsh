@@ -14,7 +14,7 @@ static void expand(char *str, s_env *env)
   return;
 }
 
-char **wordlist_to_argc(s_wordlist *wl, s_env *env)
+char **wordlist_to_argv(s_wordlist *wl, s_env *env)
 {
   size_t argc = 0;
   s_wordlist *tmp = wl;
@@ -28,10 +28,9 @@ char **wordlist_to_argc(s_wordlist *wl, s_env *env)
   argv[argc] = NULL;
   for (size_t i = 0; i < argc; i++)
   {
+    argv[i] = wl->str;
     if (argv[i][0] == '$')
       expand(argv[i], env);
-
-    argv[i] = wl->str;
     wl = wl->next;
   }
   return argv;

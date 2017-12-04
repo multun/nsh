@@ -25,4 +25,4 @@ typedef struct wordlist
   WORDLIST(Str, false, false, NULL)
 
 
-char **wordlist_to_argc(s_wordlist *wl, s_env *env);
+char **wordlist_to_argv(s_wordlist *wl, s_env *env);

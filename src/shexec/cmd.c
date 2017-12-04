@@ -27,7 +27,7 @@ void cmd_print(FILE *f, s_ast *node)
 int cmd_exec(s_env *env, s_ast *node)
 {
   s_wordlist *wl = node->data.ast_cmd.wordlist;
-  char **argv = wordlist_to_argc(wl, env);
+  char **argv = wordlist_to_argv(wl, env);
 
   int status;
   pid_t pid = fork();
