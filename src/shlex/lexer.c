@@ -62,6 +62,13 @@ static s_token *lexer_lex(s_lexer *lexer, s_errman *errman)
 }
 
 
+void lexer_push(s_lexer *lexer, s_token *tok)
+{
+  tok->next = lexer->head;
+  lexer->head = tok;
+}
+
+
 const s_token *lexer_peek(s_lexer *lexer)
 {
   s_errman errman = ERRMAN; // TODO: removeme
@@ -76,7 +83,7 @@ s_token *lexer_pop(s_lexer *lexer)
   if (lexer->head)
   {
     s_token *ret = lexer->head;
-    lexer->head = NULL;
+    lexer->head = ret->next;
     return ret;
   }
 

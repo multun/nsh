@@ -88,6 +88,7 @@ typedef struct token
   int delim;
   bool specified;
   struct evect str;
+  struct token *next;
 } s_token;
 
 
@@ -111,5 +112,6 @@ void lexer_free(s_lexer *lexer);
 
 const s_token *lexer_peek(s_lexer *lexer);
 s_token *lexer_pop(s_lexer *lexer);
+void lexer_push(s_lexer *lexer, s_token *tok);
 
 void word_read(s_cstream *cs, s_token *tok, s_errman *errman);
