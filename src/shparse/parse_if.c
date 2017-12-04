@@ -24,7 +24,10 @@ s_ast *parse_rule_if(s_lexer *lexer)
   res->data.ast_if = AIF(cond, then, NULL);
   tok = lexer_peek(lexer);
   if (tok_is(tok, TOK_FI))
+  {
+    tok_free(lexer_pop(lexer), true);
     return res;
+  }
   else if (!start_else_clause(tok))
     return NULL; // TODO: raise unexpected token
   res->data.ast_if.failure = parse_else_clause(lexer);
