@@ -7,7 +7,7 @@ void list_print(FILE *f, s_ast *ast)
 {
   s_alist *alist = &ast->data.ast_list;
 
-  if (alist)
+  while (alist)
   {
     ast_print_rec(f, alist->action);
     if (alist->next)
