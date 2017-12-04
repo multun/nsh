@@ -13,18 +13,18 @@ void block_print(FILE *f, struct ast *node)
   {
     ast_print_rec(f, ablock->redir);
     void *id_next = ablock->redir;
-    fprintf(f, "\"%p\" -> \"%p\" [label=\"COND\"];\n", id, id_next);
+    fprintf(f, "\"%p\" -> \"%p\" [label=\"REDIR\"];\n", id, id_next);
   }
   if (ablock->def)
   {
     ast_print_rec(f, ablock->def);
     void *id_next = ablock->def;
-    fprintf(f, "\"%p\" -> \"%p\" [label=\"COND\"];\n", id, id_next);
+    fprintf(f, "\"%p\" -> \"%p\" [label=\"DEF\"];\n", id, id_next);
   }
   if (ablock->cmd)
   {
     ast_print_rec(f, ablock->cmd);
     void *id_next = ablock->cmd;
-    fprintf(f, "\"%p\" -> \"%p\" [label=\"COND\"];\n", id, id_next);
+    fprintf(f, "\"%p\" -> \"%p\" [label=\"CMD\"];\n", id, id_next);
   }
 }
