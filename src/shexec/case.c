@@ -1,6 +1,7 @@
-#include <stdio.h>
-
 #include "ast/ast.h"
+
+#include <stdio.h>
+#include <string.h>
 
 
 void case_print(FILE *f, s_ast *ast)
@@ -25,4 +26,24 @@ void case_print(FILE *f, s_ast *ast)
     fprintf(f, "\"];\n");
     node = node->next;
   }
+}
+
+
+int case_exec(s_env *env, s_ast *ast)
+{
+  s_acase *acase = &ast->data.ast_case;
+  s_acase_node *node = acase->nodes;
+
+  while (node)
+  {
+    s_wordlist *pattern = node->pattern;
+    while (pattern)
+    {
+      if (!strcmp(pattern->str, pattern->str))
+        return ast_exec(env, node->action);
+      pattern = pattern->next;
+    }
+    node = node->next;
+  }
+  return 0;
 }

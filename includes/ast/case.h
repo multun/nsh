@@ -36,3 +36,4 @@ typedef struct acase
 
 
 void case_print(FILE *f, struct ast *ast);
+int case_exec(s_env *env, struct ast *ast);
