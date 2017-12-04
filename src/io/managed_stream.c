@@ -21,17 +21,19 @@ int managed_stream_init(struct managed_stream *ms, int argc, char *argv[])
     return 0;
   }
 
-  if (argc <= 0)
-    return 1;
+  char *msg = "<stdin>";
+  FILE *f = stdin;
 
-  FILE *f = ms->in_file = fopen(argv[0], "r");
-  if (!f)
+  if (argc > 0)
   {
-    fprintf(stderr, "cannot open input script: %s\n", strerror(errno));
-    return 1;
+    msg = argv[0];
+    if (!(f = ms->in_file = fopen(argv[0], "r")))
+    {
+      fprintf(stderr, "cannot open input script: %s\n", strerror(errno));
+      return 1;
+    }
   }
-
-  ms->cs = cstream_from_file(f, argv[0]);
+  ms->cs = cstream_from_file(f, msg);
   return 0;
 }
 

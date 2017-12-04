@@ -8,13 +8,15 @@
 #include "shparse/parse.h"
 
 #include <err.h>
-#include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 
 static bool is_interactive(int argc)
 {
-  return (g_cmdopts.src != SHSRC_COMMAND) && argc <= 0;
+  return (g_cmdopts.src != SHSRC_COMMAND) && argc <= 0 && isatty(STDIN_FILENO);
 }
 
 
