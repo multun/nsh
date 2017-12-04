@@ -1,5 +1,8 @@
 #include "shlex/lexer.h"
+#include "shlex/print.h"
 #include "utils/macros.h"
+
+#include <assert.h>
 
 #define LEX_GEN_TOKS_STR_ENUM(Tokname) #Tokname,
 #define LEX_CONST_STR_ENUM(TokName, Value) #TokName,
@@ -21,14 +24,19 @@ const char *token_type_to_string(enum token_type type)
 }
 
 
-int print_tokens(FILE *f, s_cstream *cs)
+int print_tokens(FILE *f, s_cstream *cs, s_errman *errman)
 {
+  assert(!ERRMAN_FAILING(errman));
+  int res = 0;
   s_lexer *lex = lexer_create(cs);
   while (!cstream_eof(cs))
   {
-    s_token *tok = lexer_pop(lex);
-    if (!tok)
+    s_token *tok = lexer_pop(lex, errman);
+    if (!tok || ERRMAN_FAILING(errman))
+    {
+      res = 1;
       break;
+    }
 
     fprintf(f, "%zu:%zu\t%s(%s)[%c]\n", tok->lineinfo.line, tok->lineinfo.column,
            token_type_to_string(tok->type),
@@ -36,5 +44,5 @@ int print_tokens(FILE *f, s_cstream *cs)
     tok_free(tok, true);
   }
   lexer_free(lex);
-  return 0;
+  return res;
 }

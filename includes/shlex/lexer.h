@@ -109,8 +109,8 @@ bool tok_is(const s_token *tok, enum token_type type);
 s_lexer *lexer_create(s_cstream *stream);
 void lexer_free(s_lexer *lexer);
 
-const s_token *lexer_peek(s_lexer *lexer);
-s_token *lexer_pop(s_lexer *lexer);
+const s_token *lexer_peek(s_lexer *lexer, s_errman *errman);
+s_token *lexer_pop(s_lexer *lexer, s_errman *errman);
 void lexer_push(s_lexer *lexer, s_token *tok);
 
 void word_read(s_cstream *cs, s_token *tok, s_errman *errman);

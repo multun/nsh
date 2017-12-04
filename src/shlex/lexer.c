@@ -69,16 +69,20 @@ void lexer_push(s_lexer *lexer, s_token *tok)
 }
 
 
-const s_token *lexer_peek(s_lexer *lexer)
+const s_token *lexer_peek(s_lexer *lexer, s_errman *errman)
 {
-  s_errman errman = ERRMAN; // TODO: removeme
   if (!lexer->head)
-    lexer->head = lexer_lex(lexer, &errman);
+  {
+    s_token *ntok = lexer_lex(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return NULL;
+    lexer->head = ntok;
+  }
   return lexer->head;
 }
 
 
-s_token *lexer_pop(s_lexer *lexer)
+s_token *lexer_pop(s_lexer *lexer, s_errman *errman)
 {
   if (lexer->head)
   {
@@ -87,6 +91,5 @@ s_token *lexer_pop(s_lexer *lexer)
     return ret;
   }
 
-  s_errman errman = ERRMAN; // TODO: removeme
-  return lexer_lex(lexer, &errman);
+  return lexer_lex(lexer, errman);
 }
