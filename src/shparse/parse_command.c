@@ -3,6 +3,7 @@
 #include "shparse/parse.h"
 #include "utils/alloc.h"
 
+
 static bool start_redir(const s_token *tok)
 {
   return tok_is(tok, TOK_IO_NUMBER) || tok_is(tok, TOK_DLESS)
@@ -12,12 +13,14 @@ static bool start_redir(const s_token *tok)
          || tok_is(tok, TOK_LESS) || tok_is(tok, TOK_GREAT);
 }
 
+
 static bool is_first_keyword(const s_token *tok)
 {
   return tok_is(tok, TOK_IF) || tok_is(tok, TOK_FOR)
          || tok_is(tok, TOK_WHILE) || tok_is(tok, TOK_UNTIL)
          || tok_is(tok, TOK_CASE);
 }
+
 
 static s_ast *redirection_loop(s_lexer *lexer, s_ast *cmd)
 {
@@ -45,6 +48,7 @@ static s_ast *redirection_loop(s_lexer *lexer, s_ast *cmd)
   return res;
 }
 
+
 s_ast *parse_command(s_lexer *lexer)
 {
   const s_token *tok = lexer_peek(lexer);
@@ -56,19 +60,22 @@ s_ast *parse_command(s_lexer *lexer)
   else if (tok_is(tok, TOK_FUNC))
   { // discard tokken 'function' and create token NAME to match latter use
     tok_free(lexer_pop(lexer), true);
-    res = parse_funcdec(lexer, lexer_pop(lexer));
+    res = parse_funcdec(lexer);
   }
   else
   {
     s_token *word = lexer_pop(lexer);
-    if (tok_is(lexer_peek(lexer), TOK_LPAR))
-      res = parse_funcdec(lexer, word);
+    bool is_par = tok_is(lexer_peek(lexer), TOK_LPAR);
+    lexer_push(lexer, word);
+    if (is_par)
+      res = parse_funcdec(lexer);
     else
-      return parse_simple_command(lexer, word);
+      return parse_simple_command(lexer);
   }
   // TODO: handle parsing error
   return redirection_loop(lexer, res);
 }
+
 
 static s_ast *parse_assignment(s_lexer *lexer)
 {
@@ -87,15 +94,16 @@ static s_ast *parse_assignment(s_lexer *lexer)
   return res;
 }
 
-static int prefix_loop(s_lexer *lexer, s_ablock *block, s_ast **redirect,
-                       const s_token **tok)
+
+static int prefix_loop(s_lexer *lexer, s_ablock *block, s_ast **redirect)
 {
   s_ast *assign = NULL;
   s_ast *redir = NULL;
-  while (tok_is(*tok, TOK_ASSIGNMENT_WORD) || start_redir(*tok))
+  const s_token *tok = lexer_peek(lexer);
+  while (tok_is(tok, TOK_ASSIGNMENT_WORD) || start_redir(tok))
   {
     s_ast *tmp = NULL;
-    if (tok_is(*tok, TOK_ASSIGNMENT_WORD))
+    if (tok_is(tok, TOK_ASSIGNMENT_WORD))
     {
       tmp = parse_assignment(lexer);
       if (assign)
@@ -113,19 +121,20 @@ static int prefix_loop(s_lexer *lexer, s_ablock *block, s_ast **redirect,
         block->redir = tmp;
       redir = tmp;
     }
-    *tok = lexer_peek(lexer);
+    tok = lexer_peek(lexer);
   }
   *redirect = redir;
   return 1;
 }
 
-static int element_loop(s_lexer *lexer, s_ablock *block, s_ast *redir,
-                        const s_token **tok)
+
+static int element_loop(s_lexer *lexer, s_ablock *block, s_ast *redir)
 {
   s_wordlist *elm = NULL;
-  while (tok_is(*tok, TOK_WORD) || start_redir(*tok))
+  const s_token *tok = lexer_peek(lexer);
+  while (tok_is(tok, TOK_WORD) || start_redir(tok))
   {
-    if (tok_is(*tok, TOK_WORD))
+    if (tok_is(tok, TOK_WORD))
     {
       s_wordlist *tmp = parse_word(lexer);
       if (elm)
@@ -148,20 +157,20 @@ static int element_loop(s_lexer *lexer, s_ablock *block, s_ast *redir,
         block->redir = tmp;
       redir = tmp;
     }
-    *tok = lexer_peek(lexer);
+    tok = lexer_peek(lexer);
   }
   return 1;
 }
 
-s_ast *parse_simple_command(s_lexer *lexer, s_token *word)
+
+s_ast *parse_simple_command(s_lexer *lexer)
 {
-  const s_token *tok = word;
   s_ast *res = xmalloc(sizeof(s_ast));
   res->type = SHNODE_BLOCK;
   res->data.ast_block = ABLOCK(NULL, NULL, NULL);
   s_ast *redir = NULL;
-  if (!prefix_loop(lexer, &res->data.ast_block, &redir, &tok)
-      || !element_loop(lexer, &res->data.ast_block, redir, &tok))
+  if (!prefix_loop(lexer, &res->data.ast_block, &redir)
+      || !element_loop(lexer, &res->data.ast_block, redir))
     return NULL; // TODO: handle parsing error
   if (!res->data.ast_block.redir && !res->data.ast_block.def
       && !res->data.ast_block.cmd)
@@ -170,6 +179,7 @@ s_ast *parse_simple_command(s_lexer *lexer, s_token *word)
   }
   return res;
 }
+
 
 static s_ast *switch_first_keyword(s_lexer *lexer)
 {
@@ -187,6 +197,7 @@ static s_ast *switch_first_keyword(s_lexer *lexer)
   // TODO: handle parsing error
   return NULL;
 }
+
 
 s_ast *parse_shell_command(s_lexer *lexer)
 {
@@ -212,8 +223,12 @@ s_ast *parse_shell_command(s_lexer *lexer)
   }
 }
 
-s_ast *parse_funcdec(s_lexer *lexer, s_token *word)
+
+s_ast *parse_funcdec(s_lexer *lexer)
 {
+  s_token *word = lexer_pop(lexer);
+  if (!tok_is(lexer_peek(lexer), TOK_LPAR))
+    return NULL; // TODO: handle error
   tok_free(lexer_pop(lexer), true); // first '(' was checked in commande
   if (!tok_is(lexer_peek(lexer), TOK_RPAR))
   { // TODO: handle parsing error

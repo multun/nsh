@@ -9,9 +9,9 @@ s_ast *parse_list(s_lexer *lexer);
 s_ast *parse_and_or(s_lexer *lexer);
 s_ast *parse_pipeline(s_lexer *lexer);
 s_ast *parse_command(s_lexer *lexer);
-s_ast *parse_simple_command(s_lexer *lexer, s_token *word);
+s_ast *parse_simple_command(s_lexer *lexer);
 s_ast *parse_shell_command(s_lexer *lexer);
-s_ast *parse_funcdec(s_lexer *lexer, s_token *word);
+s_ast *parse_funcdec(s_lexer *lexer);
 s_ast *parse_redirection(s_lexer *lexer);
 s_ast *parse_compound_list(s_lexer *lexer);
 
