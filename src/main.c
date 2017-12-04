@@ -5,14 +5,56 @@
 #include "shlex/lexer.h"
 #include "shlex/print.h"
 #include "repl/repl.h"
+#include "shparse/parse.h"
 
+#include <err.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 
-static int run(struct managed_stream *ms, int argc, char *argv[])
+static bool is_interactive(int argc)
 {
-  (void)argc;
-  (void)argv;
+  return (g_cmdopts.src != SHSRC_COMMAND) && argc <= 0;
+}
+
+
+static int ast_print_consumer(s_cstream *cs)
+{
+  s_lexer *lex = lexer_create(cs);
+  s_ast *ast = parse(lex);
+  if (!ast)
+    return 1;
+  ast_print(stdout, ast);
+  return 0;
+}
+
+
+static int token_print_consumer(s_cstream *cs)
+{
+  return print_tokens(stdout, cs);
+}
+
+
+static int producer(f_stream_consumer consumer,
+                    int cmdstart, int argc, char *argv[])
+{
+  (void)cmdstart; // TODO: pass args to exec
+  struct managed_stream ms;
+  int load_res = managed_stream_init(&ms, argc, argv);
+  if (load_res)
+    return load_res;
+
+  // TODO: loop
+  int res = consumer(ms.cs);
+
+  managed_stream_destroy(&ms);
+  return res;
+}
+
+
+static int run(int cmdstart, int argc, char *argv[])
+{
+  f_stream_consumer consumer = NULL;
 
   switch (g_cmdopts.shmode)
   {
@@ -20,13 +62,21 @@ static int run(struct managed_stream *ms, int argc, char *argv[])
     puts("Version " VERSION);
     return 0;
   case SHMODE_AST_PRINT:
-    return 1;
+    consumer = ast_print_consumer;
+    break;
   case SHMODE_TOKEN_PRINT:
-    return print_tokens(stdout, ms->cs);
+    consumer = token_print_consumer;
+    break;
   case SHMODE_REGULAR:
-    return repl(ms->cs, argc, argv);
+    break;
   }
-  abort();
+
+  if (!consumer)
+    errx(1, "execution mode not implemented");
+
+  if (is_interactive(argc))
+    return repl(consumer);
+  return producer(consumer, cmdstart, argc, argv);
 }
 
 
@@ -44,13 +94,5 @@ int main(int argc, char *argv[])
   if (g_cmdopts.norc)
     puts("norc");
 
-  struct managed_stream ms;
-  int load_res = managed_stream_init(&ms, argc, argv);
-  if (load_res)
-    return load_res;
-
-  int res = run(&ms, argc, argv);
-
-  managed_stream_destroy(&ms);
-  return res;
+  return run(cmdstart, argc, argv);
 }

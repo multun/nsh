@@ -9,3 +9,5 @@
   * [x] Input modes
   * [ ] Shopts
     * [ ] Handle +O
+* [ ] Repl
+  * [ ] Don't print the prompt when interactive

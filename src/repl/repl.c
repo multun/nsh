@@ -1,7 +1,8 @@
 #include "io/cstream.h"
+#include "io/managed_stream.h"
+#include "repl/repl.h"
 #include "shlex/lexer.h"
 #include "shparse/parse.h"
-
 
 #include <stdio.h>
 // readline's header requires including stdio beforehand
@@ -15,18 +16,14 @@
 void ast_print(FILE *f, s_ast *ast);
 
 
-int repl(s_cstream *cs, int argc, char *argv[])
+int repl(f_stream_consumer consumer)
 {
-  (void)argc;
-  (void)argv;
-  (void)cs;
-  for (char *input; (input = readline("42sh> ")); free(input))
+  int res = 0;
+  for (char *input; !res && (input = readline("42sh> ")); free(input))
   {
     s_cstream *ns = cstream_from_string(input, "<stdin>");
-    s_lexer *lex = lexer_create(ns);
-    s_ast *ast = parse(lex);
-    ast_print(stdout, ast);
+    res = consumer(ns);
     cstream_free(ns);
   }
-  return 0;
+  return res;
 }

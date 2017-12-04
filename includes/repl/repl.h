@@ -2,5 +2,6 @@
 
 #include "io/cstream.h"
 
+typedef int (*f_stream_consumer)(s_cstream *cs);
 
-int repl(s_cstream *cs, int argc, char *argv[]);
+int repl(f_stream_consumer consumer);
