@@ -8,8 +8,14 @@
 #include "utils/evect.h"
 
 
-#define TOK_IS_OP(Type) ((Type) >= TOK_AND_IF && (Type) <= TOK_PIPE)
+#define TOK_IS_OP(Type) ((Type) >= TOK_LESS && (Type) <= TOK_LESSDASH)
 #define LEX_OP_TOKS(F)    \
+  F(TOK_LESS,      "<")   \
+  F(TOK_GREAT,     ">")   \
+  F(TOK_SEMI,      ";")   \
+  F(TOK_AND,       "&")   \
+  F(TOK_PIPE,      "|")   \
+                          \
   F(TOK_AND_IF,    "&&")  \
   F(TOK_OR_IF,     "||")  \
   F(TOK_DSEMI,     ";;")  \
@@ -18,15 +24,8 @@
   F(TOK_LESSAND,   "<&")  \
   F(TOK_GREATAND,  ">&")  \
   F(TOK_LESSGREAT, "<>")  \
-  F(TOK_LESSDASH,  "<<-") \
-                          \
   F(TOK_CLOBBER,   ">|")  \
-  F(TOK_LESS,      "<")   \
-  F(TOK_GREAT,     ">")   \
-                          \
-  F(TOK_SEMI,      ";")   \
-  F(TOK_AND,       "&")   \
-  F(TOK_PIPE,      "|")
+  F(TOK_LESSDASH,  "<<-") \
 
 
 #define TOK_IS_KW(Type) ((Type) >= TOK_IF && (Type) <= TOK_FUNC)
