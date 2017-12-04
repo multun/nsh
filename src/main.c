@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "utils/error.h"
+
 
 static bool is_interactive(int argc)
 {
@@ -22,8 +24,9 @@ static bool is_interactive(int argc)
 
 static int ast_print_consumer(s_cstream *cs)
 {
+  s_errman errman = ERRMAN;
   s_lexer *lex = lexer_create(cs);
-  s_ast *ast = parse(lex);
+  s_ast *ast = parse(lex, &errman);
   if (!ast)
     return 1;
   ast_print(stdout, ast);
@@ -33,14 +36,16 @@ static int ast_print_consumer(s_cstream *cs)
 
 static int token_print_consumer(s_cstream *cs)
 {
-  return print_tokens(stdout, cs);
+  s_errman errman = ERRMAN;
+  return print_tokens(stdout, cs, &errman);
 }
 
 
 static int ast_exec_consumer(s_cstream *cs)
 {
+  s_errman errman = ERRMAN;
   s_lexer *lex = lexer_create(cs);
-  s_ast *ast = parse(lex);
+  s_ast *ast = parse(lex, &errman);
   if (!ast)
     return 1;
   ast_exec(NULL, ast);

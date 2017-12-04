@@ -15,28 +15,28 @@ static s_ast *negate_ast(s_ast *ast, bool neg)
   return negation;
 }
 
-s_ast *parse_pipeline(s_lexer *lexer)
+s_ast *parse_pipeline(s_lexer *lexer, s_errman *errman)
 {
-  const s_token *tok = lexer_peek(lexer);
+  const s_token *tok = lexer_peek(lexer, errman);
   bool negation = tok_is(tok, TOK_BANG);
   if (negation)
-    tok_free(lexer_pop(lexer), true);
+    tok_free(lexer_pop(lexer, errman), true);
 
-  s_ast *res = parse_command(lexer);
+  s_ast *res = parse_command(lexer, errman);
   // TODO: handle parsing error
 
-  tok = lexer_peek(lexer);
+  tok = lexer_peek(lexer, errman);
   while (tok_is(tok, TOK_PIPE))
   {
-    tok_free(lexer_pop(lexer), true);
-    parse_newlines(lexer);
-    tok = lexer_peek(lexer);
+    tok_free(lexer_pop(lexer, errman), true);
+    parse_newlines(lexer, errman);
+    tok = lexer_peek(lexer, errman);
     s_ast *pipe = xmalloc(sizeof(s_ast));
     pipe->type = SHNODE_PIPE;
-    pipe->data.ast_pipe = APIPE(res, parse_command(lexer));
+    pipe->data.ast_pipe = APIPE(res, parse_command(lexer, errman));
     // TODO: handle parsing error
     res = pipe;
-    tok = lexer_peek(lexer);
+    tok = lexer_peek(lexer, errman);
   }
   return negate_ast(res, negation);
 }
@@ -64,9 +64,9 @@ enum redir_type parse_redir_type(const s_token *tok)
   abort();
 }
 
-s_ast *parse_redirection(s_lexer *lexer)
+s_ast *parse_redirection(s_lexer *lexer, s_errman *errman)
 {
-  s_token *tok = lexer_pop(lexer);
+  s_token *tok = lexer_pop(lexer, errman);
   s_ast *res = xmalloc(sizeof(s_ast));
   res->type = SHNODE_REDIRECTION;
   int left = -1;
@@ -74,11 +74,11 @@ s_ast *parse_redirection(s_lexer *lexer)
   {
     left = atoi(TOK_STR(tok));
     tok_free(tok, true);
-    tok = lexer_pop(lexer);
+    tok = lexer_pop(lexer, errman);
   }
   enum redir_type type = parse_redir_type(tok);
   tok_free(tok, true);
-  s_wordlist *word = parse_word(lexer);
+  s_wordlist *word = parse_word(lexer, errman);
   res->data.ast_redirection = AREDIRECTION(type, left, word, NULL);
   return res;
 }
