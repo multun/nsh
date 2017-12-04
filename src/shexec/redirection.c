@@ -29,7 +29,10 @@ void redirection_print(FILE *f, s_ast *ast)
   fprintf(f, "\"%p\" [label=\"%d %s %s\"];\n", id, aredirection->left,
           redir, aredirection->right->str);
 
-  ast_print_rec(f, aredirection->action);
-  void *id_next = aredirection->action;
-  fprintf(f, "\"%p\" -> \"%p\";\n", id, id_next);
+  if (aredirection->action)
+  {
+    ast_print_rec(f, aredirection->action);
+    void *id_next = aredirection->action;
+    fprintf(f, "\"%p\" -> \"%p\";\n", id, id_next);
+  }
 }
