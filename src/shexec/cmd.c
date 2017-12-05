@@ -32,7 +32,11 @@ int cmd_exec(s_env *env, s_ast *node)
 
   s_ast *func = htable_access(env->functions, argv[0]);
   if (func)
+  {
+    free(argv);
+    // TODO manage args
     return ast_exec(env, func);
+  }
 
   int status;
   pid_t pid = fork();
