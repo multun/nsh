@@ -82,7 +82,6 @@ typedef struct ast
   })
 
 
-
 void ast_print_rec(FILE *f, s_ast *ast);
 void ast_print(FILE *f, s_ast *ast);
 int ast_exec(s_env *env, s_ast *ast);

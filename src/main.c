@@ -22,10 +22,11 @@ static bool is_interactive(int argc)
 }
 
 
-static int ast_print_consumer(s_cstream *cs, s_errman *errman)
+static int ast_print_consumer(s_cstream *cs, s_errman *errman, s_context *cont)
 {
   s_lexer *lex = lexer_create(cs);
   s_ast *ast = parse(lex, errman);
+
   if (ERRMAN_FAILING(errman))
   {
     ast_free(ast);
@@ -33,22 +34,27 @@ static int ast_print_consumer(s_cstream *cs, s_errman *errman)
   }
   if (!ast)
     return 1;
+
+  cont->ast_list = ast_list_append(cont->ast_list, ast);
   ast_print(stdout, ast);
-  ast_free(ast);
   return 0;
 }
 
 
-static int token_print_consumer(s_cstream *cs, s_errman *errman)
+static int token_print_consumer(s_cstream *cs, s_errman *errman,
+                                s_context *cont)
 {
+  if (!cont)
+    return 0;
   return print_tokens(stdout, cs, errman);
 }
 
 
-static int ast_exec_consumer(s_cstream *cs, s_errman *errman)
+static int ast_exec_consumer(s_cstream *cs, s_errman *errman, s_context *cont)
 {
   s_lexer *lex = lexer_create(cs);
   s_ast *ast = parse(lex, errman);
+
   if (ERRMAN_FAILING(errman))
   {
     ast_free(ast);
@@ -56,12 +62,9 @@ static int ast_exec_consumer(s_cstream *cs, s_errman *errman)
     return 1;
   }
 
-  s_env *env = environment_create();
+  cont->ast_list = ast_list_append(cont->ast_list, ast);
+  int res = ast_exec(cont->env, ast);
 
-  int res = ast_exec(env, ast);
-
-  environment_free(env);
-  ast_free(ast);
   lexer_free(lex);
   return res;
 }
@@ -78,10 +81,14 @@ static int producer(f_stream_consumer consumer,
 
   s_errman errman = ERRMAN;
 
+  s_context cont;
+  context_init(&cont);
+
   int res = 0;
   while (!cstream_eof(ms.cs) && !ERRMAN_FAILING(&errman))
-    res = consumer(ms.cs, &errman);
+    res = consumer(ms.cs, &errman, &cont);
 
+  context_destroy(&cont);
   managed_stream_destroy(&ms);
   return res;
 }
