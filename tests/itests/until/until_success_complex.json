@@ -1,0 +1,7 @@
+{
+  "desc": "Test a succeeding until",
+  "stdin": "until [ -f file ]; do\ntouch file; echo coucou; done",
+  "stdout": "coucou\n",
+  "stderr": "",
+  "retcode": 0
+}

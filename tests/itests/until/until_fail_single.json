@@ -1,0 +1,7 @@
+{
+  "desc": "Test a failing until with a single instruction",
+  "stdin": "until [ -f file ]; do\n! touch file; done",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 1
+}
