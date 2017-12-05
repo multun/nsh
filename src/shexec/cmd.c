@@ -1,4 +1,5 @@
 #include <err.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -40,7 +41,10 @@ int cmd_exec(s_env *env, s_ast *node)
     err(1, "cmd_exec: error while forking");
 
   else if (pid == 0)
-    err(execvp(*argv, argv), "exec");
+  {
+    execvp(*argv, argv);
+    exit(errno);
+  }
 
   else
   {
