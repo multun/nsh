@@ -1,0 +1,7 @@
+{
+  "desc": "A bare single quote",
+  "stdin": "echo 'that   is    a test '",
+  "stdout": "that   is    a test \n",
+  "stderr": "",
+  "retcode": 0
+}

@@ -1,0 +1,7 @@
+{
+  "desc": "A single quote block inside a regular string",
+  "stdin": "echo bb'b   e'' m 'ee",
+  "stdout": "bbb   e m ee\n",
+  "stderr": "",
+  "retcode": 0
+}

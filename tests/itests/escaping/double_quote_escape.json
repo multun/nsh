@@ -1,0 +1,7 @@
+{
+  "desc": "A double quoted string containing an escaped \"",
+  "stdin": "echo \" test \\\"\"",
+  "stdout": " test \"\n",
+  "stderr": "",
+  "retcode": 0
+}

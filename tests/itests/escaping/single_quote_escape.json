@@ -1,0 +1,7 @@
+{
+  "desc": "A bare single quote escape attempt",
+  "stdin": "echo 'coucou\\'",
+  "stdout": "coucou\\\n",
+  "stderr": "",
+  "retcode": 0
+}
