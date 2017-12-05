@@ -47,3 +47,12 @@ int bool_op_exec(s_env *env, s_ast *ast)
   else
     return !ast_exec(env, abool->left);
 }
+
+
+void bool_op_free(struct ast *ast)
+{
+  if (!ast)
+    return;
+  ast_free(ast->data.ast_bool_op.left);
+  ast_free(ast->data.ast_bool_op.right);
+}

@@ -43,3 +43,14 @@ int block_exec(s_env *env, s_ast *ast)
 
   return 0;
 }
+
+
+void block_free(struct ast *ast)
+{
+  if (!ast)
+    return;
+  ast_free(ast->data.ast_block.redir);
+  ast_free(ast->data.ast_block.def);
+  ast_free(ast->data.ast_block.cmd);
+  free(ast);
+}

@@ -22,3 +22,13 @@ int assignment_exec(s_env *env, s_ast *ast)
     return 0;
   return 0;
 }
+
+void assignment_free(struct ast *ast)
+{
+  if (!ast)
+    return;
+  wordlist_free(ast->data.ast_assignment.name, true);
+  wordlist_free(ast->data.ast_assignment.value, false);
+  ast_free(ast->data.ast_assignment.action);
+  free(ast);
+}
