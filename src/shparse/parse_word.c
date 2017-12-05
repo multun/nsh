@@ -10,11 +10,12 @@ s_wordlist *parse_word(s_lexer *lexer, s_errman *errman)
     return NULL;
   if (!tok_is(tok, TOK_WORD))
   {
-    sherror(&tok->lineinfo, errman, "unexpected token %s, expected WORD", TOKT_STR(tok));
+    sherror(&tok->lineinfo, errman,
+            "unexpected token %s, expected WORD", TOKT_STR(tok));
     return NULL;
   }
 
-  s_wordlist *res = xmalloc(sizeof(s_wordlist));
+  s_wordlist *res = xcalloc(sizeof(s_wordlist), 1);
   s_token *wrd = lexer_pop(lexer, errman);
   *res = WORDLIST(TOK_STR(wrd), true, true, NULL);
   tok_free(wrd, false);

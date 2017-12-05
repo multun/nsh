@@ -61,7 +61,7 @@ static s_wordlist *parse_in(s_lexer *lexer, bool *in, s_errman *errman)
 s_ast *parse_rule_for(s_lexer *lexer, s_errman *errman)
 {
   tok_free(lexer_pop(lexer, errman), true);
-  s_ast *res = xmalloc(sizeof(s_ast));
+  s_ast *res = xcalloc(sizeof(s_ast), 1);
   res->type = SHNODE_FOR;
   s_wordlist *name = parse_word(lexer, errman);
   res->data.ast_for.var = name;
@@ -76,7 +76,9 @@ s_ast *parse_rule_for(s_lexer *lexer, s_errman *errman)
   {
     if (!tok_is(tok, TOK_NEWLINE) && !tok_is(tok, TOK_SEMI))
     {
-      sherror(&tok->lineinfo, errman, "unexpected token %s, expected 'do', ';' or '\\n'", TOKT_STR(tok));
+      sherror(&tok->lineinfo, errman,
+              "unexpected token %s, expected 'do', ';' or '\\n'",
+              TOKT_STR(tok));
       return res;
     }
     words = parse_in(lexer, &in, errman);
@@ -92,7 +94,8 @@ s_ast *parse_rule_for(s_lexer *lexer, s_errman *errman)
   }
   if (!tok_is(tok, TOK_DO))
   {
-    sherror(&tok->lineinfo, errman, "unexpected token %s, expected 'do'", TOKT_STR(tok));
+    sherror(&tok->lineinfo, errman,
+            "unexpected token %s, expected 'do'", TOKT_STR(tok));
     return res;
   }
   res->data.ast_for = AFOR(name, words, parse_do_group(lexer, errman));

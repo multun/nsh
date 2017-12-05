@@ -9,7 +9,7 @@ static s_ast *negate_ast(s_ast *ast, bool neg)
 {
   if (!neg)
     return ast;
-  s_ast *negation = xmalloc(sizeof(s_ast));
+  s_ast *negation = xcalloc(sizeof(s_ast), 1);
   negation->type = SHNODE_BOOL_OP;
   negation->data.ast_bool_op = ABOOL_OP(BOOL_NOT, ast, NULL);
   return negation;
@@ -36,7 +36,7 @@ s_ast *parse_pipeline(s_lexer *lexer, s_errman *errman)
     tok_free(lexer_pop(lexer, errman), true);
     parse_newlines(lexer, errman);
     tok = lexer_peek(lexer, errman);
-    s_ast *pipe = xmalloc(sizeof(s_ast));
+    s_ast *pipe = xcalloc(sizeof(s_ast), 1);
     pipe->type = SHNODE_PIPE;
     pipe->data.ast_pipe = APIPE(res, parse_command(lexer, errman));
     if (ERRMAN_FAILING(errman))
@@ -77,7 +77,7 @@ s_ast *parse_redirection(s_lexer *lexer, s_errman *errman)
   s_token *tok = lexer_pop(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return NULL;
-  s_ast *res = xmalloc(sizeof(s_ast));
+  s_ast *res = xcalloc(sizeof(s_ast), 1);
   res->type = SHNODE_REDIRECTION;
   int left = -1;
   if (tok_is(tok, TOK_IO_NUMBER))

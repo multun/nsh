@@ -30,7 +30,7 @@ static s_ast *redirection_loop(s_lexer *lexer, s_ast *cmd, s_errman *errman)
   const s_token *tok = lexer_peek(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return NULL;
-  s_ast *res = xmalloc(sizeof(s_ast));
+  s_ast *res = xcalloc(sizeof(s_ast), 1);
   res->type = SHNODE_BLOCK;
   res->data.ast_block = ABLOCK(NULL, NULL, cmd);
   s_ast *redir = NULL;
@@ -102,7 +102,7 @@ s_ast *parse_command(s_lexer *lexer, s_errman *errman)
 
 static s_ast *parse_assignment(s_lexer *lexer, s_errman *errman)
 {
-  s_ast *res = xmalloc(sizeof(s_ast));
+  s_ast *res = xcalloc(sizeof(s_ast), 1);
   res->type = SHNODE_ASSIGNMENT;
   s_token *tok = lexer_pop(lexer, errman);
   if (ERRMAN_FAILING(errman))
@@ -110,9 +110,9 @@ static s_ast *parse_assignment(s_lexer *lexer, s_errman *errman)
   char * val = strchr(TOK_STR(tok), '=');
   *val = '\0';
   val++;
-  s_wordlist *name = xmalloc(sizeof(s_wordlist));
+  s_wordlist *name = xcalloc(sizeof(s_wordlist), 1);
   *name = WORDLIST(TOK_STR(tok), false, false, NULL);
-  s_wordlist *value = xmalloc(sizeof(s_wordlist));
+  s_wordlist *value = xcalloc(sizeof(s_wordlist), 1);
   *value = WORDLIST(val, true, true, NULL);
   tok_free(tok, false);
   res->data.ast_assignment = AASSIGNMENT(name, value, NULL);
@@ -180,7 +180,7 @@ static bool element_loop(s_lexer *lexer, s_ablock *block, s_ast *redir,
         elm->next = tmp;
       else
       {
-        block->cmd = xmalloc(sizeof(s_ast));
+        block->cmd = xcalloc(sizeof(s_ast), 1);
         block->cmd->type = SHNODE_CMD;
         block->cmd->data.ast_cmd = ACMD(tmp);
       }
@@ -208,7 +208,7 @@ static bool element_loop(s_lexer *lexer, s_ablock *block, s_ast *redir,
 
 s_ast *parse_simple_command(s_lexer *lexer, s_errman *errman)
 {
-  s_ast *res = xmalloc(sizeof(s_ast));
+  s_ast *res = xcalloc(sizeof(s_ast), 1);
   res->type = SHNODE_BLOCK;
   res->data.ast_block = ABLOCK(NULL, NULL, NULL);
   s_ast *redir = NULL;
@@ -220,7 +220,7 @@ s_ast *parse_simple_command(s_lexer *lexer, s_errman *errman)
   {
     const s_token *tok = lexer_peek(lexer, errman);
     assert(!ERRMAN_FAILING(errman));
-    sherror(&tok->lineinfo, errman, "parsing error");
+    sherror(&tok->lineinfo, errman, "parsing error %s", TOKT_STR(tok));
     return res;
   }
   return res;
@@ -243,7 +243,6 @@ static s_ast *switch_first_keyword(s_lexer *lexer, s_errman *errman)
   else if (tok_is(tok, TOK_CASE))
     return parse_rule_case(lexer, errman);
   sherror(&tok->lineinfo, errman, "unexpected token %s", TOKT_STR(tok));
-  // TODO: handle parsing error
   return NULL;
 }
 
@@ -269,7 +268,8 @@ s_ast *parse_shell_command(s_lexer *lexer, s_errman *errman)
       tok_free(lexer_pop(lexer, errman), true);
       return res;
     }
-    sherror(&tok->lineinfo, errman, "unexpected token %s, expected '{' or '('", TOKT_STR(tok));
+    sherror(&tok->lineinfo, errman,
+            "unexpected token %s, expected '{' or '('", TOKT_STR(tok));
     return res;
   }
   else
@@ -287,7 +287,8 @@ s_ast *parse_funcdec(s_lexer *lexer, s_errman *errman)
     return NULL;
   if (!tok_is(tok, TOK_LPAR))
   {
-    sherror(&tok->lineinfo, errman, "unexpected token %s, expected '('", TOKT_STR(tok));
+    sherror(&tok->lineinfo, errman,
+            "unexpected token %s, expected '('", TOKT_STR(tok));
     return NULL;
   }
   tok_free(lexer_pop(lexer, errman), true);
@@ -296,16 +297,17 @@ s_ast *parse_funcdec(s_lexer *lexer, s_errman *errman)
     return NULL;
   if (!tok_is(tok, TOK_RPAR))
   {
-    sherror(&tok->lineinfo, errman, "unexpected token %s, expected '('", TOKT_STR(tok));
+    sherror(&tok->lineinfo, errman,
+            "unexpected token %s, expected '('", TOKT_STR(tok));
     return NULL;
   }
   tok_free(lexer_pop(lexer, errman), true);
   parse_newlines(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return NULL;
-  s_ast *res = xmalloc(sizeof(s_ast));
+  s_ast *res = xcalloc(sizeof(s_ast), 1);
   res->type = SHNODE_FUNCTION;
-  s_wordlist *name = xmalloc(sizeof(word));
+  s_wordlist *name = xcalloc(sizeof(word), 1);
   *name = WORDLIST(TOK_STR(word), true, true, NULL);
   res->data.ast_function = AFUNCTION(name, parse_shell_command(lexer, errman));
   return res;

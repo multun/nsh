@@ -39,7 +39,7 @@ s_ast *parse(s_lexer *lexer, s_errman *errman)
 
 s_ast *parse_list(s_lexer *lexer, s_errman *errman)
 {
-  s_ast *res = xmalloc(sizeof(s_ast));
+  s_ast *res = xcalloc(sizeof(s_ast), 1);
   res->type = SHNODE_LIST;
   res->data.ast_list = ALIST(parse_and_or(lexer, errman), NULL);
   if (ERRMAN_FAILING(errman))
@@ -56,7 +56,7 @@ s_ast *parse_list(s_lexer *lexer, s_errman *errman)
       return res;
     if (tok_is(tok, TOK_EOF) || tok_is(tok, TOK_NEWLINE))
       return res;
-    s_alist *next = xmalloc(sizeof(s_alist));
+    s_alist *next = xcalloc(sizeof(s_alist), 1);
     *next = ALIST(parse_and_or(lexer, errman), NULL);
     if (ERRMAN_FAILING(errman))
       return res;
@@ -84,7 +84,7 @@ s_ast *parse_and_or(s_lexer *lexer, s_errman *errman)
     parse_newlines(lexer, errman);
     if (ERRMAN_FAILING(errman))
       return res;
-    s_ast *bool_op = xmalloc(sizeof(s_ast));
+    s_ast *bool_op = xcalloc(sizeof(s_ast), 1);
     bool_op->type = SHNODE_BOOL_OP;
     bool_op->data.ast_bool_op = ABOOL_OP(or ? BOOL_OR : BOOL_AND,
                                          res, parse_pipeline(lexer, errman));
