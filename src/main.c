@@ -49,7 +49,7 @@ static int ast_exec_consumer(s_cstream *cs, s_errman *errman)
 {
   s_lexer *lex = lexer_create(cs);
   s_ast *ast = parse(lex, errman);
-  if (!ast || ERRMAN_FAILING(errman))
+  if (ERRMAN_FAILING(errman))
   {
     ast_free(ast);
     lexer_free(lex);
