@@ -2,27 +2,11 @@
 #include "shlex/print.h"
 #include "utils/alloc.h"
 
-s_ast *parse_rule_case(s_lexer *lexer, s_errman *errman)
+
+static s_ast *rule_case(s_lexer *lexer, s_errman *errman,
+                        s_ast *res)
 {
-  tok_free(lexer_pop(lexer, errman), true);
   const s_token *tok = lexer_peek(lexer, errman);
-  if (ERRMAN_FAILING(errman))
-    return NULL;
-  if (!tok_is(tok, TOK_WORD))
-  {
-    sherror(&tok->lineinfo, errman,
-            "unexpected token %s, expected WORD", TOKT_STR(tok));
-    return NULL;
-  }
-  s_ast *res = xcalloc(sizeof(s_ast), 1);
-  res->type = SHNODE_CASE;
-  res->data.ast_case = ACASE(parse_word(lexer, errman), NULL);
-  if (ERRMAN_FAILING(errman))
-    return res;
-  parse_newlines(lexer, errman);
-  if (ERRMAN_FAILING(errman))
-    return res;
-  tok = lexer_peek(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return res;
   if (!tok_is(tok, TOK_IN))
@@ -42,12 +26,35 @@ s_ast *parse_rule_case(s_lexer *lexer, s_errman *errman)
   return res;
 }
 
-s_acase_node *parse_case_clause(s_lexer *lexer, s_errman *errman)
+
+s_ast *parse_rule_case(s_lexer *lexer, s_errman *errman)
 {
-  s_acase_node *res = parse_case_item(lexer, errman);
+  tok_free(lexer_pop(lexer, errman), true);
+  const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return NULL;
+  if (!tok_is(tok, TOK_WORD))
+  {
+    sherror(&tok->lineinfo, errman,
+            "unexpected token %s, expected WORD", TOKT_STR(tok));
+    return NULL;
+  }
+  s_ast *res = xcalloc(sizeof(s_ast), 1);
+  res->type = SHNODE_CASE;
+  res->data.ast_case = ACASE(parse_word(lexer, errman), NULL);
+
   if (ERRMAN_FAILING(errman))
     return res;
-  s_acase_node *tail = res;
+  parse_newlines(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
+  return rule_case(lexer, errman, res);
+}
+
+
+static s_acase_node *case_clause_loop(s_lexer *lexer, s_errman *errman,
+                                 s_acase_node *res, s_acase_node *tail)
+{
   const s_token *tok = lexer_peek(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return res;
@@ -68,10 +75,23 @@ s_acase_node *parse_case_clause(s_lexer *lexer, s_errman *errman)
     tail->next = tmp;
     tail = tmp;
     tok = lexer_peek(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return res;
   }
-  parse_newlines(lexer, errman);
   return res;
 }
+
+
+s_acase_node *parse_case_clause(s_lexer *lexer, s_errman *errman)
+{
+  s_acase_node *res = parse_case_item(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
+  s_acase_node *tail = res;
+  parse_newlines(lexer, errman);
+  return case_clause_loop(lexer, errman, res, tail);
+}
+
 
 s_wordlist *parse_pattern(s_lexer *lexer, s_errman *errman)
 {
@@ -97,6 +117,22 @@ s_wordlist *parse_pattern(s_lexer *lexer, s_errman *errman)
   return res;
 }
 
+
+static s_acase_node *case_item_loop(s_lexer *lexer, s_errman *errman,
+                                    s_acase_node *res)
+{
+  parse_newlines(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
+  const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
+  if (!tok_is(tok, TOK_ESAC) && !tok_is(tok, TOK_DSEMI))
+    res->action = parse_compound_list(lexer, errman);
+  return res;
+}
+
+
 s_acase_node *parse_case_item(s_lexer *lexer, s_errman *errman)
 {
   s_acase_node *res = xcalloc(sizeof(s_acase_node), 1);
@@ -119,13 +155,5 @@ s_acase_node *parse_case_item(s_lexer *lexer, s_errman *errman)
     return res;
   }
   tok_free(lexer_pop(lexer, errman), true);
-  parse_newlines(lexer, errman);
-  if (ERRMAN_FAILING(errman))
-    return res;
-  tok = lexer_peek(lexer, errman);
-  if (ERRMAN_FAILING(errman))
-    return res;
-  if (!tok_is(tok, TOK_ESAC) && !tok_is(tok, TOK_DSEMI))
-    res->action = parse_compound_list(lexer, errman);
-  return res;
+  return case_item_loop(lexer, errman, res);
 }
