@@ -5,6 +5,7 @@
 
 #include <err.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -32,6 +33,9 @@ int managed_stream_init(struct managed_stream *ms, int argc, char *argv[])
       fprintf(stderr, "cannot open input script: %s\n", strerror(errno));
       return 1;
     }
+    if (fcntl(fileno(f), F_SETFD, FD_CLOEXEC) < 0)
+      errx(1, "42sh: managed_stream_init: Failed CLOEXEC file descriptor %d",
+           fileno(f));
   }
   ms->cs = cstream_from_file(f, msg);
   return 0;
