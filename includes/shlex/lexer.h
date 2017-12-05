@@ -75,6 +75,10 @@
 
 #define TOK_BUF_MIN_SIZE 10
 
+/**
+** \brief represents a token. it features a type, a delimiter, a
+**   string representation and a pointer to the next token in the stream.
+*/
 typedef struct token
 {
   enum token_type
@@ -96,22 +100,67 @@ typedef struct token
 #define TOK_SIZE(Tok) (Tok)->str.size
 #define TOK_STR(Tok) ((Tok)->str.data)
 
+
+/**
+** \brief represents a fully featured lexer
+*/
 typedef struct lexer
 {
+  /* the head of the token stack */
   s_token *head;
+  /* the underlying stream */
   s_cstream *stream;
 } s_lexer;
 
+
+/**
+** \brief allocates a new token
+*/
 s_token *tok_alloc(s_lexer *lexer);
+
+
+/**
+** \brief frees an allocated token
+** \arg free_buf whether to free the underlying buffer
+*/
 void tok_free(s_token *free, bool free_buf);
 
+
+/**
+** \brief tests whether a token can be of the requested type
+*/
 bool tok_is(const s_token *tok, enum token_type type);
 
+
+/**
+** \brief allocates a new lexer
+*/
 s_lexer *lexer_create(s_cstream *stream);
+
+/**
+** \brief frees a lexer
+*/
 void lexer_free(s_lexer *lexer);
 
+
+/**
+** \brief peeks a token without unpoping it
+** \details this interface is an internal of the lexer
+*/
 const s_token *lexer_peek(s_lexer *lexer, s_errman *errman);
+
+/**
+** \brief removes a token from the stream, crafting it if necessary
+*/
 s_token *lexer_pop(s_lexer *lexer, s_errman *errman);
+
+/**
+** \brief pushes back a previously popped token
+*/
 void lexer_push(s_lexer *lexer, s_token *tok);
 
+/**
+** \brief reads a word into a token
+** \details this interface is an internal of the lexer
+*/
 void word_read(s_cstream *cs, s_token *tok, s_errman *errman);
