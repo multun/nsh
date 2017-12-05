@@ -43,6 +43,9 @@ def _test_parser():
     paa('-s', '--sanity', action='store_true',
         help='Run the test suite with sanity checks')
 
+    paa('-q', '--quiet', action='store_true',
+        help='Don\'t display diffs on failed tests')
+
     return parser
 
 
@@ -103,7 +106,7 @@ def format_test(conf, test_path, test_input):
     success = not any(comp.obj for comp in res)
     tag = highlight('[OK]' if success else '[KO]', success, True)
     print(f"\x1b[2K\r{tag}\t{test_path.name}")
-    if not success:
+    if not success and not conf.quiet:
         for comp in (comp for comp in res if comp.obj):
             failmsg = f'>>> mismatched {comp.name} <<<'
             print(highlight(failmsg, False, True))
