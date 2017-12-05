@@ -1,0 +1,3 @@
+echo a > out
+echo b >> out
+cat out
