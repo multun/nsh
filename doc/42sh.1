@@ -1,0 +1,137 @@
+.\" Manpage for 42sh.
+.\" Contact julien.mounier@epita.fr to correct errors or typos.
+.TH 42sh 1 "05 december 2017" "EPITA 42sh 0.5" "42sh man page"
+
+
+.SH NAME
+
+
+42sh \- EPITA posix shell interpreter
+
+
+.SH SYNOPSIS
+
+
+42sh [GNU long options] [options] [-c command_string | file]
+
+
+.SH COPYRIGHT
+
+
+42sh is not realy copyrighted. At least no one knows by whom.
+
+
+.SH DESCRIPTION
+
+
+42sh also known as dish is a sh-compatible command language interpreter.
+It executes commands and do IO stufs. It might also leak a little sometime.
+But don't worry, it's what we call a feature here.
+.PP
+42sh is currently parsing commands and execute them.
+It is not performing any expantion.
+
+.SH OPTIONS
+
+
+.B Single_character options:
+
+
+.PP
+.B -c <command>
+.RS
+If this option is present, the following string will be interpreted
+.RE
+
+.B [-+]O [shopt_option]
+.RS
+shopt_option is one of the shell options accepted by the shopt builtin
+.B (see SHOPT)
+.PP
+If shopt_option is present, -O sets the option and +O unsets it.
+.PP
+Othewise, -O prints the options accepted and their stat and +O prints in a
+format that mau be reused as input
+.RE
+
+.B  Multi-character options:
+
+.B --norc
+.RS
+desactivates the ressource reader
+.RE
+
+.B --ast-print
+.RS
+activates the AST printer
+.RE
+
+.B --version
+.RS
+prints the current version on STDOUT and exits
+.RE
+
+
+.SH SHOPT
+.B ast_print
+.RS
+.I NOT IMPLEMENTED YET
+.RE
+
+.B dotglob
+.RS
+.I NOT IMPLEMENTED YET
+.RE
+
+.B expand_aliases
+.RS
+.I NOT IMPLEMENTED YET
+.RE
+
+.B extglob
+.RS
+.I NOT IMPLEMENTED YET
+.RE
+
+.B nocaseglob
+.RS
+.I NOT IMPLEMENTED YET
+.RE
+
+.B nullglob
+.RS
+.I NOT IMPLEMENTED YET
+.RE
+
+.B sourcepath
+.RS
+.I NOT IMPLEMENTED YET
+.RE
+
+.B xpg_echo
+.RS
+.I NOT IMPLEMENTED YET
+.RE
+
+
+.SH SEE ALSO
+
+
+bash(1),
+
+
+.SH BUGS
+
+
+No know bugs for now.
+But our ACUs are gonna find some everyone knows it.
+
+
+.SH AUTHOR
+
+
+Julien 'PetitPrince' Mounier (mounie_a),
+.PP
+Victor 'Multun' Collod (collod_v),
+.PP
+Forian 'Flomonster' Amsallem (amsall_f)
