@@ -22,11 +22,10 @@ static bool is_interactive(int argc)
 }
 
 
-static int ast_print_consumer(s_cstream *cs)
+static int ast_print_consumer(s_cstream *cs, s_errman *errman)
 {
-  s_errman errman = ERRMAN;
   s_lexer *lex = lexer_create(cs);
-  s_ast *ast = parse(lex, &errman);
+  s_ast *ast = parse(lex, errman);
   if (!ast)
     return 1;
   ast_print(stdout, ast);
@@ -34,18 +33,16 @@ static int ast_print_consumer(s_cstream *cs)
 }
 
 
-static int token_print_consumer(s_cstream *cs)
+static int token_print_consumer(s_cstream *cs, s_errman *errman)
 {
-  s_errman errman = ERRMAN;
-  return print_tokens(stdout, cs, &errman);
+  return print_tokens(stdout, cs, errman);
 }
 
 
-static int ast_exec_consumer(s_cstream *cs)
+static int ast_exec_consumer(s_cstream *cs, s_errman *errman)
 {
-  s_errman errman = ERRMAN;
   s_lexer *lex = lexer_create(cs);
-  s_ast *ast = parse(lex, &errman);
+  s_ast *ast = parse(lex, errman);
   if (!ast)
     return 1;
   ast_exec(NULL, ast);
@@ -62,8 +59,11 @@ static int producer(f_stream_consumer consumer,
   if (load_res)
     return load_res;
 
-  // TODO: loop
-  int res = consumer(ms.cs);
+  s_errman errman = ERRMAN;
+
+  int res = 0;
+  while (!cstream_eof(ms.cs) && !ERRMAN_FAILING(&errman))
+    res = consumer(ms.cs, &errman);
 
   managed_stream_destroy(&ms);
   return res;

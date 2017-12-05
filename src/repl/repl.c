@@ -3,6 +3,7 @@
 #include "repl/repl.h"
 #include "shlex/lexer.h"
 #include "shparse/parse.h"
+#include "utils/error.h"
 
 #include <stdio.h>
 // readline's header requires including stdio beforehand
@@ -19,11 +20,14 @@ void ast_print(FILE *f, s_ast *ast);
 int repl(f_stream_consumer consumer)
 {
   int res = 0;
+  s_errman errman = ERRMAN;
   for (char *input; !res && (input = readline("42sh> ")); free(input))
   {
     s_cstream *ns = cstream_from_string(input, "<stdin>");
-    res = consumer(ns);
+    res = consumer(ns, &errman);
     cstream_free(ns);
+    if (ERRMAN_FAILING(&errman))
+      break;
   }
   return res;
 }
