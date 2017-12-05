@@ -29,3 +29,6 @@ s_acase_node *parse_case_item(s_lexer *lexer, s_errman *errman);
 
 s_wordlist *parse_word(s_lexer *lexer, s_errman *errman);
 void parse_newlines(s_lexer *lexer, s_errman *errman);
+
+
+bool start_redir(const s_token *tok);
