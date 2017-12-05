@@ -1,0 +1,7 @@
+{
+  "desc": "A simple pipe doing character substitution",
+  "stdin": "echo hella warld | tr a o",
+  "stdout": "hello world\n",
+  "stderr": "",
+  "retcode": 0
+}

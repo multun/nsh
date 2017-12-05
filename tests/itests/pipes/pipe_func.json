@@ -1,0 +1,7 @@
+{
+  "desc": "pipe a function call",
+  "stdin": "testf () { echo hella warld; }\ntestf | tr a o",
+  "stdout": "hello world\n",
+  "stderr": "",
+  "retcode": 0
+}

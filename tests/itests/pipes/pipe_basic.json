@@ -1,0 +1,7 @@
+{
+  "desc": "A simple pipe doing nothing complex",
+  "stdin": "echo hello world | cat",
+  "stdout": "hello world\n",
+  "stderr": "",
+  "retcode": 0
+}

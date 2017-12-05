@@ -1,0 +1,7 @@
+{
+  "desc": "A complex character substitution pipeline",
+  "stdin": "echo hilla warld | tr a o | tr i e",
+  "stdout": "hello world\n",
+  "stderr": "",
+  "retcode": 0
+}

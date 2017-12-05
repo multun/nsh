@@ -1,0 +1,7 @@
+{
+  "desc": "pipe a function call, redirect it to a file and cat it",
+  "stdin": "testf () { echo hella warld; }\ntestf | tr a o > ofile; cat ofile",
+  "stdout": "hello world\n",
+  "stderr": "",
+  "retcode": 0
+}
