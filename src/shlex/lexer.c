@@ -18,8 +18,12 @@ s_lexer *lexer_create(s_cstream *stream)
 
 void lexer_free(s_lexer *lexer)
 {
-  if (lexer->head)
-    tok_free(lexer->head, true);
+  while (lexer->head)
+  {
+    s_token *tok = lexer->head;
+    lexer->head = tok->next;
+    tok_free(tok, true);
+  }
   free(lexer);
 }
 
