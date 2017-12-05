@@ -33,7 +33,8 @@ s_ast *parse(s_lexer *lexer, s_errman *errman)
     return res;
   if (tok_is(tok, TOK_EOF) || tok_is(tok, TOK_NEWLINE))
     return res;
-  sherror(&tok->lineinfo, errman, "unxpected token %s, expected 'EOF' or '\\n'", TOKT_STR(tok));
+  sherror(&tok->lineinfo, errman,
+          "unxpected token %s, expected 'EOF' or '\\n'", TOKT_STR(tok));
   return res;
 }
 

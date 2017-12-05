@@ -279,36 +279,40 @@ s_ast *parse_shell_command(s_lexer *lexer, s_errman *errman)
 
 s_ast *parse_funcdec(s_lexer *lexer, s_errman *errman)
 {
+  s_ast *res = xcalloc(sizeof(s_ast), 1);
+  res->type = SHNODE_FUNCTION;
+
   s_token *word = lexer_pop(lexer, errman);
   if (ERRMAN_FAILING(errman))
-    return NULL;
+    return res;
+  s_wordlist *name = xcalloc(sizeof(s_wordlist), 1);
+  *name = WORDLIST(TOK_STR(word), true, true, NULL);
+  res->data.ast_function.name = name;
+  tok_free(word, false);
+
   const s_token *tok = lexer_peek(lexer, errman);
   if (ERRMAN_FAILING(errman))
-    return NULL;
+    return res;
   if (!tok_is(tok, TOK_LPAR))
   {
     sherror(&tok->lineinfo, errman,
             "unexpected token %s, expected '('", TOKT_STR(tok));
-    return NULL;
+    return res;
   }
   tok_free(lexer_pop(lexer, errman), true);
   tok = lexer_peek(lexer, errman);
   if (ERRMAN_FAILING(errman))
-    return NULL;
+    return res;
   if (!tok_is(tok, TOK_RPAR))
   {
     sherror(&tok->lineinfo, errman,
             "unexpected token %s, expected '('", TOKT_STR(tok));
-    return NULL;
+    return res;
   }
   tok_free(lexer_pop(lexer, errman), true);
   parse_newlines(lexer, errman);
   if (ERRMAN_FAILING(errman))
-    return NULL;
-  s_ast *res = xcalloc(sizeof(s_ast), 1);
-  res->type = SHNODE_FUNCTION;
-  s_wordlist *name = xcalloc(sizeof(s_wordlist), 1);
-  *name = WORDLIST(TOK_STR(word), true, true, NULL);
-  res->data.ast_function = AFUNCTION(name, parse_shell_command(lexer, errman));
+    return res;
+  res->data.ast_function.value = parse_shell_command(lexer, errman);
   return res;
 }
