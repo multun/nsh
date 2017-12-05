@@ -21,13 +21,12 @@ int repl(f_stream_consumer consumer)
 {
   int res = 0;
   s_errman errman = ERRMAN;
-  for (char *input; !res && (input = readline("42sh> ")); free(input))
+  for (char *input; (input = readline("42sh> ")); free(input))
   {
     s_cstream *ns = cstream_from_string(input, "<stdin>");
     res = consumer(ns, &errman);
     cstream_free(ns);
-    if (ERRMAN_FAILING(&errman))
-      break;
+    // TODO: handle shopt fail on error
   }
   return res;
 }
