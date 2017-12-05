@@ -52,6 +52,6 @@ void cmd_free(struct ast *ast)
 {
   if (!ast)
     return;
-  wordlist_free(ast, true);
+  wordlist_free(ast->data.ast_cmd.wordlist, true);
   free(ast);
 }

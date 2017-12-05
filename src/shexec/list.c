@@ -30,3 +30,23 @@ int list_exec(s_env *env, s_ast *ast)
   }
   return ast_exec(env, alist->action);
 }
+
+
+static void list_free_rec(s_alist *list, bool free_buf)
+{
+  if (!list)
+    return;
+  list_free_rec(list->next, true);
+  ast_free(list->action);
+  if (free_buf)
+    free(list);
+}
+
+
+void list_free(struct ast *ast)
+{
+  if (!ast)
+    return;
+  list_free_rec(&ast->data.ast_list, false);
+  free(ast);
+}

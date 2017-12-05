@@ -34,3 +34,13 @@ int if_exec(s_env *env, s_ast *ast)
     return ast_exec(env, aif->failure);
   return 0;
 }
+
+void if_free(struct ast *ast)
+{
+  if (!ast)
+    return;
+  ast_free(ast->data.ast_if.condition);
+  ast_free(ast->data.ast_if.success);
+  ast_free(ast->data.ast_if.failure);
+  free(ast);
+}

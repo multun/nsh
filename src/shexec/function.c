@@ -12,3 +12,13 @@ void function_print(FILE *f, s_ast *ast)
   ast_print_rec(f, function->value);
   fprintf(f, "\"%p\" -> \"%p\";\n", id, id_next);
 }
+
+
+void function_free(struct ast *ast)
+{
+  if (!ast)
+    return;
+  wordlist_free(ast->data.ast_function.name, true);
+  ast_free(ast->data.ast_function.value);
+  free(ast);
+}
