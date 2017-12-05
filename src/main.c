@@ -26,9 +26,15 @@ static int ast_print_consumer(s_cstream *cs, s_errman *errman)
 {
   s_lexer *lex = lexer_create(cs);
   s_ast *ast = parse(lex, errman);
+  if (ERRMAN_FAILING(errman))
+  {
+    ast_free(ast);
+    return 1;
+  }
   if (!ast)
     return 1;
   ast_print(stdout, ast);
+  ast_free(ast);
   return 0;
 }
 
@@ -43,9 +49,15 @@ static int ast_exec_consumer(s_cstream *cs, s_errman *errman)
 {
   s_lexer *lex = lexer_create(cs);
   s_ast *ast = parse(lex, errman);
+  if (ERRMAN_FAILING(errman))
+  {
+    ast_free(ast);
+    return 1;
+  }
   if (!ast)
     return 1;
   ast_exec(NULL, ast);
+  ast_free(ast);
   return 0;
 }
 
