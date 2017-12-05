@@ -10,11 +10,16 @@
 
 #include <stdio.h>
 // readline's header requires including stdio beforehand
-#include <readline/readline.h>
 #include <readline/history.h>
+#include <readline/readline.h>
 
+#include <err.h>
+#include <fcntl.h>
+#include <pwd.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 
 void ast_print(FILE *f, s_ast *ast);
@@ -23,16 +28,29 @@ void ast_print(FILE *f, s_ast *ast);
 int repl(f_stream_consumer consumer)
 {
   int res = 0;
-  s_errman errman = ERRMAN;
+  s_errman errman;
   s_context cont;
   context_init(&cont);
+  char history_path[512];
+  strcat(strcpy(history_path, getpwuid(getuid())->pw_dir), "/.42sh_history");
+
+  FILE *history = fopen(history_path, "a+");
+
+  if (history && fcntl(fileno(history), F_SETFD, FD_CLOEXEC) < 0)
+    errx(1, "42sh: repl: Failed CLOEXEC file descriptor %d", fileno(history));
+
   for (char *input; (input = readline("42sh> ")); free(input))
   {
+    errman = ERRMAN;
     s_cstream *ns = cstream_from_string(input, "<stdin>");
     res = consumer(ns, &errman, &cont);
+    if (history && !ERRMAN_FAILING(&errman))
+      fprintf(history, "%s\n", input);
     cstream_free(ns);
     // TODO: handle shopt fail on error
   }
+  if (history)
+    fclose(history);
   context_destroy(&cont);
   return res;
 }
