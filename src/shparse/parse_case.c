@@ -31,6 +31,7 @@ s_ast *parse_rule_case(s_lexer *lexer, s_errman *errman)
             "unexpected token %s, expected 'in'", TOKT_STR(tok));
     return res;
   }
+  tok_free(lexer_pop(lexer, errman), true);
   parse_newlines(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return res;
@@ -66,6 +67,7 @@ s_acase_node *parse_case_clause(s_lexer *lexer, s_errman *errman)
       return res;
     tail->next = tmp;
     tail = tmp;
+    tok = lexer_peek(lexer, errman);
   }
   parse_newlines(lexer, errman);
   return res;
@@ -101,19 +103,19 @@ s_acase_node *parse_case_item(s_lexer *lexer, s_errman *errman)
   const s_token *tok = lexer_peek(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return res;
-  if (tok_is(tok, TOK_RPAR))
+  if (tok_is(tok, TOK_LPAR))
     tok_free(lexer_pop(lexer, errman), true);
-  s_wordlist *pattern = parse_pattern(lexer, errman);
+  res->pattern = parse_pattern(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return res;
-  s_ast *action = NULL;
+
   tok = lexer_peek(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return res;
-  if (!tok_is(tok, TOK_LPAR))
+  if (!tok_is(tok, TOK_RPAR))
   {
     sherror(&tok->lineinfo, errman,
-            "unexpected token %s, expected '('", TOKT_STR(tok));
+            "unexpected token %s, expected ')'", TOKT_STR(tok));
     return res;
   }
   tok_free(lexer_pop(lexer, errman), true);
@@ -124,7 +126,6 @@ s_acase_node *parse_case_item(s_lexer *lexer, s_errman *errman)
   if (ERRMAN_FAILING(errman))
     return res;
   if (!tok_is(tok, TOK_ESAC) && !tok_is(tok, TOK_DSEMI))
-    action = parse_compound_list(lexer, errman);
-  *res = ACASE_NODE(pattern, action, NULL);
+    res->action = parse_compound_list(lexer, errman);
   return res;
 }
