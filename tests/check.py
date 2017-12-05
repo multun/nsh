@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import difflib
+import tempfile
 
 from collections import namedtuple
 from argparse import ArgumentParser, ArgumentError
@@ -61,8 +62,10 @@ def discover_integration_tests(args):
 
 
 def run_process(conf, args, stdin):
-    return subprocess.run(args, input=stdin, timeout=conf.timeout,
-                          stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    with tempfile.TemporaryDirectory() as tempdir:
+        return subprocess.run(args, input=stdin,
+                              timeout=conf.timeout, cwd=tempdir,
+                              stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
 
 def diffio(mine, ref):
