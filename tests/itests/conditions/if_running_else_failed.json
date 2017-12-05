@@ -1,0 +1,7 @@
+{
+  "desc": "An if with an else, running the else branch",
+  "stdin": "if false; then false; else ! echo boo; fi",
+  "stdout": "boo\n",
+  "stderr": "",
+  "retcode": 1
+}

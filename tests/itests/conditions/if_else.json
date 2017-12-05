@@ -1,0 +1,7 @@
+{
+  "desc": "An if with an else",
+  "stdin": "if true; then echo hello world; else echo boo; fi",
+  "stdout": "hello world\n",
+  "stderr": "",
+  "retcode": 0
+}

@@ -1,0 +1,7 @@
+{
+  "desc": "An if with a redirection",
+  "stdin": "echo begin > f; if true; then echo end; fi >> f; cat f",
+  "stdout": "begin\nend\n",
+  "stderr": "",
+  "retcode": 0
+}
