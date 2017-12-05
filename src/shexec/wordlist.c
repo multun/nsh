@@ -41,7 +41,7 @@ void wordlist_free(s_wordlist *wl, bool free_buf)
 {
   if (!wl)
     return;
-  if (free_buf)
+  if (free_buf && wl->str)
     free(wl->str);
   wordlist_free(wl->next, free_buf);
   free(wl);
