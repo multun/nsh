@@ -74,7 +74,8 @@ s_ast *parse_rule_for(s_lexer *lexer, s_errman *errman)
     return res;
   if (!tok_is(tok, TOK_DO))
   {
-    if (!tok_is(tok, TOK_NEWLINE) && !tok_is(tok, TOK_SEMI))
+    if (!tok_is(tok, TOK_NEWLINE) && !tok_is(tok, TOK_SEMI)
+        && !tok_is(tok, TOK_IN))
     {
       sherror(&tok->lineinfo, errman,
               "unexpected token %s, expected 'do', ';' or '\\n'",
