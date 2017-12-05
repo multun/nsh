@@ -2,7 +2,6 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-
 #include "ast/assignment.h"
 #include "ast/block.h"
 #include "ast/bool_op.h"
@@ -48,6 +47,9 @@
   F(SHNODE_BLOCK, block_print, block_exec, block_free)
 
 
+/**
+** \brief Abstract Syntax Tree
+**/
 typedef struct ast
 {
   enum shnode_type
@@ -82,7 +84,29 @@ typedef struct ast
   })
 
 
+/**
+** \brief call a print function depending on node type
+** \param f the file where to write
+** \param ast the tree
+**/
 void ast_print_rec(FILE *f, s_ast *ast);
+
+/**
+** \brief print then whole tree in dot fromat
+** \param f the file where to write
+** \param ast the tree
+**/
 void ast_print(FILE *f, s_ast *ast);
+
+/**
+** \brief execute the tree
+** \param env the current environment
+** \param ast the tree
+**/
 int ast_exec(s_env *env, s_ast *ast);
+
+/**
+** \brief free ast recursively
+** \param the tree
+**/
 void ast_free(s_ast *ast);

@@ -34,7 +34,7 @@ int managed_stream_init(struct managed_stream *ms, int argc, char *argv[])
       return 1;
     }
     if (fcntl(fileno(f), F_SETFD, FD_CLOEXEC) < 0)
-      errx(1, "42sh: managed_stream_init: Failed CLOEXEC file descriptor %d",
+      errx(1, "managed_stream_init: Failed CLOEXEC file descriptor %d",
            fileno(f));
   }
   ms->cs = cstream_from_file(f, msg);
