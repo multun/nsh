@@ -1,6 +1,0 @@
-hello () {
-      echo hi $1
-}
-
-hello batman
-hello bruce

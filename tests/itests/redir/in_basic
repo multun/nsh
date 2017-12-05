@@ -1,3 +1,0 @@
-echo a > test1
-tr a b < test1 > test2
-cat test2

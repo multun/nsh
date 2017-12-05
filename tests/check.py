@@ -5,6 +5,7 @@ import subprocess
 import sys
 import difflib
 import tempfile
+import json
 
 from collections import namedtuple
 from argparse import ArgumentParser, ArgumentError
@@ -43,15 +44,46 @@ def _test_parser():
     paa('-s', '--sanity', action='store_true',
         help='Run the test suite with sanity checks')
 
+    paa('-r', '--ref', action='store_true',
+        help=f'Run the test suite against {" ".join(command_ref)}')
+
     paa('-q', '--quiet', action='store_true',
         help='Don\'t display diffs on failed tests')
 
     return parser
 
 
+
+class TestResult():
+    @classmethod
+    def from_dict(self, d):
+        return TestResult(d['stdout'].encode('utf-8'),
+                          d['stderr'].encode('utf-8'),
+                          str(d['retcode']))
+
+    @classmethod
+    def from_proc(self, d):
+        return TestResult(d.stdout, d.stderr, str(d.returncode))
+
+    def __init__(self, stdout, stderr, retcode):
+        self.stdout = stdout
+        self.stderr = stderr
+        self.retcode = retcode
+
+
+class Test():
+    def __init__(self, path):
+        self.path = path
+        self.name = path.stem
+        test_dict = json.loads(path.read_bytes().decode('utf-8'))
+        self.description = test_dict['desc']
+        self.stdin = test_dict['stdin']
+        self.expected = TestResult.from_dict(test_dict)
+
+
 def discover_suite(suite_path):
-    return [(fname, fname.read_bytes()) \
-            for fname in suite_path.iterdir() if fname.is_file()]
+    return [Test(tpath)
+            for tpath in suite_path.glob('*.json') if tpath.is_file()]
 
 
 def should_run(args, cat):
@@ -66,9 +98,10 @@ def discover_integration_tests(args):
 
 def run_process(conf, args, stdin):
     with tempfile.TemporaryDirectory() as tempdir:
-        return subprocess.run(args, input=stdin,
+        proc = subprocess.run(args, input=stdin,
                               timeout=conf.timeout, cwd=tempdir,
                               stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        return TestResult.from_proc(proc)
 
 
 def diffio(mine, ref):
@@ -79,8 +112,7 @@ def diffio(mine, ref):
 
 Comparison = namedtuple('Comparison', ['name', 'obj'])
 
-
-def compare_processes(pa, pb):
+def compare_results(pa, pb):
     def diff_pair(pair):
         return diffio(*pair)
 
@@ -89,23 +121,27 @@ def compare_processes(pa, pb):
 
     res = [Comparison(stream, diff_pair(get_pair(stream)))
            for stream in ('stderr', 'stdout')]
-    retcode_res = '' if pa.returncode == pb.returncode else \
-                  f'{pa.returncode} != {pb.returncode}'
+    retcode_res = '' if pa.retcode == pb.retcode else \
+                  f'{pa.retcode} != {pb.retcode}'
     res.append(Comparison('return code', retcode_res))
     return res
 
 
-def run_test(conf, stdin):
-    return compare_processes(run_process(conf, command_42sh, stdin),
-                             run_process(conf, command_ref, stdin))
+def run_test(conf, test):
+    stdin = test.stdin.encode('utf-8')
+    if not conf.ref:
+        expected = test.expected
+    else:
+        expected = run_process(conf, command_ref, stdin)
+    return compare_results(run_process(conf, command_42sh, stdin), expected)
 
 
-def format_test(conf, test_path, test_input):
-    print(f'Currently running {test_path.name}...', end='')
-    res = run_test(args, test_input)
+def format_test(conf, test):
+    print(f'Currently running {test.name}...', end='')
+    res = run_test(args, test)
     success = not any(comp.obj for comp in res)
     tag = highlight('[OK]' if success else '[KO]', success, True)
-    print(f"\x1b[2K\r{tag}\t{test_path.name}")
+    print(f"\x1b[2K\r{tag}\t{test.name}")
     if not success and not conf.quiet:
         for comp in (comp for comp in res if comp.obj):
             failmsg = f'>>> mismatched {comp.name} <<<'
@@ -123,5 +159,5 @@ if __name__ == '__main__':
         exit(0)
     for suite_path, suite_tests in tests:
         print(f'\n\t>> {highlight(suite_path.name, True, False)} <<', end='\n\n')
-        for test_path, test_input in suite_tests:
-            format_test(args, test_path, test_input)
+        for test in suite_tests:
+            format_test(args, test)

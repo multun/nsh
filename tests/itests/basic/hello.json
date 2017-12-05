@@ -1,0 +1,7 @@
+{
+  "desc": "Test a simple command",
+  "stdin": "echo hello world",
+  "stdout": "hello world\n",
+  "stderr": "",
+  "retcode": 0
+}

@@ -1,6 +1,0 @@
-testfunc () {
-         echo hello
-}
-
-testfunc
-testfunc
