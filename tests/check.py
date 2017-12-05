@@ -21,7 +21,12 @@ command_ref = ["bash", "--posix"]
 TIMEOUT_DEFAULT = 2
 
 
+_isatty = sys.stdout.isatty()
+
+
 def highlight(string, status=False, bold=False):
+    if not _isatty:
+        return string
     attr = ['32' if status else '31']
     if bold:
         attr.append('1')
@@ -137,8 +142,9 @@ def format_test(conf, test):
     print(f'Currently running {test.name}...', end='')
     res = run_test(args, test)
     success = not any(comp.obj for comp in res)
+    prefix = "\x1b[2K\r" if _isatty else '\n'
     tag = highlight('[OK]' if success else '[KO]', success, True)
-    print(f"\x1b[2K\r{tag}\t{test.name}")
+    print(f"{prefix}{tag}\t{test.name}")
     if not success and not conf.quiet:
         for comp in (comp for comp in res if comp.obj):
             failmsg = f'>>> mismatched {comp.name} <<<'
