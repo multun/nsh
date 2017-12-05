@@ -1,0 +1,7 @@
+Version 0.5:
+	- completed the parser implementation
+	- properly parsed options
+	- implemented ast and token stream printing
+	- partial ast execution
+	- base io abstractions
+	- primitive interractive prompt using barebone readline
