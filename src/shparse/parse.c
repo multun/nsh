@@ -18,6 +18,7 @@ void parse_newlines(s_lexer *lexer, s_errman *errman)
   }
 }
 
+
 s_ast *parse(s_lexer *lexer, s_errman *errman)
 {
   const s_token *tok = lexer_peek(lexer, errman);
@@ -38,16 +39,10 @@ s_ast *parse(s_lexer *lexer, s_errman *errman)
   return res;
 }
 
-s_ast *parse_list(s_lexer *lexer, s_errman *errman)
+
+static s_ast *list_loop(s_lexer *lexer, s_errman *errman,
+                        s_ast *res, const s_token *tok)
 {
-  s_ast *res = xcalloc(sizeof(s_ast), 1);
-  res->type = SHNODE_LIST;
-  res->data.ast_list = ALIST(parse_and_or(lexer, errman), NULL);
-  if (ERRMAN_FAILING(errman))
-    return res;
-  const s_token *tok = lexer_peek(lexer, errman);
-  if (ERRMAN_FAILING(errman))
-    return res;
   s_alist *tmp = &res->data.ast_list;
   while (tok_is(tok, TOK_SEMI) || tok_is(tok, TOK_AND))
   {
@@ -59,9 +54,9 @@ s_ast *parse_list(s_lexer *lexer, s_errman *errman)
       return res;
     s_alist *next = xcalloc(sizeof(s_alist), 1);
     *next = ALIST(parse_and_or(lexer, errman), NULL);
+    tmp->next = next;
     if (ERRMAN_FAILING(errman))
       return res;
-    tmp->next = next;
     tmp = next;
     tok = lexer_peek(lexer, errman);
     if (ERRMAN_FAILING(errman))
@@ -70,11 +65,27 @@ s_ast *parse_list(s_lexer *lexer, s_errman *errman)
   return res;
 }
 
+
+s_ast *parse_list(s_lexer *lexer, s_errman *errman)
+{
+  s_ast *res = xcalloc(sizeof(s_ast), 1);
+  res->type = SHNODE_LIST;
+  res->data.ast_list = ALIST(parse_and_or(lexer, errman), NULL);
+  if (ERRMAN_FAILING(errman))
+    return res;
+  const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
+  return list_loop(lexer, errman, res, tok);
+}
+
+
 s_ast *parse_and_or(s_lexer *lexer, s_errman *errman)
 {
   s_ast *res = parse_pipeline(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return res;
+
   const s_token *tok = lexer_peek(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return res;
