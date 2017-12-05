@@ -1,0 +1,7 @@
+{
+  "desc": "Tests negation failure",
+  "stdin": "! false",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 0
+}

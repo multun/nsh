@@ -1,0 +1,7 @@
+{
+  "desc": "Tests the failed evaluation order",
+  "stdin": "! echo hello world && echo yup",
+  "stdout": "hello world\n",
+  "stderr": "",
+  "retcode": 1
+}
