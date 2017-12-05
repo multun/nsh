@@ -1,0 +1,7 @@
+{
+  "desc": "Test a succeeding for with a single instruction",
+  "stdin": "for e in a; do\necho ping; done",
+  "stdout": "ping\n",
+  "stderr": "",
+  "retcode": 0
+}

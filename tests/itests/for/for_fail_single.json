@@ -1,0 +1,7 @@
+{
+  "desc": "Test a failing for with a single instruction",
+  "stdin": "for e in a; do\nfalse; done",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 1
+}
