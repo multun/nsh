@@ -51,6 +51,9 @@ static s_wordlist *parse_in(s_lexer *lexer, bool *in, s_errman *errman)
       words = for_word_loop(lexer, errman);
       if (ERRMAN_FAILING(errman))
         return words;
+      tok = lexer_peek(lexer, errman);
+      if (ERRMAN_FAILING(errman))
+        return words;
     }
   }
   if (tok_is(tok, TOK_SEMI))
