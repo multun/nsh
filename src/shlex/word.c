@@ -102,14 +102,9 @@ static void handle_break(s_cstream *cs, s_token *tok)
 static bool try_read_word(s_cstream *cs, s_token *tok, s_errman *errman)
 {
   for (size_t i = 0; i < ARR_SIZE(word_readers); i++)
-  {
-    bool done = word_readers[i](cs, tok, errman);
-    if (ERRMAN_FAILING(errman))
+    if (word_readers[i](cs, tok, errman) || ERRMAN_FAILING(errman))
       return false;
-    if (done)
-      return true;
-  }
-  return false;
+  return true;
 }
 
 
@@ -126,9 +121,8 @@ void word_read(s_cstream *cs, s_token *tok, s_errman *errman)
   while ((tok->delim = cstream_peek(cs)) != EOF
          && !(!TOK_SIZE(tok) && skip_spaces(cs, tok)))
   {
-
     if (read_backslash(cs, tok, errman))
-	continue;
+      continue;
 
     if (ERRMAN_FAILING(errman))
       return;
