@@ -20,29 +20,32 @@
 #include "shexec/environment.h"
 
 
-#define DECLARE_AST_TYPE_ENUM(Name, Printer, Exec)                       \
+#define DECLARE_AST_TYPE_ENUM(Name, Printer, Exec, Free)                  \
   Name,
 
-#define DECLARE_AST_PRINT_UTILS(Name, Printer, Exec)                     \
+#define DECLARE_AST_PRINT_UTILS(Name, Printer, Exec, Free)                \
   Printer,
 
-#define DECLARE_AST_EXEC_UTILS(Name, Printer, Exec)                      \
+#define DECLARE_AST_EXEC_UTILS(Name, Printer, Exec, Free)                 \
   Exec,
 
+#define DECLARE_AST_FREE_UTILS(Name, Printer, Exec, Free)                 \
+  Free,
+
 #define AST_TYPE_APPLY(F)                                                \
-  F(SHNODE_CMD, cmd_print, cmd_exec)                                     \
-  F(SHNODE_IF, if_print, if_exec)                                        \
-  F(SHNODE_FOR, for_print, for_exec)                                     \
-  F(SHNODE_WHILE, while_print, while_exec)                               \
-  F(SHNODE_UNTIL, until_print, until_exec)                               \
-  F(SHNODE_REDIRECTION, redirection_print, NULL)                         \
-  F(SHNODE_PIPE, pipe_print, NULL)                                       \
-  F(SHNODE_CASE, case_print, case_exec)                                  \
-  F(SHNODE_BOOL_OP, bool_op_print, bool_op_exec)                         \
-  F(SHNODE_LIST, list_print, list_exec)                                  \
-  F(SHNODE_ASSIGNMENT, assignment_print, assignment_exec)                \
-  F(SHNODE_FUNCTION, function_print, NULL)                               \
-  F(SHNODE_BLOCK, block_print, block_exec)
+  F(SHNODE_CMD, cmd_print, cmd_exec, cmd_free)                           \
+  F(SHNODE_IF, if_print, if_exec, if_free)                               \
+  F(SHNODE_FOR, for_print, for_exec, for_free)                           \
+  F(SHNODE_WHILE, while_print, while_exec, while_free)                   \
+  F(SHNODE_UNTIL, until_print, until_exec, until_free)                   \
+  F(SHNODE_REDIRECTION, redirection_print, NULL, redirection_free)       \
+  F(SHNODE_PIPE, pipe_print, NULL, pipe_free)                            \
+  F(SHNODE_CASE, case_print, case_exec, case_free)                       \
+  F(SHNODE_BOOL_OP, bool_op_print, bool_op_exec, bool_op_free)           \
+  F(SHNODE_LIST, list_print, list_exec, list_free)                       \
+  F(SHNODE_ASSIGNMENT, assignment_print, assignment_exec, assignment_free)\
+  F(SHNODE_FUNCTION, function_print, NULL, function_free)                \
+  F(SHNODE_BLOCK, block_print, block_exec, block_free)
 
 
 typedef struct ast
