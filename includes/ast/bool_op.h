@@ -28,3 +28,4 @@ typedef struct abool_op
 
 void bool_op_print(FILE *f, struct ast *ast);
 int bool_op_exec(s_env *env, struct ast *ast);
+void bool_op_free(struct ast *ast);

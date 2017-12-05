@@ -23,3 +23,4 @@ typedef struct awhile
 
 void while_print(FILE *f, struct ast *ast);
 int while_exec(s_env *env, struct ast *ast);
+void while_free(struct ast *ast);

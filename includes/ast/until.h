@@ -23,3 +23,4 @@ typedef struct auntil
 
 void until_print(FILE *f, struct ast *ast);
 int until_exec(s_env *env, struct ast *ast);
+void until_free(struct ast *ast);

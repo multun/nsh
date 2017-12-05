@@ -21,3 +21,4 @@ typedef struct afunction
 
 
 void function_print(FILE *f, struct ast *ast);
+void function_free(struct ast *ast);

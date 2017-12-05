@@ -26,3 +26,4 @@ typedef struct wordlist
 
 
 char **wordlist_to_argv(s_wordlist *wl, s_env *env);
+void wordlist_free(s_wordlist *wl);

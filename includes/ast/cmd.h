@@ -22,3 +22,4 @@ typedef struct acmd
 
 void cmd_print(FILE *f, struct ast *node);
 int cmd_exec(s_env *env, struct ast *node);
+void cmd_free(struct ast *ast);

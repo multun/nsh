@@ -36,3 +36,4 @@ typedef struct aredirection
 
 void redirection_print(FILE *f, struct ast *ast);
 int redirection_exec(s_env *env, struct ast *ast, struct ast *cmd);
+void redirection_free(struct ast *ast);

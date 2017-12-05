@@ -24,3 +24,4 @@ typedef struct afor
 
 void for_print(FILE *f, struct ast *ast);
 int for_exec(s_env *env, struct ast *ast);
+void for_free(struct ast *ast);

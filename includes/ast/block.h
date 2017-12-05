@@ -19,3 +19,4 @@ typedef struct ablock
 
 void block_print(FILE *f, struct ast *node);
 int block_exec(s_env *env, struct ast *ast);
+void block_free(struct ast *ast);
