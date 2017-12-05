@@ -44,7 +44,7 @@ def _test_parser():
     paa('-s', '--sanity', action='store_true',
         help='Run the test suite with sanity checks')
 
-    paa('-r', '--ref', action='store_true',
+    paa('--check', action='store_true',
         help=f'Run the test suite against {" ".join(command_ref)}')
 
     paa('-q', '--quiet', action='store_true',
@@ -129,11 +129,8 @@ def compare_results(pa, pb):
 
 def run_test(conf, test):
     stdin = test.stdin.encode('utf-8')
-    if not conf.ref:
-        expected = test.expected
-    else:
-        expected = run_process(conf, command_ref, stdin)
-    return compare_results(run_process(conf, command_42sh, stdin), expected)
+    cmd = command_ref if conf.check else command_42sh
+    return compare_results(run_process(conf, cmd, stdin), test.expected)
 
 
 def format_test(conf, test):
