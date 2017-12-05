@@ -23,9 +23,10 @@ void while_print(FILE *f, s_ast *ast)
 int while_exec(s_env *env, s_ast *ast)
 {
   s_awhile *awhile = &ast->data.ast_while;
+  int res = 0;
   while (!ast_exec(env, awhile->condition))
-    ast_exec(env, awhile->actions);
-  return 0;
+    res = ast_exec(env, awhile->actions);
+  return res;
 }
 
 

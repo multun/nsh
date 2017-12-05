@@ -23,9 +23,10 @@ void until_print(FILE *f, s_ast *ast)
 int until_exec(s_env *env, s_ast *ast)
 {
   s_auntil *auntil = &ast->data.ast_until;
+  int res = 0;
   while (ast_exec(env, auntil->condition))
-    ast_exec(env, auntil->actions);
-  return 0;
+    res = ast_exec(env, auntil->actions);
+  return res;
 }
 
 void until_free(struct ast *ast)
