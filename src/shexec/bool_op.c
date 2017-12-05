@@ -55,4 +55,5 @@ void bool_op_free(struct ast *ast)
     return;
   ast_free(ast->data.ast_bool_op.left);
   ast_free(ast->data.ast_bool_op.right);
+  free(ast);
 }
