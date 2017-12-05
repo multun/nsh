@@ -17,6 +17,9 @@ ipath = tests_path / 'itests'
 
 command_42sh = [str(tests_path.parent / '42sh')]
 command_ref = ["bash", "--posix"]
+command_san = ['valgrind', '-q', '--error-exitcode=100',
+               '--leak-check=full', '--show-leak-kinds=all', '--']
+
 
 TIMEOUT_DEFAULT = 2
 
@@ -132,9 +135,15 @@ def compare_results(pa, pb):
     return res
 
 
+def gen_command(conf):
+    cmd = command_ref if conf.check else command_42sh
+    if conf.sanity:
+        return command_san + cmd
+    return cmd
+
 def run_test(conf, test):
     stdin = test.stdin.encode('utf-8')
-    cmd = command_ref if conf.check else command_42sh
+    cmd = gen_command(conf)
     return compare_results(run_process(conf, cmd, stdin), test.expected)
 
 
