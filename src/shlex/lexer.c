@@ -61,7 +61,10 @@ static s_token *lexer_lex(s_lexer *lexer, s_errman *errman)
   // TODO: move inside word_read and deepen the abstraction
   if (is_only_digits(res)
       && (res->delim == '<' || res->delim == '>'))
+  {
     res->type = TOK_IO_NUMBER;
+    res->specified = true;
+  }
 
   TOK_PUSH(res, '\0');
   return res;
