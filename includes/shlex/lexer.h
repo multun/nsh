@@ -16,6 +16,9 @@
   F(TOK_AND,       "&")   \
   F(TOK_PIPE,      "|")   \
                           \
+  F(TOK_LPAR,   "(")      \
+  F(TOK_RPAR,   ")")      \
+                          \
   F(TOK_AND_IF,    "&&")  \
   F(TOK_OR_IF,     "||")  \
   F(TOK_DSEMI,     ";;")  \
@@ -45,8 +48,6 @@
   F(TOK_WHILE,  "while") \
   F(TOK_UNTIL,  "until") \
   F(TOK_FOR,    "for")   \
-  F(TOK_LPAR,   "(")     \
-  F(TOK_RPAR,   ")")     \
   F(TOK_LBRACE, "{")     \
   F(TOK_RBRACE, "}")     \
   F(TOK_BANG,   "!")     \
