@@ -1,0 +1,7 @@
+{
+  "desc": "Test an implicit in for with two instructions, without separator",
+  "stdin": "for e do\nfalse; false; done",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 0
+}
