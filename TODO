@@ -15,3 +15,28 @@
   * [ ] Handle clobber
 * [ ] Repl
   * [ ] Don't print the prompt when interactive
+* [ ] parsing
+  * [X] input
+  * [X] list
+  * [X] and_or
+  * [X] pipeline
+  * [X] command
+  * [X] simple_command
+  * [X] shell_command
+  * [X] funcdec
+  * [ ] redirection
+    * [X] IO_NUM
+    * [X] WORD
+    * [ ] HEREDOC
+  * [X] prefix
+  * [X] element
+  * [X] compound_list
+  * [X] rule_for
+  * [X] rule_while
+  * [X] rule_until
+  * [X] rule_case
+  * [X] rule_if
+  * [X] else_clause
+  * [X] do_group
+  * [X] case_clause
+  * [X] case_item

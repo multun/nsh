@@ -84,7 +84,10 @@ s_ast *parse_command(s_lexer *lexer, s_errman *errman)
     s_token *word = lexer_pop(lexer, errman);
     if (ERRMAN_FAILING(errman))
       return res;
-    bool is_par = tok_is(lexer_peek(lexer, errman), TOK_LPAR);
+    tok = lexer_peek(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return res;
+    bool is_par = tok_is(tok, TOK_LPAR);
     lexer_push(lexer, word);
     if (is_par)
       res = parse_funcdec(lexer, errman);
