@@ -46,3 +46,12 @@ int cmd_exec(s_env *env, s_ast *node)
     return res;
   }
 }
+
+
+void cmd_free(struct ast *ast)
+{
+  if (!ast)
+    return;
+  wordlist_free(ast, true);
+  free(ast);
+}

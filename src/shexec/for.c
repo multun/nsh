@@ -35,3 +35,14 @@ int for_exec(s_env *env, s_ast *ast)
   }
   return ret;
 }
+
+
+void for_free(struct ast *ast)
+{
+  if (!ast)
+    return;
+  wordlist_free(ast->data.ast_for.var, true);
+  wordlist_free(ast->data.ast_for.collection, true);
+  ast_free(ast->data.ast_for.actions);
+  free(ast);
+}

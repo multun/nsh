@@ -47,3 +47,24 @@ int case_exec(s_env *env, s_ast *ast)
   }
   return 0;
 }
+
+
+static void case_node_free(s_acase_node *casen)
+{
+  if (!casen)
+    return;
+  wordlist_free(casen->pattern, true);
+  ast_free(casen->action);
+  case_node_free(casen->next);
+  free(casen);
+}
+
+
+void case_free(struct ast *ast)
+{
+  if (!ast)
+    return;
+  wordlist_free(ast->data.ast_case.var, true);
+  case_node_free(ast->data.ast_case.nodes);
+  free(ast);
+}
