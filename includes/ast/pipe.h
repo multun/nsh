@@ -19,3 +19,4 @@ typedef struct apipe
 
 void pipe_print(FILE *f, struct ast *ast);
 void pipe_free(struct ast *ast);
+int pipe_exec(s_env *env, struct ast *ast);
