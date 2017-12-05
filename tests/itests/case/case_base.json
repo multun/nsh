@@ -1,0 +1,7 @@
+{
+  "desc": "Basic case",
+  "stdin": "case a in a) echo case_a;; esac",
+  "stdout": "case_a",
+  "stderr": "",
+  "retcode": 0
+}
