@@ -6,6 +6,7 @@
 typedef struct environment
 {
   s_htable *vars;
+  s_htable *functions;
 } s_env;
 
 

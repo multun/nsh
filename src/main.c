@@ -55,7 +55,12 @@ static int ast_exec_consumer(s_cstream *cs, s_errman *errman)
     lexer_free(lex);
     return 1;
   }
-  int res = ast_exec(NULL, ast);
+
+  s_env *env = environment_create();
+
+  int res = ast_exec(env, ast);
+
+  environment_free(env);
   ast_free(ast);
   lexer_free(lex);
   return res;

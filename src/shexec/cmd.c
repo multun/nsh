@@ -7,11 +7,11 @@
 
 #include "ast/ast.h"
 #include "shexec/environment.h"
+#include "utils/hash_table.h"
 
 
 void cmd_print(FILE *f, s_ast *node)
-{
-  void *id = node;
+{ void *id = node;
   s_wordlist *wl = node->data.ast_cmd.wordlist;
   fprintf(f, "\"%p\" [label=\"CMD\\n%s", id, wl->str);
   wl = wl->next;
@@ -28,6 +28,10 @@ int cmd_exec(s_env *env, s_ast *node)
 {
   s_wordlist *wl = node->data.ast_cmd.wordlist;
   char **argv = wordlist_to_argv(wl, env);
+
+  s_ast *func = htable_access(env->functions, argv[0]);
+  if (func)
+    return ast_exec(env, func);
 
   int status;
   pid_t pid = fork();

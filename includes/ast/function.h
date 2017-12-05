@@ -22,3 +22,4 @@ typedef struct afunction
 
 void function_print(FILE *f, struct ast *ast);
 void function_free(struct ast *ast);
+int function_exec(s_env *env, struct ast *ast);
