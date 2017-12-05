@@ -307,7 +307,7 @@ s_ast *parse_funcdec(s_lexer *lexer, s_errman *errman)
     return NULL;
   s_ast *res = xcalloc(sizeof(s_ast), 1);
   res->type = SHNODE_FUNCTION;
-  s_wordlist *name = xcalloc(sizeof(word), 1);
+  s_wordlist *name = xcalloc(sizeof(s_wordlist), 1);
   *name = WORDLIST(TOK_STR(word), true, true, NULL);
   res->data.ast_function = AFUNCTION(name, parse_shell_command(lexer, errman));
   return res;

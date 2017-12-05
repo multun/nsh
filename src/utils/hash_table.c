@@ -119,7 +119,7 @@ void htable_remove(struct htable *htable, char *key)
 }
 
 
-void htable_clear(struct htable *htable)
+void htable_free(struct htable *htable)
 {
   for (size_t i = 0; i < htable->capacity; i++)
   {
@@ -133,6 +133,6 @@ void htable_clear(struct htable *htable)
     free(pp);
   }
 
-  memset(htable->tab, 0, sizeof(struct pair*) * htable->capacity);
-  htable->size = 0;
+  free(htable->tab);
+  free(htable);
 }

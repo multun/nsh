@@ -49,4 +49,4 @@ void htable_remove(s_htable *htable, char *key);
  * htable_clear(htable):
  * delete all pairs in the table
  */
-void htable_clear(s_htable *htable);
+void htable_free(s_htable *htable);

@@ -15,9 +15,7 @@ s_env *environment_create()
 
 void environment_free(s_env *env)
 {
-  htable_clear(env->vars);
-  free(env->vars);
-  htable_clear(env->functions);
-  free(env->functions);
+  htable_free(env->vars);
+  htable_free(env->functions);
   free(env);
 }
