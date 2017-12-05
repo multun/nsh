@@ -1,0 +1,53 @@
+# Introduction
+
+42sh, also known as dish, is a work in progress POSIX shell command language
+interpreter. It can execute commands, perform IO redirections and more. However,
+it does not perform any expansion as of now.
+
+
+# Building
+
+The project uses autotools as its build system. As such, it supports most of the
+features of this framework.
+
+
+```sh
+./bootstrap
+./configure
+make
+```
+
+
+# Installing
+
+Once the project is built, run:
+
+```sh
+make install
+```
+
+
+# Testing
+
+```sh
+make check
+# or
+tests/check.py -q
+```
+
+
+# Usage
+
+```sh
+42sh [--norc] [--token-print | --ast-print] [ -c COMMAND | FILE ]
+```
+
+For extended usage information, see
+```sh
+man doc/42sh.1
+```
+
+
+# Continuous integration
+
+A buildbot configuration is available at `tests/master.cfg`
