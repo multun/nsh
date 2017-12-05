@@ -1,6 +1,7 @@
 #include <err.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -23,7 +24,7 @@ void redirection_print(FILE *f, s_ast *ast)
   else if (aredirection->type == REDIR_LESSAND)
     redir = "<&";
   else if (aredirection->type == REDIR_GREATAND)
-    redir = "<&";
+    redir = ">&";
   else if (aredirection->type == REDIR_LESSDASH)
     redir = "<-";
   else if (aredirection->type == REDIR_LESSGREAT)
@@ -110,10 +111,112 @@ static int redir_dgreat(s_env *env, s_aredirection *aredir, s_ast *cmd)
     res = ast_exec(env, cmd);
 
   if (close(fd_file) < 0)
-    errx(1, "42sh: redir_great: Failed closing %s", aredir->right->str);
+    errx(1, "42sh: redir_dgreat: Failed closing %s", aredir->right->str);
 
   fd_load(stdout_copy, STDOUT_FILENO);
 
+  return res;
+}
+
+
+static int redir_less(s_env *env, s_aredirection *aredir, s_ast *cmd)
+{
+  int copy = fd_save(STDIN_FILENO);
+
+  int fd_file = open(aredir->right->str, O_RDONLY, 0664);
+  if (fd_file < 0)
+  {
+    warnx("42sh: %s: Permission denied\n", aredir->right->str);
+    return 1;
+  }
+
+  int res = 0;
+  if (aredir->action)
+    res = redirection_exec(env, aredir->action, cmd);
+  else
+    res = ast_exec(env, cmd);
+
+  if (close(fd_file) < 0)
+    errx(1, "42sh: redir_less: Failed closing %s", aredir->right->str);
+
+  fd_load(copy, STDIN_FILENO);
+
+  return res;
+}
+
+
+static int redir_lessand(s_env *env, s_aredirection *aredir, s_ast *cmd)
+{
+  if (aredir->left == -1)
+    aredir->left = 0;
+  if (!strcmp("-", aredir->right->str))
+    if (close(aredir->left) < 0)
+      errx(1, "42sh: redir_lessand: Failed closing %d", aredir->left);
+  int digit = atoi(aredir->right->str);
+  if (dup2(digit, aredir->left) < 0)
+  {
+    warnx("42sh: %s: Bad file descriptor", aredir->right->str);
+    return 1;
+  }
+
+  int res = 0;
+  if (aredir->action)
+    res = redirection_exec(env, aredir->action, cmd);
+  else
+    res = ast_exec(env, cmd);
+  if (close(aredir->left) < 0)
+    errx(1, "42sh: redir_lessand: Failed closing %d", aredir->left);
+  return res;
+}
+
+
+static int redir_greatand(s_env *env, s_aredirection *aredir, s_ast *cmd)
+{
+  if (aredir->left == -1)
+    aredir->left = 1;
+  if (!strcmp("-", aredir->right->str))
+    if (close(aredir->left) < 0)
+      errx(1, "42sh: redir_greatand: Failed closing %d", aredir->left);
+  int digit = atoi(aredir->right->str);
+  if (dup2(digit, aredir->left) < 0)
+  {
+    warnx("42sh: %s: Bad file descriptor", aredir->right->str);
+    return 1;
+  }
+
+  int res = 0;
+  if (aredir->action)
+    res = redirection_exec(env, aredir->action, cmd);
+  else
+    res = ast_exec(env, cmd);
+  if (close(aredir->left) < 0)
+    errx(1, "42sh: redir_lessand: Failed closing %d", aredir->left);
+  return res;
+}
+
+
+static int redir_lessgreat(s_env *env, s_aredirection *aredir, s_ast *cmd)
+{
+  if (aredir->left == -1)
+    aredir->left = 0;
+  int fd = open(aredir->right->str, O_CREAT | O_RDWR, 0664);
+  if (fd < 0)
+  {
+    warnx("42sh: %s: Permission denied\n", aredir->right->str);
+    return 1;
+  }
+  if (dup2(fd, aredir->left) < 0)
+    errx(1, "42sh: redir_lessgreat: Failed dup file descriptor");
+  if (close(fd) < 0)
+    errx(1, "42sh: redir_lessgreat: Failed closing file descriptor");
+
+  int res = 0;
+  if (aredir->action)
+    res = redirection_exec(env, aredir->action, cmd);
+  else
+    res = ast_exec(env, cmd);
+  if (close(aredir->left) < 0)
+    errx(1, "42sh: redir_lessgreat: Failed closing %d", aredir->left);
   return res;
 }
 
@@ -125,5 +228,13 @@ int redirection_exec(s_env *env, s_ast *ast, s_ast *cmd)
     return redir_great(env, aredirection, cmd);
   if (aredirection->type == REDIR_DGREAT)
     return redir_dgreat(env, aredirection, cmd);
+  if (aredirection->type == REDIR_LESS)
+    return redir_less(env, aredirection, cmd);
+  if (aredirection->type == REDIR_LESSAND)
+    return redir_lessand(env, aredirection, cmd);
+  if (aredirection->type == REDIR_GREATAND)
+    return redir_greatand(env, aredirection, cmd);
+  if (aredirection->type == REDIR_LESSGREAT)
+    return redir_lessgreat(env, aredirection, cmd);
   return 0;
 }

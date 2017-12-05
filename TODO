@@ -9,5 +9,9 @@
   * [x] Input modes
   * [ ] Shopts
     * [ ] Handle +O
+* [ ] Execution
+  * [x] Execute command
+  * [x] Handle control structures
+  * [ ] Handle clobber
 * [ ] Repl
   * [ ] Don't print the prompt when interactive
