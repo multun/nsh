@@ -1,0 +1,7 @@
+{
+  "desc": "Tests the ability of boolean expressions to span over multiple lines",
+  "stdin": "echo hello world ||\n\necho oops",
+  "stdout": "hello world\n",
+  "stderr": "",
+  "retcode": 0
+}
