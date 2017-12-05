@@ -27,3 +27,12 @@ int until_exec(s_env *env, s_ast *ast)
     ast_exec(env, auntil->actions);
   return 0;
 }
+
+void until_free(struct ast *ast)
+{
+  if (!ast)
+    return;
+  ast_free(ast->data.ast_until.condition);
+  ast_free(ast->data.ast_until.actions);
+  free(ast);
+}

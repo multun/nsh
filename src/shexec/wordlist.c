@@ -35,3 +35,14 @@ char **wordlist_to_argv(s_wordlist *wl, s_env *env)
   }
   return argv;
 }
+
+
+void wordlist_free(s_wordlist *wl, bool free_buf)
+{
+  if (!wl)
+    return;
+  if (free_buf)
+    free(wl->str);
+  wordlist_free(wl->next, free_buf);
+  free(wl);
+}

@@ -17,3 +17,13 @@ void pipe_print(FILE *f, s_ast *ast)
   ast_print_rec(f, apipe->right);
   fprintf(f, "\"%p\" -> \"%p\";\n", id, id_right);
 }
+
+
+void pipe_free(struct ast *ast)
+{
+  if (!ast)
+    return;
+  ast_free(ast->data.ast_pipe.left);
+  ast_free(ast->data.ast_pipe.right);
+  free(ast);
+}

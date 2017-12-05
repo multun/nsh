@@ -27,3 +27,13 @@ int while_exec(s_env *env, s_ast *ast)
     ast_exec(env, awhile->actions);
   return 0;
 }
+
+
+void while_free(struct ast *ast)
+{
+  if (!ast)
+    return;
+  ast_free(ast->data.ast_while.condition);
+  ast_free(ast->data.ast_while.actions);
+  free(ast);
+}
