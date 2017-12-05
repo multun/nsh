@@ -5,6 +5,7 @@
 #include "shparse/parse.h"
 #include "utils/alloc.h"
 
+
 static s_ast *negate_ast(s_ast *ast, bool neg)
 {
   if (!neg)
@@ -14,6 +15,29 @@ static s_ast *negate_ast(s_ast *ast, bool neg)
   negation->data.ast_bool_op = ABOOL_OP(BOOL_NOT, ast, NULL);
   return negation;
 }
+
+
+static s_ast *pipeline_loop(s_lexer *lexer, s_errman *errman, s_ast *res)
+{
+  const s_token *tok = lexer_peek(lexer, errman);
+  while (tok_is(tok, TOK_PIPE))
+  {
+    tok_free(lexer_pop(lexer, errman), true);
+    parse_newlines(lexer, errman);
+    tok = lexer_peek(lexer, errman);
+    s_ast *pipe = xcalloc(sizeof(s_ast), 1);
+    pipe->type = SHNODE_PIPE;
+    pipe->data.ast_pipe = APIPE(res, parse_command(lexer, errman));
+    res = pipe;
+    if (ERRMAN_FAILING(errman))
+      return res;
+    tok = lexer_peek(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return res;
+  }
+  return res;
+}
+
 
 s_ast *parse_pipeline(s_lexer *lexer, s_errman *errman)
 {
@@ -31,23 +55,12 @@ s_ast *parse_pipeline(s_lexer *lexer, s_errman *errman)
   tok = lexer_peek(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return res;
-  while (tok_is(tok, TOK_PIPE))
-  {
-    tok_free(lexer_pop(lexer, errman), true);
-    parse_newlines(lexer, errman);
-    tok = lexer_peek(lexer, errman);
-    s_ast *pipe = xcalloc(sizeof(s_ast), 1);
-    pipe->type = SHNODE_PIPE;
-    pipe->data.ast_pipe = APIPE(res, parse_command(lexer, errman));
-    if (ERRMAN_FAILING(errman))
-      return res;
-    res = pipe;
-    tok = lexer_peek(lexer, errman);
-    if (ERRMAN_FAILING(errman))
-      return res;
-  }
+  res = pipeline_loop(lexer, errman, res);
+  if (ERRMAN_FAILING(errman))
+    return res;
   return negate_ast(res, negation);
 }
+
 
 enum redir_type parse_redir_type(const s_token *tok)
 {
@@ -71,6 +84,7 @@ enum redir_type parse_redir_type(const s_token *tok)
     return REDIR_CLOBBER;
   abort();
 }
+
 
 s_ast *parse_redirection(s_lexer *lexer, s_errman *errman)
 {
