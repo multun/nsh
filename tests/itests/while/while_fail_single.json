@@ -1,0 +1,7 @@
+{
+  "desc": "Test a failing while with a single instruction",
+  "stdin": "while [ \\! -f file ]; do\n! touch file; done",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 1
+}

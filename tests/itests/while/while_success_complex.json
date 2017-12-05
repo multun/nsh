@@ -1,0 +1,7 @@
+{
+  "desc": "Test a succeeding while",
+  "stdin": "while [ \\! -f file ]; do\ntouch file; echo coucou; done",
+  "stdout": "coucou\n",
+  "stderr": "",
+  "retcode": 0
+}
