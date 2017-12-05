@@ -1,0 +1,7 @@
+{
+  "desc": "Declares a simple multiline function and calls it",
+  "stdin": "testf () { echo coucou; echo hibou; }; testf; testf",
+  "stdout": "coucou\nhibou\ncoucou\nhibou\n",
+  "stderr": "",
+  "retcode": 0
+}

@@ -1,0 +1,7 @@
+{
+  "desc": "Declares a simple single line function and call it twice",
+  "stdin": "testf () { echo coucou; }; testf; testf",
+  "stdout": "coucou\ncoucou\n",
+  "stderr": "",
+  "retcode": 0
+}

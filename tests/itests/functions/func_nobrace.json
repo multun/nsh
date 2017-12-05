@@ -1,0 +1,7 @@
+{
+  "desc": "Declares a function containing a control structure without braces",
+  "stdin": "testf ()\nif true; then echo coucou; fi; testf",
+  "stdout": "coucou\n",
+  "stderr": "",
+  "retcode": 0
+}

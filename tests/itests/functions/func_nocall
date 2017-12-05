@@ -1,0 +1,7 @@
+{
+  "desc": "Declares a function without calling it",
+  "stdin": "testf () { echo coucou; }",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 0
+}

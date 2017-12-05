@@ -1,0 +1,7 @@
+{
+  "desc": "Declares a redirected function and call it twice",
+  "stdin": "testf () { echo coucou; } >&2; testf; testf",
+  "stdout": "",
+  "stderr": "coucou\ncoucou\n",
+  "retcode": 0
+}
