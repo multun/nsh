@@ -1,0 +1,7 @@
+{
+  "desc": "Some lonely newlines",
+  "stdin": "\n\n\n",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 0
+}
