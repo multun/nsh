@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 import subprocess
 import sys
 import difflib
@@ -8,7 +7,7 @@ import tempfile
 import json
 
 from collections import namedtuple
-from argparse import ArgumentParser, ArgumentError
+from argparse import ArgumentParser
 from pathlib import Path
 
 
@@ -61,7 +60,6 @@ def _test_parser():
     return parser
 
 
-
 class TestResult():
     @classmethod
     def from_dict(self, d):
@@ -99,9 +97,9 @@ def should_run(args, cat):
 
 
 def discover_integration_tests(args):
-    return  [(suite_path, discover_suite(suite_path))
-             for suite_path in ipath.iterdir()
-             if suite_path.is_dir() and should_run(args, suite_path)]
+    return [(suite_path, discover_suite(suite_path))
+            for suite_path in ipath.iterdir()
+            if suite_path.is_dir() and should_run(args, suite_path)]
 
 
 def run_process(conf, args, stdin):
@@ -120,6 +118,7 @@ def diffio(mine, ref):
 
 Comparison = namedtuple('Comparison', ['name', 'obj'])
 
+
 def compare_results(pa, pb):
     def diff_pair(pair):
         return diffio(*pair)
@@ -127,10 +126,21 @@ def compare_results(pa, pb):
     def get_pair(attr):
         return map(lambda s: getattr(s, attr), (pa, pb))
 
-    res = [Comparison(stream, diff_pair(get_pair(stream)))
-           for stream in ('stderr', 'stdout')]
-    retcode_res = '' if pa.retcode == pb.retcode else \
-                  f'{pa.retcode} != {pb.retcode}'
+    def compare_stream(stream):
+        return Comparison(stream, diff_pair(get_pair(stream)))
+
+    res = [compare_stream('stdout')]
+    stderr_diff = bool(pa.stderr) != bool(pb.stderr)
+
+    def decs(p):
+        return 'wrote' if p.stderr else 'did not write'
+
+    stderr_msg = (f'tested program {decs(pa)} on stderr, '
+                  f'whereas reference {decs(pb)}') if stderr_diff else ''
+
+    res.append(Comparison('stderr', stderr_msg))
+    retcode_res = '' if pa.retcode == pb.retcode \
+                  else f'{pa.retcode} != {pb.retcode}'
     res.append(Comparison('return code', retcode_res))
     return res
 
@@ -140,6 +150,7 @@ def gen_command(conf):
     if conf.sanity:
         return command_san + cmd
     return cmd
+
 
 def run_test(conf, test):
     stdin = test.stdin.encode('utf-8')
