@@ -8,7 +8,8 @@ static bool compound_list_end(const s_token *tok)
   return tok_is(tok, TOK_THEN) || tok_is(tok, TOK_ELSE)
          || tok_is(tok, TOK_FI) || tok_is(tok, TOK_DONE)
          || tok_is(tok, TOK_ESAC) || tok_is(tok, TOK_ELIF)
-         || tok_is(tok, TOK_DSEMI) || tok_is(tok, TOK_DO);
+         || tok_is(tok, TOK_DSEMI) || tok_is(tok, TOK_DO)
+         || tok_is(tok, TOK_RBRACE) || tok_is(tok, TOK_RPAR);
 }
 
 static bool compound_list_loop(s_lexer *lexer, s_alist **tail,

@@ -262,14 +262,14 @@ s_ast *parse_shell_command(s_lexer *lexer, s_errman *errman)
     tok = lexer_peek(lexer, errman);
     if (ERRMAN_FAILING(errman))
       return res;
-    if ((tok_is(tok, TOK_LBRACE) && !par)
-        || (tok_is(tok, TOK_LPAR) && par))
+    if ((tok_is(tok, TOK_RBRACE) && !par)
+        || (tok_is(tok, TOK_RPAR) && par))
     {
       tok_free(lexer_pop(lexer, errman), true);
       return res;
     }
     sherror(&tok->lineinfo, errman,
-            "unexpected token %s, expected '{' or '('", TOKT_STR(tok));
+            "unexpected token %s, expected '}' or ')'", TOKT_STR(tok));
     return res;
   }
   else
