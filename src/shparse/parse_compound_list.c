@@ -3,6 +3,7 @@
 #include "shparse/parse.h"
 #include "utils/alloc.h"
 
+
 static bool compound_list_end(const s_token *tok)
 {
   return tok_is(tok, TOK_THEN) || tok_is(tok, TOK_ELSE)
@@ -11,6 +12,7 @@ static bool compound_list_end(const s_token *tok)
          || tok_is(tok, TOK_DSEMI) || tok_is(tok, TOK_DO)
          || tok_is(tok, TOK_RBRACE) || tok_is(tok, TOK_RPAR);
 }
+
 
 static bool compound_list_loop(s_lexer *lexer, s_alist **tail,
                                s_errman *errman)
@@ -30,6 +32,7 @@ static bool compound_list_loop(s_lexer *lexer, s_alist **tail,
   *tail = (*tail)->next;
   return false;
 }
+
 
 s_ast *parse_compound_list(s_lexer *lexer, s_errman *errman)
 {
