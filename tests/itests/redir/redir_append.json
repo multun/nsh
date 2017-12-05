@@ -1,0 +1,7 @@
+{
+  "desc": "Output append redirect test",
+  "stdin": "echo coucou > file; echo hibou >> file; cat < file",
+  "stdout": "coucou\nhibou\n",
+  "stderr": "",
+  "retcode": 0
+}

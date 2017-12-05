@@ -1,0 +1,7 @@
+{
+  "desc": "Explicitly redirect stdout to stderr",
+  "stdin": "echo coucou 1>&2",
+  "stdout": "",
+  "stderr": "coucou\n",
+  "retcode": 0
+}
