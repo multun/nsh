@@ -1,3 +1,4 @@
+#include <err.h>
 #include <getopt.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -5,7 +6,9 @@
 #include <libgen.h>
 #include <string.h>
 
+#include "cli/shopt.h"
 #include "cli/cmdopts.h"
+
 
 
 struct cmdopts g_cmdopts;
@@ -32,18 +35,46 @@ static void print_help(char *pname)
 }
 
 
+static void preprocess_cmdline(int argc, char *argv[])
+{
+  for (int i = 1; i < argc; i++)
+    if (!strcmp(argv[i], "+O"))
+      strcpy(argv[i], "-o");
+    else if (!strcmp(argv[i], "--") || argv[i][0] != '-')
+      break;
+}
+
+
+static bool handle_shopt(bool val, const char *str)
+{
+  e_shopt cur_shopt = shopt_from_string(str);
+  if (cur_shopt == SHOPT_COUNT)
+  {
+    warnx("cannot find shopt %s", str);
+    return true;
+  }
+  g_shopts[cur_shopt] = val;
+  return false;
+}
+
+
 int cmdopts_parse(int argc, char *argv[])
 {
   int opt_i = 0;
   int c;
 
-  while ((c = getopt_long(argc, argv, "hvanc", g_long_options, &opt_i)) != -1)
+  preprocess_cmdline(argc, argv);
+  while ((c = getopt_long(argc, argv, "hvanco:O:", g_long_options, &opt_i)) != -1)
     switch (c)
     {
     case 0:
       break;
     case 'c':
       g_cmdopts.src = SHSRC_COMMAND;
+      break;
+    case 'o': case 'O':
+      if (handle_shopt(c == 'O', optarg))
+        return -2;
       break;
     case 'h':
       print_help(argv[0]);
