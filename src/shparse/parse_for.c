@@ -5,6 +5,7 @@
 #include "utils/alloc.h"
 #include "utils/error.h"
 
+
 static s_wordlist *for_word_loop(s_lexer *lexer, s_errman *errman)
 {
   const s_token *tok = lexer_peek(lexer, errman);
@@ -30,7 +31,8 @@ static s_wordlist *for_word_loop(s_lexer *lexer, s_errman *errman)
   return res;
 }
 
-static s_wordlist *parse_in(s_lexer *lexer, bool *in, s_errman *errman)
+
+static s_wordlist *parse_in(s_lexer *lexer, s_errman *errman)
 {
   s_wordlist *words = NULL;
   const s_token *tok = lexer_peek(lexer, errman);
@@ -39,14 +41,11 @@ static s_wordlist *parse_in(s_lexer *lexer, bool *in, s_errman *errman)
   if (tok_is(tok, TOK_NEWLINE) || tok_is(tok, TOK_IN))
   {
     parse_newlines(lexer, errman);
-    if (ERRMAN_FAILING(errman))
-      return words;
-    tok = lexer_peek(lexer, errman);
-    if (ERRMAN_FAILING(errman))
+    if (ERRMAN_FAILING(errman) || ((tok = lexer_peek(lexer, errman))
+                                    && (ERRMAN_FAILING(errman))))
       return words;
     if (tok_is(tok, TOK_IN))
     {
-      *in = true;
       tok_free(lexer_pop(lexer, errman), true);
       words = for_word_loop(lexer, errman);
       if (ERRMAN_FAILING(errman))
@@ -61,6 +60,37 @@ static s_wordlist *parse_in(s_lexer *lexer, bool *in, s_errman *errman)
   return words;
 }
 
+
+static bool parse_collection(s_lexer *lexer, s_errman *errman,
+                             s_ast *res)
+{
+  const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return false;
+  if (!tok_is(tok, TOK_DO))
+  {
+    if (!tok_is(tok, TOK_NEWLINE) && !tok_is(tok, TOK_SEMI)
+        && !tok_is(tok, TOK_IN))
+    {
+      sherror(&tok->lineinfo, errman,
+              "unexpected token %s, expected 'do', ';' or '\\n'",
+              TOKT_STR(tok));
+      return false;
+    }
+    res->data.ast_for.collection = parse_in(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return false;
+    parse_newlines(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return false;
+    tok = lexer_peek(lexer, errman);
+    if (ERRMAN_FAILING(errman))
+      return false;
+  }
+  return true;
+}
+
+
 s_ast *parse_rule_for(s_lexer *lexer, s_errman *errman)
 {
   tok_free(lexer_pop(lexer, errman), true);
@@ -70,38 +100,17 @@ s_ast *parse_rule_for(s_lexer *lexer, s_errman *errman)
   res->data.ast_for.var = name;
   if (ERRMAN_FAILING(errman))
     return res;
-  s_wordlist *words = NULL;
-  bool in = false;
-  const s_token *tok = lexer_peek(lexer, errman);
-  if (ERRMAN_FAILING(errman))
+
+  if (!parse_collection(lexer, errman, res))
     return res;
-  if (!tok_is(tok, TOK_DO))
-  {
-    if (!tok_is(tok, TOK_NEWLINE) && !tok_is(tok, TOK_SEMI)
-        && !tok_is(tok, TOK_IN))
-    {
-      sherror(&tok->lineinfo, errman,
-              "unexpected token %s, expected 'do', ';' or '\\n'",
-              TOKT_STR(tok));
-      return res;
-    }
-    words = parse_in(lexer, &in, errman);
-    res->data.ast_for.collection = words;
-    if (ERRMAN_FAILING(errman))
-      return res;
-    parse_newlines(lexer, errman);
-    if (ERRMAN_FAILING(errman))
-      return res;
-    tok = lexer_peek(lexer, errman);
-    if (ERRMAN_FAILING(errman))
-      return res;
-  }
+
+  const s_token *tok = lexer_peek(lexer, errman);
   if (!tok_is(tok, TOK_DO))
   {
     sherror(&tok->lineinfo, errman,
             "unexpected token %s, expected 'do'", TOKT_STR(tok));
     return res;
   }
-  res->data.ast_for = AFOR(name, words, parse_do_group(lexer, errman));
+  res->data.ast_for.actions = parse_do_group(lexer, errman);
   return res;
 }
