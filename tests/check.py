@@ -86,7 +86,9 @@ def compare_processes(pa, pb):
 
     res = [Comparison(stream, diff_pair(get_pair(stream)))
            for stream in ('stderr', 'stdout')]
-    res.append(Comparison('return code', pa.returncode != pb.returncode))
+    retcode_res = '' if pa.returncode == pb.returncode else \
+                  f'{pa.returncode} != {pb.returncode}'
+    res.append(Comparison('return code', retcode_res))
     return res
 
 
