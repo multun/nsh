@@ -12,6 +12,9 @@
 
 /42sh
 
+# TEST SUITE
+__pycache__
+*.pyc
 
 # AUTOTOOLS
 Makefile
