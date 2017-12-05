@@ -117,6 +117,6 @@ if __name__ == '__main__':
             print(suite_name)
         exit(0)
     for suite_path, suite_tests in tests:
-        print(f'\t>> {highlight(suite_path.name, True, False)} <<', end='\n\n')
+        print(f'\n\t>> {highlight(suite_path.name, True, False)} <<', end='\n\n')
         for test_path, test_input in suite_tests:
             format_test(args, test_path, test_input)
