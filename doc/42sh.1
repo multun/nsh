@@ -15,21 +15,13 @@
 42sh [GNU long options] [options] [-c command_string | file]
 
 
-.SH COPYRIGHT
-
-
-42sh is not realy copyrighted. At least no one knows by whom.
-
-
 .SH DESCRIPTION
 
 
-42sh also known as dish is a sh-compatible command language interpreter.
-It executes commands and do IO stufs. It might also leak a little sometime.
-But don't worry, it's what we call a feature here.
-.PP
-42sh is currently parsing commands and execute them.
-It is not performing any expantion.
+42sh, also known as dish, is a work in progress POSIX shell command language
+interpreter. It can execute commands, perform IO redirections and more. However,
+it does not perform any expansion as of now.
+
 
 .SH OPTIONS
 
@@ -63,12 +55,22 @@ desactivates the ressource reader
 
 .B --ast-print
 .RS
-activates the AST printer
+prints a dot-formatted representation of the parsed input AST
+.RE
+
+.B --token-print
+.RS
+prints an ascii representation of the input tokens
 .RE
 
 .B --version
 .RS
 prints the current version on STDOUT and exits
+.RE
+
+.B --help
+.RS
+print a short help message and exit
 .RE
 
 
@@ -123,8 +125,8 @@ bash(1),
 .SH BUGS
 
 
-No know bugs for now.
-But our ACUs are gonna find some everyone knows it.
+No expansion nor quote removal nor job control is performed. Thus preventing
+the shell from being POSIX compliant as of today.
 
 
 .SH AUTHOR
