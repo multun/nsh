@@ -1,7 +1,7 @@
 {
   "desc": "",
   "stdin": "case a\n\nin\n(b|a)\n\necho case_a\n\n;;\nesac",
-  "stdout": "case_a",
+  "stdout": "case_a\n",
   "stderr": "",
   "retcode": 0
 }
