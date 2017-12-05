@@ -2,6 +2,7 @@
 #include "shlex/print.h"
 #include "utils/alloc.h"
 
+
 s_ast *parse_rule_while(s_lexer *lexer, s_errman *errman)
 {
   tok_free(lexer_pop(lexer, errman), true);
@@ -16,6 +17,7 @@ s_ast *parse_rule_while(s_lexer *lexer, s_errman *errman)
   return res;
 }
 
+
 s_ast *parse_rule_until(s_lexer *lexer, s_errman *errman)
 {
   tok_free(lexer_pop(lexer, errman), true);
@@ -29,6 +31,7 @@ s_ast *parse_rule_until(s_lexer *lexer, s_errman *errman)
     return res;
   return res;
 }
+
 
 s_ast *parse_do_group(s_lexer *lexer, s_errman *errman)
 {
