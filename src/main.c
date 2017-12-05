@@ -55,10 +55,10 @@ static int ast_exec_consumer(s_cstream *cs, s_errman *errman)
     lexer_free(lex);
     return 1;
   }
-  ast_exec(NULL, ast);
+  int res = ast_exec(NULL, ast);
   ast_free(ast);
   lexer_free(lex);
-  return 0;
+  return res;
 }
 
 
