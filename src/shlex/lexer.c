@@ -37,6 +37,12 @@ static s_token *lexer_lex(s_lexer *lexer, s_errman *errman)
   s_token *res = tok_alloc(lexer);
   word_read(lexer->stream, res, errman);
 
+  if (ERRMAN_FAILING(errman))
+  {
+    tok_free(res, true);
+    return NULL;
+  }
+
   if (!TOK_SIZE(res) && res->delim == EOF)
   {
     res->type = TOK_EOF;
@@ -44,12 +50,6 @@ static s_token *lexer_lex(s_lexer *lexer, s_errman *errman)
     return res;
   }
 
-  // TODO: handle EOF token
-  if (ERRMAN_FAILING(errman) || !TOK_SIZE(res))
-  {
-    tok_free(res, true);
-    return NULL;
-  }
 
   // this case is super annoying to handle inside word_read
   // TODO: move inside word_read and deepen the abstraction

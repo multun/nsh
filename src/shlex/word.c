@@ -31,7 +31,7 @@ static bool read_backslash(s_cstream *cs, s_token *tok, s_errman *errman)
 
   cstream_pop(cs);
   if ((tok->delim = cstream_pop(cs)) == EOF)
-    return sherror(&cs->line_info, errman, "can't escape EOF");
+    return !sherror(&cs->line_info, errman, "can't escape EOF");
 
   if (tok->delim != '\n')
     TOK_PUSH(tok, tok->delim);
@@ -99,6 +99,21 @@ static void handle_break(s_cstream *cs, s_token *tok)
 }
 
 
+static bool try_read_word(s_cstream *cs, s_token *tok, s_errman *errman)
+{
+  for (size_t i = 0; i < ARR_SIZE(word_readers); i++)
+  {
+    bool done = word_readers[i](cs, tok, errman);
+    if (ERRMAN_FAILING(errman))
+      return false;
+    if (done)
+      return true;
+  }
+  return false;
+}
+
+
+
 /**
 ** \brief reads characters from a stream, to a word.
 ** \param cs the stream to read from
@@ -111,8 +126,12 @@ void word_read(s_cstream *cs, s_token *tok, s_errman *errman)
   while ((tok->delim = cstream_peek(cs)) != EOF
          && !(!TOK_SIZE(tok) && skip_spaces(cs, tok)))
   {
+
     if (read_backslash(cs, tok, errman))
-      continue;
+	continue;
+
+    if (ERRMAN_FAILING(errman))
+      return;
 
     if (is_breaking(tok->delim))
     {
@@ -123,17 +142,10 @@ void word_read(s_cstream *cs, s_token *tok, s_errman *errman)
     if (ERRMAN_FAILING(errman))
       return;
 
-    bool push = true;
-    for (size_t i = 0; i < ARR_SIZE(word_readers); i++)
-      if (word_readers[i](cs, tok, errman))
-      {
-        push = false;
-        if (ERRMAN_FAILING(errman))
-          return;
-      }
-
-    if (push)
+    if (try_read_word(cs, tok, errman))
       TOK_PUSH(tok, cstream_pop(cs));
+
+    if (ERRMAN_FAILING(errman))
+      return;
   }
-  return;
 }
