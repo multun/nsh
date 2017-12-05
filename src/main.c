@@ -36,7 +36,9 @@ static int ast_print_consumer(s_cstream *cs, s_errman *errman, s_context *cont)
     return 1;
 
   cont->ast_list = ast_list_append(cont->ast_list, ast);
-  ast_print(stdout, ast);
+  FILE *f = fopen("42sh_ast.dot", "w+");
+  ast_print(f, ast);
+  fclose(f);
   return 0;
 }
 
