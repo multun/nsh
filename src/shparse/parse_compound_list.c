@@ -50,6 +50,9 @@ s_ast *parse_compound_list(s_lexer *lexer, s_errman *errman)
     tok_free(lexer_pop(lexer, errman), true);
     if (compound_list_loop(lexer, &tmp, errman))
       break;
+    tok = lexer_peek(lexer,errman);
+    if (ERRMAN_FAILING(errman))
+      return res;
   }
   return res;
 }
