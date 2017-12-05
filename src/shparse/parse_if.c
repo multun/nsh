@@ -10,6 +10,35 @@ static bool start_else_clause(const s_token *tok)
   return tok_is(tok, TOK_ELSE) || tok_is(tok, TOK_ELIF);
 }
 
+
+static s_ast *parse_rule_if_end(s_lexer *lexer, s_errman *errman, s_ast *res)
+{
+  const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
+  if (tok_is(tok, TOK_FI))
+  {
+    tok_free(lexer_pop(lexer, errman), true);
+    return res;
+  }
+  else if (!start_else_clause(tok) && sherror(&tok->lineinfo, errman,
+            "unexpected token %s, expected 'fi', 'else' or 'elif'",
+            TOKT_STR(tok)))
+    return res;
+  res->data.ast_if.failure = parse_else_clause(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
+  tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
+  if (!tok_is(tok, TOK_FI) && sherror(&tok->lineinfo, errman,
+            "unexpected token %s, expected 'fi'", TOKT_STR(tok)))
+    return  res;
+  tok_free(lexer_pop(lexer, errman), true);
+  return res;
+}
+
+
 s_ast *parse_rule_if(s_lexer *lexer, s_errman *errman)
 {
   tok_free(lexer_pop(lexer, errman), true);
@@ -21,46 +50,38 @@ s_ast *parse_rule_if(s_lexer *lexer, s_errman *errman)
   const s_token *tok = lexer_peek(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return res;
-  if (!tok_is(tok, TOK_THEN))
-  {
-    sherror(&tok->lineinfo, errman,
-            "unexpected token %s, expected 'then'", TOKT_STR(tok));
+  if (!tok_is(tok, TOK_THEN) && sherror(&tok->lineinfo, errman,
+            "unexpected token %s, expected 'then'", TOKT_STR(tok)))
     return res;
-  }
+  tok_free(lexer_pop(lexer, errman), true);
+  res->data.ast_if.success = parse_compound_list(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
+  return parse_rule_if_end(lexer, errman, res);
+}
+
+
+static s_ast *parse_else_clause_end(s_lexer *lexer, s_errman *errman,
+                                    s_ast *res)
+{
+  const s_token *tok = lexer_peek(lexer, errman);
+  if (ERRMAN_FAILING(errman))
+    return res;
+  if (!tok_is(tok, TOK_THEN) && sherror(&tok->lineinfo, errman,
+            "unexpected token %s, expected 'then'", TOKT_STR(tok)))
+    return res;
   tok_free(lexer_pop(lexer, errman), true);
   res->data.ast_if.success = parse_compound_list(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return res;
   tok = lexer_peek(lexer, errman);
-  if (ERRMAN_FAILING(errman))
+  if (!start_else_clause(tok) && sherror(&tok->lineinfo, errman,
+            "unexpected token %s, expected 'else' or 'elif'", TOKT_STR(tok)))
     return res;
-  if (tok_is(tok, TOK_FI))
-  {
-    tok_free(lexer_pop(lexer, errman), true);
-    return res;
-  }
-  else if (!start_else_clause(tok))
-  {
-    sherror(&tok->lineinfo, errman,
-            "unexpected token %s, expected 'fi', 'else' or 'elif'",
-            TOKT_STR(tok));
-    return res;
-  }
   res->data.ast_if.failure = parse_else_clause(lexer, errman);
-  if (ERRMAN_FAILING(errman))
-    return res;
-  tok = lexer_peek(lexer, errman);
-  if (ERRMAN_FAILING(errman))
-    return res;
-  if (!tok_is(tok, TOK_FI))
-  {
-    sherror(&tok->lineinfo, errman,
-            "unexpected token %s, expected 'fi'", TOKT_STR(tok));
-    return  res;
-  }
-  tok_free(lexer_pop(lexer, errman), true);
   return res;
 }
+
 
 s_ast *parse_else_clause(s_lexer *lexer, s_errman *errman)
 {
@@ -76,26 +97,5 @@ s_ast *parse_else_clause(s_lexer *lexer, s_errman *errman)
   res->data.ast_if.condition = parse_compound_list(lexer, errman);
   if (ERRMAN_FAILING(errman))
     return res;
-  tok = lexer_peek(lexer, errman);
-  if (ERRMAN_FAILING(errman))
-    return res;
-  if (!tok_is(tok, TOK_THEN))
-  {
-    sherror(&tok->lineinfo, errman,
-            "unexpected token %s, expected 'then'", TOKT_STR(tok));
-    return res;
-  }
-  tok_free(lexer_pop(lexer, errman), true);
-  res->data.ast_if.success = parse_compound_list(lexer, errman);
-  if (ERRMAN_FAILING(errman))
-    return res;
-  tok = lexer_peek(lexer, errman);
-  if (!start_else_clause(tok))
-  {
-    sherror(&tok->lineinfo, errman,
-            "unexpected token %s, expected 'else' or 'elif'", TOKT_STR(tok));
-    return res;
-  }
-  res->data.ast_if.failure = parse_else_clause(lexer, errman);
-  return res;
+  return parse_else_clause_end(lexer, errman, res);
 }
