@@ -6,10 +6,10 @@ bin_PROGRAMS = 42sh
 
 SUBDIRS = src/shlex src/io src/shparse src/utils src/shexec src/cli src/repl
 
-#EXTRA_DIST = $(srcdir)/tests
+EXTRA_DIST = $(srcdir)/tests/check.py
 
 check-local:
-	$(srcdir)/tests/check.sh
+	$(srcdir)/tests/check.py
 
 
 42sh_LDADD = src/repl/librepl.la src/shparse/libparse.la src/shexec/libshexec.la \
