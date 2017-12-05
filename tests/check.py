@@ -166,6 +166,7 @@ def format_test(conf, test):
     tag = highlight('[OK]' if success else '[KO]', success, True)
     print(f"{prefix}{tag}\t{test.name}")
     if not success and not conf.quiet:
+        print(f"\n\t### {test.description}\n")
         for comp in (comp for comp in res if comp.obj):
             failmsg = f'>>> mismatched {comp.name} <<<'
             print(highlight(failmsg, False, True))
