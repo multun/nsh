@@ -8,6 +8,7 @@
 #include "utils/alloc.h"
 #include "utils/error.h"
 
+#include <string.h>
 #include <stdio.h>
 // readline's header requires including stdio beforehand
 #include <readline/history.h>
