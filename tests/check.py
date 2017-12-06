@@ -14,7 +14,6 @@ from pathlib import Path
 tests_path = Path(__file__).resolve().parent
 ipath = tests_path / 'itests'
 
-command_42sh = [str(tests_path.parent / '42sh')]
 command_ref = ["bash", "--posix"]
 command_san = ['valgrind', '-q', '--error-exitcode=100',
                '--leak-check=full', '--show-leak-kinds=all', '--']
@@ -56,6 +55,9 @@ def _test_parser():
 
     paa('-q', '--quiet', action='store_true',
         help='Don\'t display diffs on failed tests')
+
+    paa('target', nargs='?', default=str(tests_path.parent / '42sh'),
+        help='hosts to run tests on')
 
     return parser
 
@@ -146,7 +148,7 @@ def compare_results(pa, pb):
 
 
 def gen_command(conf):
-    cmd = command_ref if conf.check else command_42sh
+    cmd = command_ref if conf.check else [conf.target]
     if conf.sanity:
         return command_san + cmd
     return cmd
@@ -176,6 +178,7 @@ def format_test(conf, test):
 
 if __name__ == '__main__':
     args = _test_parser().parse_args()
+    args.target = str(Path(args.target).resolve())
     tests = discover_integration_tests(args)
     if args.list:
         for suite_name in (suite.name for suite, _ in tests):

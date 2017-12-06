@@ -4,12 +4,16 @@ ACLOCAL_AMFLAGS = -I m4
 
 bin_PROGRAMS = 42sh
 
-SUBDIRS = src/shlex src/io src/shparse src/utils src/shexec src/cli src/repl
+SUBDIRS = src/shlex src/io src/shparse src/utils src/shexec \
+          src/cli src/repl
 
-EXTRA_DIST = $(srcdir)/tests/check.py
+
+include $(top_srcdir)/tests/itests.mk
+EXTRA_DIST = $(srcdir)/tests/check.py $(itest_files)
+
 
 check-local:
-	$(srcdir)/tests/check.py
+	$(srcdir)/tests/check.py $(top_builddir)/42sh
 
 doc:
 	doxygen $(srcdir)/doc/doxyconfig

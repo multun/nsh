@@ -38,5 +38,6 @@ aclocal.m4
 *.in
 *.lo
 *.la
+*.tar.gz
 
 /includes/gen
