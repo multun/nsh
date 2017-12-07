@@ -12,5 +12,5 @@ struct managed_stream
 };
 
 
-int managed_stream_init(struct managed_stream *ms, int argc, char *argv[]);
+void managed_stream_init(struct managed_stream *ms, int argc, char *argv[]);
 void managed_stream_destroy(struct managed_stream *ms);

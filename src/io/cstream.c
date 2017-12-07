@@ -4,33 +4,62 @@
 #include <stdlib.h>
 
 
-s_cstream *cstream_from_file(FILE *stream, char *source)
-{
-  s_cstream *cs = xmalloc(sizeof(*cs));
-  cs->line_info = LINEINFO(source);
-  cs->has_buf = false;
-  cs->eof = false;
 
-  cs->type = CSTREAM_BACKEND_FILE;
-  cs->data.stream = stream;
-  return cs;
+
+bool cstream_eof(s_cstream *cs)
+{
+  return !(cs->has_buf && cs->buf != EOF) && cs->eof;
 }
 
 
-s_cstream *cstream_from_string(char *string, char *source)
+static inline int cstream_get(s_cstream *cs)
 {
-  s_cstream *cs = xmalloc(sizeof(*cs));
-  cs->line_info = LINEINFO(source);
-  cs->has_buf = false;
-  cs->eof = false;
+  int res = cs->backend->reader(cs);
+  if (res == EOF)
+    cs->eof = true;
 
-  cs->type = CSTREAM_BACKEND_STRING;
-  cs->data.string = string;
-  return cs;
+  return res;
+}
+
+
+int cstream_peek(s_cstream *cs)
+{
+  if (!cs->has_buf)
+  {
+    cs->has_buf = true;
+    cs->buf = cstream_get(cs);
+  }
+
+  return cs->buf;
+}
+
+
+int cstream_pop(s_cstream *cs)
+{
+  int res;
+
+  if (cs->has_buf)
+  {
+    cs->has_buf = false;
+    res = cs->buf;
+  }
+  else
+    res = cstream_get(cs);
+
+  if (res == '\n')
+  {
+    cs->line_info.line++;
+    cs->line_info.column = 1;
+  }
+  else
+    cs->line_info.column++;
+
+  return res;
 }
 
 
 void cstream_free(s_cstream *cs)
 {
+  cs->backend->dest(cs);
   free(cs);
 }

@@ -73,7 +73,9 @@ void read_breaking(s_cstream *cs, s_token *tok)
     tok->type = TOK_NEWLINE;
     tok->specified = true;
     TOK_PUSH(tok, cstream_pop(cs));
-    tok->delim = cstream_peek(cs);
+    // eventhough this isn't true, we need this to avoid
+    // making the readline backend hang
+    tok->delim = '\0';
   }
   else
     read_operator(cs, tok);
