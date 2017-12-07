@@ -1,6 +1,6 @@
 #include "io/managed_stream.h"
 #include "io/cstream.h"
-
+#include "repl/repl.h"
 #include "cli/cmdopts.h"
 
 #include <err.h>
@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-
 
 static bool is_interactive(int argc)
 {
@@ -26,6 +25,8 @@ bool init_command(struct managed_stream *ms, int argc, char *argv[])
     errx(2, "missing command");
 
   ms->cs = cstream_from_string(argv[0], "<command line>");
+  ms->cs->interactive = false;
+  ms->cs->context = NULL;
   return true;
 }
 
@@ -43,11 +44,14 @@ bool init_file(struct managed_stream *ms, int argc, char *argv[])
     errx(errno, "couldn't set CLOEXEC on input file %d",
          fileno(ms->in_file));
   ms->cs = cstream_from_file(ms->in_file, argv[0]);
+  ms->cs->interactive = false;
+  ms->cs->context = NULL;
   return true;
 }
 
 
-void managed_stream_init(struct managed_stream *ms, int argc, char *argv[])
+void managed_stream_init(struct context *context, struct managed_stream *ms,
+                         int argc, char *argv[])
 {
   ms->in_file = NULL;
 
@@ -55,9 +59,17 @@ void managed_stream_init(struct managed_stream *ms, int argc, char *argv[])
     return;
 
   if (is_interactive(argc))
+  {
     ms->cs = cstream_readline();
+    ms->cs->interactive = true;
+    ms->cs->context = context;
+  }
   else
+  {
     ms->cs = cstream_from_file(stdin, "<stdin>");
+    ms->cs->interactive = false;
+    ms->cs->context = NULL;
+  }
 }
 
 

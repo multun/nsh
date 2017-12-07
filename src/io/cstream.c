@@ -60,6 +60,7 @@ int cstream_pop(s_cstream *cs)
 
 void cstream_free(s_cstream *cs)
 {
-  cs->backend->dest(cs);
+  if (cs->backend->dest)
+    cs->backend->dest(cs);
   free(cs);
 }

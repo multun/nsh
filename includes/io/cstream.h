@@ -7,6 +7,7 @@
 
 
 struct cstream;
+struct context;
 
 typedef int (*f_io_reader)(struct cstream *cs);
 typedef void (*f_io_destructor)(struct cstream *cs);
@@ -21,6 +22,8 @@ typedef struct io_backend
 typedef struct cstream
 {
   void *data;
+  bool interactive;
+  struct context *context;
   s_io_backend *backend;
   size_t back_pos;
   s_lineinfo line_info;

@@ -1,5 +1,6 @@
 #include "io/cstream.h"
 #include "utils/alloc.h"
+#include "repl/repl.h"
 
 #include <stdlib.h>
 
@@ -9,9 +10,37 @@
 #include <readline/readline.h>
 
 
+static const char *get_ps1(s_context *context)
+{
+  (void)context;
+  return "42sh> ";
+}
+
+
+static const char *get_ps2(s_context *context)
+{
+  (void)context;
+  return "> ";
+}
+
+
+static const char *prompt_get(s_cstream *cs)
+{
+  const char *res = (cs->context->line_start ? get_ps1 : get_ps2)(cs->context);
+  cs->context->line_start = false;
+  return res;
+}
+
+
 int readline_io_reader(s_cstream *cs)
 {
   char *str = cs->data;
+
+  if (!str)
+  {
+    str = cs->data = readline(prompt_get(cs));
+    cs->back_pos = 0;
+  }
 
   int res;
   if (str && !str[cs->back_pos])
@@ -19,12 +48,6 @@ int readline_io_reader(s_cstream *cs)
     free(str);
     cs->data = NULL;
     return '\n';
-  }
-
-  if (!str)
-  {
-    str = cs->data = readline("42sh>");
-    cs->back_pos = 0;
   }
 
   if (!str || !(res = str[cs->back_pos]))

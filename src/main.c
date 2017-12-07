@@ -16,7 +16,8 @@
 #include "utils/error.h"
 
 
-/* static int ast_print_consumer(s_cstream *cs, s_errcont *errcont, s_context *cont) */
+/* static int ast_print_consumer(s_cstream *cs, s_errcont *errcont, */
+/*                               s_context *cont) */
 /* { */
 /*   s_lexer *lex = lexer_create(cs); */
 /*   s_ast *ast = NULL; */
@@ -45,9 +46,8 @@ static int ast_exec_consumer(s_cstream *cs, s_errcont *errcont, s_context *cont)
 {
   s_lexer *lex = lexer_create(cs);
   s_ast *ast = NULL;
+  cont->line_start = true;
   parse(&ast, lex, errcont);
-
-  // TODO: catch exceptions here
 
   cont->ast_list = ast_list_append(cont->ast_list, ast);
   int res = ast_exec(cont->env, ast);
@@ -57,10 +57,10 @@ static int ast_exec_consumer(s_cstream *cs, s_errcont *errcont, s_context *cont)
 }
 
 
-static int producer(f_stream_consumer consumer, int argc, char *argv[])
+static int producer(struct context *ctx, int argc, char *argv[])
 {
   struct managed_stream ms;
-  managed_stream_init(&ms, argc, argv);
+  managed_stream_init(ctx, &ms, argc, argv);
 
   s_errman eman = ERRMAN;
   s_keeper keeper = KEEPER(NULL);
@@ -69,14 +69,10 @@ static int producer(f_stream_consumer consumer, int argc, char *argv[])
 
   s_errcont errcont = ERRCONT(&eman, &keeper);
 
-  s_context cont;
-  context_init(&cont);
-
   int res = 0;
   while (!cstream_eof(ms.cs))
-    res = consumer(ms.cs, &errcont, &cont);
+    res = ast_exec_consumer(ms.cs, &errcont, ctx);
 
-  context_destroy(&cont);
   managed_stream_destroy(&ms);
   return res;
 }
@@ -84,13 +80,19 @@ static int producer(f_stream_consumer consumer, int argc, char *argv[])
 
 static int run(int argc, char *argv[])
 {
+  s_context cont;
+  context_init(&cont);
+
   if (g_cmdopts.shmode == SHMODE_VERSION)
   {
     puts("Version " VERSION);
     return 0;
   }
 
-  return producer(ast_exec_consumer, argc, argv);
+  int res = producer(&cont, argc, argv);
+
+  context_destroy(&cont);
+  return res;
 }
 
 
