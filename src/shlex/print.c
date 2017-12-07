@@ -26,13 +26,12 @@ const char *token_type_to_string(enum token_type type)
 
 int print_tokens(FILE *f, s_cstream *cs, s_errcont *errcont)
 {
-  assert(!ERRMAN_FAILING(errcont));
   int res = 0;
   s_lexer *lex = lexer_create(cs);
   while (!cstream_eof(cs))
   {
     s_token *tok = lexer_pop(lex, errcont);
-    if (!tok || ERRMAN_FAILING(errcont))
+    if (!tok)
     {
       res = 1;
       break;

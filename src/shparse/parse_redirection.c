@@ -34,11 +34,7 @@ static s_ast *pipeline_loop(s_lexer *lexer, s_errcont *errcont, s_ast *res)
     pipe->data.ast_pipe = APIPE(res, NULL);
     parse_command(&pipe->data.ast_pipe.right, lexer, errcont);
     res = pipe;
-    if (ERRMAN_FAILING(errcont))
-      return res;
     tok = lexer_peek(lexer, errcont);
-    if (ERRMAN_FAILING(errcont))
-      return res;
   }
   return res;
 }

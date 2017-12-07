@@ -35,10 +35,6 @@ typedef struct errcont
 } s_errcont;
 
 
-// does not make sense anymore, kept for tests and temp compat
-#define ERRMAN_FAILING(Errcont) (!(Errcont))
-
-
 
 #define ERRMAN                                  \
   (s_errman)                                    \

@@ -34,9 +34,7 @@ static void parse_in(s_wordlist **words, s_lexer *lexer,
   if (tok_is(tok, TOK_NEWLINE) || tok_is(tok, TOK_IN))
   {
     parse_newlines(lexer, errcont);
-    if (ERRMAN_FAILING(errcont) || ((tok = lexer_peek(lexer, errcont))
-                                    && (ERRMAN_FAILING(errcont))))
-      return;
+    tok = lexer_peek(lexer, errcont);
     if (tok_is(tok, TOK_IN))
     {
       tok_free(lexer_pop(lexer, errcont), true);

@@ -98,7 +98,7 @@ static void handle_break(s_cstream *cs, s_token *tok)
 static bool try_read_word(s_cstream *cs, s_token *tok, s_errcont *errcont)
 {
   for (size_t i = 0; i < ARR_SIZE(word_readers); i++)
-    if (word_readers[i](cs, tok, errcont) || ERRMAN_FAILING(errcont))
+    if (word_readers[i](cs, tok, errcont))
       return false;
   return true;
 }

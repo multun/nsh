@@ -28,13 +28,7 @@ static int ast_print_consumer(s_cstream *cs, s_errcont *errcont, s_context *cont
   s_ast *ast = NULL;
   parse(&ast, lex, errcont);
 
-  if (ERRMAN_FAILING(errcont))
-  {
-    ast_free(ast);
-    return 1;
-  }
-  if (!ast)
-    return 1;
+  // TODO: catch exceptions here
 
   cont->ast_list = ast_list_append(cont->ast_list, ast);
   FILE *f = fopen("42sh_ast.dot", "w+");
@@ -59,12 +53,7 @@ static int ast_exec_consumer(s_cstream *cs, s_errcont *errcont, s_context *cont)
   s_ast *ast = NULL;
   parse(&ast, lex, errcont);
 
-  if (ERRMAN_FAILING(errcont))
-  {
-    ast_free(ast);
-    lexer_free(lex);
-    return 1;
-  }
+  // TODO: catch exceptions here
 
   cont->ast_list = ast_list_append(cont->ast_list, ast);
   int res = ast_exec(cont->env, ast);
