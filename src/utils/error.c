@@ -5,13 +5,13 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <err.h>
 
 
 void shraise(s_errcont *cont, const s_ex_class *class)
 {
   if (!class)
     class = cont->errman->class;
-
   if (!class)
     abort();
 

@@ -25,7 +25,8 @@ static bool is_interactive(int argc)
 static int ast_print_consumer(s_cstream *cs, s_errcont *errcont, s_context *cont)
 {
   s_lexer *lex = lexer_create(cs);
-  s_ast *ast = parse(lex, errcont);
+  s_ast *ast = NULL;
+  parse(&ast, lex, errcont);
 
   if (ERRMAN_FAILING(errcont))
   {
@@ -55,7 +56,8 @@ static int token_print_consumer(s_cstream *cs, s_errcont *errcont,
 static int ast_exec_consumer(s_cstream *cs, s_errcont *errcont, s_context *cont)
 {
   s_lexer *lex = lexer_create(cs);
-  s_ast *ast = parse(lex, errcont);
+  s_ast *ast = NULL;
+  parse(&ast, lex, errcont);
 
   if (ERRMAN_FAILING(errcont))
   {
@@ -81,7 +83,12 @@ static int producer(f_stream_consumer consumer,
   if (load_res)
     return load_res;
 
-  s_errcont errcont = ERRCONT(NULL, NULL);
+  s_errman eman = ERRMAN;
+  s_keeper keeper = KEEPER(NULL);
+  if (setjmp(keeper.env))
+    errx(1, "reached the top of the stack");
+
+  s_errcont errcont = ERRCONT(&eman, &keeper);
 
   s_context cont;
   context_init(&cont);

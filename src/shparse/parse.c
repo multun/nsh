@@ -4,108 +4,78 @@
 #include "shlex/print.h"
 #include "utils/alloc.h"
 
+
 void parse_newlines(s_lexer *lexer, s_errcont *errcont)
 {
   const s_token *tok = lexer_peek(lexer, errcont);
-  if (ERRMAN_FAILING(errcont))
-    return;
   while (tok_is(tok, TOK_NEWLINE))
   {
     tok_free(lexer_pop(lexer, errcont), true);
     tok = lexer_peek(lexer, errcont);
-    if (ERRMAN_FAILING(errcont))
-      return;
   }
 }
 
 
-s_ast *parse(s_lexer *lexer, s_errcont *errcont)
+void parse(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
   const s_token *tok = lexer_peek(lexer, errcont);
-  if (ERRMAN_FAILING(errcont))
-    return NULL;
   if (tok_is(tok, TOK_EOF) || tok_is(tok, TOK_NEWLINE))
-    return NULL;
-  s_ast *res = parse_list(lexer, errcont);
-  if (ERRMAN_FAILING(errcont))
-    return res;
+    return; // the field is already initialized to NULL
+  parse_list(res, lexer, errcont);
   tok = lexer_peek(lexer, errcont);
-  if (ERRMAN_FAILING(errcont))
-    return res;
   if (tok_is(tok, TOK_EOF) || tok_is(tok, TOK_NEWLINE))
-    return res;
+    return;
   sherror(&tok->lineinfo, errcont,
           "unxpected token %s, expected 'EOF' or '\\n'", TOKT_STR(tok));
-  return res;
 }
 
 
-static s_ast *list_loop(s_lexer *lexer, s_errcont *errcont,
-                        s_ast *res, const s_token *tok)
+// TODO: store the next node in an attached point
+static void list_loop(s_lexer *lexer, s_errcont *errcont,
+                      s_ast *res, const s_token *tok)
 {
   s_alist *tmp = &res->data.ast_list;
   while (tok_is(tok, TOK_SEMI) || tok_is(tok, TOK_AND))
   {
     tok_free(lexer_pop(lexer, errcont), true);
     tok = lexer_peek(lexer, errcont);
-    if (ERRMAN_FAILING(errcont))
-      return res;
     if (tok_is(tok, TOK_EOF) || tok_is(tok, TOK_NEWLINE))
-      return res;
+      return;
     s_alist *next = xcalloc(sizeof(s_alist), 1);
-    *next = ALIST(parse_and_or(lexer, errcont), NULL);
     tmp->next = next;
-    if (ERRMAN_FAILING(errcont))
-      return res;
     tmp = next;
+    *next = ALIST(NULL, NULL);
+    parse_and_or(&next->action, lexer, errcont);
     tok = lexer_peek(lexer, errcont);
-    if (ERRMAN_FAILING(errcont))
-      return res;
   }
-  return res;
 }
 
 
-s_ast *parse_list(s_lexer *lexer, s_errcont *errcont)
+void parse_list(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
-  s_ast *res = xcalloc(sizeof(s_ast), 1);
-  res->type = SHNODE_LIST;
-  res->data.ast_list = ALIST(parse_and_or(lexer, errcont), NULL);
-  if (ERRMAN_FAILING(errcont))
-    return res;
+  *res = xcalloc(sizeof(s_ast), 1);
+  (*res)->type = SHNODE_LIST;
+  parse_and_or(&(*res)->data.ast_list.action, lexer, errcont);
   const s_token *tok = lexer_peek(lexer, errcont);
-  if (ERRMAN_FAILING(errcont))
-    return res;
-  return list_loop(lexer, errcont, res, tok);
+  list_loop(lexer, errcont, *res, tok); // TODO: fix list_loop API
 }
 
 
-s_ast *parse_and_or(s_lexer *lexer, s_errcont *errcont)
+// TODO: check for exception leeks
+void parse_and_or(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
-  s_ast *res = parse_pipeline(lexer, errcont);
-  if (ERRMAN_FAILING(errcont))
-    return res;
-
+  parse_pipeline(res, lexer, errcont);
   const s_token *tok = lexer_peek(lexer, errcont);
-  if (ERRMAN_FAILING(errcont))
-    return res;
   while (tok_is(tok, TOK_OR_IF) || tok_is(tok, TOK_AND_IF))
   {
     bool or = tok_is(tok, TOK_OR_IF);
     tok_free(lexer_pop(lexer, errcont), true);
     parse_newlines(lexer, errcont);
-    if (ERRMAN_FAILING(errcont))
-      return res;
     s_ast *bool_op = xcalloc(sizeof(s_ast), 1);
     bool_op->type = SHNODE_BOOL_OP;
-    bool_op->data.ast_bool_op = ABOOL_OP(or ? BOOL_OR : BOOL_AND,
-                                         res, parse_pipeline(lexer, errcont));
-    if (ERRMAN_FAILING(errcont))
-      return res;
-    res = bool_op;
+    bool_op->data.ast_bool_op = ABOOL_OP(or ? BOOL_OR : BOOL_AND, *res, NULL);
+    parse_pipeline(&bool_op->data.ast_bool_op.right, lexer, errcont);
+    *res = bool_op;
     tok = lexer_peek(lexer, errcont);
-    if (ERRMAN_FAILING(errcont))
-      return res;
   }
-  return res;
 }

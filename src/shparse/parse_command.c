@@ -16,22 +16,17 @@ static s_ast *redirection_loop_sec(s_lexer *lexer, s_errcont *errcont,
                                    s_ast *res)
 {
   const s_token *tok = lexer_peek(lexer, errcont);
-  if (ERRMAN_FAILING(errcont))
-    return NULL;
   s_ast *redir = NULL;
   while (start_redir(tok))
   {// TODO: HEREDOC
-    s_ast *tmp = parse_redirection(lexer, errcont);
-    if (ERRMAN_FAILING(errcont))
-      return res;
+    s_ast **target;
     if (redir)
-      redir->data.ast_redirection.action = tmp;
+      target = &redir->data.ast_redirection.action;
     else
-      res->data.ast_block.redir = tmp;
-    redir = tmp;
+      target = &res->data.ast_block.redir;
+    parse_redirection(target, lexer, errcont);
+    redir = *target;
     tok = lexer_peek(lexer, errcont);
-    if (ERRMAN_FAILING(errcont))
-      return res;
   }
   return res;
 }
@@ -56,22 +51,14 @@ static s_ast *redirection_loop(s_lexer *lexer, s_ast *cmd, s_errcont *errcont)
 static bool chose_shell_func(s_lexer *lexer, s_errcont *errcont, s_ast **res)
 {
   const s_token *tok = lexer_peek(lexer, errcont);
-  if (ERRMAN_FAILING(errcont))
-    return true;
   bool shell = is_first_keyword(tok) || tok_is(tok, TOK_LBRACE)
                || tok_is(tok, TOK_LPAR);
   if (shell)
-  {
-    *res = parse_shell_command(lexer, errcont);
-    if (ERRMAN_FAILING(errcont))
-      return true;
-  }
+    parse_shell_command(res, lexer, errcont);
   else if (tok_is(tok, TOK_FUNC))
   { // discard tokken 'function' and create token NAME to match latter use
     tok_free(lexer_pop(lexer, errcont), true);
-    *res = parse_funcdec(lexer, errcont);
-    if (ERRMAN_FAILING(errcont))
-      return true;
+    parse_funcdec(res, lexer, errcont);
   }
   else
     return false;
@@ -79,73 +66,61 @@ static bool chose_shell_func(s_lexer *lexer, s_errcont *errcont, s_ast **res)
 }
 
 
-s_ast *parse_command(s_lexer *lexer, s_errcont *errcont)
+void parse_command(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
-  s_ast *res = NULL;
-  if (!chose_shell_func(lexer, errcont, &res))
+  // TODO: change chose_shell_func api
+  if (!chose_shell_func(lexer, errcont, res))
   {
     s_token *word = lexer_pop(lexer, errcont);
-    if (ERRMAN_FAILING(errcont))
-      return res;
-    const s_token *tok = lexer_peek(lexer, errcont);
-    if (ERRMAN_FAILING(errcont))
-      return res;
+    const s_token *tok = lexer_peek(lexer, errcont); // TODO: catch
     bool is_par = tok_is(tok, TOK_LPAR);
     lexer_push(lexer, word);
     if (is_par)
-      res = parse_funcdec(lexer, errcont);
+      parse_funcdec(res, lexer, errcont);
     else
-      return parse_simple_command(lexer, errcont);
+    {
+      parse_simple_command(res, lexer, errcont);
+      return;
+    }
   }
-  if (ERRMAN_FAILING(errcont))
-    return res;
-  return redirection_loop(lexer, res, errcont);
+  // TODO: remove obvious garbage
+  *res = redirection_loop(lexer, *res, errcont);
 }
 
 
-static s_ast *switch_first_keyword(s_lexer *lexer, s_errcont *errcont)
+static void switch_first_keyword(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
   const s_token *tok = lexer_peek(lexer, errcont);
-  if (ERRMAN_FAILING(errcont))
-    return NULL;
   if (tok_is(tok, TOK_IF))
-    return parse_rule_if(lexer, errcont);
+    parse_rule_if(res, lexer, errcont);
   else if (tok_is(tok, TOK_FOR))
-    return parse_rule_for(lexer, errcont);
+    parse_rule_for(res, lexer, errcont);
   else if (tok_is(tok, TOK_WHILE))
-    return parse_rule_while(lexer, errcont);
+    parse_rule_while(res, lexer, errcont);
   else if (tok_is(tok, TOK_UNTIL))
-    return parse_rule_until(lexer, errcont);
+    parse_rule_until(res, lexer, errcont);
   else if (tok_is(tok, TOK_CASE))
-    return parse_rule_case(lexer, errcont);
-  sherror(&tok->lineinfo, errcont, "unexpected token %s", TOKT_STR(tok));
-  return NULL;
+    parse_rule_case(res, lexer, errcont);
+  else
+    sherror(&tok->lineinfo, errcont, "unexpected token %s", TOKT_STR(tok));
 }
 
 
-s_ast *parse_shell_command(s_lexer *lexer, s_errcont *errcont)
+void parse_shell_command(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
   const s_token *tok = lexer_peek(lexer, errcont);
-  if (ERRMAN_FAILING(errcont))
-    return NULL;
   if (tok_is(tok, TOK_LBRACE) || tok_is(tok, TOK_LPAR))
   {
     bool par = tok_is(tok, TOK_LPAR);
     tok_free(lexer_pop(lexer, errcont), true);
-    s_ast *res = parse_compound_list(lexer, errcont);
-    if (ERRMAN_FAILING(errcont) || ((tok = lexer_peek(lexer, errcont))
-                                   && ERRMAN_FAILING(errcont)))
-      return res;
-    if ((tok_is(tok, TOK_RBRACE) && !par)
-        || (tok_is(tok, TOK_RPAR) && par))
-    {
-      tok_free(lexer_pop(lexer, errcont), true);
-      return res;
-    }
-    sherror(&tok->lineinfo, errcont,
-            "unexpected token %s, expected '}' or ')'", TOKT_STR(tok));
-    return res;
+    parse_compound_list(res, lexer, errcont);
+    tok = lexer_peek(lexer, errcont);
+    if (!((tok_is(tok, TOK_RBRACE) && !par)
+          || (tok_is(tok, TOK_RPAR) && par)))
+      sherror(&tok->lineinfo, errcont,
+              "unexpected token %s, expected '}' or ')'", TOKT_STR(tok));
+    tok_free(lexer_pop(lexer, errcont), true);
   }
   else
-    return switch_first_keyword(lexer, errcont);
+    switch_first_keyword(res, lexer, errcont);
 }
