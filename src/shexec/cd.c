@@ -47,11 +47,11 @@ int buitin_cd(int argc, char **argv)
   }
   if (argc == 1)
     return cd_from_env("HOME");
-  else if (!strcmp(*argv, "-"))
+  else if (!strcmp(argv[1], "-"))
     return cd_from_env("OLDPWD");
   else
   {
-    if (chdir(*argv) != 0)
+    if (chdir(argv[1]) != 0)
     {
       warn("cd: chdir failed");
       return 1;
