@@ -116,7 +116,7 @@ typedef struct lexer
 /**
 ** \brief allocates a new token
 */
-s_token *tok_alloc(s_lexer *lexer);
+void tok_alloc(s_lexer *lexer);
 
 
 /**
@@ -147,12 +147,12 @@ void lexer_free(s_lexer *lexer);
 ** \brief peeks a token without unpoping it
 ** \details this interface is an internal of the lexer
 */
-const s_token *lexer_peek(s_lexer *lexer, s_errman *errman);
+const s_token *lexer_peek(s_lexer *lexer, s_errcont *errcont);
 
 /**
 ** \brief removes a token from the stream, crafting it if necessary
 */
-s_token *lexer_pop(s_lexer *lexer, s_errman *errman);
+s_token *lexer_pop(s_lexer *lexer, s_errcont *errcont);
 
 /**
 ** \brief pushes back a previously popped token
@@ -163,4 +163,4 @@ void lexer_push(s_lexer *lexer, s_token *tok);
 ** \brief reads a word into a token
 ** \details this interface is an internal of the lexer
 */
-void word_read(s_cstream *cs, s_token *tok, s_errman *errman);
+void word_read(s_cstream *cs, s_token *tok, s_errcont *errcont);

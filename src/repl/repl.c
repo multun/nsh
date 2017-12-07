@@ -28,8 +28,13 @@ void ast_print(FILE *f, s_ast *ast);
 
 int repl(f_stream_consumer consumer)
 {
-  int res = 0;
-  s_errman errman;
+  volatile int res = 0;
+  s_errman eman = ERRMAN;
+  s_keeper keeper = KEEPER(NULL);
+  if (setjmp(keeper.env))
+    errx(1, "reached the top of the stack");
+
+
   s_context cont;
   context_init(&cont);
   char history_path[512];
@@ -42,10 +47,9 @@ int repl(f_stream_consumer consumer)
 
   for (char *input; (input = readline("42sh> ")); free(input))
   {
-    errman = ERRMAN;
     s_cstream *ns = cstream_from_string(input, "<stdin>");
-    res = consumer(ns, &errman, &cont);
-    if (history && !ERRMAN_FAILING(&errman))
+    res = consumer(ns, &ERRCONT(&eman, &keeper), &cont);
+    if (history /* && !ERRMAN_FAILING(&eman)*/)
       fprintf(history, "%s\n", input);
     cstream_free(ns);
     // TODO: handle shopt fail on error

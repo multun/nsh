@@ -16,12 +16,12 @@ bool start_redir(const s_token *tok)
 }
 
 
-static s_ast *parse_assignment(s_lexer *lexer, s_errman *errman)
+static s_ast *parse_assignment(s_lexer *lexer, s_errcont *errcont)
 {
   s_ast *res = xcalloc(sizeof(s_ast), 1);
   res->type = SHNODE_ASSIGNMENT;
-  s_token *tok = lexer_pop(lexer, errman);
-  if (ERRMAN_FAILING(errman))
+  s_token *tok = lexer_pop(lexer, errcont);
+  if (ERRMAN_FAILING(errcont))
     return res;
   char * val = strchr(TOK_STR(tok), '=');
   *val = '\0';
@@ -45,10 +45,10 @@ typedef struct block_builder
 } s_bbuilder;
 
 
-static bool loop_redir(s_lexer *lexer, s_errman *errman, s_bbuilder *build)
+static bool loop_redir(s_lexer *lexer, s_errcont *errcont, s_bbuilder *build)
 {
-  s_ast *tmp = parse_redirection(lexer, errman);
-  if (ERRMAN_FAILING(errman))
+  s_ast *tmp = parse_redirection(lexer, errcont);
+  if (ERRMAN_FAILING(errcont))
     return false;
   if (build->redir)
     build->redir->data.ast_redirection.action = tmp;
@@ -59,17 +59,17 @@ static bool loop_redir(s_lexer *lexer, s_errman *errman, s_bbuilder *build)
 }
 
 
-static bool prefix_loop(s_lexer *lexer, s_errman *errman, s_bbuilder *build)
+static bool prefix_loop(s_lexer *lexer, s_errcont *errcont, s_bbuilder *build)
 {
-  const s_token *tok = lexer_peek(lexer, errman);
-  if (ERRMAN_FAILING(errman))
+  const s_token *tok = lexer_peek(lexer, errcont);
+  if (ERRMAN_FAILING(errcont))
     return false;
   while (tok_is(tok, TOK_ASSIGNMENT_WORD) || start_redir(tok))
   {
     if (tok_is(tok, TOK_ASSIGNMENT_WORD))
     {
-      s_ast *tmp = parse_assignment(lexer, errman);
-      if (ERRMAN_FAILING(errman))
+      s_ast *tmp = parse_assignment(lexer, errcont);
+      if (ERRMAN_FAILING(errcont))
         return false;
       if (build->assign)
         build->assign->data.ast_assignment.action = tmp;
@@ -77,10 +77,10 @@ static bool prefix_loop(s_lexer *lexer, s_errman *errman, s_bbuilder *build)
         build->block->def = tmp;
       build->assign = tmp;
     }
-    else if (!loop_redir(lexer, errman, build))
+    else if (!loop_redir(lexer, errcont, build))
       return false;
-    tok = lexer_peek(lexer, errman);
-    if (ERRMAN_FAILING(errman))
+    tok = lexer_peek(lexer, errcont);
+    if (ERRMAN_FAILING(errcont))
       return false;
   }
   return true;
@@ -96,17 +96,17 @@ static s_ast *asigne_cmd(s_wordlist *tmp)
 }
 
 
-static bool element_loop(s_lexer *lexer, s_errman *errman, s_bbuilder *build)
+static bool element_loop(s_lexer *lexer, s_errcont *errcont, s_bbuilder *build)
 {
-  const s_token *tok = lexer_peek(lexer, errman);
-  if (ERRMAN_FAILING(errman))
+  const s_token *tok = lexer_peek(lexer, errcont);
+  if (ERRMAN_FAILING(errcont))
     return false;
   while (tok_is(tok, TOK_WORD) || start_redir(tok))
   {
     if (tok_is(tok, TOK_WORD))
     {
-      s_wordlist *tmp = parse_word(lexer, errman);
-      if (ERRMAN_FAILING(errman))
+      s_wordlist *tmp = parse_word(lexer, errcont);
+      if (ERRMAN_FAILING(errcont))
         return false;
       if (build->elm)
         build->elm->next = tmp;
@@ -114,17 +114,17 @@ static bool element_loop(s_lexer *lexer, s_errman *errman, s_bbuilder *build)
         build->block->cmd = asigne_cmd(tmp);
       build->elm = tmp;
     }
-    else if (!loop_redir(lexer, errman, build))
+    else if (!loop_redir(lexer, errcont, build))
       return false;
-    tok = lexer_peek(lexer, errman);
-    if (ERRMAN_FAILING(errman))
+    tok = lexer_peek(lexer, errcont);
+    if (ERRMAN_FAILING(errcont))
       return false;
   }
   return true;
 }
 
 
-s_ast *parse_simple_command(s_lexer *lexer, s_errman *errman)
+s_ast *parse_simple_command(s_lexer *lexer, s_errcont *errcont)
 {
   s_ast *res = xcalloc(sizeof(s_ast), 1);
   res->type = SHNODE_BLOCK;
@@ -136,15 +136,15 @@ s_ast *parse_simple_command(s_lexer *lexer, s_errman *errman)
     .redir = NULL,
     .elm = NULL,
   };
-  if (!prefix_loop(lexer, errman, &builder)
-      || !element_loop(lexer, errman, &builder))
+  if (!prefix_loop(lexer, errcont, &builder)
+      || !element_loop(lexer, errcont, &builder))
     return res;
   if (!res->data.ast_block.redir && !res->data.ast_block.def
       && !res->data.ast_block.cmd)
   {
-    const s_token *tok = lexer_peek(lexer, errman);
-    assert(!ERRMAN_FAILING(errman));
-    sherror(&tok->lineinfo, errman, "parsing error %s", TOKT_STR(tok));
+    const s_token *tok = lexer_peek(lexer, errcont);
+    assert(!ERRMAN_FAILING(errcont));
+    sherror(&tok->lineinfo, errcont, "parsing error %s", TOKT_STR(tok));
     return res;
   }
   return res;

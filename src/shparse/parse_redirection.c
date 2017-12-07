@@ -17,46 +17,46 @@ static s_ast *negate_ast(s_ast *ast, bool neg)
 }
 
 
-static s_ast *pipeline_loop(s_lexer *lexer, s_errman *errman, s_ast *res)
+static s_ast *pipeline_loop(s_lexer *lexer, s_errcont *errcont, s_ast *res)
 {
-  const s_token *tok = lexer_peek(lexer, errman);
+  const s_token *tok = lexer_peek(lexer, errcont);
   while (tok_is(tok, TOK_PIPE))
   {
-    tok_free(lexer_pop(lexer, errman), true);
-    parse_newlines(lexer, errman);
-    tok = lexer_peek(lexer, errman);
+    tok_free(lexer_pop(lexer, errcont), true);
+    parse_newlines(lexer, errcont);
+    tok = lexer_peek(lexer, errcont);
     s_ast *pipe = xcalloc(sizeof(s_ast), 1);
     pipe->type = SHNODE_PIPE;
-    pipe->data.ast_pipe = APIPE(res, parse_command(lexer, errman));
+    pipe->data.ast_pipe = APIPE(res, parse_command(lexer, errcont));
     res = pipe;
-    if (ERRMAN_FAILING(errman))
+    if (ERRMAN_FAILING(errcont))
       return res;
-    tok = lexer_peek(lexer, errman);
-    if (ERRMAN_FAILING(errman))
+    tok = lexer_peek(lexer, errcont);
+    if (ERRMAN_FAILING(errcont))
       return res;
   }
   return res;
 }
 
 
-s_ast *parse_pipeline(s_lexer *lexer, s_errman *errman)
+s_ast *parse_pipeline(s_lexer *lexer, s_errcont *errcont)
 {
-  const s_token *tok = lexer_peek(lexer, errman);
-  if (ERRMAN_FAILING(errman))
+  const s_token *tok = lexer_peek(lexer, errcont);
+  if (ERRMAN_FAILING(errcont))
     return NULL;
   bool negation = tok_is(tok, TOK_BANG);
   if (negation)
-    tok_free(lexer_pop(lexer, errman), true);
+    tok_free(lexer_pop(lexer, errcont), true);
 
-  s_ast *res = parse_command(lexer, errman);
-  if (ERRMAN_FAILING(errman))
+  s_ast *res = parse_command(lexer, errcont);
+  if (ERRMAN_FAILING(errcont))
     return res;
 
-  tok = lexer_peek(lexer, errman);
-  if (ERRMAN_FAILING(errman))
+  tok = lexer_peek(lexer, errcont);
+  if (ERRMAN_FAILING(errcont))
     return res;
-  res = pipeline_loop(lexer, errman, res);
-  if (ERRMAN_FAILING(errman))
+  res = pipeline_loop(lexer, errcont, res);
+  if (ERRMAN_FAILING(errcont))
     return res;
   return negate_ast(res, negation);
 }
@@ -86,10 +86,10 @@ enum redir_type parse_redir_type(const s_token *tok)
 }
 
 
-s_ast *parse_redirection(s_lexer *lexer, s_errman *errman)
+s_ast *parse_redirection(s_lexer *lexer, s_errcont *errcont)
 {
-  s_token *tok = lexer_pop(lexer, errman);
-  if (ERRMAN_FAILING(errman))
+  s_token *tok = lexer_pop(lexer, errcont);
+  if (ERRMAN_FAILING(errcont))
     return NULL;
   s_ast *res = xcalloc(sizeof(s_ast), 1);
   res->type = SHNODE_REDIRECTION;
@@ -98,14 +98,14 @@ s_ast *parse_redirection(s_lexer *lexer, s_errman *errman)
   {
     left = atoi(TOK_STR(tok));
     tok_free(tok, true);
-    tok = lexer_pop(lexer, errman);
-    if (ERRMAN_FAILING(errman))
+    tok = lexer_pop(lexer, errcont);
+    if (ERRMAN_FAILING(errcont))
       return res;
   }
   enum redir_type type = parse_redir_type(tok);
   tok_free(tok, true);
-  s_wordlist *word = parse_word(lexer, errman);
-  if (ERRMAN_FAILING(errman))
+  s_wordlist *word = parse_word(lexer, errcont);
+  if (ERRMAN_FAILING(errcont))
     return res;
   res->data.ast_redirection = AREDIRECTION(type, left, word, NULL);
   return res;

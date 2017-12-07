@@ -22,12 +22,12 @@ static bool is_interactive(int argc)
 }
 
 
-static int ast_print_consumer(s_cstream *cs, s_errman *errman, s_context *cont)
+static int ast_print_consumer(s_cstream *cs, s_errcont *errcont, s_context *cont)
 {
   s_lexer *lex = lexer_create(cs);
-  s_ast *ast = parse(lex, errman);
+  s_ast *ast = parse(lex, errcont);
 
-  if (ERRMAN_FAILING(errman))
+  if (ERRMAN_FAILING(errcont))
   {
     ast_free(ast);
     return 1;
@@ -43,21 +43,21 @@ static int ast_print_consumer(s_cstream *cs, s_errman *errman, s_context *cont)
 }
 
 
-static int token_print_consumer(s_cstream *cs, s_errman *errman,
+static int token_print_consumer(s_cstream *cs, s_errcont *errcont,
                                 s_context *cont)
 {
   if (!cont)
     return 0;
-  return print_tokens(stdout, cs, errman);
+  return print_tokens(stdout, cs, errcont);
 }
 
 
-static int ast_exec_consumer(s_cstream *cs, s_errman *errman, s_context *cont)
+static int ast_exec_consumer(s_cstream *cs, s_errcont *errcont, s_context *cont)
 {
   s_lexer *lex = lexer_create(cs);
-  s_ast *ast = parse(lex, errman);
+  s_ast *ast = parse(lex, errcont);
 
-  if (ERRMAN_FAILING(errman))
+  if (ERRMAN_FAILING(errcont))
   {
     ast_free(ast);
     lexer_free(lex);
@@ -81,14 +81,14 @@ static int producer(f_stream_consumer consumer,
   if (load_res)
     return load_res;
 
-  s_errman errman = ERRMAN;
+  s_errcont errcont = ERRCONT(NULL, NULL);
 
   s_context cont;
   context_init(&cont);
 
   int res = 0;
-  while (!cstream_eof(ms.cs) && !ERRMAN_FAILING(&errman))
-    res = consumer(ms.cs, &errman, &cont);
+  while (!cstream_eof(ms.cs))
+    res = consumer(ms.cs, &errcont, &cont);
 
   context_destroy(&cont);
   managed_stream_destroy(&ms);

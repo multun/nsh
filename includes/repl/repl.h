@@ -13,7 +13,7 @@ typedef struct context
 } s_context;
 
 
-typedef int (*f_stream_consumer)(s_cstream *cs, s_errman *errman,
+typedef int (*f_stream_consumer)(s_cstream *cs, s_errcont *errcont,
                                  s_context *context);
 
 int repl(f_stream_consumer consumer);

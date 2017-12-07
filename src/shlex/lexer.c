@@ -37,17 +37,13 @@ static bool is_only_digits(s_token *tok)
 }
 
 
-static s_token *lexer_lex(s_lexer *lexer, s_errman *errman)
+static s_token *lexer_lex(s_lexer *lexer, s_errcont *errcont)
 {
-  assert(!ERRMAN_FAILING(errman));
-  s_token *res = tok_alloc(lexer);
-  word_read(lexer->stream, res, errman);
-
-  if (ERRMAN_FAILING(errman))
-  {
-    tok_free(res, true);
-    return NULL;
-  }
+  tok_alloc(lexer);
+  // the result is already at the head of the token, just in case
+  // an exception is thrown
+  s_token *res = lexer->head;
+  word_read(lexer->stream, res, errcont);
 
   if (!TOK_SIZE(res) && res->delim == EOF)
   {
@@ -78,27 +74,20 @@ void lexer_push(s_lexer *lexer, s_token *tok)
 }
 
 
-const s_token *lexer_peek(s_lexer *lexer, s_errman *errman)
+const s_token *lexer_peek(s_lexer *lexer, s_errcont *errcont)
 {
   if (!lexer->head)
-  {
-    s_token *ntok = lexer_lex(lexer, errman);
-    if (ERRMAN_FAILING(errman))
-      return NULL;
-    lexer->head = ntok;
-  }
+    lexer_lex(lexer, errcont);
   return lexer->head;
 }
 
 
-s_token *lexer_pop(s_lexer *lexer, s_errman *errman)
+s_token *lexer_pop(s_lexer *lexer, s_errcont *errcont)
 {
-  if (lexer->head)
-  {
-    s_token *ret = lexer->head;
-    lexer->head = ret->next;
-    return ret;
-  }
+  if (!lexer->head)
+    lexer_lex(lexer, errcont);
 
-  return lexer_lex(lexer, errman);
+  s_token *ret = lexer->head;
+  lexer->head = ret->next;
+  return ret;
 }

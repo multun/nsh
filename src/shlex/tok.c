@@ -5,15 +5,15 @@
 #include <string.h>
 
 
-s_token *tok_alloc(s_lexer *lexer)
+void tok_alloc(s_lexer *lexer)
 {
   s_token *res = xmalloc(sizeof(*res));
   res->specified = false;
   res->lineinfo = lexer->stream->line_info;
   res->type = TOK_WORD;
-  res->next = NULL;
+  res->next = lexer->head;
   evect_init(&res->str, TOK_BUF_MIN_SIZE);
-  return res;
+  lexer->head = res;
 }
 
 
