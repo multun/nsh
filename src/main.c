@@ -42,18 +42,31 @@
 /* } */
 
 
-static int ast_exec_consumer(s_cstream *cs, s_errcont *errcont, s_context *cont)
+static void ast_exec_consumer(int *res, s_cstream *cs, s_context *cont)
 {
   s_lexer *lex = lexer_create(cs);
   s_ast *ast = NULL;
   cont->line_start = true;
-  parse(&ast, lex, errcont);
 
-  cont->ast_list = ast_list_append(cont->ast_list, ast);
-  int res = ast_exec(cont->env, ast);
+  s_errman eman = ERRMAN;
+  s_keeper keeper = KEEPER(NULL);
+
+  if (setjmp(keeper.env))
+  {
+    warnx("reached the top of the stack");
+    *res = 2;
+  }
+  else
+  {
+    parse(&ast, lex, &ERRCONT(&eman, &keeper));
+    if (ast)
+    {
+      cont->ast_list = ast_list_append(cont->ast_list, ast);
+      *res = ast_exec(cont->env, ast);
+    }
+  }
 
   lexer_free(lex);
-  return res;
 }
 
 
@@ -62,16 +75,9 @@ static int producer(struct context *ctx, int argc, char *argv[])
   struct managed_stream ms;
   managed_stream_init(ctx, &ms, argc, argv);
 
-  s_errman eman = ERRMAN;
-  s_keeper keeper = KEEPER(NULL);
-  if (setjmp(keeper.env))
-    errx(1, "reached the top of the stack");
-
-  s_errcont errcont = ERRCONT(&eman, &keeper);
-
   int res = 0;
   while (!cstream_eof(ms.cs))
-    res = ast_exec_consumer(ms.cs, &errcont, ctx);
+    ast_exec_consumer(&res, ms.cs, ctx);
 
   managed_stream_destroy(&ms);
   return res;
