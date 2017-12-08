@@ -1,5 +1,8 @@
 #pragma once
 
+#include "ast/ast.h"
+
+
 typedef struct apipe
 {
   struct ast *left;
@@ -19,4 +22,4 @@ typedef struct apipe
 
 void pipe_print(FILE *f, struct ast *ast);
 void pipe_free(struct ast *ast);
-int pipe_exec(s_env *env, struct ast *ast);
+int pipe_exec(s_env *env, struct ast *ast, s_errcont *cont);

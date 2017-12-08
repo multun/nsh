@@ -2,16 +2,16 @@
 #include "ast/ast.h"
 
 
-static int (*ast_exec_utils[])(s_env *env, s_ast *ast) =
+static int (*ast_exec_utils[])(s_env *env, s_ast *ast, s_errcont *cont) =
 {
   AST_TYPE_APPLY(DECLARE_AST_EXEC_UTILS)
 };
 
 
-int ast_exec(s_env *env, s_ast *ast)
+int ast_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   if (ast)
-    return ast_exec_utils[ast->type](env, ast);
+    return ast_exec_utils[ast->type](env, ast, cont);
   return 0;
 }
 

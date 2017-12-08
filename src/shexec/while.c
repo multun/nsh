@@ -20,12 +20,12 @@ void while_print(FILE *f, s_ast *ast)
 }
 
 
-int while_exec(s_env *env, s_ast *ast)
+int while_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   s_awhile *awhile = &ast->data.ast_while;
   int res = 0;
-  while (!ast_exec(env, awhile->condition))
-    res = ast_exec(env, awhile->actions);
+  while (!ast_exec(env, awhile->condition, cont))
+    res = ast_exec(env, awhile->actions, cont);
   return res;
 }
 

@@ -22,6 +22,6 @@ void ast_exec_test()
 {
   s_ast root = AST_ACMD(&WL("/usr/bin/tree"));
   s_env *env = environment_create();
-  ast_exec(env, &root);
+  ast_exec(env, &root, NULL);
   environment_free(env);
 }

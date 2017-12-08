@@ -14,6 +14,7 @@
 #include <unistd.h>
 
 #include "utils/error.h"
+#include "shexec/clean_exit.h"
 
 
 /* static int ast_print_consumer(s_cstream *cs, s_errcont *errcont, */
@@ -42,7 +43,7 @@
 /* } */
 
 
-static void ast_exec_consumer(int *res, s_cstream *cs, s_context *cont)
+static bool ast_exec_consumer(int *res, s_cstream *cs, s_context *cont)
 {
   s_lexer *lex = lexer_create(cs);
   s_ast *ast = NULL;
@@ -53,6 +54,12 @@ static void ast_exec_consumer(int *res, s_cstream *cs, s_context *cont)
 
   if (setjmp(keeper.env))
   {
+    if (eman.class == &g_clean_exit)
+    {
+      *res = eman.retcode;
+      lexer_free(lex);
+      return true;
+    }
     warnx("reached the top of the stack");
     *res = 2;
   }
@@ -62,11 +69,12 @@ static void ast_exec_consumer(int *res, s_cstream *cs, s_context *cont)
     if (ast)
     {
       cont->ast_list = ast_list_append(cont->ast_list, ast);
-      *res = ast_exec(cont->env, ast);
+      *res = ast_exec(cont->env, ast, &ERRCONT(&eman, &keeper));
     }
   }
 
   lexer_free(lex);
+  return false;
 }
 
 
@@ -76,8 +84,8 @@ static int producer(struct context *ctx, int argc, char *argv[])
   managed_stream_init(ctx, &ms, argc, argv);
 
   int res = 0;
-  while (!cstream_eof(ms.cs))
-    ast_exec_consumer(&res, ms.cs, ctx);
+  while (!cstream_eof(ms.cs) && !ast_exec_consumer(&res, ms.cs, ctx))
+    continue;
 
   managed_stream_destroy(&ms);
   return res;

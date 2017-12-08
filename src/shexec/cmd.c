@@ -25,7 +25,7 @@ void cmd_print(FILE *f, s_ast *node)
 }
 
 
-int cmd_exec(s_env *env, s_ast *node)
+int cmd_exec(s_env *env, s_ast *node, s_errcont *cont)
 {
   s_wordlist *wl = node->data.ast_cmd.wordlist;
   char **argv = wordlist_to_argv(wl, env);
@@ -35,7 +35,7 @@ int cmd_exec(s_env *env, s_ast *node)
   {
     free(argv);
     // TODO manage args
-    return ast_exec(env, func);
+    return ast_exec(env, func, cont);
   }
 
   int status;

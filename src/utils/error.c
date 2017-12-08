@@ -10,11 +10,7 @@
 
 void shraise(s_errcont *cont, const s_ex_class *class)
 {
-  if (!class)
-    class = cont->errman->class;
-  if (!class)
-    abort();
-
+  cont->errman->class = class;
   longjmp(cont->keeper->env, 1);
 }
 

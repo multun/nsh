@@ -20,12 +20,12 @@ void until_print(FILE *f, s_ast *ast)
 }
 
 
-int until_exec(s_env *env, s_ast *ast)
+int until_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   s_auntil *auntil = &ast->data.ast_until;
   int res = 0;
-  while (ast_exec(env, auntil->condition))
-    res = ast_exec(env, auntil->actions);
+  while (ast_exec(env, auntil->condition, cont))
+    res = ast_exec(env, auntil->actions, cont);
   return res;
 }
 

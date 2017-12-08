@@ -20,15 +20,15 @@ void list_print(FILE *f, s_ast *ast)
 }
 
 
-int list_exec(s_env *env, s_ast *ast)
+int list_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   s_alist *alist = &ast->data.ast_list;
   while (alist->next)
   {
-    ast_exec(env, alist->action);
+    ast_exec(env, alist->action, cont);
     alist = alist->next;
   }
-  return ast_exec(env, alist->action);
+  return ast_exec(env, alist->action, cont);
 }
 
 

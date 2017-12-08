@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "ast/ast.h"
+#include "shexec/clean_exit.h"
 
 
 void pipe_print(FILE *f, s_ast *ast)
@@ -32,7 +33,9 @@ void pipe_free(struct ast *ast)
   free(ast);
 }
 
-int pipe_exec(s_env *env, s_ast *ast)
+
+
+int pipe_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   s_apipe *apipe = &ast->data.ast_pipe;
 
@@ -42,7 +45,6 @@ int pipe_exec(s_env *env, s_ast *ast)
     warnx("42sh: pipe_exec: failed to pipe.");
     return 1;
   }
-
   int status1;
   int status2;
   pid_t pid1 = fork();
@@ -62,7 +64,7 @@ int pipe_exec(s_env *env, s_ast *ast)
       errx(1, "42sh: pipe_exec: failed dup of %d", pd[1]);
     if (close(pd[1]) < 0)
       errx(1, "42sh: pipe_exec: error while closing %d", pd[1]);
-    exit(ast_exec(env, apipe->left));
+    clean_exit(cont, ast_exec(env, apipe->left, cont));
   }
 
   else if (pid2 == 0)
@@ -74,7 +76,7 @@ int pipe_exec(s_env *env, s_ast *ast)
       errx(1, "42sh: pipe_exec: failed dup of %d", pd[0]);
     if (close(pd[0]) < 0)
       errx(1, "42sh: pipe_exec: error while closing %d", pd[0]);
-    exit(ast_exec(env, apipe->right));
+    clean_exit(cont, ast_exec(env, apipe->right, cont));
   }
 
   else

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "wordlist.h"
+#include "utils/error.h"
 
 
 typedef struct acase_node
@@ -36,5 +37,5 @@ typedef struct acase
 
 
 void case_print(FILE *f, struct ast *ast);
-int case_exec(s_env *env, struct ast *ast);
+int case_exec(s_env *env, struct ast *ast, s_errcont *cont);
 void case_free(struct ast *ast);

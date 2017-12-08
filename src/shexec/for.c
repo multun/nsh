@@ -22,7 +22,7 @@ void for_print(FILE *f, s_ast *ast)
 }
 
 
-int for_exec(s_env *env, s_ast *ast)
+int for_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   s_afor *afor = &ast->data.ast_for;
   s_wordlist *wl = afor->collection;
@@ -30,7 +30,7 @@ int for_exec(s_env *env, s_ast *ast)
   while (wl)
   {
     // TODO affectation
-    ret = ast_exec(env, afor->actions);
+    ret = ast_exec(env, afor->actions, cont);
     wl = wl->next;
   }
   return ret;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "wordlist.h"
+#include "utils/error.h"
 
 
 typedef struct aredirection
@@ -35,5 +36,6 @@ typedef struct aredirection
 
 
 void redirection_print(FILE *f, struct ast *ast);
-int redirection_exec(s_env *env, struct ast *ast, struct ast *cmd);
+int redirection_exec(s_env *env, struct ast *ast,
+                     struct ast *cmd, s_errcont *cont);
 void redirection_free(struct ast *ast);

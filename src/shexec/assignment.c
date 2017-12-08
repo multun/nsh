@@ -15,10 +15,10 @@ void assignment_print(FILE *f, s_ast *ast)
 }
 
 
-int assignment_exec(s_env *env, s_ast *ast)
+int assignment_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   // TODO
-  if (env && ast)
+  if (env && ast && cont)
     return 0;
   return 0;
 }

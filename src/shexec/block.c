@@ -30,16 +30,16 @@ void block_print(FILE *f, struct ast *node)
 }
 
 
-int block_exec(s_env *env, s_ast *ast)
+int block_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   s_ablock *ablock = &ast->data.ast_block;
 
   if (ablock->def)
-    ast_exec(env, ablock->def);
+    ast_exec(env, ablock->def, cont);
   if (ablock->redir)
-    return redirection_exec(env, ablock->redir, ablock->cmd);
+    return redirection_exec(env, ablock->redir, ablock->cmd, cont);
   if (ablock->cmd)
-    return ast_exec(env, ablock->cmd);
+    return ast_exec(env, ablock->cmd, cont);
 
   return 0;
 }

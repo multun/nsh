@@ -2,6 +2,7 @@
 
 #include "ast/ast.h"
 #include "shexec/environment.h"
+#include "utils/error.h"
 
 
 typedef struct auntil
@@ -22,5 +23,5 @@ typedef struct auntil
 
 
 void until_print(FILE *f, struct ast *ast);
-int until_exec(s_env *env, struct ast *ast);
+int until_exec(s_env *env, struct ast *ast, s_errcont *cont);
 void until_free(struct ast *ast);

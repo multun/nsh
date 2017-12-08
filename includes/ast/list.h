@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ast/ast.h"
+#include "utils/error.h"
 
 typedef struct alist
 {
@@ -19,5 +21,5 @@ typedef struct alist
 
 
 void list_print(FILE *f, struct ast *ast);
-int list_exec(s_env *env, struct ast *ast);
+int list_exec(s_env *env, struct ast *ast, s_errcont *cont);
 void list_free(struct ast *ast);

@@ -25,8 +25,10 @@ void function_free(struct ast *ast)
 }
 
 
-int function_exec(s_env *env, s_ast *ast)
+int function_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
+  if (!cont)
+    abort();
   s_afunction *function = &ast->data.ast_function;
   htable_add(env->functions, function->name->str, function->value);
   return 0;

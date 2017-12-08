@@ -29,7 +29,7 @@ void case_print(FILE *f, s_ast *ast)
 }
 
 
-int case_exec(s_env *env, s_ast *ast)
+int case_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   s_acase *acase = &ast->data.ast_case;
   s_acase_node *node = acase->nodes;
@@ -40,7 +40,7 @@ int case_exec(s_env *env, s_ast *ast)
     while (pattern)
     {
       if (!strcmp(pattern->str, pattern->str))
-        return ast_exec(env, node->action);
+        return ast_exec(env, node->action, cont);
       pattern = pattern->next;
     }
     node = node->next;

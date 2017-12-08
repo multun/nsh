@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stdbool.h>
-#include <stdio.h>
 #include "ast/assignment.h"
 #include "ast/block.h"
 #include "ast/bool_op.h"
@@ -17,6 +15,9 @@
 #include "ast/until.h"
 #include "ast/while.h"
 #include "shexec/environment.h"
+#include "utils/error.h"
+#include <stdbool.h>
+#include <stdio.h>
 
 
 #define DECLARE_AST_TYPE_ENUM(Name, Printer, Exec, Free)                      \
@@ -103,7 +104,7 @@ void ast_print(FILE *f, s_ast *ast);
 ** \param env the current environment
 ** \param ast the tree
 **/
-int ast_exec(s_env *env, s_ast *ast);
+int ast_exec(s_env *env, s_ast *ast, s_errcont *cont);
 
 /**
 ** \brief free ast recursively

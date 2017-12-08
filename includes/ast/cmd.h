@@ -2,6 +2,7 @@
 
 #include "shexec/environment.h"
 #include "wordlist.h"
+#include "utils/error.h"
 
 
 typedef struct acmd
@@ -21,5 +22,5 @@ typedef struct acmd
 
 
 void cmd_print(FILE *f, struct ast *node);
-int cmd_exec(s_env *env, struct ast *node);
+int cmd_exec(s_env *env, struct ast *node, s_errcont *cont);
 void cmd_free(struct ast *ast);

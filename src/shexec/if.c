@@ -24,14 +24,14 @@ void if_print(FILE *f, s_ast *node)
 }
 
 
-int if_exec(s_env *env, s_ast *ast)
+int if_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   s_aif *aif = &ast->data.ast_if;
-  int cond = ast_exec(env, aif->condition);
+  int cond = ast_exec(env, aif->condition, cont);
   if (!cond)
-    return ast_exec(env, aif->success);
+    return ast_exec(env, aif->success, cont);
   else if (aif->failure)
-    return ast_exec(env, aif->failure);
+    return ast_exec(env, aif->failure, cont);
   return 0;
 }
 
