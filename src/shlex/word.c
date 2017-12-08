@@ -2,6 +2,7 @@
 #include "shlex/lexer.h"
 #include "utils/error.h"
 #include "utils/macros.h"
+#include "shlex/lexer_error.h"
 
 #include <ctype.h>
 
@@ -14,8 +15,8 @@ static bool read_single_quote(s_cstream *cs, s_token *tok, s_errcont *errcont)
   TOK_PUSH(tok, cstream_pop(cs));
   while ((tok->delim = cstream_pop(cs)) != '\'')
     if (tok->delim == EOF)
-      return sherror(&cs->line_info, errcont, "unexpected EOF"
-                     " while reading simple quoted string");
+      return LEXERROR(&cs->line_info, errcont, "unexpected EOF"
+                      " while reading simple quoted string");
     else
       TOK_PUSH(tok, tok->delim);
   TOK_PUSH(tok, tok->delim);
@@ -31,7 +32,7 @@ static bool read_backslash(s_cstream *cs, s_token *tok, s_errcont *errcont)
 
   cstream_pop(cs);
   if ((tok->delim = cstream_pop(cs)) == EOF)
-    return !sherror(&cs->line_info, errcont, "can't escape EOF");
+    return !LEXERROR(&cs->line_info, errcont, "can't escape EOF");
 
   if (tok->delim != '\n')
     TOK_PUSH(tok, tok->delim);
@@ -50,8 +51,8 @@ static bool read_double_quote(s_cstream *cs, s_token *tok, s_errcont *errcont)
   while ((tok->delim = cstream_peek(cs)) != '"')
   {
     if (tok->delim == EOF)
-      return sherror(&cs->line_info, errcont, "unexpected EOF"
-                     " while reading double quoted string");
+      return LEXERROR(&cs->line_info, errcont, "unexpected EOF"
+                      " while reading double quoted string");
     else if (tok->delim == '\\')
       read_backslash(cs, tok, errcont);
     else

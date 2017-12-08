@@ -20,15 +20,15 @@ static void parse_rule_if_end(s_lexer *lexer, s_errcont *errcont, s_ast *res)
     return;
   }
   else if (!start_else_clause(tok))
-    sherror(&tok->lineinfo, errcont,
-            "unexpected token %s, expected 'fi', 'else' or 'elif'",
-            TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont,
+                 "unexpected token %s, expected 'fi', 'else' or 'elif'",
+                 TOKT_STR(tok));
   parse_else_clause(&res->data.ast_if.failure, lexer, errcont);
 
   tok = lexer_peek(lexer, errcont);
   if (!tok_is(tok, TOK_FI))
-    sherror(&tok->lineinfo, errcont,
-            "unexpected token %s, expected 'fi'", TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont,
+                 "unexpected token %s, expected 'fi'", TOKT_STR(tok));
   tok_free(lexer_pop(lexer, errcont), true);
 }
 
@@ -42,8 +42,8 @@ void parse_rule_if(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 
   const s_token *tok = lexer_peek(lexer, errcont);
   if (!tok_is(tok, TOK_THEN))
-    sherror(&tok->lineinfo, errcont,
-            "unexpected token %s, expected 'then'", TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont,
+                 "unexpected token %s, expected 'then'", TOKT_STR(tok));
 
   tok_free(lexer_pop(lexer, errcont), true);
   parse_compound_list(&(*res)->data.ast_if.success, lexer, errcont);
@@ -56,14 +56,14 @@ static void parse_else_clause_end(s_lexer *lexer, s_errcont *errcont,
 {
   const s_token *tok = lexer_peek(lexer, errcont);
   if (!tok_is(tok, TOK_THEN))
-    sherror(&tok->lineinfo, errcont,
-            "unexpected token %s, expected 'then'", TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont,
+                 "unexpected token %s, expected 'then'", TOKT_STR(tok));
   tok_free(lexer_pop(lexer, errcont), true);
   parse_compound_list(&res->data.ast_if.success, lexer, errcont);
   tok = lexer_peek(lexer, errcont);
   if (!start_else_clause(tok))
-    sherror(&tok->lineinfo, errcont,
-            "unexpected token %s, expected 'else' or 'elif'", TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont,
+                 "unexpected token %s, expected 'else' or 'elif'", TOKT_STR(tok));
   parse_else_clause(&res->data.ast_if.failure, lexer, errcont);
 }
 

@@ -6,6 +6,10 @@
 #include "io/cstream.h"
 #include "utils/error.h"
 #include "utils/evect.h"
+#include "shlex/lexer_error.h"
+
+#define LEXERROR(LineInfo, Errcont, ...) \
+  sherror((LineInfo), (Errcont), &g_lexer_error, __VA_ARGS__)
 
 
 #define TOK_IS_OP(Type) ((Type) >= TOK_LESS && (Type) <= TOK_LESSDASH)

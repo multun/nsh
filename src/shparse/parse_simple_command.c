@@ -127,6 +127,6 @@ void parse_simple_command(s_ast **res, s_lexer *lexer, s_errcont *errcont)
       && !(*res)->data.ast_block.cmd)
   {
     const s_token *tok = lexer_peek(lexer, errcont);
-    sherror(&tok->lineinfo, errcont, "parsing error %s", TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont, "parsing error %s", TOKT_STR(tok));
   }
 }

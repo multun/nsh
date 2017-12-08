@@ -7,13 +7,13 @@ static bool parse_func_remove_par(s_lexer *lexer, s_errcont *errcont)
 {
   const s_token *tok = lexer_peek(lexer, errcont);
   if (!tok_is(tok, TOK_LPAR))
-    sherror(&tok->lineinfo, errcont,
-            "unexpected token %s, expected '('", TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont,
+                 "unexpected token %s, expected '('", TOKT_STR(tok));
   tok_free(lexer_pop(lexer, errcont), true);
   tok = lexer_peek(lexer, errcont);
   if (!tok_is(tok, TOK_RPAR))
-    sherror(&tok->lineinfo, errcont,
-            "unexpected token %s, expected '('", TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont,
+                 "unexpected token %s, expected '('", TOKT_STR(tok));
   return true;
 }
 

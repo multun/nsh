@@ -102,7 +102,7 @@ static void switch_first_keyword(s_ast **res, s_lexer *lexer, s_errcont *errcont
   else if (tok_is(tok, TOK_CASE))
     parse_rule_case(res, lexer, errcont);
   else
-    sherror(&tok->lineinfo, errcont, "unexpected token %s", TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s", TOKT_STR(tok));
 }
 
 
@@ -117,8 +117,8 @@ void parse_shell_command(s_ast **res, s_lexer *lexer, s_errcont *errcont)
     tok = lexer_peek(lexer, errcont);
     if (!((tok_is(tok, TOK_RBRACE) && !par)
           || (tok_is(tok, TOK_RPAR) && par)))
-      sherror(&tok->lineinfo, errcont,
-              "unexpected token %s, expected '}' or ')'", TOKT_STR(tok));
+      PARSER_ERROR(&tok->lineinfo, errcont,
+                   "unexpected token %s, expected '}' or ')'", TOKT_STR(tok));
     tok_free(lexer_pop(lexer, errcont), true);
   }
   else

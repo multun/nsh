@@ -6,7 +6,12 @@
 
 #include "ast/ast.h"
 #include "shlex/lexer.h"
+#include "shparse/parser_error.h"
 #include "utils/error.h"
+
+#define PARSER_ERROR(LineInfo, Errcont, ...) \
+  sherror((LineInfo), (Errcont), &g_lexer_error, __VA_ARGS__)
+
 
 /**
 ** \brief parse the input of 42sh.

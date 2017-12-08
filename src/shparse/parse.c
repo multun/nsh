@@ -25,8 +25,8 @@ void parse(s_ast **res, s_lexer *lexer, s_errcont *errcont)
   tok = lexer_peek(lexer, errcont);
   if (tok_is(tok, TOK_EOF) || tok_is(tok, TOK_NEWLINE))
     return;
-  sherror(&tok->lineinfo, errcont,
-          "unxpected token %s, expected 'EOF' or '\\n'", TOKT_STR(tok));
+  PARSER_ERROR(&tok->lineinfo, errcont,
+               "unxpected token %s, expected 'EOF' or '\\n'", TOKT_STR(tok));
 }
 
 

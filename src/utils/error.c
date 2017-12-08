@@ -19,15 +19,14 @@ void shraise(s_errcont *cont, const s_ex_class *class)
 }
 
 
-static const struct ex_class test_class;
-
-int sherror(const s_lineinfo *li, s_errcont *cont, const char *format, ...)
+int sherror(const s_lineinfo *li, s_errcont *cont,
+            const s_ex_class *ex_class, const char *format, ...)
 {
   va_list ap;
   va_start(ap, format);
 
   assert(cont);
-  cont->errman->class = &test_class;
+  cont->errman->class = ex_class;
 
   fprintf(stderr, "%s:%zu:%zu: ", li->source, li->line,
           li->column);

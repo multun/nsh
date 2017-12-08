@@ -25,6 +25,7 @@ typedef struct keeper
 typedef struct errman
 {
   const s_ex_class *class;
+  int retcode;
 } s_errman;
 
 
@@ -59,4 +60,4 @@ typedef struct errcont
 
 void shraise(s_errcont *cont, const s_ex_class *class);
 int sherror(const s_lineinfo *lineinfo, s_errcont *cont,
-            const char *format, ...);
+            const s_ex_class *ex_class, const char *format, ...);

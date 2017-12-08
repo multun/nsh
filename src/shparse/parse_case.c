@@ -8,8 +8,8 @@ static void rule_case(s_lexer *lexer, s_errcont *errcont,
 {
   const s_token *tok = lexer_peek(lexer, errcont);
   if (!tok_is(tok, TOK_IN))
-    sherror(&tok->lineinfo, errcont,
-            "unexpected token %s, expected 'in'", TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont,
+                 "unexpected token %s, expected 'in'", TOKT_STR(tok));
   tok_free(lexer_pop(lexer, errcont), true);
   parse_newlines(lexer, errcont);
   parse_case_clause(&res->data.ast_case.nodes, lexer, errcont);
@@ -22,8 +22,8 @@ void parse_rule_case(s_ast **res, s_lexer *lexer, s_errcont *errcont)
   tok_free(lexer_pop(lexer, errcont), true);
   const s_token *tok = lexer_peek(lexer, errcont);
   if (!tok_is(tok, TOK_WORD))
-    sherror(&tok->lineinfo, errcont,
-            "unexpected token %s, expected WORD", TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont,
+                 "unexpected token %s, expected WORD", TOKT_STR(tok));
   *res = xcalloc(sizeof(s_ast), 1);
   (*res)->type = SHNODE_CASE;
   parse_word(&(*res)->data.ast_case.var, lexer, errcont);
@@ -81,8 +81,8 @@ void parse_case_item(s_acase_node **res, s_lexer *lexer, s_errcont *errcont)
 
   tok = lexer_peek(lexer, errcont);
   if (!tok_is(tok, TOK_RPAR))
-    sherror(&tok->lineinfo, errcont,
-            "unexpected token %s, expected ')'", TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont,
+                 "unexpected token %s, expected ')'", TOKT_STR(tok));
   tok_free(lexer_pop(lexer, errcont), true);
   parse_newlines(lexer, errcont);
   tok = lexer_peek(lexer, errcont);

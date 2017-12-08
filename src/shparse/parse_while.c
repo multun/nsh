@@ -27,13 +27,13 @@ void parse_do_group(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
   const s_token *tok = lexer_peek(lexer, errcont);
   if (!tok_is(tok, TOK_DO))
-    sherror(&tok->lineinfo, errcont,
-            "unexpected token %s, expected 'do'", TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont,
+                 "unexpected token %s, expected 'do'", TOKT_STR(tok));
   tok_free(lexer_pop(lexer, errcont), true);
   parse_compound_list(res, lexer, errcont);
   tok = lexer_peek(lexer, errcont);
   if (!tok_is(tok, TOK_DONE))
-    sherror(&tok->lineinfo, errcont,
-            "unexpected token %s, expected 'done'", TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont,
+                 "unexpected token %s, expected 'done'", TOKT_STR(tok));
   tok_free(lexer_pop(lexer, errcont), true);
 }

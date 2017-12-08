@@ -55,9 +55,9 @@ static bool parse_collection(s_lexer *lexer, s_errcont *errcont,
   {
     if (!tok_is(tok, TOK_NEWLINE) && !tok_is(tok, TOK_SEMI)
         && !tok_is(tok, TOK_IN))
-      sherror(&tok->lineinfo, errcont,
-              "unexpected token %s, expected 'do', ';' or '\\n'",
-              TOKT_STR(tok));
+      PARSER_ERROR(&tok->lineinfo, errcont,
+                   "unexpected token %s, expected 'do', ';' or '\\n'",
+                   TOKT_STR(tok));
     parse_in(&res->data.ast_for.collection, lexer, errcont);
     parse_newlines(lexer, errcont);
     tok = lexer_peek(lexer, errcont);
@@ -78,7 +78,7 @@ void parse_rule_for(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 
   const s_token *tok = lexer_peek(lexer, errcont);
   if (!tok_is(tok, TOK_DO))
-    sherror(&tok->lineinfo, errcont,
-            "unexpected token %s, expected 'do'", TOKT_STR(tok));
+    PARSER_ERROR(&tok->lineinfo, errcont,
+                 "unexpected token %s, expected 'do'", TOKT_STR(tok));
   parse_do_group(&(*res)->data.ast_for.actions, lexer, errcont);
 }
