@@ -47,7 +47,7 @@ int cmd_exec(s_env *env, s_ast *node)
   else if (pid == 0)
   {
     execvp(*argv, argv);
-    exit(errno);
+    err(errno, "couldn't exec \"%s\"", *argv);
   }
 
   else
