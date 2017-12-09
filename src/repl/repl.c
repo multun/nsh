@@ -34,7 +34,7 @@ static bool handle_rep_fail(int *res, s_errman *eman)
     *res = eman->retcode;
     return true;
   }
-  *res = 2;
+  *res = g_cmdopts.src == SHSRC_COMMAND ? 1 : 2;
   return false;
 }
 
