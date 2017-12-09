@@ -1,0 +1,7 @@
+{
+  "desc": "An assignment used without braces",
+  "stdin": "a=b ; echo $a",
+  "stdout": "b\n",
+  "stderr": "",
+  "retcode": 0
+}

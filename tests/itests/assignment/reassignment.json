@@ -1,0 +1,7 @@
+{
+  "desc": "Assignments on a previously assigned var",
+  "stdin": "a=a ; a=b",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 0
+}

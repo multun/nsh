@@ -1,0 +1,7 @@
+{
+  "desc": "Multiple assignments",
+  "stdin": "a=a ; b=a",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 0
+}
