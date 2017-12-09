@@ -11,6 +11,12 @@
 
 void history_init(s_context *ctx)
 {
+  if (!ctx->ms.cs->interactive)
+  {
+    ctx->history = NULL;
+    return;
+  }
+
   // TODO: set proper path limit
   char history_path[512];
   strcat(strcpy(history_path, getpwuid(getuid())->pw_dir), "/.42sh_history");
