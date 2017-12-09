@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include "ast/ast.h"
+#include "shexec/clean_exit.h"
 #include "shexec/environment.h"
 #include "utils/hash_table.h"
 
@@ -25,15 +26,19 @@ void cmd_print(FILE *f, s_ast *node)
 }
 
 
-int cmd_exec(s_env *env, s_ast *node, s_errcont *cont)
+static void argv_free(char *argv[])
 {
-  s_wordlist *wl = node->data.ast_cmd.wordlist;
-  char **argv = wordlist_to_argv(wl, env);
+  for (size_t i = 0; argv[i]; i++)
+    free(argv[i]);
+  free(argv);
+}
 
+
+int cmd_exec_argv(s_env *env, s_errcont *cont, char *argv[])
+{
   s_ast *func = htable_access(env->functions, argv[0]);
   if (func)
   {
-    free(argv);
     // TODO manage args
     return ast_exec(env, func, cont);
   }
@@ -42,21 +47,38 @@ int cmd_exec(s_env *env, s_ast *node, s_errcont *cont)
   pid_t pid = fork();
 
   if (pid < 0)
-    err(1, "cmd_exec: error while forking");
+    clean_err(cont, errno, "cmd_exec: error while forking");
 
   else if (pid == 0)
   {
     execvp(*argv, argv);
-    err(errno, "couldn't exec \"%s\"", *argv);
+    clean_err(cont, errno, "couldn't exec \"%s\"", *argv);
   }
 
   else
   {
     waitpid(pid, &status, 0);
     int res = WEXITSTATUS(status);
-    free(argv);
     return res;
   }
+}
+
+int cmd_exec(s_env *env, s_ast *node, s_errcont *cont)
+{
+  s_wordlist *wl = node->data.ast_cmd.wordlist;
+  char **argv = wordlist_to_argv(wl, env);
+  s_keeper keeper = KEEPER(cont->keeper);
+
+  int res = 0;
+  if (setjmp(keeper.env))
+  {
+    argv_free(argv);
+    shraise(cont, NULL);
+  }
+  else
+    res = cmd_exec_argv(env, &ERRCONT(cont->errman, &keeper), argv);
+  argv_free(argv);
+  return res;
 }
 
 

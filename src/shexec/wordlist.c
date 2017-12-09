@@ -18,11 +18,14 @@ char **wordlist_to_argv(s_wordlist *wl, s_env *env)
 
   char **argv = xmalloc(sizeof (char*) * (argc + 1));
   argv[argc] = NULL;
-  for (size_t i = 0; i < argc; i++)
+
+  for (size_t i = 0; i < argc; (wl = wl->next), i++)
   {
-    argv[i] = expand(wl->str, env);
-    wl = wl->next;
+    char *expanded = expand(wl->str, env);
+    argv[i] = unquote(expanded);
+    free(expanded);
   }
+
   return argv;
 }
 
