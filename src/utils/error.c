@@ -8,15 +8,15 @@
 #include <err.h>
 
 
-void shraise(s_errcont *cont, const s_ex_class *class)
+void ATTR(noreturn) shraise(s_errcont *cont, const s_ex_class *class)
 {
   cont->errman->class = class;
   longjmp(cont->keeper->env, 1);
 }
 
 
-int sherror(const s_lineinfo *li, s_errcont *cont,
-            const s_ex_class *ex_class, const char *format, ...)
+void ATTR(noreturn) sherror(const s_lineinfo *li, s_errcont *cont,
+                           const s_ex_class *ex_class, const char *format, ...)
 {
   va_list ap;
   va_start(ap, format);
@@ -34,5 +34,4 @@ int sherror(const s_lineinfo *li, s_errcont *cont,
   shraise(cont, NULL);
 
   va_end(ap);
-  return true;
 }

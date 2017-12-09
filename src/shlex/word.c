@@ -15,8 +15,8 @@ static bool read_single_quote(s_cstream *cs, s_token *tok, s_errcont *errcont)
   TOK_PUSH(tok, cstream_pop(cs));
   while ((tok->delim = cstream_pop(cs)) != '\'')
     if (tok->delim == EOF)
-      return LEXERROR(&cs->line_info, errcont, "unexpected EOF"
-                      " while reading simple quoted string");
+      LEXERROR(&cs->line_info, errcont, "unexpected EOF"
+               " while reading simple quoted string");
     else
       TOK_PUSH(tok, tok->delim);
   TOK_PUSH(tok, tok->delim);
@@ -32,10 +32,13 @@ static bool read_backslash(s_cstream *cs, s_token *tok, s_errcont *errcont)
 
   cstream_pop(cs);
   if ((tok->delim = cstream_pop(cs)) == EOF)
-    return !LEXERROR(&cs->line_info, errcont, "can't escape EOF");
+    LEXERROR(&cs->line_info, errcont, "can't escape EOF");
 
   if (tok->delim != '\n')
+  {
+    TOK_PUSH(tok, '\\');
     TOK_PUSH(tok, tok->delim);
+  }
 
   tok->delim = cstream_peek(cs);
   return true;
@@ -51,8 +54,8 @@ static bool read_double_quote(s_cstream *cs, s_token *tok, s_errcont *errcont)
   while ((tok->delim = cstream_peek(cs)) != '"')
   {
     if (tok->delim == EOF)
-      return LEXERROR(&cs->line_info, errcont, "unexpected EOF"
-                      " while reading double quoted string");
+      LEXERROR(&cs->line_info, errcont, "unexpected EOF"
+               " while reading double quoted string");
     else if (tok->delim == '\\')
       read_backslash(cs, tok, errcont);
     else

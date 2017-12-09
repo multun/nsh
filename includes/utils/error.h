@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utils/lineinfo.h"
+#include "utils/attr.h"
 
 #include <setjmp.h>
 #include <stdbool.h>
@@ -58,6 +59,7 @@ typedef struct errcont
   }
 
 
-void shraise(s_errcont *cont, const s_ex_class *class);
-int sherror(const s_lineinfo *lineinfo, s_errcont *cont,
-            const s_ex_class *ex_class, const char *format, ...);
+void ATTR(noreturn) shraise(s_errcont *cont, const s_ex_class *class);
+void ATTR(noreturn) sherror(const s_lineinfo *lineinfo, s_errcont *cont,
+                            const s_ex_class *ex_class,
+                            const char *format, ...);
