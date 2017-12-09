@@ -1,75 +1,70 @@
-#include "ast/ast_list.h"
-#include "io/cstream.h"
-#include "io/managed_stream.h"
-#include "repl/repl.h"
-#include "shexec/environment.h"
-#include "shlex/lexer.h"
-#include "shparse/parse.h"
-#include "utils/alloc.h"
 #include "utils/error.h"
-
-#include <string.h>
-#include <stdio.h>
-// readline's header requires including stdio beforehand
-#include <readline/history.h>
-#include <readline/readline.h>
-
-#include <err.h>
-#include <fcntl.h>
-#include <pwd.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include "shlex/lexer.h"
+#include "shexec/clean_exit.h"
+#include "shparse/parse.h"
+#include "repl/repl.h"
+#include "repl/history.h"
 
 
-void ast_print(FILE *f, s_ast *ast);
-
-
-int repl(f_stream_consumer consumer)
+static void try_re(int *res, s_lexer *lex,
+                   s_errcont *errcont, s_context *cont)
 {
-  volatile int res = 0;
+  parse(&cont->ast, lex, errcont);
+  if (cont->ast)
+  {
+    *res = ast_exec(cont->env, cont->ast, errcont);
+    history_update(cont);
+  }
+}
+
+
+static bool handle_rep_fail(int *res, s_errman *eman)
+{
+  if (eman->class == &g_clean_exit)
+  {
+    *res = eman->retcode;
+    return true;
+  }
+  *res = 2;
+  return false;
+}
+
+
+static bool ast_exec_consumer(int *res, s_lexer *lex, s_context *cont)
+{
+  cont->line_start = true;
+  cont->ast = NULL;
+
   s_errman eman = ERRMAN;
   s_keeper keeper = KEEPER(NULL);
+
+  bool stopping = false;
   if (setjmp(keeper.env))
-    errx(1, "reached the top of the stack");
-
-
-  s_context cont;
-  context_init(&cont);
-  char history_path[512];
-  strcat(strcpy(history_path, getpwuid(getuid())->pw_dir), "/.42sh_history");
-
-  FILE *history = fopen(history_path, "a+");
-
-  if (history && fcntl(fileno(history), F_SETFD, FD_CLOEXEC) < 0)
-    errx(1, "42sh: repl: Failed CLOEXEC file descriptor %d", fileno(history));
-
-  for (char *input; (input = readline("42sh> ")); free(input))
   {
-    s_cstream *ns = cstream_from_string(input, "<stdin>");
-    res = consumer(ns, &ERRCONT(&eman, &keeper), &cont);
-    if (history /* && !ERRMAN_FAILING(&eman)*/)
-      fprintf(history, "%s\n", input);
-    cstream_free(ns);
-    // TODO: handle shopt fail on error
+    if (handle_rep_fail(res, &eman))
+      stopping = true;
   }
-  if (history)
-    fclose(history);
-  context_destroy(&cont);
+  else
+    try_re(res, lex, &ERRCONT(&eman, &keeper), cont);
+
+  cont->ast_list = ast_list_append(cont->ast_list, cont->ast);
+  return stopping;
+}
+
+
+int producer(s_context *ctx, int argc, char *argv[])
+{
+  managed_stream_init(ctx, &ctx->ms, argc, argv);
+  history_init(ctx);
+
+  int res = 0;
+  for (bool stopping = false; !stopping && !cstream_eof(ctx->ms.cs);)
+  {
+    s_lexer *lex = lexer_create(ctx->ms.cs);
+    stopping = ast_exec_consumer(&res, lex, ctx);
+    lexer_free(lex);
+  }
+
+  managed_stream_destroy(&ctx->ms);
   return res;
-}
-
-
-void context_init(s_context *cont)
-{
-  cont->ast_list = NULL;
-  cont->env = environment_create();
-}
-
-
-void context_destroy(s_context *cont)
-{
-  ast_list_free(cont->ast_list);
-  environment_free(cont->env);
 }
