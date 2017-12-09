@@ -5,8 +5,6 @@ enum shmode
 {
   SHMODE_REGULAR,
   SHMODE_VERSION,
-  SHMODE_AST_PRINT,
-  SHMODE_TOKEN_PRINT,
 };
 
 
@@ -22,6 +20,7 @@ struct cmdopts
   int norc;
   int src;
   int shmode;
+  int ast_print;
 };
 
 

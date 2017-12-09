@@ -1,9 +1,11 @@
-#include "utils/error.h"
-#include "shlex/lexer.h"
-#include "shexec/clean_exit.h"
-#include "shparse/parse.h"
-#include "repl/repl.h"
+#include "cli/cmdopts.h"
 #include "repl/history.h"
+#include "repl/repl.h"
+#include "shexec/clean_exit.h"
+#include "shlex/lexer.h"
+#include "shparse/parse.h"
+#include "utils/error.h"
+
 
 
 static void try_re(int *res, s_lexer *lex,
@@ -12,6 +14,13 @@ static void try_re(int *res, s_lexer *lex,
   parse(&cont->ast, lex, errcont);
   if (cont->ast)
   {
+    if (g_cmdopts.ast_print)
+    {
+      FILE *f = fopen("42sh_ast.dot", "w+");
+      ast_print(f, cont->ast);
+      fclose(f);
+    }
+
     *res = ast_exec(cont->env, cont->ast, errcont);
     history_update(cont);
   }
