@@ -22,3 +22,10 @@ e_shopt shopt_from_string(const char *str)
       return i;
   return SHOPT_COUNT;
 }
+
+const char *string_from_shopt(size_t index)
+{
+  if (index >= SHOPT_COUNT)
+    return NULL;
+  return g_shopt_tab[index];
+}
