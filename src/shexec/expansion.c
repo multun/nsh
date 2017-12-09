@@ -29,6 +29,7 @@ static void expand_var(char **str, s_env *env, s_evect *vec)
   evect_init(&var, strlen(*str));
   for (; **str && (!braces || **str != '}'); (*str)++)
     evect_push(&var, **str);
+  evect_push(&var, '\0');
 
   char *res = htable_access(env->vars, var.data);
   evect_destroy(&var);
@@ -45,7 +46,7 @@ char *expand(char *str, s_env *env)
 {
   s_evect vec;
   evect_init(&vec, strlen(str));
-  for (; *str; str++)
+  while (*str)
   {
     if (*str == '$' && str[1] && str++)
     {
@@ -60,7 +61,7 @@ char *expand(char *str, s_env *env)
         expand_var(&str, env, &vec);
     }
     else
-      evect_push(&vec, *str);
+      evect_push(&vec, *(str++));
   }
   evect_push(&vec, '\0');
   return vec.data;
