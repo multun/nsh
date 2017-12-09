@@ -9,4 +9,4 @@ libshexec_la_SOURCES = ast_print.c test.c assignment.c case.c function.c  \
                        $(TOP_INCL)/shexec/environment.h cd.c \
                        $(TOP_INCL)/shexec/clean_exit.h clean_exit.c \
                        $(TOP_INCL)/shexec/expansion.h expansion.c \
-                       shopt_built.c
+                       shopt_built.c echo_built.c
