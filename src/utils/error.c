@@ -10,7 +10,8 @@
 
 void ATTR(noreturn) shraise(s_errcont *cont, const s_ex_class *class)
 {
-  cont->errman->class = class;
+  if (class)
+    cont->errman->class = class;
   longjmp(cont->keeper->env, 1);
 }
 
