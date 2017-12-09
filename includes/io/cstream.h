@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-
+#include "utils/evect.h"
 #include "utils/lineinfo.h"
 
 
@@ -30,9 +30,12 @@ typedef struct cstream
   bool has_buf;
   int buf;
   bool eof;
+  // contains each poped character
+  s_evect linebuf;
 } s_cstream;
 
 
+s_cstream *cstream_create_base(void);
 s_cstream *cstream_from_file(FILE *stream, char *source);
 s_cstream *cstream_readline(void);
 s_cstream *cstream_from_string(char *string, char *source);

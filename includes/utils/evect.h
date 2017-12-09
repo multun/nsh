@@ -10,6 +10,9 @@ typedef struct evect
 } s_evect;
 
 
+#define EVECT_INITIALIZED(Vect) (!!(Vect)->data)
+
+
 void evect_init(s_evect *vect, size_t capacity);
 void evect_destroy(s_evect *vect);
 

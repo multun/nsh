@@ -60,14 +60,10 @@ int readline_io_reader(s_cstream *cs)
 
 s_cstream *cstream_readline(void)
 {
-  s_cstream *cs = xmalloc(sizeof(*cs));
+  s_cstream *cs = cstream_create_base();
   cs->line_info = LINEINFO("<tty>");
-  cs->has_buf = false;
-  cs->eof = false;
-
-  cs->back_pos = 0;
+  evect_init(&cs->linebuf, 100);
   cs->backend = &g_io_readline_backend;
-  cs->data = NULL;
   return cs;
 }
 

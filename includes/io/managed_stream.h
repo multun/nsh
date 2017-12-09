@@ -5,11 +5,11 @@
 #include <stdio.h>
 
 
-struct managed_stream
+typedef struct managed_stream
 {
   FILE *in_file;
   s_cstream *cs;
-};
+} s_managed_stream;
 
 
 void managed_stream_init(struct context *context, struct managed_stream *ms,

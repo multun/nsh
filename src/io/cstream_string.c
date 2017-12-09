@@ -18,11 +18,8 @@ int string_io_reader(s_cstream *cs)
 
 s_cstream *cstream_from_string(char *string, char *source)
 {
-  s_cstream *cs = xmalloc(sizeof(*cs));
+  s_cstream *cs = cstream_create_base();
   cs->line_info = LINEINFO(source);
-  cs->has_buf = false;
-  cs->eof = false;
-
   cs->backend = &g_io_string_backend;
   cs->data = string;
   return cs;
