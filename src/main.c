@@ -40,9 +40,7 @@ int main(int argc, char *argv[])
 {
   int cmdstart = cmdopts_parse(argc, argv);
   if (cmdstart < 0)
-    // exit when cmdstart < 0,
-    // but succeed when cmdstart == -1
-    return cmdstart + 1;
+    return -(cmdstart + 1);
 
   argc -= cmdstart;
   argv += cmdstart;

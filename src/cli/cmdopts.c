@@ -73,7 +73,7 @@ int cmdopts_parse(int argc, char *argv[])
       break;
     case 'o': case 'O':
       if (handle_shopt(c == 'O', optarg))
-        return -2;
+        return -3;
       break;
     case 'h':
       print_help(argv[0]);
