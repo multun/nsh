@@ -1,0 +1,7 @@
+{
+  "desc": "An if with a block condition and an else",
+  "stdin": "if { true; false; }; then echo hello world; else echo boo; fi",
+  "stdout": "boo\n",
+  "stderr": "",
+  "retcode": 0
+}
