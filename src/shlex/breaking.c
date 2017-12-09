@@ -33,7 +33,7 @@ static bool starts_operator(char c)
 
 bool is_breaking(char c)
 {
-  return isblank(c) || c == '\n' || starts_operator(c);
+  return isblank(c) || c == '\n' || c == '#' || starts_operator(c);
 }
 
 

@@ -88,6 +88,20 @@ static bool skip_spaces(s_cstream *cs, s_token *tok)
 }
 
 
+static bool skip_comment(s_cstream *cs, s_token *tok)
+{
+  if (cstream_peek(cs) != '#')
+    return false;
+
+  while ((tok->delim = cstream_peek(cs)) != EOF)
+    if (tok->delim == '\n')
+      return false;
+    else
+      cstream_pop(cs);
+  return true;
+}
+
+
 static void handle_break(s_cstream *cs, s_token *tok)
 {
   if (TOK_SIZE(tok))
@@ -116,7 +130,8 @@ static bool try_read_word(s_cstream *cs, s_token *tok, s_errcont *errcont)
 void word_read(s_cstream *cs, s_token *tok, s_errcont *errcont)
 {
   while ((tok->delim = cstream_peek(cs)) != EOF
-         && !(!TOK_SIZE(tok) && skip_spaces(cs, tok)))
+         && !(!TOK_SIZE(tok) && (skip_spaces(cs, tok)
+                                 || skip_comment(cs, tok))))
   {
     if (read_backslash(cs, tok, errcont))
       continue;
