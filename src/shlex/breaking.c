@@ -66,18 +66,23 @@ static void read_operator(s_cstream *cs, s_token *tok)
 }
 
 
+static bool read_newline(s_cstream *cs, s_token *tok)
+{
+  if (cstream_peek(cs) != '\n')
+    return false;
+  tok->type = TOK_NEWLINE;
+  tok->specified = true;
+  TOK_PUSH(tok, cstream_pop(cs));
+  // eventhough this isn't true, we need this to avoid
+  // making the readline backend hang
+  tok->delim = '\0';
+  return true;
+}
+
+
 void read_breaking(s_cstream *cs, s_token *tok)
 {
-  if (cstream_peek(cs) == '\n')
-  {
-    tok->type = TOK_NEWLINE;
-    tok->specified = true;
-    TOK_PUSH(tok, cstream_pop(cs));
-    // eventhough this isn't true, we need this to avoid
-    // making the readline backend hang
-    tok->delim = '\0';
-  }
-  else
+  if (!read_newline(cs, tok))
     read_operator(cs, tok);
   tok->specified = true;
 }
