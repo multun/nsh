@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "ast/ast.h"
+#include "shexec/expansion.h"
 
 
 void assignment_print(FILE *f, s_ast *ast)
@@ -17,11 +18,22 @@ void assignment_print(FILE *f, s_ast *ast)
 
 int assignment_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
-  // TODO
-  if (env && ast && cont)
+  char *name = ast->data.ast_assignment.name->str;
+  char *value = expand(ast->data.ast_assignment.value->str, env);
+  void *prev = htable_access(env->vars, name);
+  if (prev)
+  {
+    htable_remove(env->vars, name);
+    free(prev);
+  }
+
+  htable_add(env->vars, name, value);
+
+  if (cont)
     return 0;
   return 0;
 }
+
 
 void assignment_free(struct ast *ast)
 {
