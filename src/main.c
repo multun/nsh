@@ -43,38 +43,46 @@
 /* } */
 
 
-static bool ast_exec_consumer(int *res, s_cstream *cs, s_context *cont)
+static void try_re(int *res, s_lexer *lex,
+                   s_errcont *errcont, s_context *cont)
 {
-  s_lexer *lex = lexer_create(cs);
-  s_ast *ast = NULL;
+  parse(&cont->ast, lex, errcont);
+  if (cont->ast)
+    *res = ast_exec(cont->env, cont->ast, errcont);
+}
+
+
+static bool handle_rep_fail(int *res, s_errman *eman)
+{
+  if (eman->class == &g_clean_exit)
+  {
+    *res = eman->retcode;
+    return true;
+  }
+  *res = 2;
+  return false;
+}
+
+
+static bool ast_exec_consumer(int *res, s_lexer *lex, s_context *cont)
+{
   cont->line_start = true;
+  cont->ast = NULL;
 
   s_errman eman = ERRMAN;
   s_keeper keeper = KEEPER(NULL);
 
+  bool stopping = false;
   if (setjmp(keeper.env))
   {
-    if (eman.class == &g_clean_exit)
-    {
-      *res = eman.retcode;
-      lexer_free(lex);
-      return true;
-    }
-    warnx("reached the top of the stack");
-    *res = 2;
+    if (handle_rep_fail(res, &eman))
+      stopping = true;
   }
   else
-  {
-    parse(&ast, lex, &ERRCONT(&eman, &keeper));
-    if (ast)
-    {
-      cont->ast_list = ast_list_append(cont->ast_list, ast);
-      *res = ast_exec(cont->env, ast, &ERRCONT(&eman, &keeper));
-    }
-  }
+    try_re(res, lex, &ERRCONT(&eman, &keeper), cont);
 
-  lexer_free(lex);
-  return false;
+  cont->ast_list = ast_list_append(cont->ast_list, cont->ast);
+  return stopping;
 }
 
 
@@ -84,8 +92,12 @@ static int producer(struct context *ctx, int argc, char *argv[])
   managed_stream_init(ctx, &ms, argc, argv);
 
   int res = 0;
-  while (!cstream_eof(ms.cs) && !ast_exec_consumer(&res, ms.cs, ctx))
-    continue;
+  for (bool stopping = false; !stopping && !cstream_eof(ms.cs);)
+  {
+    s_lexer *lex = lexer_create(ms.cs);
+    stopping = ast_exec_consumer(&res, lex, ctx);
+    lexer_free(lex);
+  }
 
   managed_stream_destroy(&ms);
   return res;
