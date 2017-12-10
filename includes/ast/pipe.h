@@ -3,6 +3,9 @@
 #include "ast/ast.h"
 
 
+/**
+** \brief represents a pipe node
+*/
 typedef struct apipe
 {
   struct ast *left;
@@ -20,6 +23,19 @@ typedef struct apipe
   AST(SHNODE_PIPE, pipe, APIPE(Left, Right))
 
 
+/**
+** \brief print in dot format the representation of a pipe node
+*/
 void pipe_print(FILE *f, struct ast *ast);
+
+
+/**
+** \brief exec a pipe node
+*/
 void pipe_free(struct ast *ast);
+
+
+/**
+** \brief free a pipe node
+*/
 int pipe_exec(s_env *env, struct ast *ast, s_errcont *cont);

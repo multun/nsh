@@ -6,6 +6,9 @@
 #include "shexec/environment.h"
 
 
+/**
+** \brief represents a wordlist
+*/
 typedef struct wordlist
 {
   char *str;
@@ -31,6 +34,7 @@ typedef struct wordlist
 ** \param env the current environment
 **/
 char **wordlist_to_argv(s_wordlist *wl, s_env *env);
+
 
 /**
 ** \brief free a wordlist

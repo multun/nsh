@@ -4,6 +4,9 @@
 #include "utils/error.h"
 
 
+/**
+** \brief represents a bool operator node
+*/
 typedef struct abool_op
 {
   enum bool_type
@@ -27,6 +30,19 @@ typedef struct abool_op
   AST(SHNODE_BOOL_OP, bool_op, ABOOL_OP(Type, Left, Right))
 
 
+/**
+** \brief print in dot format the representation of a bool operator node
+*/
 void bool_op_print(FILE *f, struct ast *ast);
+
+
+/**
+** \brief exec a bool operator node
+*/
 int bool_op_exec(s_env *env, struct ast *ast, s_errcont *cont);
+
+
+/**
+** \brief free a bool operator node
+*/
 void bool_op_free(struct ast *ast);

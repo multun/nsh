@@ -4,6 +4,9 @@
 #include "utils/error.h"
 
 
+/**
+** \brief represents a redirection node
+*/
 typedef struct aredirection
 {
   enum redir_type
@@ -35,7 +38,20 @@ typedef struct aredirection
       AREDIRECTION(Type, Left, Right, Action))
 
 
+/**
+** \brief print in dot format the representation of a redirection node
+*/
 void redirection_print(FILE *f, struct ast *ast);
+
+
+/**
+** \brief exec a redirection node
+*/
 int redirection_exec(s_env *env, struct ast *ast,
                      struct ast *cmd, s_errcont *cont);
+
+
+/**
+** \brief free a redirection node
+*/
 void redirection_free(struct ast *ast);

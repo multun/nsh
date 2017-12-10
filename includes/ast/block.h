@@ -4,6 +4,9 @@
 #include "utils/error.h"
 
 
+/**
+** \brief represents a block node
+*/
 typedef struct ablock
 {
   struct ast *redir;
@@ -20,7 +23,19 @@ typedef struct ablock
   })
 
 
-
+/**
+** \brief print in dot format the representation of a block node
+*/
 void block_print(FILE *f, struct ast *node);
+
+
+/**
+** \brief exec a block node
+*/
 int block_exec(s_env *env, struct ast *ast, s_errcont *cont);
+
+
+/**
+** \brief free a block node
+*/
 void block_free(struct ast *ast);

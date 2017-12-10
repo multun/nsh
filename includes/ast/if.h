@@ -4,6 +4,10 @@
 #include "wordlist.h"
 #include "utils/error.h"
 
+
+/**
+** \brief represents an if node
+*/
 typedef struct aif
 {
   struct ast *condition;
@@ -23,6 +27,19 @@ typedef struct aif
       AIF(Condition, Success, Failure))
 
 
+/**
+** \brief print in dot format the representation of an if node
+*/
 void if_print(FILE *f, struct ast *node);
+
+
+/**
+** \brief exec an if node
+*/
 int if_exec(s_env *env, struct ast *ast, s_errcont *cont);
+
+
+/**
+** \brief free an if node
+*/
 void if_free(struct ast *ast);

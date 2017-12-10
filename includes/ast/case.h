@@ -4,6 +4,9 @@
 #include "utils/error.h"
 
 
+/**
+** \brief represents a case node
+*/
 typedef struct acase_node
 {
   s_wordlist *pattern;
@@ -36,6 +39,19 @@ typedef struct acase
   AST(SHNODE_CASE, case, ACASE(Var, Nodes))
 
 
+/**
+** \brief print in dot format the representation of a case node
+*/
 void case_print(FILE *f, struct ast *ast);
+
+
+/**
+** \brief exec a case node
+*/
 int case_exec(s_env *env, struct ast *ast, s_errcont *cont);
+
+
+/**
+** \brief free a case node
+*/
 void case_free(struct ast *ast);
