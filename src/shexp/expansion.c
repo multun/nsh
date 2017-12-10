@@ -1,6 +1,7 @@
 #include <assert.h>
-#include <string.h>
+#include <ctype.h>
 #include <err.h>
+#include <string.h>
 
 #include "shexec/environment.h"
 #include "shexp/expansion.h"
@@ -21,8 +22,30 @@ static void expand_arth(char **str, s_env *env, s_evect *vec)
 }
 
 
+static bool predefined_lookup(char **res, s_env *env, char *var)
+{
+  for (size_t i = 0; var[i]; i++)
+    if (!isdigit(var[i]))
+      return false;
+
+  size_t iarg = atoi(var);
+  for (size_t i = 0; i < iarg; i++)
+    if (!env->argv[i])
+    {
+      *res = NULL;
+      return false;
+    }
+  *res = env->argv[iarg];
+  return true;
+}
+
+
 static char *var_lookup(s_env *env, char *var)
 {
+  char *look = NULL;
+  if (predefined_lookup(&look, env, var))
+    return look;
+
   struct pair *var_pair = htable_access(env->vars, var);
   if (!var_pair)
     return NULL;
