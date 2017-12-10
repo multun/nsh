@@ -61,10 +61,8 @@ static void parse_else_clause_end(s_lexer *lexer, s_errcont *errcont,
   tok_free(lexer_pop(lexer, errcont), true);
   parse_compound_list(&res->data.ast_if.success, lexer, errcont);
   tok = lexer_peek(lexer, errcont);
-  if (!start_else_clause(tok))
-    PARSER_ERROR(&tok->lineinfo, errcont,
-                 "unexpected token %s, expected 'else' or 'elif'", TOKT_STR(tok));
-  parse_else_clause(&res->data.ast_if.failure, lexer, errcont);
+  if (start_else_clause(tok))
+    parse_else_clause(&res->data.ast_if.failure, lexer, errcont);
 }
 
 
