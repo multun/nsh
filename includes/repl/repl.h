@@ -19,10 +19,15 @@ typedef struct context
 } s_context;
 
 
-typedef int (*f_stream_consumer)(s_cstream *cs, s_errcont *errcont,
-                                 s_context *context);
-
+/**
+** \brief runs shell command from an already setup context
+*/
 int repl(s_context *ctx);
 
+
+
+/**
+** \brief initializes a context from command line arguments
+*/
 int context_init(s_context *cont, int argc, char *argv[]);
 void context_destroy(s_context *cont);
