@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "ast/ast.h"
-#include "shexec/expansion.h"
+#include "shexp/expansion.h"
 
 
 void assignment_print(FILE *f, s_ast *ast)

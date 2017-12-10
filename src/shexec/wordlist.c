@@ -2,7 +2,7 @@
 
 #include "ast/wordlist.h"
 #include "shexec/environment.h"
-#include "shexec/expansion.h"
+#include "shexp/expansion.h"
 #include "shexp/unquote.h"
 #include "utils/alloc.h"
 

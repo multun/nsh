@@ -1,9 +1,11 @@
+#include <assert.h>
 #include <string.h>
 #include <err.h>
 
-#include "shexec/expansion.h"
 #include "shexec/environment.h"
+#include "shexp/expansion.h"
 #include "utils/evect.h"
+
 
 static void expand_subshell(char **str, s_env *env, s_evect *vec)
 {
@@ -19,6 +21,16 @@ static void expand_arth(char **str, s_env *env, s_evect *vec)
 }
 
 
+static char *var_lookup(s_env *env, char *var)
+{
+  struct pair *var_pair = htable_access(env->vars, var);
+  if (!var_pair)
+    return NULL;
+
+  return var_pair->value;
+}
+
+
 static void expand_var(char **str, s_env *env, s_evect *vec)
 {
   bool braces = **str == '{';
@@ -31,14 +43,17 @@ static void expand_var(char **str, s_env *env, s_evect *vec)
     evect_push(&var, **str);
   evect_push(&var, '\0');
 
-  char *res = htable_access(env->vars, var.data)->value;
+  char *res = var_lookup(env, var.data);
   evect_destroy(&var);
 
   if (res)
     for (; *res; res++)
       evect_push(vec, *res);
   if (braces)
+  {
+    assert(**str == '}');
     (*str)++;
+  }
 }
 
 
