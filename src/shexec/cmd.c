@@ -36,11 +36,11 @@ static void argv_free(char *argv[])
 
 int cmd_exec_argv(s_env *env, s_errcont *cont, char *argv[])
 {
-  s_ast *func = htable_access(env->functions, argv[0]);
-  if (func)
+  struct pair *p = htable_access(env->functions, argv[0]);
+  if (p)
   {
     // TODO manage args
-    return ast_exec(env, func, cont);
+    return ast_exec(env, p->value, cont);
   }
 
   int status;

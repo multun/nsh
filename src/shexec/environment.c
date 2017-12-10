@@ -13,8 +13,15 @@ s_env *environment_create()
 }
 
 
+static void var_free(struct pair *p)
+{
+  free(p->key);
+  free(p->value);
+}
+
 void environment_free(s_env *env)
 {
+  htable_map(env->vars, var_free);
   htable_free(env->vars);
   htable_free(env->functions);
   free(env);

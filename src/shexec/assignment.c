@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "ast/ast.h"
 #include "shexec/expansion.h"
@@ -18,13 +19,15 @@ void assignment_print(FILE *f, s_ast *ast)
 
 int assignment_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
-  char *name = ast->data.ast_assignment.name->str;
+  char *name = strdup(ast->data.ast_assignment.name->str);
   char *value = expand(ast->data.ast_assignment.value->str, env);
-  void *prev = htable_access(env->vars, name);
+  struct pair *prev = htable_access(env->vars, name);
   if (prev)
   {
+    struct pair p = *prev;
     htable_remove(env->vars, name);
-    free(prev);
+    free(p.key);
+    free(p.value);
   }
 
   htable_add(env->vars, name, value);
