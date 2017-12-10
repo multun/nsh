@@ -56,15 +56,13 @@ int managed_stream_init(struct context *context, struct managed_stream *ms,
   ms->in_file = NULL;
   ms->cs = NULL;
 
-  int res = 0;
   if (g_cmdopts.src == SHSRC_COMMAND)
-    if ((res = init_command(ms, argc, argv)))
-      return res;
+    return init_command(ms, argc, argv);
 
 
   if (argc >= 1)
-    if ((res = init_file(ms, argc, argv)))
-      return res;
+    return init_file(ms, argc, argv);
+
 
   if (is_interactive(argc))
   {
@@ -78,7 +76,7 @@ int managed_stream_init(struct context *context, struct managed_stream *ms,
     ms->cs->interactive = false;
     ms->cs->context = NULL;
   }
-  return res;
+  return 0;
 }
 
 
