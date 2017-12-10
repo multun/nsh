@@ -28,18 +28,23 @@ void for_print(FILE *f, s_ast *ast)
 int for_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   s_afor *afor = &ast->data.ast_for;
+  char *name = NULL;
+  char *value = NULL;
   s_wordlist *wl = afor->collection;
   int ret = 0;
   while (wl)
   {
-    char *name = xmalloc(strlen(afor->var->str) + 1);
+    name = xmalloc(strlen(afor->var->str) + 1);
     name = strcpy(name, afor->var->str);
-    char *value = expand(wl->str, env);
+    value = expand(wl->str, env);
     assign_var(env, name, value);
     ret = ast_exec(env, afor->actions, cont);
     wl = wl->next;
   }
   htable_remove(env->vars, afor->var->str);
+  free(name);
+  free(value);
+
   return ret;
 }
 
