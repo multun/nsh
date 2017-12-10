@@ -4,6 +4,21 @@
 #include "utils/error.h"
 
 
+#define REDIRECTIONS_APPLY(F)          \
+  F(LESS, "<", redir_less)             \
+  F(DLESS, "<<", NULL)                 \
+  F(GREAT, ">", redir_great)           \
+  F(DGREAT, ">>", redir_dgreat)        \
+  F(LESSAND, "<&", redir_lessand)      \
+  F(GREATAND, ">&", redir_greatand)    \
+  F(LESSDASH, "<-", NULL)              \
+  F(LESSGREAT, "<>", redir_lessgreat)  \
+  F(CLOBBER, ">|", NULL)
+
+
+#define REDIRECTIONS_ENUM(EName, Repr, Func) REDIR_ ## EName,
+
+
 /**
 ** \brief represents a redirection node
 */
@@ -11,15 +26,7 @@ typedef struct aredirection
 {
   enum redir_type
   {
-    REDIR_LESS,
-    REDIR_DLESS,
-    REDIR_GREAT,
-    REDIR_DGREAT,
-    REDIR_LESSAND,
-    REDIR_GREATAND,
-    REDIR_LESSDASH,
-    REDIR_LESSGREAT,
-    REDIR_CLOBBER,
+    REDIRECTIONS_APPLY(REDIRECTIONS_ENUM)
   } type;
   int left;
   struct wordlist *right;
