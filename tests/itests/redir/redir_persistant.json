@@ -1,0 +1,7 @@
+{
+  "desc": "Simple output redirect test",
+  "stdin": "echo OOPS >&2; echo coucou",
+  "stdout": "coucou\n",
+  "stderr": "OOPS\n",
+  "retcode": 0
+}
