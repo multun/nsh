@@ -1,12 +1,14 @@
 #include "ast/ast_list.h"
+#include "cli/cmdopts.h"
 #include "repl/history.h"
 #include "repl/repl.h"
 #include "shexec/environment.h"
 
+
 void context_init(s_context *cont, char *argv[])
 {
   cont->ast_list = NULL;
-  cont->env = environment_create(argv);
+  cont->env = environment_create(argv + (g_cmdopts.src == SHSRC_COMMAND));
 }
 
 
