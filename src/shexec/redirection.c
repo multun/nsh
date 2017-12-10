@@ -44,13 +44,20 @@ void redirection_print(FILE *f, s_ast *ast)
 }
 
 
-static int fd_save(int fd)
+static int fd_copy(int fd)
 {
   int copy = dup(fd);
   if (copy < 0)
     errx(1, "42sh: fd_save: Failed dup file descriptor");
   if (fcntl(copy, F_SETFD, FD_CLOEXEC) < 0)
     errx(1, "42sh: fd_save: Failed fcntl file descriptor");
+  return copy;
+}
+
+
+static int fd_save(int fd)
+{
+  int copy = fd_copy(fd);
   if (close(fd) < 0)
     errx(1, "42sh: fd_save: Failed closing file descriptor");
   return copy;
@@ -154,6 +161,7 @@ static int redir_lessand(s_env *env, s_aredirection *aredir,
   if (!strcmp("-", aredir->right->str))
     if (close(aredir->left) < 0)
       errx(1, "42sh: redir_lessand: Failed closing %d", aredir->left);
+
   int digit = atoi(aredir->right->str);
   if (dup2(digit, aredir->left) < 0)
   {
@@ -177,6 +185,8 @@ static int redir_greatand(s_env *env, s_aredirection *aredir,
   if (!strcmp("-", aredir->right->str))
     if (close(aredir->left) < 0)
       errx(1, "42sh: redir_greatand: Failed closing %d", aredir->left);
+
+  int save = fd_copy(aredir->left);
   int digit = atoi(aredir->right->str);
   if (dup2(digit, aredir->left) < 0)
   {
@@ -188,6 +198,8 @@ static int redir_greatand(s_env *env, s_aredirection *aredir,
 
   if (close(aredir->left) < 0)
     errx(1, "42sh: redir_lessand: Failed closing %d", aredir->left);
+  dup2(save, aredir->left);
+  close(save);
   return res;
 }
 
