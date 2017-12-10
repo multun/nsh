@@ -41,9 +41,6 @@ int for_exec(s_env *env, s_ast *ast, s_errcont *cont)
     ret = ast_exec(env, afor->actions, cont);
     wl = wl->next;
   }
-  htable_remove(env->vars, afor->var->str);
-  free(name);
-  free(value);
 
   return ret;
 }
