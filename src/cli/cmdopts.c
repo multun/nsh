@@ -63,7 +63,8 @@ int cmdopts_parse(int argc, char *argv[])
   int c;
 
   preprocess_cmdline(argc, argv);
-  while ((c = getopt_long(argc, argv, "hvanco:O:", g_long_options, &opt_i)) != -1)
+  while ((c = getopt_long(argc, argv, "+hvanco:O:", g_long_options, &opt_i))
+         != -1)
     switch (c)
     {
     case 0:
