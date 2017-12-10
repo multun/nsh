@@ -21,7 +21,7 @@
 static int run(int argc, char *argv[])
 {
   s_context cont;
-  context_init(&cont);
+  context_init(&cont, argv);
 
   if (g_cmdopts.shmode == SHMODE_VERSION)
   {

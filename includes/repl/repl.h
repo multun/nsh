@@ -24,5 +24,5 @@ typedef int (*f_stream_consumer)(s_cstream *cs, s_errcont *errcont,
 
 int producer(s_context *ctx, int argc, char *argv[]);
 
-void context_init(s_context *cont);
+void context_init(s_context *cont, char *argv[]);
 void context_destroy(s_context *cont);

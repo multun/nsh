@@ -34,50 +34,45 @@ static void argv_free(char *argv[])
 }
 
 
-int cmd_exec_argv(s_env *env, s_errcont *cont, char *argv[])
+int cmd_exec_argv(s_env *env, s_errcont *cont)
 {
-  struct pair *p = htable_access(env->functions, argv[0]);
+  struct pair *p = htable_access(env->functions, env->argv[0]);
   if (p)
-  {
-    // TODO manage args
     return ast_exec(env, p->value, cont);
-  }
 
   int status;
   pid_t pid = fork();
 
   if (pid < 0)
     clean_err(cont, errno, "cmd_exec: error while forking");
-
   else if (pid == 0)
   {
-    execvp(*argv, argv);
-    clean_err(cont, errno, "couldn't exec \"%s\"", *argv);
+    execvp(env->argv[0], env->argv);
+    clean_err(cont, errno, "couldn't exec \"%s\"", env->argv[0]);
   }
-
   else
   {
     waitpid(pid, &status, 0);
-    int res = WEXITSTATUS(status);
-    return res;
+    return WEXITSTATUS(status);
   }
 }
 
 int cmd_exec(s_env *env, s_ast *node, s_errcont *cont)
 {
   s_wordlist *wl = node->data.ast_cmd.wordlist;
-  char **argv = wordlist_to_argv(wl, env);
+  s_env nenv = *env;
+  nenv.argv = wordlist_to_argv(wl, env);
   s_keeper keeper = KEEPER(cont->keeper);
 
   int res = 0;
   if (setjmp(keeper.env))
   {
-    argv_free(argv);
+    argv_free(nenv.argv);
     shraise(cont, NULL);
   }
   else
-    res = cmd_exec_argv(env, &ERRCONT(cont->errman, &keeper), argv);
-  argv_free(argv);
+    res = cmd_exec_argv(&nenv, &ERRCONT(cont->errman, &keeper));
+  argv_free(nenv.argv);
   return res;
 }
 

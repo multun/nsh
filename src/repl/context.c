@@ -3,10 +3,10 @@
 #include "repl/repl.h"
 #include "shexec/environment.h"
 
-void context_init(s_context *cont)
+void context_init(s_context *cont, char *argv[])
 {
   cont->ast_list = NULL;
-  cont->env = environment_create();
+  cont->env = environment_create(argv);
 }
 
 
