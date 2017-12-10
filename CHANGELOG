@@ -1,3 +1,9 @@
+Version 0.8:
+	- basic expansion
+	- quote removal
+	- incomplete user input
+	- functions
+
 Version 0.5:
 	- completed the parser implementation
 	- properly parsed options
