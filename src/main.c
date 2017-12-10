@@ -1,21 +1,8 @@
 #include "cli/cmdopts.h"
 #include "gen/config.h"
-#include "io/cstream.h"
-#include "io/managed_stream.h"
-#include "shlex/lexer.h"
-#include "shlex/print.h"
 #include "repl/repl.h"
-#include "shparse/parse.h"
-#include "repl/history.h"
 
-#include <err.h>
-#include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include "utils/error.h"
-#include "shexec/clean_exit.h"
 
 
 static int run(int argc, char *argv[])
