@@ -47,7 +47,7 @@ static bool ast_exec_consumer(int *res, s_lexer *lex, s_context *cont)
   s_errman eman = ERRMAN;
   s_keeper keeper = KEEPER(NULL);
 
-  bool stopping = false;
+  volatile bool stopping = false;
   if (setjmp(keeper.env))
   {
     if (handle_rep_fail(res, &eman))
