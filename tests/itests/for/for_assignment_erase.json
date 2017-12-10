@@ -1,0 +1,7 @@
+{
+  "desc": "Test multiple assignments with erasing instructions",
+  "stdin": "for e in a b c d; do\ne=42\ne=test\necho $e; done",
+  "stdout": "test\ntest\ntest\ntest\n",
+  "stderr": "",
+  "retcode": 0
+}

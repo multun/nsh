@@ -1,0 +1,7 @@
+{
+  "desc": "Test a succeeding for with multiple assignment instructions",
+  "stdin": "for e in a b c d; do\necho $e; done",
+  "stdout": "a\nb\nc\nd\n",
+  "stderr": "",
+  "retcode": 0
+}
