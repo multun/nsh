@@ -1,0 +1,7 @@
+{
+  "desc": "use an unassigned variable",
+  "stdin": "echo $a",
+  "stdout": "\n",
+  "stderr": "",
+  "retcode": 0
+}

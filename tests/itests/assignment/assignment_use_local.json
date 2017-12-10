@@ -1,0 +1,7 @@
+{
+  "desc": "An assignment used on multiple lines",
+  "stdin": "a=a; echo $a \n echo $a",
+  "stdout": "a\na\n",
+  "stderr": "",
+  "retcode": 0
+} 

@@ -1,0 +1,7 @@
+{
+  "desc": "Use an assignments,reassigne it and use it again",
+  "stdin": "a=a ; echo $a;a=b; echo $a",
+  "stdout": "a\nb\n",
+  "stderr": "",
+  "retcode": 0
+}

@@ -1,0 +1,7 @@
+{
+  "desc": "An assignment which expands concatenated",
+  "stdin": "a=a; echo ${a}${a} $a",
+  "stdout": "aa a\n",
+  "stderr": "",
+  "retcode": 0
+}
