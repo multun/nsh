@@ -22,6 +22,9 @@ void evect_destroy(s_evect *vect)
 void evect_push(s_evect *vect, char c)
 {
   if (vect->size == vect->capacity)
-    vect->data = xrealloc(vect->data, (vect->capacity *= 2));
+  {
+    vect->capacity = 2 * vect->capacity + 1;
+    vect->data = xrealloc(vect->data, vect->capacity);
+  }
   vect->data[vect->size++] = c;
 }
