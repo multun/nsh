@@ -67,6 +67,16 @@ static void fd_load(int copy, int origin)
 }
 
 
+static int exec_redir_base(s_env *env, s_ast *cmd,
+                           s_errcont *cont, s_aredirection *aredir)
+{
+  if (aredir->action)
+    return redirection_exec(env, aredir->action, cmd, cont);
+  else
+    return ast_exec(env, cmd, cont);
+}
+
+
 static int redir_great(s_env *env, s_aredirection *aredir,
                        s_ast *cmd, s_errcont *cont)
 {
@@ -79,11 +89,7 @@ static int redir_great(s_env *env, s_aredirection *aredir,
     return 1;
   }
 
-  int res = 0;
-  if (aredir->action)
-    res = redirection_exec(env, aredir->action, cmd, cont);
-  else
-    res = ast_exec(env, cmd, cont);
+  int res = exec_redir_base(env, cmd, cont, aredir);
 
   if (close(fd_file) < 0)
     errx(1, "42sh: redir_great: Failed closing %s", aredir->right->str);
@@ -106,11 +112,7 @@ static int redir_dgreat(s_env *env, s_aredirection *aredir,
     return 1;
   }
 
-  int res = 0;
-  if (aredir->action)
-    res = redirection_exec(env, aredir->action, cmd, cont);
-  else
-    res = ast_exec(env, cmd, cont);
+  int res = exec_redir_base(env, cmd, cont, aredir);
 
   if (close(fd_file) < 0)
     errx(1, "42sh: redir_dgreat: Failed closing %s", aredir->right->str);
@@ -133,11 +135,7 @@ static int redir_less(s_env *env, s_aredirection *aredir,
     return 1;
   }
 
-  int res = 0;
-  if (aredir->action)
-    res = redirection_exec(env, aredir->action, cmd, cont);
-  else
-    res = ast_exec(env, cmd, cont);
+  int res = exec_redir_base(env, cmd, cont, aredir);
 
   if (close(fd_file) < 0)
     errx(1, "42sh: redir_less: Failed closing %s", aredir->right->str);
@@ -163,11 +161,8 @@ static int redir_lessand(s_env *env, s_aredirection *aredir,
     return 1;
   }
 
-  int res = 0;
-  if (aredir->action)
-    res = redirection_exec(env, aredir->action, cmd, cont);
-  else
-    res = ast_exec(env, cmd, cont);
+  int res = exec_redir_base(env, cmd, cont, aredir);
+
   if (close(aredir->left) < 0)
     errx(1, "42sh: redir_lessand: Failed closing %d", aredir->left);
   return res;
@@ -189,11 +184,8 @@ static int redir_greatand(s_env *env, s_aredirection *aredir,
     return 1;
   }
 
-  int res = 0;
-  if (aredir->action)
-    res = redirection_exec(env, aredir->action, cmd, cont);
-  else
-    res = ast_exec(env, cmd, cont);
+  int res = exec_redir_base(env, cmd, cont, aredir);
+
   if (close(aredir->left) < 0)
     errx(1, "42sh: redir_lessand: Failed closing %d", aredir->left);
   return res;
@@ -216,11 +208,8 @@ static int redir_lessgreat(s_env *env, s_aredirection *aredir,
   if (close(fd) < 0)
     errx(1, "42sh: redir_lessgreat: Failed closing file descriptor");
 
-  int res = 0;
-  if (aredir->action)
-    res = redirection_exec(env, aredir->action, cmd, cont);
-  else
-    res = ast_exec(env, cmd, cont);
+  int res = exec_redir_base(env, cmd, cont, aredir);
+
   if (close(aredir->left) < 0)
     errx(1, "42sh: redir_lessgreat: Failed closing %d", aredir->left);
   return res;
