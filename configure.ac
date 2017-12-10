@@ -1,6 +1,6 @@
 AC_PREREQ([2.64])
 AC_CONFIG_MACRO_DIR([m4])
-AC_INIT([42sh], [0.5], [], [42sh], [acu.epita.fr])
+AC_INIT([42sh], [0.8], [], [42sh], [acu.epita.fr])
 
 AM_INIT_AUTOMAKE([foreign subdir-objects -Wall -Werror])
 
