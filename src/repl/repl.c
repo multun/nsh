@@ -27,7 +27,7 @@ static void try_re(int *res, s_lexer *lex,
 }
 
 
-static bool handle_rep_fail(int *res, s_errman *eman)
+static bool handle_rep_fail(int *res, s_errman *eman, s_context *cont)
 {
   if (eman->class == &g_clean_exit)
   {
@@ -35,7 +35,7 @@ static bool handle_rep_fail(int *res, s_errman *eman)
     return true;
   }
   *res = g_cmdopts.src == SHSRC_COMMAND ? 1 : 2;
-  return false;
+  return !cont->ms.cs->interactive;
 }
 
 
@@ -50,7 +50,7 @@ static bool ast_exec_consumer(int *res, s_lexer *lex, s_context *cont)
   volatile bool stopping = false;
   if (setjmp(keeper.env))
   {
-    if (handle_rep_fail(res, &eman))
+    if (handle_rep_fail(res, &eman, cont))
       stopping = true;
   }
   else
