@@ -68,8 +68,11 @@ static void print_shopt(t_shopt_options opts, int argc, char **argv, int index)
 }
 
 
-int builtin_shopt(int argc, char **argv)
+int builtin_shopt(s_env *env, s_errcont *cont, int argc, char **argv)
 {
+  if (!env || !cont)
+    warnx("cd: missing context elements");
+
   t_shopt_options opt = SHOPT_OPT_DEFAULT;
 
   int index = 1;

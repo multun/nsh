@@ -1,7 +1,8 @@
-#include <unistd.h>
-#include <stdio.h>
+#include <err.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "utils/evect.h"
 #include "shexec/builtins.h"
@@ -150,8 +151,11 @@ static void echo_print(char *c, int *opt, s_evect *vec)
 }
 
 
-int builtin_echo(int argc, char **argv)
+int builtin_echo(s_env *env, s_errcont *cont, int argc, char **argv)
 {
+  if (!env || !cont)
+    warnx("cd: missing context elements");
+
   int opt = 0;
   builtin_echo_parse_opt(&opt, argc, argv);
   s_evect vec;

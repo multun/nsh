@@ -7,4 +7,4 @@ extern s_ex_class g_clean_exit;
 
 void ATTR(noreturn) clean_err(s_errcont *cont, int retcode,
                               const char *fmt, ...);
-void clean_exit(s_errcont *cont, int retcode);
+void ATTR(noreturn) clean_exit(s_errcont *cont, int retcode);

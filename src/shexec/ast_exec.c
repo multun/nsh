@@ -11,8 +11,10 @@ static int (*ast_exec_utils[])(s_env *env, s_ast *ast, s_errcont *cont) =
 int ast_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   if (ast)
-    return ast_exec_utils[ast->type](env, ast, cont);
-  return 0;
+    env->code = ast_exec_utils[ast->type](env, ast, cont);
+  else
+    env->code = 0;
+  return env->code;
 }
 
 static void (*ast_free_utils[])(s_ast *ast) =

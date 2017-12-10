@@ -40,13 +40,17 @@ static int cd_from_env(const char *env_var)
   return 0;
 }
 
-int builtin_cd(int argc, char **argv)
+int builtin_cd(s_env *env, s_errcont *cont, int argc, char **argv)
 {
+  if (!env || !cont)
+    warnx("cd: missing context elements");
+
   if (argc > 2)
   {
     warnx("cd: too many arguments");
     return 1;
   }
+
   if (argc == 1)
     return cd_from_env("HOME");
   else if (!strcmp(argv[1], "-"))

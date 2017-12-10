@@ -36,7 +36,7 @@ int cmd_exec_argv(s_env *env, s_errcont *cont)
 
   f_builtin builtin = builtin_search(env->argv[0]);
   if (builtin)
-    return builtin(argv_count(env->argv), env->argv);
+    return builtin(env, cont, argv_count(env->argv), env->argv);
 
   int status;
   pid_t pid = fork();
