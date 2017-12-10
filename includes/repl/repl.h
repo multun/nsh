@@ -22,7 +22,7 @@ typedef struct context
 typedef int (*f_stream_consumer)(s_cstream *cs, s_errcont *errcont,
                                  s_context *context);
 
-int producer(s_context *ctx, int argc, char *argv[]);
+int repl(s_context *ctx);
 
-void context_init(s_context *cont, char *argv[]);
+int context_init(s_context *cont, int argc, char *argv[]);
 void context_destroy(s_context *cont);

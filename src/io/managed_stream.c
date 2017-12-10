@@ -16,22 +16,22 @@ static bool is_interactive(int argc)
 }
 
 
-bool init_command(struct managed_stream *ms, int argc, char *argv[])
+static int init_command(struct managed_stream *ms, int argc, char *argv[])
 {
-  if (g_cmdopts.src != SHSRC_COMMAND)
-    return false;
-
   if (argc == 0)
-    errx(2, "missing command");
+  {
+    warnx("missing command");
+    return 2;
+  }
 
   ms->cs = cstream_from_string(argv[0], "<command line>");
   ms->cs->interactive = false;
   ms->cs->context = NULL;
-  return true;
+  return 0;
 }
 
 
-bool init_file(struct managed_stream *ms, int argc, char *argv[])
+static int init_file(struct managed_stream *ms, int argc, char *argv[])
 {
   if (argc < 1)
     return false;
@@ -50,13 +50,21 @@ bool init_file(struct managed_stream *ms, int argc, char *argv[])
 }
 
 
-void managed_stream_init(struct context *context, struct managed_stream *ms,
-                         int argc, char *argv[])
+int managed_stream_init(struct context *context, struct managed_stream *ms,
+                        int argc, char *argv[])
 {
   ms->in_file = NULL;
+  ms->cs = NULL;
 
-  if (init_command(ms, argc, argv) || init_file(ms, argc, argv))
-    return;
+  int res = 0;
+  if (g_cmdopts.src == SHSRC_COMMAND)
+    if ((res = init_command(ms, argc, argv)))
+      return res;
+
+
+  if (argc >= 1)
+    if ((res = init_file(ms, argc, argv)))
+      return res;
 
   if (is_interactive(argc))
   {
@@ -70,6 +78,7 @@ void managed_stream_init(struct context *context, struct managed_stream *ms,
     ms->cs->interactive = false;
     ms->cs->context = NULL;
   }
+  return res;
 }
 
 

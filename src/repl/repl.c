@@ -61,12 +61,10 @@ static bool ast_exec_consumer(int *res, s_lexer *lex, s_context *cont)
 }
 
 
-int producer(s_context *ctx, int argc, char *argv[])
+int repl(s_context *ctx)
 {
-  managed_stream_init(ctx, &ctx->ms, argc, argv);
-  history_init(ctx);
-
   int res = 0;
+
   for (bool stopping = false; !stopping && !cstream_eof(ctx->ms.cs);)
   {
     s_lexer *lex = lexer_create(ctx->ms.cs);
@@ -74,6 +72,5 @@ int producer(s_context *ctx, int argc, char *argv[])
     lexer_free(lex);
   }
 
-  managed_stream_destroy(&ctx->ms);
   return res;
 }

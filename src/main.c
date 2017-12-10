@@ -8,15 +8,18 @@
 static int run(int argc, char *argv[])
 {
   s_context cont;
-  context_init(&cont, argv);
+  int res = context_init(&cont, argc, argv);
 
-  if (g_cmdopts.shmode == SHMODE_VERSION)
+  if (!res)
   {
-    puts("Version " VERSION);
-    return 0;
-  }
+    if (g_cmdopts.shmode == SHMODE_VERSION)
+    {
+      puts("Version " VERSION);
+      return 0;
+    }
 
-  int res = producer(&cont, argc, argv);
+    res = repl(&cont);
+  }
 
   context_destroy(&cont);
   return res;

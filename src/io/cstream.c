@@ -78,9 +78,13 @@ int cstream_pop(s_cstream *cs)
 
 void cstream_free(s_cstream *cs)
 {
+  if (!cs)
+    return;
+
   if (EVECT_INITIALIZED(&cs->linebuf))
     evect_destroy(&cs->linebuf);
   if (cs->backend->dest)
     cs->backend->dest(cs);
+
   free(cs);
 }
