@@ -12,6 +12,10 @@ struct context;
 typedef int (*f_io_reader)(struct cstream *cs);
 typedef void (*f_io_destructor)(struct cstream *cs);
 
+
+/**
+** \brief io backends are generic to avoid code duplication
+*/
 typedef struct io_backend
 {
   f_io_reader reader;
@@ -19,14 +23,21 @@ typedef struct io_backend
 } s_io_backend;
 
 
+/**
+** \brief a cstream is a character stream, similar to FILE*
+** \desc it can also read from a readline or string input
+*/
 typedef struct cstream
 {
   void *data;
   bool interactive;
   struct context *context;
   s_io_backend *backend;
+  // a backend-dependant cursor
   size_t back_pos;
+  // the line-related informations
   s_lineinfo line_info;
+  // whether a read character is waiting to be poped
   bool has_buf;
   int buf;
   bool eof;

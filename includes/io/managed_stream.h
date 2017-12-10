@@ -5,6 +5,9 @@
 #include <stdio.h>
 
 
+/**
+** \brief setups up and destroys an underlying typeful stream.
+*/
 typedef struct managed_stream
 {
   FILE *in_file;
