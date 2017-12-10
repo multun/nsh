@@ -63,13 +63,13 @@ struct htable *htable_create(size_t capacity)
 }
 
 
-void *htable_access(struct htable *htable, char *key)
+struct pair *htable_access(struct htable *htable, char *key)
 {
   struct pair *ret = *pair_insertpos(htable, key);
 
   for (; ret; ret = ret->next)
     if (!strcmp(key, ret->key))
-      return ret->value;
+      return ret;
 
   return NULL;
 }
@@ -123,7 +123,8 @@ void htable_free(struct htable *htable)
 {
   for (size_t i = 0; i < htable->capacity; i++)
   {
-    struct pair *pp = NULL, *fp = htable->tab[i];
+    struct pair *pp = NULL;
+    struct pair *fp = htable->tab[i];
     while (fp)
     {
       free(pp);

@@ -31,7 +31,7 @@ s_htable *htable_create(size_t capacity);
  * htable_access(htable, key):
  * returns a pointer to the value containing the given key
  */
-void *htable_access(s_htable *htable, char *key);
+struct pair *htable_access(s_htable *htable, char *key);
 
 /*
  * htable_add(htable,key,value):
@@ -50,3 +50,6 @@ void htable_remove(s_htable *htable, char *key);
  * delete all pairs in the table
  */
 void htable_free(s_htable *htable);
+
+
+void htable_map(s_htable *htable, void (*func)(struct pair *ptr));
