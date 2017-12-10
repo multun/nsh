@@ -1,20 +1,21 @@
 * [ ] Lexing
   * [x] Unquoted
   * [x] Quoted
-  * [ ] Expansions
-  * [ ] Proper error handling
-* [ ] Argument parsing
+  * [X] Expansions
+  * [X] Proper error handling
+  * [ ] Subshell
+* [X] Argument parsing
   * [x] Version
   * [x] Major modes
   * [x] Input modes
-  * [ ] Shopts
-    * [ ] Handle +O
+  * [X] Shopts
+    * [X] Handle +O
 * [ ] Execution
   * [x] Execute command
   * [x] Handle control structures
   * [ ] Handle clobber
-* [ ] Repl
-  * [ ] Don't print the prompt when interactive
+* [X] Repl
+  * [X] Don't print the prompt when interactive
 * [ ] parsing
   * [X] input
   * [X] list
@@ -40,3 +41,15 @@
   * [X] do_group
   * [X] case_clause
   * [X] case_item
+* [ ] Builtin
+  * [X] Exit
+  * [X] Cd
+  * [X] Shopt
+  * [ ] Export
+  * [ ] Alias
+  * [ ] Unalias
+  * [X] Echo
+  * [ ] Continue
+  * [ ] Break
+  * [ ] Source
+  * [ ] History
