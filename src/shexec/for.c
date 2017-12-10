@@ -1,7 +1,10 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "ast/ast.h"
 #include "shexec/environment.h"
+#include "shexp/expansion.h"
+#include "utils/alloc.h"
 
 
 void for_print(FILE *f, s_ast *ast)
@@ -29,10 +32,14 @@ int for_exec(s_env *env, s_ast *ast, s_errcont *cont)
   int ret = 0;
   while (wl)
   {
-    // TODO affectation
+    char *name = xmalloc(strlen(afor->var->str) + 1);
+    name = strcpy(name, afor->var->str);
+    char *value = expand(wl->str, env);
+    assign_var(env, name, value);
     ret = ast_exec(env, afor->actions, cont);
     wl = wl->next;
   }
+  htable_remove(env->vars, afor->var->str);
   return ret;
 }
 

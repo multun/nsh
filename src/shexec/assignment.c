@@ -17,10 +17,8 @@ void assignment_print(FILE *f, s_ast *ast)
 }
 
 
-int assignment_exec(s_env *env, s_ast *ast, s_errcont *cont)
+void assign_var(s_env *env, char *name, char *value)
 {
-  char *name = strdup(ast->data.ast_assignment.name->str);
-  char *value = expand(ast->data.ast_assignment.value->str, env);
   struct pair *prev = htable_access(env->vars, name);
   if (prev)
   {
@@ -31,7 +29,14 @@ int assignment_exec(s_env *env, s_ast *ast, s_errcont *cont)
   }
 
   htable_add(env->vars, name, value);
+}
 
+
+int assignment_exec(s_env *env, s_ast *ast, s_errcont *cont)
+{
+  char *name = strdup(ast->data.ast_assignment.name->str);
+  char *value = expand(ast->data.ast_assignment.value->str, env);
+  assign_var(env, name, value);
   if (cont)
     return 0;
   return 0;
