@@ -7,6 +7,8 @@
 #include <unistd.h>
 
 #include "ast/ast.h"
+#include "shexec/args.h"
+#include "shexec/builtins.h"
 #include "shexec/clean_exit.h"
 #include "shexec/environment.h"
 #include "utils/hash_table.h"
@@ -26,19 +28,15 @@ void cmd_print(FILE *f, s_ast *node)
 }
 
 
-static void argv_free(char *argv[])
-{
-  for (size_t i = 0; argv[i]; i++)
-    free(argv[i]);
-  free(argv);
-}
-
-
 int cmd_exec_argv(s_env *env, s_errcont *cont)
 {
   struct pair *p = htable_access(env->functions, env->argv[0]);
   if (p)
     return ast_exec(env, p->value, cont);
+
+  f_builtin builtin = builtin_search(env->argv[0]);
+  if (builtin)
+    return builtin(argv_count(env->argv), env->argv);
 
   int status;
   pid_t pid = fork();

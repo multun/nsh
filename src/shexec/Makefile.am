@@ -7,6 +7,7 @@ libshexec_la_SOURCES = ast_print.c test.c assignment.c case.c function.c  \
                        redirection.c wordlist.c ast_exec.c environment.c  \
                        pipe.c block.c redirection_free.c ast_list.c \
                        $(TOP_INCL)/shexec/args.h args.c \
-                       $(TOP_INCL)/shexec/environment.h cd.c \
+                       $(TOP_INCL)/shexec/environment.h \
                        $(TOP_INCL)/shexec/clean_exit.h clean_exit.c \
-                       shopt_built.c echo_built.c
+                       builtins/shopt.c builtins/echo.c builtins/cd.c \
+                       builtins.c

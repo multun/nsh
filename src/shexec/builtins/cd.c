@@ -4,7 +4,9 @@
 #include <limits.h>
 #include <err.h>
 
+#include "shexec/builtins.h"
 #include "utils/alloc.h"
+
 
 static void update_pwd(void)
 {
@@ -38,7 +40,7 @@ static int cd_from_env(const char *env_var)
   return 0;
 }
 
-int buitin_cd(int argc, char **argv)
+int builtin_cd(int argc, char **argv)
 {
   if (argc > 2)
   {

@@ -4,6 +4,8 @@
 #include <string.h>
 
 #include "utils/evect.h"
+#include "shexec/builtins.h"
+
 
 enum shecho_opt
 {

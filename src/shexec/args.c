@@ -4,6 +4,15 @@
 #include <string.h>
 
 
+int argv_count(char **argv)
+{
+  int size = 0;
+  while (argv[size])
+    size++;
+  return size;
+}
+
+
 char **argv_dup(char **argv)
 {
   size_t size = 0;

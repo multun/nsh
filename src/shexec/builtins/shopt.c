@@ -4,30 +4,46 @@
 #include <stdbool.h>
 
 #include "cli/shopt.h"
+#include "shexec/builtins.h"
+
+enum shopt_options
+{
+  SHOPT_OPT_QUIET,
+  SHOPT_OPT_SET,
+  SHOPT_OPT_UNSET,
+  SHOPT_OPT_COUNT,
+};
+
+typedef bool t_shopt_options[SHOPT_OPT_COUNT];
+
+#define SHOPT_OPT_DEFAULT                       \
+  {                                             \
+    0,                                          \
+  }
 
 
-bool parse_builtin_shopt_opt(bool *opt, char **argv, int *index)
+bool parse_builtin_shopt_opt(t_shopt_options opts, char **argv, int *index)
 {
   for (; argv[*index] && *(argv[*index]) == '-'; (*index)++)
     if (!strcmp(argv[*index], "-q"))
-      opt[0] = false;
+      opts[SHOPT_OPT_QUIET] = false;
     else if (!strcmp(argv[*index], "-s"))
     {
-      if (opt[2])
+      if (opts[SHOPT_OPT_UNSET])
       {
         warnx("shopt: can not set and unset");
         return false;
       }
-      opt[1] = true;
+      opts[SHOPT_OPT_SET] = true;
     }
     else if (!strcmp(argv[*index], "-u"))
     {
-      if (opt[1])
+      if (opts[SHOPT_OPT_SET])
       {
         warnx("shopt: can not set and unset");
         return false;
       }
-      opt[2] = true;
+      opts[SHOPT_OPT_UNSET] = true;
     }
     else
       return false;
@@ -35,30 +51,27 @@ bool parse_builtin_shopt_opt(bool *opt, char **argv, int *index)
 }
 
 
-static void print_shopt(bool *opt, int argc, char **argv, int index)
+static void print_shopt(t_shopt_options opts, int argc, char **argv, int index)
 {
-  if (!opt[0])
+  if (opts[SHOPT_OPT_QUIET])
     return;
+
   if (index != argc)
     for (; index < argc; index++)
-      printf("%s\t%s", argv[index],
+      printf("%s\t%s\n", argv[index],
              g_shopts[shopt_from_string(argv[index])] ? "on": "off");
   else
     for (size_t i = 0; i < SHOPT_COUNT; i++)
-    {
-      if ((g_shopts[i] && (opt[1] || !opt[2]))
-          || (!g_shopts[i] && (!opt[1] || opt[2])))
-        printf("%s\t%s", string_from_shopt(i), g_shopts[i] ? "on": "off");
-    }
+      if ((g_shopts[i] && (opts[SHOPT_OPT_SET] || !opts[SHOPT_OPT_UNSET]))
+          || (!g_shopts[i] && (!opts[SHOPT_OPT_SET] || opts[SHOPT_OPT_UNSET])))
+        printf("%s\t%s\n", string_from_shopt(i), g_shopts[i] ? "on": "off");
 }
 
 
 int builtin_shopt(int argc, char **argv)
 {
-  bool opt[3] =
-  {
-    0,
-  };
+  t_shopt_options opt = SHOPT_OPT_DEFAULT;
+
   int index = 1;
   if (!parse_builtin_shopt_opt(opt, argv, &index))
     return 2;
