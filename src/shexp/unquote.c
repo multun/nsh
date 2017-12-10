@@ -23,7 +23,13 @@ size_t unquote_double(s_evect *v, const char *str)
   size_t i = 1; // skip the quote
   for (; str[i] != '"'; i++)
   {
-    // TODO: escaped end quote
+    if (str[i] == '\\')
+    {
+      assert(str[++i]);
+      evect_push(v, str[i]);
+      continue;
+    }
+
     assert(str[i]);
     evect_push(v, str[i]);
   }
