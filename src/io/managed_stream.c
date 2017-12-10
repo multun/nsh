@@ -31,22 +31,28 @@ static int init_command(struct managed_stream *ms, int argc, char *argv[])
 }
 
 
-static int init_file(struct managed_stream *ms, int argc, char *argv[])
+static int init_file(struct managed_stream *ms, char *argv[])
 {
-  if (argc < 1)
-    return false;
-
+  int res = 0;
   if (!(ms->in_file = fopen(argv[0], "r")))
+  {
+    res = errno;
     // TODO: check the return code is right
-    errx(errno, "cannot open input script: %s\n", strerror(errno));
+    warn("cannot open input script");
+    return res;
+  }
 
   if (fcntl(fileno(ms->in_file), F_SETFD, FD_CLOEXEC) < 0)
-    errx(errno, "couldn't set CLOEXEC on input file %d",
+  {
+    res = errno;
+    warn("couldn't set CLOEXEC on input file %d",
          fileno(ms->in_file));
+    return res;
+  }
   ms->cs = cstream_from_file(ms->in_file, argv[0]);
   ms->cs->interactive = false;
   ms->cs->context = NULL;
-  return true;
+  return 0;
 }
 
 
@@ -61,7 +67,7 @@ int managed_stream_init(struct context *context, struct managed_stream *ms,
 
 
   if (argc >= 1)
-    return init_file(ms, argc, argv);
+    return init_file(ms, argv);
 
 
   if (is_interactive(argc))

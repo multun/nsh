@@ -23,8 +23,12 @@ static void var_free(struct pair *p)
   free(p->value);
 }
 
+
 void environment_free(s_env *env)
 {
+  if (!env)
+    return;
+
   htable_map(env->vars, var_free);
   argv_free(env->argv);
   htable_free(env->vars);
