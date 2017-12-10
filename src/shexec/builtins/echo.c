@@ -175,6 +175,5 @@ int builtin_echo(s_env *env, s_errcont *cont, int argc, char **argv)
 
   int res = printf("%s", vec.data) < 0;
   evect_destroy(&vec);
-  fflush(stdout);
   return !!(res);
 }

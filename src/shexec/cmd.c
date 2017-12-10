@@ -28,6 +28,14 @@ void cmd_print(FILE *f, s_ast *node)
 }
 
 
+int builtin_exec(s_env *env, s_errcont *cont, f_builtin builtin)
+{
+  int res = builtin(env, cont, argv_count(env->argv), env->argv);
+  fflush(stdout);
+  return res;
+}
+
+
 int cmd_exec_argv(s_env *env, s_errcont *cont)
 {
   struct pair *p = htable_access(env->functions, env->argv[0]);
@@ -36,7 +44,7 @@ int cmd_exec_argv(s_env *env, s_errcont *cont)
 
   f_builtin builtin = builtin_search(env->argv[0]);
   if (builtin)
-    return builtin(env, cont, argv_count(env->argv), env->argv);
+    return builtin_exec(env, cont, builtin);
 
   int status;
   pid_t pid = fork();
