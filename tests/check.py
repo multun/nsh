@@ -105,11 +105,15 @@ def discover_integration_tests(args):
 
 
 def run_process(conf, args, stdin):
-    with tempfile.TemporaryDirectory() as tempdir:
-        proc = subprocess.run(args, input=stdin,
-                              timeout=conf.timeout, cwd=tempdir,
-                              stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        return TestResult.from_proc(proc)
+    try:
+        with tempfile.TemporaryDirectory() as tempdir:
+            proc = subprocess.run(args, input=stdin,
+                                  timeout=conf.timeout, cwd=tempdir,
+                                  stderr=subprocess.PIPE,
+                                  stdout=subprocess.PIPE)
+            return TestResult.from_proc(proc)
+    except subprocess.TimeoutExpired:
+        return None
 
 
 def diffio(mine, ref):
@@ -122,6 +126,9 @@ Comparison = namedtuple('Comparison', ['name', 'obj'])
 
 
 def compare_results(pa, pb):
+    if pa is None:
+        return [Comparison('timeout', 'timeout expired')]
+
     def diff_pair(pair):
         return diffio(*pair)
 
