@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "ast/ast.h"
+#include "shexec/break.h"
 #include "shexec/environment.h"
 #include "shexp/expansion.h"
 #include "utils/alloc.h"
@@ -28,20 +29,33 @@ void for_print(FILE *f, s_ast *ast)
 int for_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   s_afor *afor = &ast->data.ast_for;
-  char *name = NULL;
-  char *value = NULL;
-  s_wordlist *wl = afor->collection;
-  int ret = 0;
-  while (wl)
+
+  volatile int ret = 0;
+  volatile bool local_continue = true;
+  volatile s_wordlist *wl = afor->collection;
+
+  env->depth++;
+  s_keeper keeper = KEEPER(cont->keeper);
+  s_errcont ncont = ERRCONT(cont->errman, &keeper);
+  if (setjmp(keeper.env))
   {
-    name = xmalloc(strlen(afor->var->str) + 1);
-    name = strcpy(name, afor->var->str);
-    value = expand(wl->str, env);
-    assign_var(env, name, value);
-    ret = ast_exec(env, afor->actions, cont);
-    wl = wl->next;
+    // the break builtin ensures no impossible break is emitted
+    if (cont->errman->class != &g_lbreak || --env->break_count)
+    {
+      env->depth--;
+      shraise(cont, NULL);
+    }
+    local_continue = env->break_continue;
   }
 
+  if (local_continue)
+    for (; wl; wl = wl->next)
+    {
+      assign_var(env, strdup(afor->var->str), expand(wl->str, env));
+      ret = ast_exec(env, afor->actions, &ncont);
+    }
+
+  env->depth--;
   return ret;
 }
 
