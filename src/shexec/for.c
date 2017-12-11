@@ -37,7 +37,7 @@ int for_exec(s_env *env, s_ast *ast, s_errcont *cont)
     name = xmalloc(strlen(afor->var->str) + 1);
     name = strcpy(name, afor->var->str);
     value = expand(wl->str, env);
-    assign_var(env, name, value);
+    assign_var(env, name, value, true);
     ret = ast_exec(env, afor->actions, cont);
     wl = wl->next;
   }

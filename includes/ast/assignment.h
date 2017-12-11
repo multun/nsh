@@ -36,13 +36,14 @@ void assignment_print(FILE *f, struct ast *ast);
 /**
 ** \brief make an assignment
 */
-void assign_var(s_env *env, char *name, char *value);
+void assign_var(s_env *env, char *name, char *value, bool rm_var);
 
 
 /**
 ** \brief exec an assignment node
 */
-int assignment_exec(s_env *env, struct ast *ast, s_errcont *cont);
+int assignment_exec(s_env *env, struct ast *ast, struct ast *cmd,
+                    s_errcont *cont);
 
 
 /**

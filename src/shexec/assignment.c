@@ -19,17 +19,24 @@ void assignment_print(FILE *f, s_ast *ast)
 }
 
 
-void assign_var(s_env *env, char *name, char *value)
+static void var_free_from_pair(struct pair p)
+{
+  s_var *var = p.value;
+  free(p.key);
+  free(var->value);
+  free(var);
+}
+
+
+void assign_var(s_env *env, char *name, char *value, bool rm_var)
 {
   struct pair *prev = htable_access(env->vars, name);
   if (prev)
   {
     struct pair p = *prev;
     htable_remove(env->vars, name);
-    s_var *var = p.value;
-    free(p.key);
-    free(var->value);
-    free(var);
+    if (rm_var)
+      var_free_from_pair(p);
   }
 
   s_var *nvar = xmalloc(sizeof(s_var));
@@ -38,14 +45,73 @@ void assign_var(s_env *env, char *name, char *value)
 }
 
 
-int assignment_exec(s_env *env, s_ast *ast, s_errcont *cont)
+static void assignment_export(s_env *env, s_ast *ast)
 {
   char *name = strdup(ast->data.ast_assignment.name->str);
   char *value = expand(ast->data.ast_assignment.value->str, env);
-  assign_var(env, name, value);
-  if (cont)
-    return 0;
-  return 0;
+  assign_var(env, name, value, true);
+
+  struct pair *p = htable_access(env->vars, name);
+  s_var *var = p->value;
+  var->to_export = true;
+}
+
+
+static struct pair assignment_local(s_env *env, s_ast *ast)
+{
+  char *name = strdup(ast->data.ast_assignment.name->str);
+  char *value = expand(ast->data.ast_assignment.value->str, env);
+  struct pair *prev = htable_access(env->vars, name);
+  struct pair p;
+  if (prev)
+    p = *prev;
+  else
+    memset(&p, 0, sizeof(struct pair));
+
+  assign_var(env, name, value, false);
+
+  prev = htable_access(env->vars, name);
+  s_var *var = prev->value;
+  s_var *pvar = p.value;
+  var->to_export = pvar->to_export;
+  var->touched = false;
+  return p;
+}
+
+
+static void unassigne_local(struct pair p, s_env *env)
+{
+  struct pair *prev = htable_access(env->vars, p.key);
+  if (prev)
+  {
+    s_var *var = prev->value;
+    if (var->touched)
+    {
+      var_free_from_pair(p);
+      return;
+    }
+    var_free_from_pair(*prev);
+    htable_remove(env->vars, p.key);
+  }
+  htable_add(env->vars, p.key, p.value);
+}
+
+
+int assignment_exec(s_env *env, s_ast *ast, s_ast *cmd, s_errcont *cont)
+{
+  if (!ast)
+    return ast_exec(env, cmd, cont);
+  if (!cmd)
+  {
+    assignment_export(env, ast);
+    return assignment_exec(env, ast->data.ast_assignment.action,
+                           cmd, cont);
+  }
+  struct pair p = assignment_local(env, ast);
+  int res = assignment_exec(env, ast->data.ast_assignment.action,
+                            cmd, cont);
+  unassigne_local(p, env);
+  return res;
 }
 
 
