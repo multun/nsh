@@ -26,9 +26,9 @@ int while_exec(s_env *env, s_ast *ast, s_errcont *cont)
   volatile int res = 0;
   s_keeper keeper = KEEPER(cont->keeper);
   s_errcont ncont = ERRCONT(cont->errman, &keeper);
-  bool local_continue = true;
   env->depth++;
 
+  volatile bool local_continue = true;
   if (setjmp(keeper.env))
   {
     // the break builtin ensures no impossible break is emitted
