@@ -86,7 +86,7 @@ static int redir_less(struct redir_params *params)
   int fd_file = open(aredir->right->str, O_RDONLY, 0664);
   if (fd_file < 0)
   {
-    warnx("%s: Permission denied\n", aredir->right->str);
+    warn("cannot open \"%s\"", aredir->right->str);
     return 1;
   }
 
