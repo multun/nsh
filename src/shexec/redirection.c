@@ -24,7 +24,10 @@ static int redirection_local_exec(struct redir_params *params);
 static int exec_redir_base(struct redir_params *params)
 {
   if (params->aredir->action)
+  {
+    params->aredir = &params->aredir->action->data.ast_redirection;
     return redirection_local_exec(params);
+  }
   return ast_exec(params->env, params->cmd, params->cont);
 }
 
