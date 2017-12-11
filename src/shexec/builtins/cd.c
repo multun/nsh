@@ -8,20 +8,20 @@
 #include "utils/alloc.h"
 
 
-static void update_pwd(void)
+static void update_pwd(const char *env_var)
 {
-  setenv("OLDPWD", getenv("PWD"), 1);
   char *buf = xcalloc(PATH_MAX, sizeof(char));
-  size_t size = 50;
+  size_t size = PATH_MAX;
   if (!getcwd(buf, size))
   {
     free(buf);
     buf = NULL;
     return;
   }
-  setenv("PWD", buf, 1);
+  setenv(env_var, buf, 1);
   free(buf);
 }
+
 
 static int cd_from_env(const char *env_var)
 {
@@ -31,14 +31,16 @@ static int cd_from_env(const char *env_var)
     warnx("cd: no %s set", env_var);
     return 1;
   }
-  else if (chdir(path) != 0)
+  update_pwd("OLDPWD");
+  if (chdir(path) != 0)
   {
     warn("cd: chdir failed");
     return 1;
   }
-  update_pwd();
+  update_pwd("PWD");
   return 0;
 }
+
 
 int builtin_cd(s_env *env, s_errcont *cont, int argc, char **argv)
 {
@@ -57,12 +59,13 @@ int builtin_cd(s_env *env, s_errcont *cont, int argc, char **argv)
     return cd_from_env("OLDPWD");
   else
   {
+    update_pwd("OLDPWD");
     if (chdir(argv[1]) != 0)
     {
       warn("cd: chdir failed");
       return 1;
     }
-    update_pwd();
+    update_pwd("PWD");
   }
   return 0;
 }
