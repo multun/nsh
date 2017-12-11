@@ -8,6 +8,11 @@ typedef struct environment
   s_htable *vars;
   s_htable *functions;
   char **argv;
+
+  size_t break_count;
+  bool break_continue;
+  size_t depth;
+
   int code;
 } s_env;
 

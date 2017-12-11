@@ -12,7 +12,11 @@ s_env *environment_create(char *argv[])
   env->argv = argv_dup(argv);
   env->vars = htable_create(10);
   env->functions = htable_create(10);
+
   env->code = 0;
+
+  env->break_count = 0;
+  env->depth = 0;
   return env;
 }
 

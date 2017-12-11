@@ -1,0 +1,7 @@
+{
+  "desc": "Breaks out of way too many loops",
+  "stdin": "while true; do echo before_top; while true; do echo before_bottom; break;  echo after_bottom; done; echo middle_top; break; echo after_top; done; echo after loops",
+  "stdout": "before_top\nbefore_bottom\nmiddle_top\nafter loops\n",
+  "stderr": "",
+  "retcode": 0
+}

@@ -1,0 +1,7 @@
+{
+  "desc": "Breaks out of a double loop",
+  "stdin": "while true; do echo before_top; while true; do echo before_bottom; break 2;  echo after_bottom; done; echo after_top; done; echo after loops",
+  "stdout": "before_top\nbefore_bottom\nafter loops\n",
+  "stderr": "",
+  "retcode": 0
+}

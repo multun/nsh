@@ -1,0 +1,7 @@
+{
+  "desc": "Breaks out of a single loop, without specifying the break height.",
+  "stdin": "while true; do\n  echo before\n  break\n  echo after\ndone; echo after loop",
+  "stdout": "before\nafter loop\n",
+  "stderr": "",
+  "retcode": 0
+}

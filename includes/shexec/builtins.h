@@ -8,6 +8,8 @@
   F(cd)                                         \
   F(echo)                                       \
   F(exit)                                       \
+  F(break)                                      \
+  F(continue)                                   \
   F(shopt)
 
 

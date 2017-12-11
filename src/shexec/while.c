@@ -1,8 +1,8 @@
 #include <stdio.h>
 
 #include "ast/ast.h"
+#include "shexec/break.h"
 #include "shexec/environment.h"
-
 
 void while_print(FILE *f, s_ast *ast)
 {
@@ -23,9 +23,28 @@ void while_print(FILE *f, s_ast *ast)
 int while_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   s_awhile *awhile = &ast->data.ast_while;
-  int res = 0;
-  while (!ast_exec(env, awhile->condition, cont))
-    res = ast_exec(env, awhile->actions, cont);
+  volatile int res = 0;
+  s_keeper keeper = KEEPER(cont->keeper);
+  s_errcont ncont = ERRCONT(cont->errman, &keeper);
+  bool local_continue = true;
+  env->depth++;
+
+  if (setjmp(keeper.env))
+  {
+    // the break builtin ensures no impossible break is emitted
+    if (cont->errman->class != &g_lbreak || --env->break_count)
+    {
+      env->depth--;
+      shraise(cont, NULL);
+    }
+    local_continue = env->break_continue;
+  }
+
+  if (local_continue)
+    while (!ast_exec(env, awhile->condition, &ncont))
+      res = ast_exec(env, awhile->actions, &ncont);
+
+  env->depth--;
   return res;
 }
 
