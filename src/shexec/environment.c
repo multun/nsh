@@ -4,6 +4,7 @@
 #include "shexec/environment.h"
 #include "utils/alloc.h"
 #include "utils/hash_table.h"
+#include "shexp/variable.h"
 
 
 s_env *environment_create(char *argv[])
@@ -24,7 +25,9 @@ s_env *environment_create(char *argv[])
 static void var_free(struct pair *p)
 {
   free(p->key);
-  free(p->value);
+  s_var *var = p->value;
+  free(var->value);
+  free(var);
 }
 
 

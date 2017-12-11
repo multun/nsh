@@ -6,6 +6,7 @@
 #include "shexec/environment.h"
 #include "shexp/expansion.h"
 #include "utils/evect.h"
+#include "shexp/variable.h"
 
 
 static void expand_subshell(char **str, s_env *env, s_evect *vec)
@@ -49,8 +50,8 @@ static char *var_lookup(s_env *env, char *var)
   struct pair *var_pair = htable_access(env->vars, var);
   if (!var_pair)
     return NULL;
-
-  return var_pair->value;
+  s_var *nvar = var_pair->value;
+  return nvar->value;
 }
 
 

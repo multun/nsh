@@ -3,6 +3,8 @@
 
 #include "ast/ast.h"
 #include "shexp/expansion.h"
+#include "shexp/variable.h"
+#include "utils/alloc.h"
 
 
 void assignment_print(FILE *f, s_ast *ast)
@@ -24,11 +26,15 @@ void assign_var(s_env *env, char *name, char *value)
   {
     struct pair p = *prev;
     htable_remove(env->vars, name);
+    s_var *var = p.value;
     free(p.key);
-    free(p.value);
+    free(var->value);
+    free(var);
   }
 
-  htable_add(env->vars, name, value);
+  s_var *nvar = xmalloc(sizeof(s_var));
+  *nvar = VARIABLE(value);
+  htable_add(env->vars, name, nvar);
 }
 
 

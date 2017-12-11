@@ -9,10 +9,10 @@ typedef struct variable
   char *value;
 } s_var;
 
-#define VARIABLE(Export, Touched, Value)                      \
+#define VARIABLE(Value)                                       \
 ((s_var)                                                      \
 {                                                             \
-  .to_export = Export,                                        \
-  .touched = Touched,                                         \
+  .to_export = false,                                         \
+  .touched = true,                                            \
   .value = Value,                                             \
-}
+})
