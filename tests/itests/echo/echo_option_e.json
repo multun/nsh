@@ -1,0 +1,7 @@
+{
+  "desc": "Echo with -e option",
+  "stdin": "echo -e \"cou\tcou\\n\"",
+  "stdout": "cou\tcou\n\n",
+  "stderr": "",
+  "retcode": 0
+}

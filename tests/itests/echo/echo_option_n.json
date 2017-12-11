@@ -1,0 +1,7 @@
+{
+  "desc": "Echo with -n option",
+  "stdin": "echo -n coucou",
+  "stdout": "coucou",
+  "stderr": "",
+  "retcode": 0
+}

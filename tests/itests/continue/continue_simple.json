@@ -1,0 +1,7 @@
+{
+  "desc": "Simple continue",
+  "stdin": "cmd=echo; while $cmd; do cmd=ok; continue; echo nope; done",
+  "stdout": "\n",
+  "stderr": "ok: command not found",
+  "retcode": 0
+}

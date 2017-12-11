@@ -1,0 +1,7 @@
+{
+  "desc": "Simple echo",
+  "stdin": "echo \"coucou\\n\"",
+  "stdout": "coucou\\n\n",
+  "stderr": "",
+  "retcode": 0
+}

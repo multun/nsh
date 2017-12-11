@@ -1,0 +1,7 @@
+{
+  "desc": "Advanced cd",
+  "stdin": "cd /tmp; cd ..; pwd",
+  "stdout": "/\n",
+  "stderr": "",
+  "retcode": 0
+}

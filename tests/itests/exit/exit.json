@@ -1,0 +1,7 @@
+{
+  "desc": "Exit",
+  "stdin": "exit 42",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 42
+}

@@ -1,0 +1,7 @@
+{
+  "desc": "Absolute cd",
+  "stdin": "cd /tmp; pwd",
+  "stdout": "/tmp\n",
+  "stderr": "",
+  "retcode": 0
+}

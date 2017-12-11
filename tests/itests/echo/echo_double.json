@@ -1,0 +1,7 @@
+{
+  "desc": "Double echo with -e option",
+  "stdin": "echo -e coucou; echo -e coucou",
+  "stdout": "coucou\ncoucou\n",
+  "stderr": "",
+  "retcode": 0
+}
