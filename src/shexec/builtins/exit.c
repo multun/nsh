@@ -9,11 +9,11 @@
 int builtin_exit(s_env *env, s_errcont *cont, int argc, char **argv)
 {
   if (!env)
-    warnx("cd: missing context elements");
+    warnx("exit: missing context elements");
 
   if (argc > 2)
   {
-    warnx("cd: too many arguments");
+    warnx("exit: too many arguments");
     return 1;
   }
 
