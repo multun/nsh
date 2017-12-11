@@ -34,10 +34,16 @@ int block_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   s_ablock *ablock = &ast->data.ast_block;
 
+  if (ablock->redir)
+  {
+    s_ast *redir = ablock->redir;
+    ablock->redir = NULL;
+    int res = redirection_exec(env, redir, ast, cont);
+    ablock->redir = redir;
+    return res;
+  }
   if (ablock->def)
     ast_exec(env, ablock->def, cont);
-  if (ablock->redir)
-    return redirection_exec(env, ablock->redir, ablock->cmd, cont);
   if (ablock->cmd)
     return ast_exec(env, ablock->cmd, cont);
 
