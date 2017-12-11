@@ -71,11 +71,11 @@ void parse_and_or(s_ast **res, s_lexer *lexer, s_errcont *errcont)
     bool or = tok_is(tok, TOK_OR_IF);
     tok_free(lexer_pop(lexer, errcont), true);
     parse_newlines(lexer, errcont);
-    s_ast *bool_op = xcalloc(sizeof(s_ast), 1);
-    bool_op->type = SHNODE_BOOL_OP;
-    bool_op->data.ast_bool_op = ABOOL_OP(or ? BOOL_OR : BOOL_AND, *res, NULL);
-    parse_pipeline(&bool_op->data.ast_bool_op.right, lexer, errcont);
-    *res = bool_op;
+    s_ast *new_tree = xcalloc(sizeof(s_ast), 1);
+    new_tree->type = SHNODE_BOOL_OP;
+    new_tree->data.ast_bool_op = ABOOL_OP(or ? BOOL_OR : BOOL_AND, *res, NULL);
+    *res = new_tree;
+    parse_pipeline(&(*res)->data.ast_bool_op.right, lexer, errcont);
     tok = lexer_peek(lexer, errcont);
   }
 }
