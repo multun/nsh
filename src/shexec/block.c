@@ -43,7 +43,7 @@ int block_exec(s_env *env, s_ast *ast, s_errcont *cont)
     return res;
   }
   if (ablock->def)
-    ast_exec(env, ablock->def, cont);
+    return assignment_exec(env, ablock->def, ablock->cmd, cont);
   if (ablock->cmd)
     return ast_exec(env, ablock->cmd, cont);
 

@@ -43,7 +43,7 @@
   F(SHNODE_CASE, case_print, case_exec, case_free)                            \
   F(SHNODE_BOOL_OP, bool_op_print, bool_op_exec, bool_op_free)                \
   F(SHNODE_LIST, list_print, list_exec, list_free)                            \
-  F(SHNODE_ASSIGNMENT, assignment_print, assignment_exec, assignment_free)    \
+  F(SHNODE_ASSIGNMENT, assignment_print, NULL, assignment_free)    \
   F(SHNODE_FUNCTION, function_print, function_exec, function_free)            \
   F(SHNODE_BLOCK, block_print, block_exec, block_free)
 
