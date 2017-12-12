@@ -1,0 +1,7 @@
+{
+  "desc": "Declares a simple function then reset it",
+  "stdin": "testf () { echo coucou; }; testf; testf () { echo nope; }; testf",
+  "stdout": "coucou\nnope\n",
+  "stderr": "",
+  "retcode": 0
+}
