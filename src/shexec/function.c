@@ -30,6 +30,10 @@ int function_exec(s_env *env, s_ast *ast, s_errcont *cont)
   if (!cont)
     abort();
   s_afunction *function = &ast->data.ast_function;
-  htable_add(env->functions, function->name->str, function->value);
+  char *name = function->name->str;
+  struct pair *prev = htable_access(env->functions, name); 
+  if (prev)
+    htable_remove(env->functions, name);
+  htable_add(env->functions, name, function->value);
   return 0;
 }
