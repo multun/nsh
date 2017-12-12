@@ -26,6 +26,8 @@ size_t unquote_double(s_evect *v, const char *str)
     if (str[i] == '\\')
     {
       assert(str[++i]);
+      if (str[i] != '"')
+        evect_push(v, '\\');
       evect_push(v, str[i]);
       continue;
     }

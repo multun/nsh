@@ -1,0 +1,7 @@
+{
+  "desc": "Interleaved single and double quotes",
+  "stdin": "echo 'a\"'\"b \"",
+  "stdout": "a\"b \n",
+  "stderr": "",
+  "retcode": 0
+}
