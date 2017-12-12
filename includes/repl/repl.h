@@ -13,7 +13,7 @@ typedef struct context
   s_ast_list *ast_list;
   bool line_start;
   s_ast *ast;
-  s_managed_stream ms;
+  s_cstream *cs;
   s_lexer *lexer;
   FILE *history;
 } s_context;

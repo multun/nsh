@@ -35,7 +35,7 @@ static bool handle_rep_fail(int *res, s_errman *eman, s_context *cont)
     return true;
   }
   *res = g_cmdopts.src == SHSRC_COMMAND ? 1 : 2;
-  return !cont->ms.cs->interactive;
+  return !cont->cs->interactive;
 }
 
 
@@ -65,9 +65,9 @@ int repl(s_context *ctx)
 {
   int res = 0;
 
-  for (bool stopping = false; !stopping && !cstream_eof(ctx->ms.cs);)
+  for (bool stopping = false; !stopping && !cstream_eof(ctx->cs);)
   {
-    s_lexer *lex = lexer_create(ctx->ms.cs);
+    s_lexer *lex = lexer_create(ctx->cs);
     stopping = ast_exec_consumer(&res, lex, ctx);
     lexer_free(lex);
   }

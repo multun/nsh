@@ -12,7 +12,7 @@ int context_init(s_context *cont, int argc, char *argv[])
   cont->env = NULL;
   cont->history = NULL;
 
-  int res = managed_stream_init(cont, &cont->ms, argc, argv);
+  int res = cstream_dispatch_init(cont, &cont->cs, argc, argv);
   if (res)
     return res;
 
@@ -27,5 +27,5 @@ void context_destroy(s_context *cont)
   ast_list_free(cont->ast_list);
   environment_free(cont->env);
   history_destroy(cont);
-  managed_stream_destroy(&cont->ms);
+  cstream_free(cont->cs);
 }

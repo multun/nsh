@@ -31,6 +31,7 @@ typedef struct cstream
 {
   void *data;
   bool interactive;
+  bool exit_close;
   struct context *context;
   s_io_backend *backend;
   // a backend-dependant cursor
@@ -47,7 +48,7 @@ typedef struct cstream
 
 
 s_cstream *cstream_create_base(void);
-s_cstream *cstream_from_file(FILE *stream, char *source);
+s_cstream *cstream_from_file(FILE *stream, char *source, bool exit_close);
 s_cstream *cstream_readline(void);
 s_cstream *cstream_from_string(char *string, char *source);
 

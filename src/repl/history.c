@@ -11,7 +11,7 @@
 
 void history_init(s_context *ctx)
 {
-  if (!ctx->ms.cs->interactive)
+  if (!ctx->cs->interactive)
   {
     ctx->history = NULL;
     return;
@@ -34,19 +34,19 @@ void history_init(s_context *ctx)
 
 void history_update(s_context *ctx)
 {
-  if (!ctx->history || !ctx->ms.cs->interactive)
+  if (!ctx->history || !ctx->cs->interactive)
     return;
 
 
-  evect_push(&ctx->ms.cs->linebuf, '\0');
-  const char *command = ctx->ms.cs->linebuf.data;
+  evect_push(&ctx->cs->linebuf, '\0');
+  const char *command = ctx->cs->linebuf.data;
   if (fputs(command, ctx->history) == EOF)
   {
     warnx("couldn't update history, closing history file");
     history_destroy(ctx);
   }
   else
-    ctx->ms.cs->linebuf.size = 0;
+    ctx->cs->linebuf.size = 0;
 }
 
 

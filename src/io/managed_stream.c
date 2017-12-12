@@ -10,13 +10,14 @@
 #include <string.h>
 #include <unistd.h>
 
+
 static bool is_interactive(int argc)
 {
   return (g_cmdopts.src != SHSRC_COMMAND) && argc <= 0 && isatty(STDIN_FILENO);
 }
 
 
-static int init_command(struct managed_stream *ms, int argc, char *argv[])
+static int init_command(s_cstream **cs, int argc, char *path)
 {
   if (argc == 0)
   {
@@ -24,71 +25,60 @@ static int init_command(struct managed_stream *ms, int argc, char *argv[])
     return 2;
   }
 
-  ms->cs = cstream_from_string(argv[0], "<command line>");
-  ms->cs->interactive = false;
-  ms->cs->context = NULL;
+  *cs = cstream_from_string(path, "<command line>");
+  (*cs)->interactive = false;
+  (*cs)->context = NULL;
   return 0;
 }
 
 
-static int init_file(struct managed_stream *ms, char *argv[])
+static int init_file(s_cstream **cs, char *path)
 {
-  int res = 0;
-  if (!(ms->in_file = fopen(argv[0], "r")))
+  FILE *file;
+  if (!(file = fopen(path, "r")))
   {
-    res = errno;
+    int res = errno;
     // TODO: check the return code is right
     warn("cannot open input script");
     return res;
   }
 
-  if (fcntl(fileno(ms->in_file), F_SETFD, FD_CLOEXEC) < 0)
+  if (fcntl(fileno(file), F_SETFD, FD_CLOEXEC) < 0)
   {
-    res = errno;
-    warn("couldn't set CLOEXEC on input file %d",
-         fileno(ms->in_file));
+    int res = errno;
+    warn("couldn't set CLOEXEC on input file %d", fileno(file));
     return res;
   }
-  ms->cs = cstream_from_file(ms->in_file, argv[0]);
-  ms->cs->interactive = false;
-  ms->cs->context = NULL;
+
+  *cs = cstream_from_file(file, path, true);
+  (*cs)->interactive = false;
+  (*cs)->context = NULL;
   return 0;
 }
 
 
-int managed_stream_init(struct context *context, struct managed_stream *ms,
-                        int argc, char *argv[])
+int cstream_dispatch_init(struct context *context, s_cstream **cs,
+                          int argc, char *argv[])
 {
-  ms->in_file = NULL;
-  ms->cs = NULL;
-
   if (g_cmdopts.src == SHSRC_COMMAND)
-    return init_command(ms, argc, argv);
+    return init_command(cs, argc, argv[0]);
 
 
   if (argc >= 1)
-    return init_file(ms, argv);
+    return init_file(cs, argv[0]);
 
 
   if (is_interactive(argc))
   {
-    ms->cs = cstream_readline();
-    ms->cs->interactive = true;
-    ms->cs->context = context;
+    *cs = cstream_readline();
+    (*cs)->interactive = true;
+    (*cs)->context = context;
   }
   else
   {
-    ms->cs = cstream_from_file(stdin, "<stdin>");
-    ms->cs->interactive = false;
-    ms->cs->context = NULL;
+    *cs = cstream_from_file(stdin, "<stdin>", false);
+    (*cs)->interactive = false;
+    (*cs)->context = NULL;
   }
   return 0;
-}
-
-
-void managed_stream_destroy(struct managed_stream *ms)
-{
-  if (ms->in_file)
-    fclose(ms->in_file);
-  cstream_free(ms->cs);
 }

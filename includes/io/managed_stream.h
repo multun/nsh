@@ -5,16 +5,5 @@
 #include <stdio.h>
 
 
-/**
-** \brief setups up and destroys an underlying typeful stream.
-*/
-typedef struct managed_stream
-{
-  FILE *in_file;
-  s_cstream *cs;
-} s_managed_stream;
-
-
-int managed_stream_init(struct context *context, struct managed_stream *ms,
-                        int argc, char *argv[]);
-void managed_stream_destroy(struct managed_stream *ms);
+int cstream_dispatch_init(struct context *context, s_cstream **cs,
+                          int argc, char *argv[]);
