@@ -34,60 +34,94 @@ void pipe_free(struct ast *ast)
 }
 
 
+enum pipe_pos
+{
+  PIPE_LEFT,
+  PIPE_RIGHT,
+};
+
+
+int child_redir(int pd[2], enum pipe_pos pos)
+{
+  if (close(pd[pos]) < 0)
+  {
+    warnx("pipe_exec: error while closing %d", pd[pos]);
+    return 1;
+  }
+
+  int target_fd = pos == PIPE_LEFT ? STDOUT_FILENO : STDIN_FILENO;
+  if (dup2(pd[!pos], target_fd) < 0)
+  {
+    warnx("pipe_exec: failed dup of %d", pd[!pos]);
+    return 1;
+  }
+
+  if (close(pd[!pos]) < 0)
+  {
+    warnx("pipe_exec: error while closing %d", pd[!pos]);
+    return 1;
+  }
+  return 0;
+}
+
+
+struct pipe_context
+{
+  int pd[2];
+  pid_t child_pid[2];
+};
+
+
+int pipe_father(struct pipe_context *pc)
+{
+  if (close(pc->pd[0]) < 0)
+    warnx("pipe_exec: error while closing %d", pc->pd[0]);
+  if (close(pc->pd[1]) < 0)
+    warnx("pipe_exec: error while closing %d", pc->pd[1]);
+
+  int status;
+  waitpid(pc->child_pid[0], &status, 0);
+  waitpid(pc->child_pid[1], &status, 0);
+  return WEXITSTATUS(status);
+}
+
+
+bool pipe_init(struct pipe_context *pc)
+{
+  if (pipe(pc->pd) < 0)
+  {
+    warn("pipe_init: pipe failed");
+    return true;
+  }
+
+  if ((pc->child_pid[0] = fork()) < 0
+      || (pc->child_pid[0] > 0 && (pc->child_pid[1] = fork()) < 0))
+  {
+    warn("pipe_init: error while forking");
+    return true;
+  }
+
+  return false;
+}
+
 
 int pipe_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   s_apipe *apipe = &ast->data.ast_pipe;
-
-  int pd[2];
-  if (pipe(pd) < 0)
-  {
-    warnx("42sh: pipe_exec: failed to pipe.");
+  struct pipe_context pc;
+  if (pipe_init(&pc))
     return 1;
-  }
-  int status1;
-  int status2;
-  pid_t pid1 = fork();
-  pid_t pid2 = 1;
-  if (pid1 > 0)
-    pid2 = fork();
 
-  if (pid1 < 0 || pid2 < 0)
-    err(1, "42sh: pipe_exec: error while forking");
-
-  else if (pid1 == 0)
+  else if (pc.child_pid[0] == 0)
   {
-    if (close(pd[0]) < 0)
-      errx(1, "42sh: pipe_exec: error while closing %d", pd[0]);
-
-    if (dup2(pd[1], STDOUT_FILENO) < 0)
-      errx(1, "42sh: pipe_exec: failed dup of %d", pd[1]);
-    if (close(pd[1]) < 0)
-      errx(1, "42sh: pipe_exec: error while closing %d", pd[1]);
-    clean_exit(cont, ast_exec(env, apipe->left, cont));
+    int res = child_redir(pc.pd, PIPE_LEFT);
+    clean_exit(cont, res ? res : ast_exec(env, apipe->left, cont));
   }
-
-  else if (pid2 == 0)
+  else if (pc.child_pid[1] == 0)
   {
-    if (close(pd[1]) < 0)
-      errx(1, "42sh: pipe_exec: error while closing %d", pd[1]);
-
-    if (dup2(pd[0], STDIN_FILENO) < 0)
-      errx(1, "42sh: pipe_exec: failed dup of %d", pd[0]);
-    if (close(pd[0]) < 0)
-      errx(1, "42sh: pipe_exec: error while closing %d", pd[0]);
-    clean_exit(cont, ast_exec(env, apipe->right, cont));
+    int res = child_redir(pc.pd, PIPE_RIGHT);
+    clean_exit(cont, res ? res : ast_exec(env, apipe->right, cont));
   }
-
   else
-  {
-    if (close(pd[0]) < 0)
-      errx(1, "42sh: pipe_exec: error while closing %d", pd[0]);
-    if (close(pd[1]) < 0)
-      errx(1, "42sh: pipe_exec: error while closing %d", pd[1]);
-    waitpid(pid1, &status1, 0);
-    waitpid(pid2, &status2, 0);
-    return WEXITSTATUS(status2);
-  }
-  return 0;
+    return pipe_father(&pc);
 }
