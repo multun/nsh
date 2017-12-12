@@ -26,27 +26,33 @@ void for_print(FILE *f, s_ast *ast)
 }
 
 
+
+static void for_exception_handler(volatile bool *local_continue,
+                                  s_errcont *cont,
+                                  s_env *env)
+{
+  // the break builtin ensures no impossible break is emitted
+  if (cont->errman->class != &g_lbreak || --env->break_count)
+  {
+    env->depth--;
+    shraise(cont, NULL);
+  }
+  *local_continue = env->break_continue;
+}
+
 int for_exec(s_env *env, s_ast *ast, s_errcont *cont)
 {
   s_afor *afor = &ast->data.ast_for;
 
   volatile int ret = 0;
   volatile bool local_continue = true;
-  volatile s_wordlist *wl = afor->collection;
+  s_wordlist *volatile wl = afor->collection;
 
   env->depth++;
   s_keeper keeper = KEEPER(cont->keeper);
   s_errcont ncont = ERRCONT(cont->errman, &keeper);
   if (setjmp(keeper.env))
-  {
-    // the break builtin ensures no impossible break is emitted
-    if (cont->errman->class != &g_lbreak || --env->break_count)
-    {
-      env->depth--;
-      shraise(cont, NULL);
-    }
-    local_continue = env->break_continue;
-  }
+    for_exception_handler(&local_continue, cont, env);
 
   if (local_continue)
     for (; wl; wl = wl->next)
