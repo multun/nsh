@@ -19,7 +19,7 @@ enum shecho_opt
 static void builtin_echo_parse_opt(int *opt, int argc, char **argv)
 {
   int option = -1;
-  optind = 1;
+  optind = 0;
   for (bool running = true; running
        && (option = getopt(argc, argv, "+:neE"));)
     switch (option)
