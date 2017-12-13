@@ -1,4 +1,5 @@
 #include "repl/history.h"
+#include "utils/pathutils.h"
 
 #include <fcntl.h>
 #include <pwd.h>
@@ -17,11 +18,11 @@ void history_init(s_context *ctx)
     return;
   }
 
-  // TODO: set proper path limit
-  char history_path[512];
-  strcat(strcpy(history_path, getpwuid(getuid())->pw_dir), "/.42sh_history");
+  char *history_path = home_suffix("/.42sh_history");
+  ctx->history = fopen(history_path, "a+");
+  free(history_path);
 
-  if (!(ctx->history = fopen(history_path, "a+")))
+  if (!ctx->history)
   {
     warnx("couldn't open history file");
     return;
