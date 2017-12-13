@@ -9,18 +9,6 @@
 #include "shexp/variable.h"
 
 
-static void expand_subshell(char **str, s_env *env, s_evect *vec)
-{
-  if (!*str && !env && !vec)
-    warnx("expand_subshell: not implemented yet");
-}
-
-
-static void expand_arth(char **str, s_env *env, s_evect *vec)
-{
-  if (!*str && !env && !vec)
-    warnx("expand_arth: not implemented yet");
-}
 
 
 static bool predefined_lookup(char **res, s_env *env, char *var)
