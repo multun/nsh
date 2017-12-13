@@ -10,7 +10,8 @@
   F(exit)                                       \
   F(break)                                      \
   F(continue)                                   \
-  F(shopt)
+  F(shopt)                                      \
+  F(export)
 
 
 #define BUILTINS_DECLARE(Name)                  \
