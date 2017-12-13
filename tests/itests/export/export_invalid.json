@@ -1,0 +1,7 @@
+{
+  "desc": "Invalid export",
+  "stdin": "export =coucou",
+  "stdout": "",
+  "stderr": "42sh: export: '=coucou': not a valid identifier",
+  "retcode": 1
+}

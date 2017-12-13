@@ -1,0 +1,7 @@
+{
+  "desc": "Export using expansion",
+  "stdin": "a='test='; b=lol; export $a$b; echo $test",
+  "stdout": "lol\n",
+  "stderr": "",
+  "retcode": 0
+}
