@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <err.h>
+#include <readline/history.h>
 
 
 void history_init(s_context *ctx)
@@ -35,13 +36,25 @@ void history_init(s_context *ctx)
 
 void history_update(s_context *ctx)
 {
-  if (!ctx->history || !ctx->cs->interactive)
+  if (!ctx->cs->interactive)
     return;
 
 
-  evect_push(&ctx->cs->linebuf, '\0');
-  const char *command = ctx->cs->linebuf.data;
-  if (fputs(command, ctx->history) == EOF)
+  s_evect *cmd_vect = &ctx->cs->linebuf;
+  if (cmd_vect->data[ctx->cs->linebuf.size - 1] == '\n')
+    cmd_vect->data[--ctx->cs->linebuf.size] = '\0';
+  else
+    evect_push(cmd_vect, '\0');
+
+  add_history(cmd_vect->data);
+
+  if (!ctx->history)
+    return;
+
+  cmd_vect->data[ctx->cs->linebuf.size - 1] = '\n';
+  evect_push(cmd_vect, '\0');
+
+  if (fputs(cmd_vect->data, ctx->history) == EOF)
   {
     warnx("couldn't update history, closing history file");
     history_destroy(ctx);
