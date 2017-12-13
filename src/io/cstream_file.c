@@ -10,7 +10,7 @@ int file_io_reader(s_cstream *cs)
 }
 
 
-s_cstream *cstream_from_file(FILE *stream, char *source, bool exit_close)
+s_cstream *cstream_from_file(FILE *stream, const char *source, bool exit_close)
 {
   s_cstream *cs = cstream_create_base();
   cs->exit_close = exit_close;
