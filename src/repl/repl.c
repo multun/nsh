@@ -8,8 +8,7 @@
 
 
 
-static void try_re(int *res, s_lexer *lex,
-                   s_errcont *errcont, s_context *cont)
+static void try_re(s_lexer *lex, s_errcont *errcont, s_context *cont)
 {
   parse(&cont->ast, lex, errcont);
   if (cont->ast)
@@ -21,25 +20,25 @@ static void try_re(int *res, s_lexer *lex,
       fclose(f);
     }
 
-    *res = ast_exec(cont->env, cont->ast, errcont);
+    cont->env->code = ast_exec(cont->env, cont->ast, errcont);
     history_update(cont);
   }
 }
 
 
-static bool handle_rep_fail(int *res, s_errman *eman, s_context *cont)
+static bool handle_rep_fail(s_errman *eman, s_context *cont)
 {
   if (eman->class == &g_clean_exit)
   {
-    *res = eman->retcode;
+    cont->env->code = eman->retcode;
     return true;
   }
-  *res = g_cmdopts.src == SHSRC_COMMAND ? 1 : 2;
+  cont->env->code = g_cmdopts.src == SHSRC_COMMAND ? 1 : 2;
   return !cont->cs->interactive;
 }
 
 
-static bool ast_exec_consumer(int *res, s_lexer *lex, s_context *cont)
+static bool ast_exec_consumer(s_lexer *lex, s_context *cont)
 {
   cont->line_start = true;
   cont->ast = NULL;
@@ -50,27 +49,26 @@ static bool ast_exec_consumer(int *res, s_lexer *lex, s_context *cont)
   volatile bool stopping = false;
   if (setjmp(keeper.env))
   {
-    if (handle_rep_fail(res, &eman, cont))
+    if (handle_rep_fail(&eman, cont))
       stopping = true;
   }
   else
-    try_re(res, lex, &ERRCONT(&eman, &keeper), cont);
+    try_re(lex, &ERRCONT(&eman, &keeper), cont);
 
   cont->ast_list = ast_list_append(cont->ast_list, cont->ast);
   return stopping;
 }
 
 
-int repl(s_context *ctx)
+bool repl(s_context *ctx)
 {
-  int res = 0;
-
-  for (bool stopping = false; !stopping && !cstream_eof(ctx->cs);)
+  bool stopping = false;
+  while (!stopping && !cstream_eof(ctx->cs))
   {
     s_lexer *lex = lexer_create(ctx->cs);
-    stopping = ast_exec_consumer(&res, lex, ctx);
+    stopping = ast_exec_consumer(lex, ctx);
     lexer_free(lex);
   }
 
-  return res;
+  return stopping;
 }

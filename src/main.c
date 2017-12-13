@@ -8,9 +8,10 @@
 static int run(int argc, char *argv[])
 {
   s_context cont;
-  int res = context_init(&cont, argc, argv);
+  int res = 0;
+  bool should_exit = context_init(&res, &cont, argc, argv);
 
-  if (!res)
+  if (!should_exit)
   {
     if (g_cmdopts.shmode == SHMODE_VERSION)
     {
@@ -18,7 +19,10 @@ static int run(int argc, char *argv[])
       return 0;
     }
 
-    res = repl(&cont);
+    // the return value represents whether
+    // the repl exited using an exception
+    repl(&cont);
+    res = cont.env->code;
   }
 
   context_destroy(&cont);

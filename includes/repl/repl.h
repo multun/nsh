@@ -7,6 +7,9 @@
 #include "shlex/lexer.h"
 #include "utils/error.h"
 
+#include <stdbool.h>
+
+
 typedef struct context
 {
   s_env *env;
@@ -22,12 +25,12 @@ typedef struct context
 /**
 ** \brief runs shell command from an already setup context
 */
-int repl(s_context *ctx);
+bool repl(s_context *ctx);
 
 
 
 /**
 ** \brief initializes a context from command line arguments
 */
-int context_init(s_context *cont, int argc, char *argv[]);
+bool context_init(int *rc, s_context *cont, int argc, char *argv[]);
 void context_destroy(s_context *cont);
