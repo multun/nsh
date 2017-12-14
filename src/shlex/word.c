@@ -76,6 +76,11 @@ static bool read_subshell(s_cstream *cs, s_token *tok, s_errcont *errcont)
   if (cstream_peek(cs) != '$')
     return false;
   TOK_PUSH(tok, cstream_pop(cs));
+  if (cstream_peek(cs) == '#')
+  {
+    TOK_PUSH(tok, cstream_pop(cs));
+    return true;
+  }
   size_t nb_par = 0;
   while ((tok->delim = cstream_peek(cs)) != EOF)
   {
