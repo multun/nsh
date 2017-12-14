@@ -45,6 +45,28 @@ static bool read_backslash(s_cstream *cs, s_token *tok, s_errcont *errcont)
 }
 
 
+static bool read_back_quote(s_cstream *cs, s_token *tok, s_errcont *errcont)
+{
+  if (cstream_peek(cs) != '`')
+    return false;
+
+  TOK_PUSH(tok, cstream_pop(cs));
+  while ((tok->delim = cstream_peek(cs)) != '`')
+  {
+    if (tok->delim == EOF)
+      LEXERROR(&cs->line_info, errcont, "unexpected EOF"
+               " while reading back quoted string");
+    else if (tok->delim == '\\')
+      read_backslash(cs, tok, errcont);
+    else
+      TOK_PUSH(tok, cstream_pop(cs));
+  }
+  TOK_PUSH(tok, cstream_pop(cs));
+  tok->delim = cstream_peek(cs);
+  return true;
+}
+
+
 static bool read_double_quote(s_cstream *cs, s_token *tok, s_errcont *errcont)
 {
   if (cstream_peek(cs) != '"')
@@ -77,6 +99,7 @@ static const f_tok_reader word_readers[] =
   read_single_quote,
   read_double_quote,
   read_backslash,
+  read_back_quote,
 };
 
 
