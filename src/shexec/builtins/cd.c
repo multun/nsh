@@ -56,6 +56,25 @@ static int cd_from_env(const char *env_var, s_env *env)
   return 0;
 }
 
+static int cd_with_minus(s_env *env)
+{
+  int res = cd_from_env("OLDPWD", env);
+
+  if (!res)
+  {
+    char *buf = xcalloc(PATH_MAX, sizeof(char));
+    size_t size = PATH_MAX;
+    if (!getcwd(buf, size))
+    {
+      free(buf);
+      return 1;
+    }
+    printf("%s\n", buf);
+    free(buf);
+  }
+  return res;
+}
+
 
 int builtin_cd(s_env *env, s_errcont *cont, int argc, char **argv)
 {
@@ -71,7 +90,7 @@ int builtin_cd(s_env *env, s_errcont *cont, int argc, char **argv)
   if (argc == 1)
     return cd_from_env("HOME", env);
   else if (!strcmp(argv[1], "-"))
-    return cd_from_env("OLDPWD", env);
+    return cd_with_minus(env);
   else
   {
     update_pwd(true, env);
