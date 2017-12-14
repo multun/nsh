@@ -7,6 +7,10 @@
 #include <ctype.h>
 
 
+
+static bool try_read_word(s_cstream *cs, s_token *tok, s_errcont *errcont);
+
+
 static bool read_single_quote(s_cstream *cs, s_token *tok, s_errcont *errcont)
 {
   if (cstream_peek(cs) != '\'')
@@ -67,6 +71,31 @@ static bool read_back_quote(s_cstream *cs, s_token *tok, s_errcont *errcont)
 }
 
 
+static bool read_subshell(s_cstream *cs, s_token *tok, s_errcont *errcont)
+{
+  if (cstream_peek(cs) != '$')
+    return false;
+  TOK_PUSH(tok, cstream_pop(cs));
+  size_t nb_par = 0;
+  while ((tok->delim = cstream_peek(cs)) != EOF)
+  {
+    if (tok->delim == '(')
+      nb_par++;
+    if (!nb_par)
+      return true;
+    if (tok->delim == ')')
+      nb_par--;
+    if (tok->delim == '\\')
+      read_backslash(cs, tok, errcont);
+    else if (try_read_word(cs, tok, errcont))
+      TOK_PUSH(tok, cstream_pop(cs));
+  }
+
+  LEXERROR(&cs->line_info, errcont, "unexpected EOF"
+           " while reading subshell or arthimetic string");
+}
+
+
 static bool read_double_quote(s_cstream *cs, s_token *tok, s_errcont *errcont)
 {
   if (cstream_peek(cs) != '"')
@@ -100,6 +129,7 @@ static const f_tok_reader word_readers[] =
   read_double_quote,
   read_backslash,
   read_back_quote,
+  read_subshell,
 };
 
 
