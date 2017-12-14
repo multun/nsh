@@ -30,10 +30,17 @@ static bool predefined_lookup(char **res, s_env *env, char *var)
 }
 
 
+static bool special_var_lookup(char **res, s_env *env, char *var)
+{
+  return false && env && var && res;
+}
+
 static char *var_lookup(s_env *env, char *var)
 {
   char *look = NULL;
   if (predefined_lookup(&look, env, var))
+    return look;
+  if (special_var_lookup(&look, env, var))
     return look;
 
   struct pair *var_pair = htable_access(env->vars, var);
