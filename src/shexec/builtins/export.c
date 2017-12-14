@@ -69,6 +69,7 @@ static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
   if (entry[0] == '=' || regexec(&regex, name, 0, NULL, 0) == REG_NOMATCH)
   {
     warnx("export: '%s': not a valid identifier", entry);
+    regfree(&regex);
     return 1;
   }
   if (remove)
@@ -77,6 +78,7 @@ static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
     export_novalue(env, name);
   else
     export_value(env, name, expand(word, env, cont));
+  regfree(&regex);
   return 0;
 }
 
