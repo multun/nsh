@@ -39,8 +39,5 @@ int main(int argc, char *argv[])
   argc -= cmdstart;
   argv += cmdstart;
 
-  if (g_cmdopts.norc)
-    puts("norc");
-
   return run(argc, argv);
 }

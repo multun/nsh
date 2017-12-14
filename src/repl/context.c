@@ -57,7 +57,7 @@ bool context_init(int *rc, s_context *cont, int argc, char *argv[])
 
   cont->env = environment_create(argv + (g_cmdopts.src == SHSRC_COMMAND));
 
-  if (cont->cs->interactive && context_load_rc(cont))
+  if (cont->cs->interactive && !g_cmdopts.norc && context_load_rc(cont))
   {
     *rc = cont->env->code;
     return true;
