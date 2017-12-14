@@ -58,7 +58,7 @@ int for_exec(s_env *env, s_ast *ast, s_errcont *cont)
     for (; wl; wl = wl->next)
     {
       assign_var(env, strdup(afor->var->str),
-                 expand(wl->str, env, cont), true);
+                 expand(wl->str, env, cont), false);
       ret = ast_exec(env, afor->actions, &ncont);
     }
 

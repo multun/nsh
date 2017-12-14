@@ -26,6 +26,7 @@ void assign_var(s_env *env, char *name, char *value, bool export)
   {
     s_var *var = prev->value;
     free(var->value);
+    free(name);
     var->value = value;
     if (export)
       var->to_export = true;

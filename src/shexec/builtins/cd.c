@@ -23,10 +23,6 @@ void update_pwd(bool oldpwd, s_env *env)
   }
   char *pwd = strdup(oldpwd ? "OLDPWD" : "PWD");
   assign_var(env, pwd, buf, true);
-
-  struct pair *p = htable_access(env->vars, pwd);
-  s_var *var = p->value;
-  var->to_export = true;
 }
 
 
