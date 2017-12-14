@@ -25,6 +25,7 @@ static bool predefined_lookup(char **res, s_env *env, char *var)
       return false;
     }
   *res = env->argv[iarg];
+  free(var);
   return true;
 }
 
@@ -36,6 +37,7 @@ static char *var_lookup(s_env *env, char *var)
     return look;
 
   struct pair *var_pair = htable_access(env->vars, var);
+  free(var);
   if (!var_pair)
     return NULL;
   s_var *nvar = var_pair->value;
@@ -52,10 +54,14 @@ static void expand_var(char **str, s_env *env, s_evect *vec)
   s_evect var;
   evect_init(&var, strlen(*str));
   for (; **str && (!braces || **str != '}'); (*str)++)
-    evect_push(&var, **str);
-  evect_push(&var, '\0');
+      evect_push(&var, **str);
 
-  char *res = var_lookup(env, var.data);
+  size_t i = var.size;
+  if (!braces)
+    for (; i > 0; i--)
+      if (var_lookup(env, strndup(var.data, i)))
+        break;
+  char *res = var_lookup(env, strndup(var.data, i));
   evect_destroy(&var);
 
   if (res)
