@@ -67,7 +67,7 @@ int cmd_exec(s_env *env, s_ast *node, s_errcont *cont)
 {
   s_wordlist *wl = node->data.ast_cmd.wordlist;
   char **prev_argv = env->argv;
-  env->argv = wordlist_to_argv(wl, env);
+  env->argv = wordlist_to_argv(wl, env, cont);
   s_keeper keeper = KEEPER(cont->keeper);
 
   int res = 0;

@@ -1,0 +1,7 @@
+{
+  "desc": "An escaped subshell containing an escaped parenthesis",
+  "stdin": "echo -n \"$(echo \\))\"",
+  "stdout": ")",
+  "stderr": "",
+  "retcode": 0
+}

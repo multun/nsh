@@ -15,6 +15,7 @@ s_cstream *cstream_from_file(FILE *stream, const char *source, bool exit_close)
   s_cstream *cs = cstream_create_base();
   cs->exit_close = exit_close;
   cs->line_info = LINEINFO(source);
+  cs->interactive = false;
   cs->backend = &g_io_file_backend;
   cs->data = stream;
   return cs;

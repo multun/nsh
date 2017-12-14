@@ -7,7 +7,7 @@
 #include "utils/alloc.h"
 
 
-char **wordlist_to_argv(s_wordlist *wl, s_env *env)
+char **wordlist_to_argv(s_wordlist *wl, s_env *env, s_errcont *cont)
 {
   size_t argc = 0;
   s_wordlist *tmp = wl;
@@ -22,7 +22,7 @@ char **wordlist_to_argv(s_wordlist *wl, s_env *env)
 
   for (size_t i = 0; i < argc; (wl = wl->next), i++)
   {
-    char *expanded = expand(wl->str, env);
+    char *expanded = expand(wl->str, env, cont);
     argv[i] = unquote(expanded);
     free(expanded);
   }

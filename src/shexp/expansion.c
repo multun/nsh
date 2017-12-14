@@ -82,7 +82,7 @@ static void expand_var(char **str, s_env *env, s_evect *vec)
 }
 
 
-char *expand(char *str, s_env *env)
+char *expand(char *str, s_env *env, s_errcont *cont)
 {
   s_evect vec;
   evect_init(&vec, strlen(str) + 1);
@@ -95,7 +95,7 @@ char *expand(char *str, s_env *env)
         if (*str == '(')
           expand_arth(&str, env, &vec);
         else
-          expand_subshell(&str, env, &vec);
+          expand_subshell(cont, &str, env, &vec);
       }
       else
         expand_var(&str, env, &vec);

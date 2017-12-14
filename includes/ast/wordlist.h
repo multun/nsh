@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 #include "shexec/environment.h"
+#include "utils/error.h"
 
 
 /**
@@ -33,7 +34,7 @@ typedef struct wordlist
 ** \param wl the wordlist
 ** \param env the current environment
 **/
-char **wordlist_to_argv(s_wordlist *wl, s_env *env);
+char **wordlist_to_argv(s_wordlist *wl, s_env *env, s_errcont *cont);
 
 
 /**

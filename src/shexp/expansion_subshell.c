@@ -1,14 +1,66 @@
-#include <err.h>
-
+#include "repl/repl.h"
+#include "shexec/clean_exit.h"
 #include "shexec/environment.h"
 #include "shexp/expansion.h"
+#include "utils/error.h"
 #include "utils/evect.h"
 
+#include <err.h>
+#include <string.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
-void expand_subshell(char **str, s_env *env, s_evect *vec)
+
+static int subshell_child(s_env *env, char *str)
 {
-  if (!*str && !env && !vec)
-    warnx("expand_subshell: not implemented yet");
+  s_context ctx;
+  memset(&ctx, 0, sizeof(ctx));
+  ctx.env = env;
+  ctx.cs = cstream_from_string(str, "<subshell>");
+  repl(&ctx);
+  int rc = ctx.env->code;
+  ctx.env = NULL; // avoid double free
+  context_destroy(&ctx);
+  return rc;
+}
+
+
+void subshell_parent(int cfd, s_evect *res)
+{
+  FILE *creader = fdopen(cfd, "r");
+  int cur_char;
+
+  while ((cur_char = fgetc(creader)) != EOF)
+    evect_push(res, cur_char);
+
+  fclose(creader);
+}
+
+
+void expand_subshell(s_errcont *cont, char **str, s_env *env, s_evect *vec)
+{
+  char *nstr = strchr(*str, ')');
+  char *buf = strndup(*str, nstr - *str);
+  // TODO: subshell error handling
+  int cpid = fork();
+  int pfd[2];
+  pipe(pfd);
+  if (!cpid)
+  {
+    close(pfd[0]);
+    dup2(1, pfd[1]);
+    int res = subshell_child(env, buf);
+    free(buf);
+    clean_exit(cont, res);
+  }
+
+  free(buf);
+  close(pfd[1]);
+  subshell_parent(pfd[0], vec);
+  close(pfd[0]);
+  int status;
+  waitpid(cpid, &status, 0);
+  *str = nstr + 1;
 }
 
 

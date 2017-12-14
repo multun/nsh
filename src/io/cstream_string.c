@@ -21,6 +21,7 @@ s_cstream *cstream_from_string(char *string, char *source)
   s_cstream *cs = cstream_create_base();
   cs->line_info = LINEINFO(source);
   cs->backend = &g_io_string_backend;
+  cs->interactive = false;
   cs->data = string;
   return cs;
 }

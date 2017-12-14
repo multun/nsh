@@ -1,0 +1,7 @@
+{
+  "desc": "A way too simple test",
+  "stdin": "echo -n \"$(echo coucou)\"",
+  "stdout": "coucou",
+  "stderr": "",
+  "retcode": 0
+}

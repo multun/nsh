@@ -55,9 +55,9 @@ static void unexport_var(s_env *env, char *name)
 }
 
 
-static int export_var(s_env *env, char *entry, bool remove)
+static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
 {
-  char *var = expand(entry, env);
+  char *var = expand(entry, env, cont);
   char *word = NULL;
   char *name = strtok_r(var, "=", &word);
   regex_t regex;
@@ -76,7 +76,7 @@ static int export_var(s_env *env, char *entry, bool remove)
   else if (*word == '\0' && *(word - 1) != '=')
     export_novalue(env, name);
   else
-    export_value(env, name, expand(word, env));
+    export_value(env, name, expand(word, env, cont));
   return 0;
 }
 
@@ -116,7 +116,7 @@ int builtin_export(s_env *env, s_errcont *cont, int argc, char **argv)
     else if (strcmp("-p", argv[i]))
     {
       print = false;
-      res |= export_var(env, argv[i], remove);
+      res |= export_var(env, argv[i], remove, cont);
     }
   }
   if (print)

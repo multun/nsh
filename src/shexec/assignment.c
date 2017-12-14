@@ -45,10 +45,10 @@ void assign_var(s_env *env, char *name, char *value, bool rm_var)
 }
 
 
-static void assignment_export(s_env *env, s_ast *ast)
+static void assignment_export(s_env *env, s_ast *ast, s_errcont *cont)
 {
   char *name = strdup(ast->data.ast_assignment.name->str);
-  char *value = expand(ast->data.ast_assignment.value->str, env);
+  char *value = expand(ast->data.ast_assignment.value->str, env, cont);
   assign_var(env, name, value, true);
 
   struct pair *p = htable_access(env->vars, name);
@@ -57,10 +57,10 @@ static void assignment_export(s_env *env, s_ast *ast)
 }
 
 
-static struct pair assignment_local(s_env *env, s_ast *ast)
+static struct pair assignment_local(s_env *env, s_ast *ast, s_errcont *cont)
 {
   char *name = strdup(ast->data.ast_assignment.name->str);
-  char *value = expand(ast->data.ast_assignment.value->str, env);
+  char *value = expand(ast->data.ast_assignment.value->str, env, cont);
   struct pair *prev = htable_access(env->vars, name);
   struct pair p;
   if (prev)
@@ -103,11 +103,11 @@ int assignment_exec(s_env *env, s_ast *ast, s_ast *cmd, s_errcont *cont)
     return ast_exec(env, cmd, cont);
   if (!cmd)
   {
-    assignment_export(env, ast);
+    assignment_export(env, ast, cont);
     return assignment_exec(env, ast->data.ast_assignment.action,
                            cmd, cont);
   }
-  struct pair p = assignment_local(env, ast);
+  struct pair p = assignment_local(env, ast, cont);
   int res = assignment_exec(env, ast->data.ast_assignment.action,
                             cmd, cont);
   unassigne_local(p, env);
