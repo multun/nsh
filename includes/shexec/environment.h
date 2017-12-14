@@ -18,4 +18,5 @@ typedef struct environment
 
 
 s_env *environment_create();
+void environment_load(s_env *env);
 void environment_free(s_env *env);
