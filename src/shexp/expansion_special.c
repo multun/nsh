@@ -21,13 +21,13 @@ static void expand_args(char **res, s_env *env, bool split)
 {
   s_evect vec;
   evect_init(&vec, 10);
-  if (*env->argv)
-    for (char *tmp = *env->argv; *tmp; tmp++)
+  if (*env->argv && env->argv[1])
+    for (char *tmp = env->argv[1]; *tmp; tmp++)
       evect_push(&vec, *tmp);
-  for (size_t i = 1; env->argv[i]; i++)
+  for (size_t i = 2; env->argv[i]; i++)
   {
     evect_push(&vec, ' ');
-    for (char *tmp = *env->argv; *tmp; tmp++)
+    for (char *tmp = env->argv[i]; *tmp; tmp++)
        evect_push(&vec, *tmp);
   }
   evect_push(&vec, '\0');
@@ -44,6 +44,7 @@ static void expand_sharp(char **res, s_env *env)
     argc++;
 
   *res = xcalloc(25, sizeof(char));
+  argc = argc ? argc - 1 : 0;
   sprintf(*res, "%zu", argc);
 }
 
