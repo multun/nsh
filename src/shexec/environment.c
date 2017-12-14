@@ -45,6 +45,8 @@ void environment_load(s_env *env)
   }
   if (!htable_access(env->vars, "PWD"))
     update_pwd(false, env);
+  if (!htable_access(env->vars, "IFS"))
+    assign_var(env, strdup("IFS"), strdup("\t\n "), true);
 }
 
 
