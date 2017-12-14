@@ -111,6 +111,7 @@ void expand_shopt(char **res)
         evect_push(&vec, ':');
       for (const char *tmp = string_from_shopt(i); *tmp; tmp++)
         evect_push(&vec, *tmp);
+      first = false;
     }
   *res = vec.data;
 }
