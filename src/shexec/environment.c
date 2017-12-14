@@ -21,6 +21,7 @@ s_env *environment_create(char *argv[])
 
   env->break_count = 0;
   env->depth = 0;
+  environment_load(env);
   return env;
 }
 
