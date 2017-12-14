@@ -50,14 +50,14 @@ static int export_var(s_env *env, char *entry)
   char *word = NULL;
   char *name = strtok_r(var, "=", &word);
   regex_t regex;
-  if (regcomp(&regex, "[[:alpha:]_][[:alnum:]_]*", 0))
+  if (regcomp(&regex, "^[[:alpha:]_][[:alnum:]_]*$", REG_EXTENDED))
   {
-    warnx("export: an error occurs compiling the regex\n");
+    warnx("export: an error occurs compiling the regex");
     return 1;
   }
-  if (regexec(&regex, name, 0, NULL, 0) == REG_NOMATCH)
+  if (entry[0] == '=' || regexec(&regex, name, 0, NULL, 0) == REG_NOMATCH)
   {
-    warnx("export: '%s': not a valid identifier\n", entry);
+    warnx("export: '%s': not a valid identifier", entry);
     return 1;
   }
   if (*word == '\0' && *(word - 1) != '=')
