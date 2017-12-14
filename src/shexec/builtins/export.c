@@ -44,7 +44,18 @@ static void export_novalue(s_env *env, char *name)
 }
 
 
-static int export_var(s_env *env, char *entry)
+static void unexport_var(s_env *env, char *name)
+{
+  struct pair *prev = htable_access(env->vars, name);
+  if (prev)
+  {
+    s_var *var = prev->value;
+    var->to_export = false;
+  }
+}
+
+
+static int export_var(s_env *env, char *entry, bool remove)
 {
   char *var = expand(entry, env);
   char *word = NULL;
@@ -60,7 +71,9 @@ static int export_var(s_env *env, char *entry)
     warnx("export: '%s': not a valid identifier", entry);
     return 1;
   }
-  if (*word == '\0' && *(word - 1) != '=')
+  if (remove)
+    unexport_var(env, name);
+  else if (*word == '\0' && *(word - 1) != '=')
     export_novalue(env, name);
   else
     export_value(env, name, expand(word, env));
@@ -78,7 +91,7 @@ static void export_print(s_env *env)
     {
       s_var *var = pair->value;
       if (var->to_export && var->value)
-        printf("export %s=%s\n", pair->key, var->value);
+        printf("export %s=\"%s\"\n", pair->key, var->value);
       else if (var->to_export)
         printf("export %s\n", pair->key);
       pair = pair->next;
@@ -87,18 +100,23 @@ static void export_print(s_env *env)
 }
 
 
+
+
 int builtin_export(s_env *env, s_errcont *cont, int argc, char **argv)
 {
   if (!env || !cont)
     warnx("export: missing context elements");
   int res = 0;
   bool print = true;
+  bool remove = false;
   for (int i = 1; i < argc; i++)
   {
-    if (strcmp("-p", argv[i]))
+    if (!strcmp("-n", argv[i]))
+      remove = true;
+    else if (strcmp("-p", argv[i]))
     {
       print = false;
-      res |= export_var(env, argv[i]);
+      res |= export_var(env, argv[i], remove);
     }
   }
   if (print)
