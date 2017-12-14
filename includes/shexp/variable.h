@@ -5,7 +5,6 @@
 typedef struct variable
 {
   bool to_export;
-  bool touched;
   char *value;
 } s_var;
 
@@ -13,6 +12,5 @@ typedef struct variable
 ((s_var)                                                      \
 {                                                             \
   .to_export = false,                                         \
-  .touched = true,                                            \
   .value = Value,                                             \
 })

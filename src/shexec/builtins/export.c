@@ -16,31 +16,14 @@ static void export_value(s_env *env, char *name, char* value)
     {
       s_var *v = prev->value;
       v->to_export = true;
-      v->value = value;
+      if (value)
+        v->value = value;
       return;
     }
     s_var *new = xmalloc(sizeof(*new));
     new->to_export = true;
-    new->touched = true;
     new->value = value;
     htable_add(env->vars, name, new);
-}
-
-
-static void export_novalue(s_env *env, char *name)
-{
-  struct pair *prev = htable_access(env->vars, name);
-  if (prev)
-  {
-    s_var *v = prev->value;
-    v->to_export = true;
-    return;
-  }
-  s_var *new = xmalloc(sizeof(*new));
-  new->to_export = true;
-  new->touched = true;
-  new->value = NULL;
-  htable_add(env->vars, name, new);
 }
 
 
@@ -75,7 +58,7 @@ static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
   if (remove)
     unexport_var(env, name);
   else if (*word == '\0' && *(word - 1) != '=')
-    export_novalue(env, name);
+    export_value(env, name, NULL);
   else
     export_value(env, name, expand(word, env, cont));
   regfree(&regex);
