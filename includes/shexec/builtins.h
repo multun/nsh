@@ -22,3 +22,4 @@ typedef int (*f_builtin)(s_env *env, s_errcont *cont, int argc, char **argv);
 BUILTINS_APPLY(BUILTINS_DECLARE)
 
 f_builtin builtin_search(const char *name);
+void update_pwd(bool oldpwd, s_env *env);

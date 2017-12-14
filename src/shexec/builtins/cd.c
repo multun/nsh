@@ -6,9 +6,12 @@
 
 #include "shexec/builtins.h"
 #include "utils/alloc.h"
+#include "ast/assignment.h"
+#include "utils/hash_table.h"
+#include "shexp/variable.h"
 
 
-static void update_pwd(const char *env_var)
+void update_pwd(bool oldpwd, s_env *env)
 {
   char *buf = xcalloc(PATH_MAX, sizeof(char));
   size_t size = PATH_MAX;
@@ -18,26 +21,38 @@ static void update_pwd(const char *env_var)
     buf = NULL;
     return;
   }
-  setenv(env_var, buf, 1);
-  free(buf);
+  char *pwd = strdup(oldpwd ? "OLDPWD" : "PWD");
+  assign_var(env, pwd, buf, true);
+
+  struct pair *p = htable_access(env->vars, pwd);
+  s_var *var = p->value;
+  var->to_export = true;
 }
 
 
-static int cd_from_env(const char *env_var)
+static int cd_from_env(const char *env_var, s_env *env)
 {
-  char *path = getenv(env_var);
+  struct pair *p = htable_access(env->vars, env_var);
+  char *path = NULL;
+  if (p && p->value)
+  {
+    s_var *node = p->value;
+    path = node->value;
+    if (!strcmp("OLDPWD", env_var))
+      path = strdup(path);
+  }
   if (!path)
   {
     warnx("cd: no %s set", env_var);
     return 1;
   }
-  update_pwd("OLDPWD");
+  update_pwd(true, env);
   if (chdir(path) != 0)
   {
     warn("cd: chdir failed");
     return 1;
   }
-  update_pwd("PWD");
+  update_pwd(false, env);
   return 0;
 }
 
@@ -54,18 +69,18 @@ int builtin_cd(s_env *env, s_errcont *cont, int argc, char **argv)
   }
 
   if (argc == 1)
-    return cd_from_env("HOME");
+    return cd_from_env("HOME", env);
   else if (!strcmp(argv[1], "-"))
-    return cd_from_env("OLDPWD");
+    return cd_from_env("OLDPWD", env);
   else
   {
-    update_pwd("OLDPWD");
+    update_pwd(true, env);
     if (chdir(argv[1]) != 0)
     {
       warn("cd: chdir failed");
       return 1;
     }
-    update_pwd("PWD");
+    update_pwd(false, env);
   }
   return 0;
 }

@@ -28,7 +28,7 @@ static uint32_t hash(const char *data)
 }
 
 
-static struct pair **pair_insertpos(struct htable *table, char *key)
+static struct pair **pair_insertpos(struct htable *table, const char *key)
 {
   return &table->tab[hash(key) % table->capacity];
 }
@@ -63,7 +63,7 @@ struct htable *htable_create(size_t capacity)
 }
 
 
-struct pair *htable_access(struct htable *htable, char *key)
+struct pair *htable_access(struct htable *htable, const char *key)
 {
   struct pair *ret = *pair_insertpos(htable, key);
 

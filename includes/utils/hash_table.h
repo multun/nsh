@@ -31,7 +31,7 @@ s_htable *htable_create(size_t capacity);
  * htable_access(htable, key):
  * returns a pointer to the value containing the given key
  */
-struct pair *htable_access(s_htable *htable, char *key);
+struct pair *htable_access(s_htable *htable, const char *key);
 
 /*
  * htable_add(htable,key,value):
