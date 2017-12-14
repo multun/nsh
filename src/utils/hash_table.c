@@ -43,11 +43,13 @@ static void expand_table(struct htable *htable)
   htable->tab = xcalloc(htable->capacity, sizeof(struct pair*));
 
   for (size_t i = 0; i < former_cap; i++)
-    for (struct pair *fp = ftab[i]; fp; fp = fp->next)
+    for (struct pair *fp = ftab[i]; fp;)
     {
       struct pair **ipos = pair_insertpos(htable, fp->key);
+      struct pair *tmp = fp->next;
       fp->next = *ipos;
       *ipos = fp;
+      fp = tmp;
     }
   free(ftab);
 }
