@@ -23,3 +23,4 @@ BUILTINS_APPLY(BUILTINS_DECLARE)
 
 f_builtin builtin_search(const char *name);
 void update_pwd(bool oldpwd, s_env *env);
+void expand_shopt(char **res);

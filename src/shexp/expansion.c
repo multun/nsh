@@ -3,9 +3,10 @@
 #include <err.h>
 #include <string.h>
 
-#include "shexec/environment.h"
-#include "shexp/expansion.h"
 #include "utils/evect.h"
+#include "shexec/environment.h"
+#include "shexec/builtins.h"
+#include "shexp/expansion.h"
 #include "shexp/variable.h"
 
 
@@ -32,7 +33,18 @@ static bool predefined_lookup(char **res, s_env *env, char *var)
 
 static bool special_var_lookup(char **res, s_env *env, char *var)
 {
-  return false && env && var && res;
+  bool found = false;
+  if (strlen(var) == 1)
+    found = special_char_lookup(res, env, var);
+  else if ((found = !strcmp("RANDOM", var)))
+    expand_random(res);
+  else if ((found = !strcmp("UID", var)))
+    expand_uid(res);
+  else if ((found = !strcmp("SHELLOPTS", var)))
+    expand_shopt(res);
+  if (found)
+    free(var);
+  return found;
 }
 
 static char *var_lookup(s_env *env, char *var)
