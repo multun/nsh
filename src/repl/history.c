@@ -11,6 +11,24 @@
 #include <readline/history.h>
 
 
+FILE *history_open(void)
+{
+  char *history_path = home_suffix("/.42sh_history");
+  FILE *ret = fopen(history_path, "a+");
+  free(history_path);
+
+  if (!ret)
+  {
+    warnx("couldn't open history file");
+    return NULL;
+  }
+
+  if (ret && fcntl(fileno(ret), F_SETFD, FD_CLOEXEC) < 0)
+    warn("couldn't set CLOEXEC on history file");
+  return ret;
+}
+
+
 void history_init(s_context *ctx)
 {
   if (!ctx->cs->interactive)
@@ -18,19 +36,7 @@ void history_init(s_context *ctx)
     ctx->history = NULL;
     return;
   }
-
-  char *history_path = home_suffix("/.42sh_history");
-  ctx->history = fopen(history_path, "a+");
-  free(history_path);
-
-  if (!ctx->history)
-  {
-    warnx("couldn't open history file");
-    return;
-  }
-
-  if (ctx->history && fcntl(fileno(ctx->history), F_SETFD, FD_CLOEXEC) < 0)
-    warn("couldn't set CLOEXEC on history file");
+  ctx->history = history_open();
 }
 
 
@@ -49,7 +55,10 @@ void history_update(s_context *ctx)
   add_history(cmd_vect->data);
 
   if (!ctx->history)
+  {
+    ctx->cs->linebuf.size = 0;
     return;
+  }
 
   cmd_vect->data[ctx->cs->linebuf.size - 1] = '\n';
   evect_push(cmd_vect, '\0');

@@ -64,6 +64,7 @@ s_cstream *cstream_readline(void)
   cs->line_info = LINEINFO("<tty>");
   evect_init(&cs->linebuf, 100);
   cs->backend = &g_io_readline_backend;
+  using_history();
   return cs;
 }
 

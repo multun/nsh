@@ -20,8 +20,8 @@ static void try_re(s_lexer *lex, s_errcont *errcont, s_context *cont)
       fclose(f);
     }
 
-    cont->env->code = ast_exec(cont->env, cont->ast, errcont);
     history_update(cont);
+    cont->env->code = ast_exec(cont->env, cont->ast, errcont);
   }
 }
 

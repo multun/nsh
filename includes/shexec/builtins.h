@@ -12,6 +12,7 @@
   F(continue)                                   \
   F(shopt)                                      \
   F(source)                                     \
+  F(history)                                    \
   F(export)
 
 
