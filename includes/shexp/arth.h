@@ -44,3 +44,4 @@ bool is_arth_op(char c);
 char **arth_lex(char *str, char ***end);
 s_arth_ast *arth_parse(char *str, bool *err);
 s_arth_ast *arth_parse_word(char **str, bool *err);
+int arth_exec(s_arth_ast *ast);
