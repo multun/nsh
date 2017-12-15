@@ -1,0 +1,7 @@
+{
+  "desc": "An assignment with a wrong variable name",
+  "stdin": "@a=a",
+  "stdout": "",
+  "stderr": "assignment: '@a': not a valid identifier",
+  "retcode": 127
+}

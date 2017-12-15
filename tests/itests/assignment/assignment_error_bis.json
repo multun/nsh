@@ -1,0 +1,7 @@
+{
+  "desc": "An assignment with a wrong variable name",
+  "stdin": "3Abc=42",
+  "stdout": "",
+  "stderr": "assignment: '3Abc': not a valid identifier",
+  "retcode": 127
+}
