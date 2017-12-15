@@ -12,6 +12,7 @@
 #include "ast/list.h"
 #include "ast/pipe.h"
 #include "ast/redirection.h"
+#include "ast/subshell.h"
 #include "ast/until.h"
 #include "ast/while.h"
 #include "shexec/environment.h"
@@ -43,7 +44,8 @@
   F(SHNODE_CASE, case_print, case_exec, case_free)                            \
   F(SHNODE_BOOL_OP, bool_op_print, bool_op_exec, bool_op_free)                \
   F(SHNODE_LIST, list_print, list_exec, list_free)                            \
-  F(SHNODE_ASSIGNMENT, assignment_print, NULL, assignment_free)    \
+  F(SHNODE_SUBSHELL, subshell_print, subshell_exec, subshell_free)            \
+  F(SHNODE_ASSIGNMENT, assignment_print, NULL, assignment_free)               \
   F(SHNODE_FUNCTION, function_print, function_exec, function_free)            \
   F(SHNODE_BLOCK, block_print, block_exec, block_free)
 
@@ -73,6 +75,7 @@ typedef struct ast
     s_aassignment ast_assignment;
     s_afunction ast_function;
     s_ablock ast_block;
+    s_asubshell ast_subshell;
   } data;
 } s_ast;
 

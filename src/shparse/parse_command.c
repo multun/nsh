@@ -106,12 +106,19 @@ static void switch_first_keyword(s_ast **res, s_lexer *lexer, s_errcont *errcont
 }
 
 
-void parse_shell_command(s_ast **res, s_lexer *lexer, s_errcont *errcont)
+static void parse_shell_command_sub(s_ast **res, s_lexer *lexer,
+                                    s_errcont *errcont, bool par)
 {
   const s_token *tok = lexer_peek(lexer, errcont);
-  if (tok_is(tok, TOK_LBRACE) || tok_is(tok, TOK_LPAR))
+  if (!par && tok_is(tok, TOK_LPAR))
   {
-    bool par = tok_is(tok, TOK_LPAR);
+    *res = xcalloc(sizeof(s_ast), 1);
+    (*res)->type = SHNODE_SUBSHELL;
+    parse_shell_command_sub(&(*res)->data.ast_subshell.action, lexer,
+                            errcont, true);
+  }
+  else if (tok_is(tok, TOK_LBRACE) || par)
+  {
     tok_free(lexer_pop(lexer, errcont), true);
     parse_compound_list(res, lexer, errcont);
     tok = lexer_peek(lexer, errcont);
@@ -123,4 +130,10 @@ void parse_shell_command(s_ast **res, s_lexer *lexer, s_errcont *errcont)
   }
   else
     switch_first_keyword(res, lexer, errcont);
+}
+
+
+void parse_shell_command(s_ast **res, s_lexer *lexer, s_errcont *errcont)
+{
+  parse_shell_command_sub(res, lexer, errcont, false);
 }
