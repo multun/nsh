@@ -1,57 +1,44 @@
 #include "shexp/arth.h"
+#include "utils/alloc.h"
 #include "utils/strsplit.h"
 
+#include <stdlib.h>
 
-void arth_default_index(int &index, char **elms)
+
+
+static s_arth_ast *arth_parse_or(char **start, char **end, bool *err)
 {
-  if (elms[*index])
-  {
-    free(elms[*index]);
-    elms[*index] = NULL;
-  }
-  else
-    *index = -1;
+  const char *delim = "||";
+  int i = strsplit_r(start, &delim, 1);
+  if (i == end - start)
+    return NULL;
+
+  free(start[i]);
+  start[i] = NULL;
+  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
+  *ast = ARTH_AST(ARTH_OR, arth_parse_rec(start, start + i, err),
+                  arth_parse_rec(start + i + 1, end, err));
+  return ast;
 }
 
 
-static s_arth_ast *arth_parse_and(char **elms, bool *err)
+s_arth_ast *arth_parse_rec(char **start, char **end, bool *err)
 {
-  char *delim = "&&";
-  int i = strsplit_r(elms, &delim, 1);
-  arth_default_index(&i, elms);
-  s_arth_ast *res = arth_parse_bor(elms, err);
-  while (i != -1 && !*err)
+  if (*err || start == end)
   {
-    s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-    *ast = ARTH_AST(ARTH_AND, res, arth_parse_bor(elms, err));
-    res = ast;
-    i = strsplit_r(elms + i + 1, &delim, 1);
-    arth_default_index(&i, elms);
+    *err = true;
+    return NULL;
   }
-  return res;
-}
-
-
-static s_arth_ast *arth_parse_or(char **elms, bool *err)
-{
-  char *delim = "||";
-  int i = strsplit_r(elms, &delim, 1);
-  arth_default_index(&i, elms);
-  s_arth_ast *res = arth_parse_and(elms, err);
-  while (i != -1 && !*err)
-  {
-    s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-    *ast = ARTH_AST(ARTH_OR, res, arth_parse_and(elms, err));
-    res = ast;
-    i = strsplit_r(elms + i + 1, &delim, 1);
-    arth_default_index(&i, elms);
-  }
-  return res;
+  s_arth_ast *res = NULL;
+  if ((res = arth_parse_or(start, end, err)))
+    return res;
+  return arth_parse_word(start, err);
 }
 
 s_arth_ast *arth_parse(char *str, bool *err)
 {
-  char **elms = arth_lex(str);
-  s_arth_ast *res = arth_parse_or(elms, err);
+  char **end;
+  char **elms = arth_lex(str, &end);
+  s_arth_ast *res = arth_parse_or(elms, end, err);
   return res;
 }

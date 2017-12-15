@@ -2,6 +2,9 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "utils/strsplit.h"
+
+
 static bool is_delim(const char **delim, size_t nb_delim, char *str)
 {
   for (size_t i = 0; i < nb_delim; i++)

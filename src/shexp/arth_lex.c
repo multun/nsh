@@ -11,29 +11,9 @@ bool is_arth_op(char c)
 }
 
 
-static void parse_arth_subshell(char **str, s_evect *vec)
-{
-  size_t nb_par = 1;
-  evect_push(vec, *((*str)++));
-  evect_push(vec, *((*str)++));
-  //TODO: quotes in subshell
-  while (nb_par)
-  {
-    char c = *((*str)++);
-    if (c =='(')
-      nb_par++;
-    else if (c ==')')
-      nb_par--;
-    evect_push(vec, c);
-  }
-}
-
-
 static void parse_arth_word(char **str, s_evect *vec)
 {
-  if (**str == '$' && (*str)[1] == '(')
-    parse_arth_subshell(str, vec);
-  else if (is_arth_op(**str))
+  if (is_arth_op(**str))
   {
     char c = *((*str)++);
     evect_push(vec, c);
@@ -46,7 +26,8 @@ static void parse_arth_word(char **str, s_evect *vec)
   else
     do {
       evect_push(vec, *((*str)++));
-    } while (**str && !is_arth_op(**str) && **str != ' ' && **str != '\n')
+    } while (**str && !is_arth_op(**str) && **str != '\t' && **str != ' '
+             && **str != '\n');
   evect_push(vec, '\0');
 }
 
@@ -62,15 +43,15 @@ static char *arth_lex_pop(char **str)
 
   parse_arth_word(str, &vec);
 
-  return vec.value;
+  return vec.data;
 }
 
 
-char **arth_lex(char *str)
+char **arth_lex(char *str, char ***end)
 {
   size_t nb = 0;
   char **elms = xcalloc(1, sizeof(char *));
-  char *elm
+  char *elm;
   while ((elm = arth_lex_pop(&str)))
   {
     nb++;
@@ -78,5 +59,6 @@ char **arth_lex(char *str)
     elms[nb - 1] = elm;
   }
   elms[nb] = NULL;
+  *end = elms + nb;
   return elms;
 }

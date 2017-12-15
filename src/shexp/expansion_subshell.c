@@ -91,10 +91,3 @@ void expand_subshell(s_errcont *cont, char **str, s_env *env, s_evect *vec)
   waitpid(cpid, &status, 0);
   *str = subshell_find_par(*str) + 1;
 }
-
-
-void expand_arth(char **str, s_env *env, s_evect *vec)
-{
-  if (!*str && !env && !vec)
-    warnx("expand_arth: not implemented yet");
-}
