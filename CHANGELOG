@@ -1,3 +1,8 @@
+Version 0.9:
+	- implement subshells
+	- variables
+	- most builtins (export, exit, history, …)
+
 Version 0.8:
 	- basic expansion
 	- quote removal
