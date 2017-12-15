@@ -21,7 +21,7 @@ static void parse_assignment(s_ast **res, s_lexer *lexer, s_errcont *errcont)
   *res = xcalloc(sizeof(s_ast), 1);
   (*res)->type = SHNODE_ASSIGNMENT;
   s_token *tok = lexer_pop(lexer, errcont);
-  char * val = strchr(TOK_STR(tok), '=');
+  char *val = strchr(TOK_STR(tok), '=');
   *val = '\0';
   val++;
   s_wordlist *name = xcalloc(sizeof(s_wordlist), 1);
