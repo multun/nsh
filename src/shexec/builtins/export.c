@@ -3,28 +3,11 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include "ast/assignment.h"
 #include "shexec/builtins.h"
 #include "shexp/expansion.h"
 #include "shexp/variable.h"
 #include "utils/alloc.h"
-
-
-static void export_value(s_env *env, char *name, char* value)
-{
-    struct pair *prev = htable_access(env->vars, name);
-    if (prev)
-    {
-      s_var *v = prev->value;
-      v->to_export = true;
-      if (value)
-        v->value = value;
-      return;
-    }
-    s_var *new = xmalloc(sizeof(*new));
-    new->to_export = true;
-    new->value = value;
-    htable_add(env->vars, name, new);
-}
 
 
 static void unexport_var(s_env *env, char *name)
@@ -42,7 +25,7 @@ static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
 {
   char *var = expand(entry, env, cont);
   char *word = NULL;
-  char *name = strtok_r(var, "=", &word);
+  char *name = strdup(strtok_r(var, "=", &word));
   regex_t regex;
   if (regcomp(&regex, "^[[:alpha:]_][[:alnum:]_]*$", REG_EXTENDED))
   {
@@ -53,15 +36,17 @@ static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
   {
     warnx("export: '%s': not a valid identifier", entry);
     regfree(&regex);
+    free(var);
     return 1;
   }
   if (remove)
     unexport_var(env, name);
   else if (*word == '\0' && *(word - 1) != '=')
-    export_value(env, name, NULL);
+    assign_var(env, name, NULL, true);
   else
-    export_value(env, name, expand(word, env, cont));
+    assign_var(env, name, expand(word, env, cont), true);
   regfree(&regex);
+  free(var);
   return 0;
 }
 
@@ -77,8 +62,7 @@ static void export_print(s_env *env)
       s_var *var = pair->value;
       if (var->to_export && var->value)
         printf("export %s=\"%s\"\n", pair->key, var->value);
-      else if (var->to_export)
-        printf("export %s\n", pair->key);
+      else if (var->to_export) printf("export %s\n", pair->key);
       pair = pair->next;
     }
   }
