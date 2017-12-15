@@ -11,6 +11,7 @@
   F(break)                                      \
   F(continue)                                   \
   F(shopt)                                      \
+  F(source)                                     \
   F(export)
 
 
