@@ -7,7 +7,8 @@
 s_ex_class g_clean_exit;
 
 
-void ATTR(noreturn) clean_err(s_errcont *cont, int retcode, const char *fmt, ...)
+void ATTR(noreturn) clean_err(s_errcont *cont, int retcode,
+                              const char *fmt, ...)
 {
   va_list ap;
   va_start(ap, fmt);
