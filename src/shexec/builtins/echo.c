@@ -4,9 +4,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "utils/evect.h"
+#include "cli/shopt.h"
 #include "shexec/builtins.h"
-
+#include "utils/evect.h"
 
 enum shecho_opt
 {
@@ -126,12 +126,12 @@ static void echo_print_esc(char **c, s_evect *vec)
 }
 
 
-static void echo_print(char *c, int *opt, s_evect *vec)
+static void echo_print(char *c, int opt, s_evect *vec)
 {
   bool esc = false;
-  for (; *c && !(*opt & SHECHO_RET); c++)
+  for (; *c && !(opt & SHECHO_RET); c++)
   {
-    if (!(*opt & SHECHO_ESC))
+    if (!(opt & SHECHO_ESC))
       evect_push(vec, *c);
     else if (!esc)
     {
@@ -156,7 +156,7 @@ int builtin_echo(s_env *env, s_errcont *cont, int argc, char **argv)
   if (!env || !cont)
     warnx("cd: missing context elements");
 
-  int opt = 0;
+  int opt = SHECHO_ESC * g_shopts[SHOPT_XPG_ECHO];
   builtin_echo_parse_opt(&opt, argc, argv);
   s_evect vec;
   if (argv[optind])
@@ -167,7 +167,7 @@ int builtin_echo(s_env *env, s_errcont *cont, int argc, char **argv)
   {
     if (i != optind)
       evect_push(&vec, ' ');
-    echo_print(argv[i], &opt, &vec);
+    echo_print(argv[i], opt, &vec);
   }
   if (!(opt & SHECHO_NL))
     evect_push(&vec, '\n');
