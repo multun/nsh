@@ -41,10 +41,29 @@ void subshell_parent(int cfd, s_evect *res)
 }
 
 
+static char *subshell_find_par(char *str)
+{
+  size_t count = 1;
+  while (count && *str)
+  {
+    if (*str == '\\')
+    {
+      str += 2;
+      continue;
+    }
+    if (*str == '(')
+      count++;
+    else if (*str == ')')
+      count--;
+    if (count)
+      str++;
+  }
+  return str;
+}
+
 void expand_subshell(s_errcont *cont, char **str, s_env *env, s_evect *vec)
 {
-  char *nstr = strrchr(*str, ')');
-  char *buf = strndup(*str, nstr - *str);
+  char *buf = strndup(*str, subshell_find_par(*str) - *str);
   // TODO: subshell error handling
   int pfd[2];
   pipe(pfd);
@@ -66,7 +85,7 @@ void expand_subshell(s_errcont *cont, char **str, s_env *env, s_evect *vec)
   close(pfd[0]);
   int status;
   waitpid(cpid, &status, 0);
-  *str = nstr + 1;
+  *str = subshell_find_par(*str) + 1;
 }
 
 
