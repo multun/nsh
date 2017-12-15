@@ -81,6 +81,7 @@ static bool read_subshell(s_cstream *cs, s_token *tok, s_errcont *errcont)
     TOK_PUSH(tok, cstream_pop(cs));
     return true;
   }
+
   size_t nb_par = 0;
   while ((tok->delim = cstream_peek(cs)) != EOF)
   {
@@ -90,12 +91,12 @@ static bool read_subshell(s_cstream *cs, s_token *tok, s_errcont *errcont)
       return true;
     if (tok->delim == ')')
       nb_par--;
-    if (tok->delim == '\\')
-      read_backslash(cs, tok, errcont);
-    else if (try_read_word(cs, tok, errcont))
+    if (try_read_word(cs, tok, errcont))
       TOK_PUSH(tok, cstream_pop(cs));
   }
 
+  if (!nb_par)
+    return true;
   LEXERROR(&cs->line_info, errcont, "unexpected EOF"
            " while reading subshell or arthimetic string");
 }
