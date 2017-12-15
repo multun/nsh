@@ -4,7 +4,7 @@
 #include <string.h>
 
 
-bool g_shopts[SHOPT_COUNT];
+int g_shopts[SHOPT_COUNT];
 
 
 #define STRING_LIST(Enum, StrRepr) StrRepr,

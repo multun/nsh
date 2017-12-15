@@ -32,7 +32,7 @@ typedef enum shopt
 } e_shopt;
 
 
-extern bool g_shopts[SHOPT_COUNT];
+extern int g_shopts[SHOPT_COUNT];
 
 
 e_shopt shopt_from_string(const char *str);

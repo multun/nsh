@@ -20,7 +20,6 @@ struct cmdopts
   int norc;
   int src;
   int shmode;
-  int ast_print;
 };
 
 

@@ -17,7 +17,7 @@ struct cmdopts g_cmdopts;
 static struct option g_long_options[] =
 {
   {"norc",        no_argument, &g_cmdopts.norc,   true},
-  {"ast-print",   no_argument, &g_cmdopts.ast_print, true},
+  {"ast-print",   no_argument, &g_shopts[SHOPT_AST_PRINT], true},
   {"version",     no_argument, &g_cmdopts.shmode, SHMODE_VERSION},
   {"help",        no_argument, 0,                 'h'},
   {0, 0, 0, 0}

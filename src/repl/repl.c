@@ -1,4 +1,5 @@
 #include "cli/cmdopts.h"
+#include "cli/shopt.h"
 #include "repl/history.h"
 #include "repl/repl.h"
 #include "shexec/clean_exit.h"
@@ -7,13 +8,12 @@
 #include "utils/error.h"
 
 
-
 static void try_re(s_lexer *lex, s_errcont *errcont, s_context *cont)
 {
   parse(&cont->ast, lex, errcont);
   if (cont->ast)
   {
-    if (g_cmdopts.ast_print)
+    if (g_shopts[SHOPT_AST_PRINT])
     {
       FILE *f = fopen("42sh_ast.dot", "w+");
       ast_print(f, cont->ast);
