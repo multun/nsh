@@ -1,0 +1,7 @@
+{
+  "desc": "Simple output redirect test",
+  "stdin": "echo this is a test > file; echo oops > file; cat file",
+  "stdout": "oops\n",
+  "stderr": "",
+  "retcode": 0
+}
