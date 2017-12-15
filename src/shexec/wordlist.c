@@ -7,7 +7,7 @@
 #include "utils/alloc.h"
 
 
-char **wordlist_to_argv(s_wordlist *wl, s_env *env, s_errcont *cont)
+void wordlist_to_argv(char ***res, s_wordlist *wl, s_env *env, s_errcont *cont)
 {
   size_t argc = 0;
   s_wordlist *tmp = wl;
@@ -17,8 +17,7 @@ char **wordlist_to_argv(s_wordlist *wl, s_env *env, s_errcont *cont)
     tmp = tmp->next;
   }
 
-  char **argv = xmalloc(sizeof (char*) * (argc + 1));
-  argv[argc] = NULL;
+  char **argv = *res = calloc(sizeof (char*), (argc + 1));
 
   for (size_t i = 0; i < argc; (wl = wl->next), i++)
   {
@@ -26,8 +25,6 @@ char **wordlist_to_argv(s_wordlist *wl, s_env *env, s_errcont *cont)
     argv[i] = unquote(expanded);
     free(expanded);
   }
-
-  return argv;
 }
 
 

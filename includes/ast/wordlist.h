@@ -34,7 +34,7 @@ typedef struct wordlist
 ** \param wl the wordlist
 ** \param env the current environment
 **/
-char **wordlist_to_argv(s_wordlist *wl, s_env *env, s_errcont *cont);
+void wordlist_to_argv(char ***res, s_wordlist *wl, s_env *env, s_errcont *cont);
 
 
 /**
