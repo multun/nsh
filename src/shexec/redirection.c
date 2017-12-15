@@ -37,7 +37,7 @@ static int redir_great(struct redir_params *params)
   int stdout_copy = fd_move_away(STDOUT_FILENO);
 
   s_aredirection *aredir = params->aredir;
-  int fd_file = open(aredir->right->str, O_CREAT | O_WRONLY, 0664);
+  int fd_file = open(aredir->right->str, O_CREAT | O_WRONLY | O_TRUNC, 0664);
   if (fd_file < 0)
   {
     warnx("%s: Permission denied\n", aredir->right->str);
@@ -158,7 +158,7 @@ static int redir_lessgreat(struct redir_params *params)
   s_aredirection *aredir = params->aredir;
   if (aredir->left == -1)
     aredir->left = 0;
-  int fd = open(aredir->right->str, O_CREAT | O_RDWR, 0664);
+  int fd = open(aredir->right->str, O_CREAT | O_RDWR | O_TRUNC, 0664);
   if (fd < 0)
   {
     warnx("%s: Permission denied\n", aredir->right->str);
