@@ -98,9 +98,10 @@ char *expand(char *str, s_env *env, s_errcont *cont)
 {
   s_evect vec;
   evect_init(&vec, strlen(str) + 1);
+  bool sing_quote = false;
   while (*str)
   {
-    if (*str == '$' && str[1] && str++)
+    if (!sing_quote && *str == '$' && str[1] && str++)
     {
       if (*str == '(' && str++)
       {
@@ -113,7 +114,13 @@ char *expand(char *str, s_env *env, s_errcont *cont)
         expand_var(&str, env, &vec);
     }
     else
+    {
+      if (*str == '\'')
+        sing_quote = !sing_quote;
+      else if (!sing_quote && *str == '\\')
+        evect_push(&vec, *(str++));
       evect_push(&vec, *(str++));
+    }
   }
   evect_push(&vec, '\0');
   return vec.data;
