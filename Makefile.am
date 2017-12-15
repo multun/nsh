@@ -21,7 +21,7 @@ doc:
 
 42sh_LDADD = src/repl/librepl.la src/shparse/libparse.la src/shexec/libshexec.la \
              src/cli/libcli.la src/shlex/libshlex.la src/io/libio.la \
-             src/utils/libutils.la src/shexp/libshexp.la
+             src/shexp/libshexp.la src/utils/libutils.la
 
 42sh_SOURCES = src/main.c
 
