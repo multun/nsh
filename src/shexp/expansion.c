@@ -80,7 +80,7 @@ static void expand_var(char **str, s_env *env, s_evect *vec)
     for (; i > 0; i--)
       if (var_lookup(env, strndup(var.data, i)))
         break;
-  char *res = var_lookup(env, strndup(var.data, i));
+  char *res = i ? var_lookup(env, strndup(var.data, i)) : NULL;
   evect_destroy(&var);
 
   if (res)
