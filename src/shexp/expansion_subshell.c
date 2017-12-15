@@ -43,7 +43,7 @@ void subshell_parent(int cfd, s_evect *res)
 
 void expand_subshell(s_errcont *cont, char **str, s_env *env, s_evect *vec)
 {
-  char *nstr = strchr(*str, ')');
+  char *nstr = strrchr(*str, ')');
   char *buf = strndup(*str, nstr - *str);
   // TODO: subshell error handling
   int pfd[2];
@@ -55,6 +55,8 @@ void expand_subshell(s_errcont *cont, char **str, s_env *env, s_evect *vec)
     dup2(pfd[1], 1);
     int res = subshell_child(env, buf);
     free(buf);
+    evect_destroy(vec);
+    close(pfd[1]);
     clean_exit(cont, res);
   }
 
