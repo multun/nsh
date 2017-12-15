@@ -1,0 +1,7 @@
+{
+  "desc": "A simple uncaptured subshell",
+  "stdin": "a=1; (a=2); echo $a",
+  "stdout": "1\n",
+  "stderr": "",
+  "retcode": 0
+}
