@@ -1,0 +1,7 @@
+{
+  "desc": "A subshell runtime lexing test, about parenthesis closing",
+  "stdin": "echo -n \"$(echo coucou))\"",
+  "stdout": "coucou)",
+  "stderr": "",
+  "retcode": 0
+}
