@@ -13,7 +13,6 @@
 typedef struct context
 {
   s_env *env;
-  s_ast_list *ast_list;
   bool line_start;
   s_ast *ast;
   s_cstream *cs;

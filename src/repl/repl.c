@@ -55,7 +55,7 @@ static bool ast_exec_consumer(s_lexer *lex, s_context *cont)
   else
     try_re(lex, &ERRCONT(&eman, &keeper), cont);
 
-  cont->ast_list = ast_list_append(cont->ast_list, cont->ast);
+  cont->env->ast_list = ast_list_append(cont->env->ast_list, cont->ast);
   return stopping;
 }
 

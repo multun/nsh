@@ -1,13 +1,14 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "shexec/args.h"
-#include "shexec/environment.h"
 #include "ast/assignment.h"
+#include "ast/ast_list.h"
+#include "shexec/args.h"
+#include "shexec/builtins.h"
+#include "shexec/environment.h"
+#include "shexp/variable.h"
 #include "utils/alloc.h"
 #include "utils/hash_table.h"
-#include "shexp/variable.h"
-#include "shexec/builtins.h"
 
 
 s_env *environment_create(char *argv[])
@@ -16,7 +17,7 @@ s_env *environment_create(char *argv[])
   env->argv = argv_dup(argv);
   env->vars = htable_create(10);
   env->functions = htable_create(10);
-
+  env->ast_list = NULL;
   env->code = 0;
 
   env->break_count = 0;
@@ -64,6 +65,7 @@ void environment_free(s_env *env)
   if (!env)
     return;
 
+  ast_list_free(env->ast_list);
   htable_map(env->vars, var_free);
   argv_free(env->argv);
   htable_free(env->vars);
