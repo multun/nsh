@@ -13,7 +13,7 @@
   F(NOCASEGLOB, "nocaseglob")                   \
   F(NULLGLOB, "nullglob")                       \
   F(SOURCEPATH, "sourcepath")                   \
-  F(XPG_ECH, "xpg_ech")
+  F(XPG_ECH, "xpg_echo")
 
 
 typedef enum shopt
@@ -25,7 +25,7 @@ typedef enum shopt
   SHOPT_NOCASEGLOB,
   SHOPT_NULLGLOB,
   SHOPT_SOURCEPATH,
-  SHOPT_XPG_ECH,
+  SHOPT_XPG_ECHO,
   // this guard counts the number
   // of elements in the enum
   SHOPT_COUNT,
