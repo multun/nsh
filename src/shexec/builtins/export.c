@@ -18,11 +18,13 @@ static void unexport_var(s_env *env, char *name)
     s_var *var = prev->value;
     var->to_export = false;
   }
+  free(name);
 }
 
 
 static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
 {
+  int res = 0;
   char *var = expand(entry, env, cont);
   char *word = NULL;
   char *name = strdup(strtok_r(var, "=", &word));
@@ -35,11 +37,10 @@ static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
   if (entry[0] == '=' || regexec(&regex, name, 0, NULL, 0) == REG_NOMATCH)
   {
     warnx("export: '%s': not a valid identifier", entry);
-    regfree(&regex);
-    free(var);
-    return 1;
+    free(name);
+    res = 1;
   }
-  if (remove)
+  else if (remove)
     unexport_var(env, name);
   else if (*word == '\0' && *(word - 1) != '=')
     assign_var(env, name, NULL, true);
@@ -47,7 +48,7 @@ static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
     assign_var(env, name, expand(word, env, cont), true);
   regfree(&regex);
   free(var);
-  return 0;
+  return res;
 }
 
 
@@ -62,7 +63,8 @@ static void export_print(s_env *env)
       s_var *var = pair->value;
       if (var->to_export && var->value)
         printf("export %s=\"%s\"\n", pair->key, var->value);
-      else if (var->to_export) printf("export %s\n", pair->key);
+      else if (var->to_export)
+        printf("export %s\n", pair->key);
       pair = pair->next;
     }
   }
