@@ -1,0 +1,7 @@
+{
+  "desc": "A quoted dollar",
+  "stdin": "echo \"$\"",
+  "stdout": "$\n",
+  "stderr": "",
+  "retcode": 0
+}
