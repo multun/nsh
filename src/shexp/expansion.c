@@ -79,7 +79,6 @@ static bool is_name_char(char c, bool first)
 
 static void fill_var(char **str, s_evect *vec, bool braces)
 {
-
   evect_init(vec, strlen(*str));
 
   if (!is_name_char(**str, true))
@@ -88,12 +87,18 @@ static void fill_var(char **str, s_evect *vec, bool braces)
   evect_push(vec, **str);
   (*str)++;
 
-  for (; **str && ((!braces && is_name_char(**str, false)) || **str != '}'); (*str)++)
+  for (; **str && is_name_char(**str, false) && (!braces || **str != '}'); (*str)++)
       evect_push(vec, **str);
+
+  if (braces)
+  {
+    assert(**str == '}');
+    (*str)++;
+  }
 }
 
 
-static void expand_var(char **str, s_env *env, s_evect *vec)
+static void expand_var(char **str, s_env *env, s_evect *vec, bool quoted)
 {
   bool braces = **str == '{';
   if (braces)
@@ -111,13 +116,12 @@ static void expand_var(char **str, s_env *env, s_evect *vec)
   evect_destroy(&var);
 
   if (res)
-    for (; *res; res++)
-      evect_push(vec, *res);
-  if (braces)
-  {
-    assert(**str == '}');
-    (*str)++;
-  }
+    for (char *it = res; *it; it++)
+    {
+      if (quoted && expansion_protected_char(*it))
+        evect_push(vec, '\\');
+      evect_push(vec, *it);
+   }
 }
 
 
@@ -138,20 +142,34 @@ static bool starts_expansion(char c)
 }
 
 
-static bool expand_dollar(char **str, s_evect *vec, s_env *env, s_errcont *cont)
+
+static bool expand_dollar(s_exp_ctx ctx, s_evect *vec, s_env *env, s_errcont *cont)
 {
-  if (!(starts_expansion((*str)[1]) && (*str)++))
+  if (!(starts_expansion((*ctx.str)[1]) && (*ctx.str)++))
     return false;
-  if (**str == '(' && (*str)++)
+  if (**ctx.str == '(' && (*ctx.str)++)
   {
-    if (*(*str) == '(')
-      expand_arth(str, env, vec);
+    if (*(*ctx.str) == '(')
+      expand_arth(ctx.str, env, vec);
     else
-      expand_subshell(cont, str, env, vec);
+      expand_subshell(cont, ctx.str, env, vec);
   }
   else
-    expand_var(str, env, vec);
+    expand_var(ctx.str, env, vec, *ctx.quoted);
   return true;
+}
+
+
+bool expansion_protected_char(char c)
+{
+  switch (c)
+  {
+  case '\\': case '\'': case '"': case ')': case '(':
+  case '{': case '}':
+    return true;
+  default:
+    return false;
+  }
 }
 
 
@@ -160,15 +178,23 @@ char *expand(char *str, s_env *env, s_errcont *cont)
   s_evect vec;
   evect_init(&vec, strlen(str) + 1);
   bool sing_quote = false;
+  bool doub_quote = false;
+  s_exp_ctx ctx = EXPCTX(&str, &doub_quote);
   while (*str)
-    if (!sing_quote && *str == '$' && expand_dollar(&str, &vec, env, cont))
+    if (!sing_quote && *str == '$' && expand_dollar(ctx, &vec, env, cont))
       continue;
     else
     {
-      if (*str == '\'')
+      if (*str == '\'' && !doub_quote)
         sing_quote = !sing_quote;
+      else if (*str == '"' && !sing_quote)
+        doub_quote = !doub_quote;
       else if (!sing_quote && *str == '\\')
-        evect_push(&vec, *(str++));
+      {
+        if (doub_quote && expansion_protected_char(*str))
+          evect_push(&vec, *(str));
+        str++;
+      }
       evect_push(&vec, *(str++));
     }
   evect_push(&vec, '\0');
