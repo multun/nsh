@@ -66,14 +66,17 @@ int cmd_exec_argv(s_env *env, s_errcont *cont)
 int cmd_exec(s_env *env, s_ast *node, s_errcont *cont)
 {
   s_wordlist *wl = node->data.ast_cmd.wordlist;
-  char **prev_argv = env->argv;
+  char **volatile prev_argv = env->argv;
   s_keeper keeper = KEEPER(cont->keeper);
 
   int res = 0;
   if (setjmp(keeper.env))
   {
-    argv_free(env->argv);
-    env->argv = prev_argv;
+    if (prev_argv != env->argv)
+    {
+      argv_free(env->argv);
+      env->argv = prev_argv;
+    }
     shraise(cont, NULL);
   }
   else
