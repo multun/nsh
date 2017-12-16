@@ -26,35 +26,41 @@ void update_pwd(bool oldpwd, s_env *env)
 }
 
 
-static int cd_from_env(const char *env_var, s_env *env)
+static int cd_from_env(const char *env_var, s_env *env, bool save)
 {
   struct pair *p = htable_access(env->vars, env_var);
   char *path = NULL;
   if (p && p->value)
   {
-    s_var *node = p->value;
-    path = node->value;
-    if (!strcmp("OLDPWD", env_var))
-      path = strdup(path);
+    s_var *var = p->value;
+    path = var->value;
   }
+
   if (!path)
   {
     warnx("cd: no %s set", env_var);
     return 1;
   }
+
+  if (save)
+    path = strdup(path);
+
   update_pwd(true, env);
   if (chdir(path) != 0)
   {
     warn("cd: chdir failed");
     return 1;
   }
+  if (save)
+    free(path);
+
   update_pwd(false, env);
   return 0;
 }
 
 static int cd_with_minus(s_env *env)
 {
-  int res = cd_from_env("OLDPWD", env);
+  int res = cd_from_env("OLDPWD", env, true);
 
   if (!res)
   {
@@ -84,7 +90,7 @@ int builtin_cd(s_env *env, s_errcont *cont, int argc, char **argv)
   }
 
   if (argc == 1)
-    return cd_from_env("HOME", env);
+    return cd_from_env("HOME", env, false);
   else if (!strcmp(argv[1], "-"))
     return cd_with_minus(env);
   else
