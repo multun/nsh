@@ -17,6 +17,24 @@ static int arth_exec_and(s_arth_ast *ast)
 }
 
 
+static int arth_exec_bor(s_arth_ast *ast)
+{
+  return arth_exec(ast->left) | arth_exec(ast->right);
+}
+
+
+static int arth_exec_band(s_arth_ast *ast)
+{
+  return arth_exec(ast->left) & arth_exec(ast->right);
+}
+
+
+static int arth_exec_xor(s_arth_ast *ast)
+{
+  return arth_exec(ast->left) ^ arth_exec(ast->right);
+}
+
+
 static int (*arth_exec_utils[])(s_arth_ast *ast) =
 {
   ARTH_TYPE_APPLY(DECLARE_ARTH_EXEC_UTILS)

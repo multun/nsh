@@ -15,9 +15,9 @@
 #define ARTH_TYPE_APPLY(F)                                                    \
   F(ARTH_OR, arth_parse_or, arth_exec_or)                                     \
   F(ARTH_AND, arth_parse_and, arth_exec_and)                                  \
-  F(ARTH_BOR, arth_parse_word, arth_exec_and)                                 \
-  F(ARTH_XOR, arth_parse_word, arth_exec_and)                                 \
-  F(ARTH_BAND, arth_parse_word, arth_exec_and)                                \
+  F(ARTH_BOR, arth_parse_bor, arth_exec_bor)                                  \
+  F(ARTH_XOR, arth_parse_xor, arth_exec_xor)                                  \
+  F(ARTH_BAND, arth_parse_band, arth_exec_band)                               \
   F(ARTH_PLUS, arth_parse_word, arth_exec_and)                                \
   F(ARTH_MINUS, arth_parse_word, arth_exec_and)                               \
   F(ARTH_TIME, arth_parse_word, arth_exec_and)                                \
