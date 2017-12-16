@@ -47,6 +47,7 @@ static bool special_var_lookup(char **res, s_env *env, char *var)
   return found;
 }
 
+
 static char *var_lookup(s_env *env, char *var)
 {
   char *look = NULL;
@@ -64,6 +65,29 @@ static char *var_lookup(s_env *env, char *var)
 }
 
 
+static bool is_name_char(char c, bool first)
+{
+  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
+         || (!first && c >= '0' && c <= '9');
+}
+
+
+static void fill_var(char **str, s_evect *vec, bool braces)
+{
+
+  evect_init(vec, strlen(*str));
+
+  if (!is_name_char(**str, true))
+    return;
+
+  evect_push(vec, **str);
+  (*str)++;
+
+  for (; **str && ((!braces && is_name_char(**str, false)) || **str != '}'); (*str)++)
+      evect_push(vec, **str);
+}
+
+
 static void expand_var(char **str, s_env *env, s_evect *vec)
 {
   bool braces = **str == '{';
@@ -71,9 +95,7 @@ static void expand_var(char **str, s_env *env, s_evect *vec)
     (*str)++;
 
   s_evect var;
-  evect_init(&var, strlen(*str));
-  for (; **str && (!braces || **str != '}'); (*str)++)
-      evect_push(&var, **str);
+  fill_var(str, &var, braces);
 
   size_t i = var.size;
   if (!braces)
