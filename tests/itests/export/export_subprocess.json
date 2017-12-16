@@ -1,0 +1,7 @@
+{
+  "desc": "Testing the state of exported variables in a new shell",
+  "stdin": "echo 'echo $yo' > meh.sh; export yo=coucou; $0 meh.sh",
+  "stdout": "coucou\n",
+  "stderr": "",
+  "retcode": 0
+}
