@@ -1,0 +1,7 @@
+{
+  "desc": "An advanced arithmetic expansion",
+  "stdin": "echo $((a + 1))",
+  "stdout": "1\n",
+  "stderr": "",
+  "retcode": 0
+}

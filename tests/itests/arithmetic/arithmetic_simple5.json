@@ -1,0 +1,7 @@
+{
+  "desc": "A simple arithmetic expansion",
+  "stdin": "echo $((42 | 13)); echo $((42 & 31)); echo $((42 ^ 31)); echo $((~42))",
+  "stdout": "47\n10\n53\n-43\n",
+  "stderr": "",
+  "retcode": 0
+}
