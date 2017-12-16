@@ -1,0 +1,7 @@
+{
+  "desc": "A single quote block inside a regular string",
+  "stdin": "echo '\"'\"$\\\"$(echo \\))$a\"",
+  "stdout": "\"$\")\n",
+  "stderr": "",
+  "retcode": 0
+}
