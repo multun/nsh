@@ -10,11 +10,19 @@
 #include <stdbool.h>
 
 
+/**
+** \brief describes the interpreted command line of the program
+*/
 typedef struct arg_context
 {
+  // the index of the program name inside the array.
+  // may not be 0 in case -c is used
   int progname_ind;
-  int argc;
+
+  // the index of the first positional argument
   int argc_base;
+
+  int argc;
   char **argv;
 } s_arg_context;
 
@@ -29,19 +37,36 @@ typedef struct arg_context
   }
 
 
+/**
+** \brief describes the current context of the read eval loop
+*/
 typedef struct context
 {
+  // the runtime environment, such as functions and variables
   s_env *env;
+
+  // whether we should display the ps1 instead of the ps2
+  // it may feel awkward to store this here, but it wouldn't
+  // make much sense either to store it inside the stream structure.
   bool line_start;
+
+  // the currently processed ast
   s_ast *ast;
+
+  // the stream the context works on
   s_cstream *cs;
+
+  // the lexer the loops pulls data from
   s_lexer *lexer;
+
+  // the history file, which may be NULL in case none should be opened
   FILE *history;
 } s_context;
 
 
 /**
 ** \brief runs shell command from an already setup context
+** \param ctx a runtime context
 */
 bool repl(s_context *ctx);
 
@@ -49,6 +74,18 @@ bool repl(s_context *ctx);
 
 /**
 ** \brief initializes a context from command line arguments
+** \desc this routine also loads rc files, which may fork and exit, thus
+**   explaining why this function may require the program to exit
+** \param rc the expected return code
+** \param cont the context to initialize
+** \param the arguments to read from
+** \returns whether the program should exit
 */
 bool context_init(int *rc, s_context *cont, s_arg_context *arg_cont);
+
+
+/**
+** \brief destroys an exiting context and all the ressources allocated
+**   by its init twin
+*/
 void context_destroy(s_context *cont);
