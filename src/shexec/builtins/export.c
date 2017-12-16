@@ -1,7 +1,5 @@
 #include <err.h>
-#include <regex.h>
 #include <string.h>
-#include <sys/types.h>
 
 #include "ast/assignment.h"
 #include "shexec/builtins.h"
@@ -28,13 +26,13 @@ static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
   char *var = expand(entry, env, cont);
   char *word = NULL;
   char *name = strdup(strtok_r(var, "=", &word));
-  regex_t regex;
-  if (regcomp(&regex, "^[[:alpha:]_][[:alnum:]_]*$", REG_EXTENDED))
-  {
-    warnx("export: an error occurs compiling the regex");
-    return 1;
-  }
-  if (entry[0] == '=' || regexec(&regex, name, 0, NULL, 0) == REG_NOMATCH)
+  bool valid = *name == '_' || (*name >= 'a' && *name <= 'z') 
+                        || (*name >= 'A' && *name <= 'Z');
+  for (char *c = name; valid && *c; c++)
+    valid = *c == '_' || (*name >= 'a' && *name <= 'z') 
+            || (*name >= 'A' && *name <= 'Z') || (*name >= '0' && *name <= '1');
+
+  if (entry[0] == '=' || !valid)
   {
     warnx("export: '%s': not a valid identifier", entry);
     free(name);
@@ -46,7 +44,6 @@ static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
     assign_var(env, name, NULL, true);
   else
     assign_var(env, name, expand(word, env, cont), true);
-  regfree(&regex);
   free(var);
   return res;
 }
