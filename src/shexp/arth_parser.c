@@ -5,6 +5,86 @@
 #include <stdlib.h>
 
 
+static s_arth_ast *arth_parse_pow(char **start, char **end, bool *err)
+{
+  const char *delim = "**";
+  int i = strsplit_r(start, &delim, 1);
+  if (i == end - start)
+    return NULL;
+
+  free(start[i]);
+  start[i] = NULL;
+  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
+  *ast = ARTH_AST(ARTH_POW, arth_parse_rec(start, start + i, err),
+                  arth_parse_rec(start + i + 1, end, err));
+  return ast;
+}
+
+
+static s_arth_ast *arth_parse_div(char **start, char **end, bool *err)
+{
+  const char *delim = "/";
+  int i = strsplit_r(start, &delim, 1);
+  if (i == end - start)
+    return NULL;
+
+  free(start[i]);
+  start[i] = NULL;
+  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
+  *ast = ARTH_AST(ARTH_DIV, arth_parse_rec(start, start + i, err),
+                  arth_parse_rec(start + i + 1, end, err));
+  return ast;
+}
+
+
+static s_arth_ast *arth_parse_time(char **start, char **end, bool *err)
+{
+  const char *delim = "*";
+  int i = strsplit_r(start, &delim, 1);
+  if (i == end - start)
+    return NULL;
+
+  free(start[i]);
+  start[i] = NULL;
+  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
+  *ast = ARTH_AST(ARTH_TIME, arth_parse_rec(start, start + i, err),
+                  arth_parse_rec(start + i + 1, end, err));
+  return ast;
+}
+
+
+static s_arth_ast *arth_parse_minus(char **start, char **end, bool *err)
+{
+  const char *delim = "-";
+  int i = strsplit_r(start, &delim, 1);
+  if (i == end - start)
+    return NULL;
+
+  free(start[i]);
+  start[i] = NULL;
+  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
+  *ast = ARTH_AST(ARTH_MINUS, arth_parse_rec(start, start + i, err),
+                  arth_parse_rec(start + i + 1, end, err));
+  return ast;
+}
+
+
+static s_arth_ast *arth_parse_plus(char **start, char **end, bool *err)
+{
+  const char *delim = "+";
+  int i = strsplit_r(start, &delim, 1);
+  if (i == end - start)
+    return NULL;
+
+  free(start[i]);
+  start[i] = NULL;
+  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
+  *ast = ARTH_AST(ARTH_PLUS, arth_parse_rec(start, start + i, err),
+                  arth_parse_rec(start + i + 1, end, err));
+  return ast;
+}
+
+
 static s_arth_ast *arth_parse_band(char **start, char **end, bool *err)
 {
   const char *delim = "&";
