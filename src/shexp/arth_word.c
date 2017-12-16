@@ -1,13 +1,14 @@
 #include "shexp/arth.h"
 #include "utils/alloc.h"
 
+#include <assert.h>
 #include <err.h>
 
 
 static int wordtoi(char *str, bool *err)
 {
-  if (!*str)
-    return 0;
+  if (!(*str))
+    return 0; 
   int n = 0;
   bool neg = str[0] == '-';
   str += neg;
@@ -20,8 +21,10 @@ static int wordtoi(char *str, bool *err)
   return neg ? -n : n;
 }
 
-s_arth_ast *arth_parse_word(char **start, bool *err)
+
+s_arth_ast *arth_parse_word(char **start, char **end, bool *err)
 {
+  assert(start < end);
   int n = wordtoi(*start, err);
   if (*err)
   {
