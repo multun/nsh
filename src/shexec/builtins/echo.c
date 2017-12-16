@@ -16,13 +16,13 @@ enum shecho_opt
 };
 
 
-static void builtin_echo_parse_opt(int *opt, int argc, char **argv)
+static int builtin_echo_parse_opt(int *opt, char **argv)
 {
-  int option = -1;
-  optind = 0;
-  for (bool running = true; running
-       && (option = getopt(argc, argv, "+:neE"));)
-    switch (option)
+  int pos = 1;
+  bool run = true;
+  while (run && argv[pos] && *(argv[pos]) == '-' && strlen(argv[pos]) == 2)
+  {
+    switch (argv[pos][1])
     {
     case 'n':
       *opt |= SHECHO_NL;
@@ -34,9 +34,13 @@ static void builtin_echo_parse_opt(int *opt, int argc, char **argv)
       *opt &= ~SHECHO_ESC;
       break;
     default:
-      running = false;
+      pos--;
+      run = false;
       break;
     }
+    pos++;
+  }
+  return pos;
 }
 
 
@@ -157,15 +161,15 @@ int builtin_echo(s_env *env, s_errcont *cont, int argc, char **argv)
     warnx("cd: missing context elements");
 
   int opt = SHECHO_ESC * g_shopts[SHOPT_XPG_ECHO];
-  builtin_echo_parse_opt(&opt, argc, argv);
+  int pos = builtin_echo_parse_opt(&opt, argv);
   s_evect vec;
-  if (argv[optind])
-    evect_init(&vec, strlen(argv[optind]));
+  if (argv[pos])
+    evect_init(&vec, strlen(argv[pos]));
   else
     evect_init(&vec, 2);
-  for (int i = optind; i < argc; i++)
+  for (int i = pos; i < argc; i++)
   {
-    if (i != optind)
+    if (i != pos)
       evect_push(&vec, ' ');
     echo_print(argv[i], opt, &vec);
   }
