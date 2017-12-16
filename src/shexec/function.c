@@ -31,7 +31,7 @@ int function_exec(s_env *env, s_ast *ast, s_errcont *cont)
     abort();
   s_afunction *function = &ast->data.ast_function;
   char *name = function->name->str;
-  struct pair *prev = htable_access(env->functions, name); 
+  struct pair *prev = htable_access(env->functions, name);
   if (prev)
     htable_remove(env->functions, name);
   htable_add(env->functions, name, function->value);

@@ -94,25 +94,37 @@ static void expand_var(char **str, s_env *env, s_evect *vec)
 }
 
 
+static bool starts_expansion(char c)
+{
+  return isalpha(c) || c == '(' || c == '{';
+}
+
+
+static bool expand_dollar(char **str, s_evect *vec, s_env *env, s_errcont *cont)
+{
+  if (!(starts_expansion((*str)[1]) && (*str)++))
+    return false;
+  if (**str == '(' && (*str)++)
+  {
+    if (*(*str) == '(')
+      expand_arth(str, env, vec);
+    else
+      expand_subshell(cont, str, env, vec);
+  }
+  else
+    expand_var(str, env, vec);
+  return true;
+}
+
+
 char *expand(char *str, s_env *env, s_errcont *cont)
 {
   s_evect vec;
   evect_init(&vec, strlen(str) + 1);
   bool sing_quote = false;
   while (*str)
-  {
-    if (!sing_quote && *str == '$' && str[1] && str++)
-    {
-      if (*str == '(' && str++)
-      {
-        if (*str == '(')
-          expand_arth(&str, env, &vec);
-        else
-          expand_subshell(cont, &str, env, &vec);
-      }
-      else
-        expand_var(&str, env, &vec);
-    }
+    if (!sing_quote && *str == '$' && expand_dollar(&str, &vec, env, cont))
+      continue;
     else
     {
       if (*str == '\'')
@@ -121,7 +133,6 @@ char *expand(char *str, s_env *env, s_errcont *cont)
         evect_push(&vec, *(str++));
       evect_push(&vec, *(str++));
     }
-  }
   evect_push(&vec, '\0');
   return vec.data;
 }
