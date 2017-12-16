@@ -1,29 +1,51 @@
 #include <stdlib.h>
 
 #include "ast/wordlist.h"
+#include "shexec/args.h"
 #include "shexec/environment.h"
 #include "shexp/expansion.h"
 #include "shexp/unquote.h"
 #include "utils/alloc.h"
 
 
-void wordlist_to_argv(char ***res, s_wordlist *wl, s_env *env, s_errcont *cont)
+static size_t wordlist_argc_count(s_wordlist *wl)
 {
   size_t argc = 0;
-  s_wordlist *tmp = wl;
-  while (tmp)
-  {
+  for (s_wordlist *tmp = wl; tmp; tmp = tmp->next)
     argc++;
-    tmp = tmp->next;
-  }
+  return argc;
+}
 
+
+static void wordlist_to_argv_sub(char ***res, s_wordlist *wl,
+                                 s_env *env, s_errcont *cont)
+{
+  size_t argc = wordlist_argc_count(wl);
   char **argv = *res = calloc(sizeof (char*), (argc + 1));
-
   for (size_t i = 0; i < argc; (wl = wl->next), i++)
   {
     char *expanded = expand(wl->str, env, cont);
     argv[i] = unquote(expanded);
     free(expanded);
+  }
+}
+
+
+// this function is here just in case res == &env->argv, so that expansion of
+// the parameters is done within the proper context
+void wordlist_to_argv(char ***res, s_wordlist *wl, s_env *env, s_errcont *cont)
+{
+  char **new_argv = NULL;
+  s_keeper keeper = KEEPER(cont->keeper);
+  if (setjmp(keeper.env))
+  {
+    argv_free(new_argv);
+    shraise(cont, NULL);
+  }
+  else
+  {
+    wordlist_to_argv_sub(&new_argv, wl, env, &ERRCONT(cont->errman, &keeper));
+    *res = new_argv;
   }
 }
 

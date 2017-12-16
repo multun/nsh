@@ -2,6 +2,7 @@
 #include "io/cstream.h"
 #include "repl/repl.h"
 #include "cli/cmdopts.h"
+#include "repl/repl.h"
 
 #include <err.h>
 #include <errno.h>
@@ -57,18 +58,27 @@ static int init_file(s_cstream **cs, char *path)
 }
 
 
-int cstream_dispatch_init(struct context *context, s_cstream **cs,
-                          int argc, char *argv[])
+int cstream_dispatch_init(s_context *context, s_cstream **cs,
+                          s_arg_context *arg_cont)
 {
+  char *first_arg = arg_cont->argv[arg_cont->argc_base];
+  int rebased_argc = arg_cont->argc - arg_cont->argc_base;
   if (g_cmdopts.src == SHSRC_COMMAND)
-    return init_command(cs, argc, argv[0]);
+  {
+    // we need to increase the base so that the other
+    // routines properly consider arguments
+    int new_progind = arg_cont->argc_base + 1;
+    if (arg_cont->argv[new_progind])
+      arg_cont->progname_ind = new_progind;
+    arg_cont->argc_base += 1 + !!arg_cont->argv[new_progind];
+    return init_command(cs, rebased_argc, first_arg);
+  }
+
+  if (rebased_argc >= 1)
+    return init_file(cs, first_arg);
 
 
-  if (argc >= 1)
-    return init_file(cs, argv[0]);
-
-
-  if (is_interactive(argc))
+  if (is_interactive(rebased_argc))
   {
     *cs = cstream_readline();
     (*cs)->interactive = true;

@@ -10,6 +10,25 @@
 #include <stdbool.h>
 
 
+typedef struct arg_context
+{
+  int progname_ind;
+  int argc;
+  int argc_base;
+  char **argv;
+} s_arg_context;
+
+
+#define ARG_CONTEXT(Argc, ArgcBase, Argv)       \
+  (s_arg_context)                               \
+  {                                             \
+    .progname_ind = 0,                          \
+    .argc = (Argc),                             \
+    .argc_base = (ArgcBase),                    \
+    .argv = (Argv)                              \
+  }
+
+
 typedef struct context
 {
   s_env *env;
@@ -31,5 +50,5 @@ bool repl(s_context *ctx);
 /**
 ** \brief initializes a context from command line arguments
 */
-bool context_init(int *rc, s_context *cont, int argc, char *argv[]);
+bool context_init(int *rc, s_context *cont, s_arg_context *arg_cont);
 void context_destroy(s_context *cont);

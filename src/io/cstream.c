@@ -8,8 +8,7 @@
 s_cstream *cstream_create_base(void)
 {
   s_cstream *cs = xmalloc(sizeof(*cs));
-  cs->linebuf =
-  (s_evect)
+  cs->linebuf = (s_evect)
   {
     0
   };

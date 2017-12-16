@@ -5,5 +5,8 @@
 #include <stdio.h>
 
 
+struct arg_context;
+
+
 int cstream_dispatch_init(struct context *context, s_cstream **cs,
-                          int argc, char *argv[]);
+                          struct arg_context *arg_cont);

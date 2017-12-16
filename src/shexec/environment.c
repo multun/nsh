@@ -1,6 +1,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "repl/repl.h"
 #include "ast/assignment.h"
 #include "ast/ast_list.h"
 #include "shexec/args.h"
@@ -11,10 +12,24 @@
 #include "utils/hash_table.h"
 
 
-s_env *environment_create(char *argv[])
+
+static char **arg_context_extract(s_arg_context *args)
+{
+  int argc = args->argc - args->argc_base;
+  // the first additional element is argv[0],
+  // the other one is the terminating NULL
+  char **ret = xcalloc(sizeof(char **), argc + 2);
+  ret[0] = strdup(args->argv[args->progname_ind]);
+  for (int i = 0; i < argc; i++)
+    ret[i + 1] = strdup(args->argv[args->argc_base + i]);
+  // no need to add the terminating null, as we already calloced
+  return ret;
+}
+
+s_env *environment_create(s_arg_context *arg_cont)
 {
   s_env *env = xmalloc(sizeof (s_env));
-  env->argv = argv_dup(argv);
+  env->argv = arg_context_extract(arg_cont);
   env->vars = htable_create(10);
   env->functions = htable_create(10);
   env->ast_list = NULL;

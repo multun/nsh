@@ -118,7 +118,7 @@ static void expand_var(char **str, s_env *env, s_evect *vec)
 
 static bool starts_expansion(char c)
 {
-  if (isalpha(c))
+  if (isalpha(c) || isdigit(c))
     return true;
 
   switch (c)

@@ -1,14 +1,12 @@
 #include "cli/cmdopts.h"
 #include "repl/repl.h"
 
-#include <stdio.h>
 
-
-static int run(int argc, char *argv[])
+static int run(s_arg_context *arg_cont)
 {
   s_context cont;
   int res = 0;
-  bool should_exit = context_init(&res, &cont, argc, argv);
+  bool should_exit = context_init(&res, &cont, arg_cont);
 
   if (!should_exit)
   {
@@ -29,8 +27,5 @@ int main(int argc, char *argv[])
   if (cmdstart < 0)
     return -(cmdstart + 1);
 
-  argc -= cmdstart;
-  argv += cmdstart;
-
-  return run(argc, argv);
+  return run(&ARG_CONTEXT(argc, cmdstart, argv));
 }

@@ -42,16 +42,16 @@ static bool context_load_rc(s_context *cont)
 }
 
 
-bool context_init(int *rc, s_context *cont, int argc, char *argv[])
+bool context_init(int *rc, s_context *cont, s_arg_context *arg_cont)
 {
   // these are initialized here in case managed_stream_init fails
   cont->env = NULL;
   cont->history = NULL;
 
-  if ((*rc = cstream_dispatch_init(cont, &cont->cs, argc, argv)))
+  if ((*rc = cstream_dispatch_init(cont, &cont->cs, arg_cont)))
     return true;
 
-  cont->env = environment_create(argv + (g_cmdopts.src == SHSRC_COMMAND));
+  cont->env = environment_create(arg_cont);
 
   if (cont->cs->interactive && !g_cmdopts.norc && context_load_rc(cont))
   {
