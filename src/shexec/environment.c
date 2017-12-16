@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 #include <unistd.h>
 
 #include "repl/repl.h"
@@ -26,6 +27,7 @@ static char **arg_context_extract(s_arg_context *args)
   return ret;
 }
 
+
 s_env *environment_create(s_arg_context *arg_cont)
 {
   s_env *env = xmalloc(sizeof (s_env));
@@ -40,6 +42,49 @@ s_env *environment_create(s_arg_context *arg_cont)
   env->depth = 0;
   environment_load(env);
   return env;
+}
+
+
+static bool vartoenv(struct pair *node, char **pos)
+{
+  s_var *var = node->value;
+  if (!var->to_export)
+    return false;
+  size_t size = strlen(node->key) + 1;
+  if (var->value && *var->value)
+  {
+    size += strlen(var->value) + 1;
+    *pos = xmalloc(size * sizeof(char));
+    sprintf(*pos, "%s=%s", node->key, var->value);
+  }
+  else
+  {
+    *pos = xmalloc(size * sizeof(char));
+    sprintf(*pos, "%s", node->key);
+  }
+  return true;
+}
+
+
+char **environment_array(s_env *env)
+{
+  char **res = xmalloc((env->vars->size + 1) * sizeof(char *));
+  size_t pos = 0;
+  for (size_t i = 0; i < env->vars->capacity; i++)
+  {
+    struct pair *pp = NULL;
+    struct pair *fp = env->vars->tab[i];
+    while (fp || pp)
+    {
+      if (pp)
+        pos += vartoenv(pp, res + pos);
+      pp = fp;
+      if (fp)
+        fp = fp->next;
+    }
+  }
+  res[pos] = NULL;
+  return res;
 }
 
 

@@ -53,7 +53,7 @@ int cmd_exec_argv(s_env *env, s_errcont *cont)
     clean_err(cont, errno, "cmd_exec: error while forking");
   else if (pid == 0)
   {
-    execvp(env->argv[0], env->argv);
+    execvpe(env->argv[0], env->argv, environment_array(env));
     clean_err(cont, errno, "couldn't exec \"%s\"", env->argv[0]);
   }
   else
