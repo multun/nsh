@@ -20,8 +20,7 @@ static void negate_ast(s_ast **ast, bool neg)
 
 
 
-// TODO: fix leak on error, change api
-static s_ast *pipeline_loop(s_lexer *lexer, s_errcont *errcont, s_ast *res)
+static void pipeline_loop(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
   const s_token *tok = lexer_peek(lexer, errcont);
   while (tok_is(tok, TOK_PIPE))
@@ -31,12 +30,11 @@ static s_ast *pipeline_loop(s_lexer *lexer, s_errcont *errcont, s_ast *res)
     tok = lexer_peek(lexer, errcont);
     s_ast *pipe = xcalloc(sizeof(s_ast), 1);
     pipe->type = SHNODE_PIPE;
-    pipe->data.ast_pipe = APIPE(res, NULL);
+    pipe->data.ast_pipe = APIPE(*res, NULL);
+    *res = pipe;
     parse_command(&pipe->data.ast_pipe.right, lexer, errcont);
-    res = pipe;
     tok = lexer_peek(lexer, errcont);
   }
-  return res;
 }
 
 
@@ -49,8 +47,7 @@ void parse_pipeline(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 
   parse_command(res, lexer, errcont);
   tok = lexer_peek(lexer, errcont);
-  // TODO: fix obsolete api
-  *res = pipeline_loop(lexer, errcont, *res);
+  pipeline_loop(res, lexer, errcont);
   negate_ast(res, negation);
 }
 
