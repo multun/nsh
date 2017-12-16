@@ -1,8 +1,6 @@
 #pragma once
 
-
 #include <stddef.h>
-#include <stdbool.h>
 
 
 #define SHOPTS_APPLY(F)                         \
@@ -13,19 +11,14 @@
   F(NOCASEGLOB, "nocaseglob")                   \
   F(NULLGLOB, "nullglob")                       \
   F(SOURCEPATH, "sourcepath")                   \
-  F(XPG_ECH, "xpg_echo")
+  F(XPG_ECHO, "xpg_echo")
 
+
+#define SHOPT_ENUMIZE(EName, Repr) SHOPT_ ##EName,
 
 typedef enum shopt
 {
-  SHOPT_AST_PRINT,
-  SHOPT_DOTGLOB,
-  SHOPT_EXPAND_ALIASES,
-  SHOPT_EXTGLOB,
-  SHOPT_NOCASEGLOB,
-  SHOPT_NULLGLOB,
-  SHOPT_SOURCEPATH,
-  SHOPT_XPG_ECHO,
+  SHOPTS_APPLY(SHOPT_ENUMIZE)
   // this guard counts the number
   // of elements in the enum
   SHOPT_COUNT,
@@ -35,5 +28,15 @@ typedef enum shopt
 extern int g_shopts[SHOPT_COUNT];
 
 
+/**
+** \brief returns the shopt enum value from its string representation
+** \return SHOPT_COUNT on fail, the corresponding enum value otherwise
+*/
 e_shopt shopt_from_string(const char *str);
+
+
+/**
+** \brief returns the string representation of a shopt
+** \return NULL on fail, the corresponding string representation otherwise
+*/
 const char *string_from_shopt(size_t index);

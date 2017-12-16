@@ -25,7 +25,6 @@ int main(int argc, char *argv[])
 {
   int cmdstart = cmdopts_parse(argc, argv);
   if (cmdstart < 0)
-    return -(cmdstart + 1);
-
+    return CMDOPTS_STATUS(cmdstart);
   return run(&ARG_CONTEXT(argc, cmdstart, argv));
 }
