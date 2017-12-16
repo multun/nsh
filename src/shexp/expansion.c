@@ -81,13 +81,18 @@ static void fill_var(char **str, s_evect *vec, bool braces)
 {
   evect_init(vec, strlen(*str));
 
-  if (!is_name_char(**str, true))
+  bool num = false;
+  if (is_name_char(**str, false))
+    num = !is_name_char(**str, true);
+  else
     return;
 
   evect_push(vec, **str);
   (*str)++;
 
-  for (; **str && is_name_char(**str, false) && (!braces || **str != '}'); (*str)++)
+  for (; **str && ((is_name_char(**str, false) && !num)
+                   || (**str >= '0' && **str <= '9' && num))
+         && (!braces || **str != '}'); (*str)++)
       evect_push(vec, **str);
 
   if (braces)
