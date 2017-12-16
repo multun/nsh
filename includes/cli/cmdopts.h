@@ -1,13 +1,6 @@
 #pragma once
 
 
-enum shmode
-{
-  SHMODE_REGULAR,
-  SHMODE_VERSION,
-};
-
-
 enum shsrc
 {
   SHSRC_FILE,
@@ -19,7 +12,6 @@ struct cmdopts
 {
   int norc;
   int src;
-  int shmode;
 };
 
 

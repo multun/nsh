@@ -6,8 +6,9 @@
 #include <libgen.h>
 #include <string.h>
 
-#include "cli/shopt.h"
 #include "cli/cmdopts.h"
+#include "cli/shopt.h"
+#include "gen/config.h"
 
 
 
@@ -18,7 +19,7 @@ static struct option g_long_options[] =
 {
   {"norc",        no_argument, &g_cmdopts.norc,   true},
   {"ast-print",   no_argument, &g_shopts[SHOPT_AST_PRINT], true},
-  {"version",     no_argument, &g_cmdopts.shmode, SHMODE_VERSION},
+  {"version",     no_argument, 0,                 'v'},
   {"help",        no_argument, 0,                 'h'},
   {0, 0, 0, 0}
 };
@@ -57,6 +58,13 @@ static bool handle_shopt(bool val, const char *str)
 }
 
 
+static int handle_version(void)
+{
+  puts("Version " VERSION);
+  return -1;
+}
+
+
 int cmdopts_parse(int argc, char *argv[])
 {
   int opt_i = 0;
@@ -69,6 +77,8 @@ int cmdopts_parse(int argc, char *argv[])
     {
     case 0:
       break;
+    case 'v':
+      return handle_version();
     case 'c':
       g_cmdopts.src = SHSRC_COMMAND;
       break;

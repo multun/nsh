@@ -1,5 +1,4 @@
 #include "cli/cmdopts.h"
-#include "gen/config.h"
 #include "repl/repl.h"
 
 #include <stdio.h>
@@ -13,12 +12,6 @@ static int run(int argc, char *argv[])
 
   if (!should_exit)
   {
-    if (g_cmdopts.shmode == SHMODE_VERSION)
-    {
-      puts("Version " VERSION);
-      return 0;
-    }
-
     // the return value represents whether
     // the repl exited using an exception
     repl(&cont);
