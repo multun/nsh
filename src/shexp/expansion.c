@@ -103,7 +103,7 @@ static void fill_var(char **str, s_evect *vec, bool braces)
 }
 
 
-static void expand_var(char **str, s_env *env, s_evect *vec, bool quoted)
+static void expand_var(char **str, s_env *env, s_evect *vec)
 {
   bool braces = **str == '{';
   if (braces)
@@ -123,7 +123,7 @@ static void expand_var(char **str, s_env *env, s_evect *vec, bool quoted)
   if (res)
     for (char *it = res; *it; it++)
     {
-      if (quoted && expansion_protected_char(*it))
+      if (expansion_protected_char(*it))
         evect_push(vec, '\\');
       evect_push(vec, *it);
    }
@@ -152,6 +152,10 @@ static bool expand_dollar(s_exp_ctx ctx, s_evect *vec, s_env *env, s_errcont *co
 {
   if (!(starts_expansion((*ctx.str)[1]) && (*ctx.str)++))
     return false;
+
+  if (!ctx.quoted)
+    evect_push(vec, '"');
+
   if (**ctx.str == '(' && (*ctx.str)++)
   {
     if (*(*ctx.str) == '(')
@@ -160,7 +164,11 @@ static bool expand_dollar(s_exp_ctx ctx, s_evect *vec, s_env *env, s_errcont *co
       expand_subshell(cont, ctx.str, env, vec);
   }
   else
-    expand_var(ctx.str, env, vec, *ctx.quoted);
+    expand_var(ctx.str, env, vec);
+
+  if (!ctx.quoted)
+    evect_push(vec, '"');
+
   return true;
 }
 
@@ -169,8 +177,7 @@ bool expansion_protected_char(char c)
 {
   switch (c)
   {
-  case '\\': case '\'': case '"': case ')': case '(':
-  case '{': case '}':
+  case '\\': case '"':
     return true;
   default:
     return false;

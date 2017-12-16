@@ -31,7 +31,11 @@ void subshell_parent(int cfd, s_evect *res)
   int cur_char;
 
   while ((cur_char = fgetc(creader)) != EOF)
+  {
+    if (expansion_protected_char(cur_char))
+      evect_push(res, '\\');
     evect_push(res, cur_char);
+  }
 
   char c = 0;
   while (res->size > 1 && (c = res->data[res->size - 1]) == '\n')
