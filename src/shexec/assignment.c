@@ -1,5 +1,4 @@
 #include <err.h>
-#include <regex.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -48,22 +47,20 @@ int assignment_exec(s_env *env, s_ast *ast, s_ast *cmd, s_errcont *cont)
     return ast_exec(env, cmd, cont);
   char *name = strdup(ast->data.ast_assignment.name->str);
   char *value = expand(ast->data.ast_assignment.value->str, env, cont);
+  bool valid = *name == '_' || (*name >= 'a' && *name <= 'z') 
+               || (*name >= 'A' && *name <= 'Z');
 
-  regex_t regex;
-  if (regcomp(&regex, "^[[:alpha:]_][[:alnum:]_]*$", REG_EXTENDED))
-  {
-    warnx("export: an error occurs compiling the regex");
-    return 1;
-  }
-  if (regexec(&regex, name, 0, NULL, 0) == REG_NOMATCH)
+  for (char *c = name + 1; valid && *c; c++)
+    valid = *c == '_' || (*c >= 'a' && *c <= 'z') || (*c >= 'A' && *c <= 'Z') 
+            || (*c >= '0' && *c <= '9');
+
+  if (!valid)
   {
     warnx("assignment: '%s': not a valid identifier", name);
-    regfree(&regex);
     free(value);
     free(name);
     return 127;
   }
-  regfree(&regex);
 
   assign_var(env, name, value, cmd != NULL);
   return assignment_exec(env, ast->data.ast_assignment.action,

@@ -27,10 +27,11 @@ static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
   char *word = NULL;
   char *name = strdup(strtok_r(var, "=", &word));
   bool valid = *name == '_' || (*name >= 'a' && *name <= 'z') 
-                        || (*name >= 'A' && *name <= 'Z');
-  for (char *c = name; valid && *c; c++)
-    valid = *c == '_' || (*name >= 'a' && *name <= 'z') 
-            || (*name >= 'A' && *name <= 'Z') || (*name >= '0' && *name <= '1');
+               || (*name >= 'A' && *name <= 'Z');
+
+  for (char *c = name + 1; valid && *c; c++)
+    valid = *c == '_' || (*c >= 'a' && *c <= 'z') || (*c >= 'A' && *c <= 'Z') 
+            || (*c >= '0' && *c <= '9');
 
   if (entry[0] == '=' || !valid)
   {
