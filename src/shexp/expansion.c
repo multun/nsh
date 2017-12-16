@@ -11,7 +11,6 @@
 
 
 
-
 static bool predefined_lookup(char **res, s_env *env, char *var)
 {
   for (size_t i = 0; var[i]; i++)
@@ -19,13 +18,19 @@ static bool predefined_lookup(char **res, s_env *env, char *var)
       return false;
 
   size_t iarg = atoi(var);
-  for (size_t i = 0; i < iarg; i++)
-    if (!env->argv[i])
-    {
-      *res = NULL;
-      return false;
-    }
-  *res = env->argv[iarg];
+  if (!iarg)
+    *res = env->progname;
+  else
+  {
+    for (size_t i = 0; i < iarg; i++)
+      if (!env->argv[i])
+      {
+        *res = NULL;
+        return false;
+      }
+    *res = env->argv[iarg];
+  }
+
   free(var);
   return true;
 }

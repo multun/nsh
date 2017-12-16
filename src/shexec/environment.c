@@ -30,6 +30,7 @@ s_env *environment_create(s_arg_context *arg_cont)
 {
   s_env *env = xmalloc(sizeof (s_env));
   env->argv = arg_context_extract(arg_cont);
+  env->progname = strdup(arg_cont->argv[arg_cont->progname_ind]);
   env->vars = htable_create(10);
   env->functions = htable_create(10);
   env->ast_list = NULL;
@@ -80,6 +81,7 @@ void environment_free(s_env *env)
   if (!env)
     return;
 
+  free(env->progname);
   ast_list_free(env->ast_list);
   htable_map(env->vars, var_free);
   argv_free(env->argv);
