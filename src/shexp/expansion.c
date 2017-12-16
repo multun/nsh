@@ -96,7 +96,18 @@ static void expand_var(char **str, s_env *env, s_evect *vec)
 
 static bool starts_expansion(char c)
 {
-  return isalpha(c) || c == '(' || c == '{';
+  if (isalpha(c))
+    return true;
+
+  switch (c)
+  {
+  case '(': case '{': case '?':
+  case '@': case '*': case '$':
+  case '#':
+    return true;
+  default:
+    return false;
+  }
 }
 
 
