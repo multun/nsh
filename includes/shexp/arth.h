@@ -14,18 +14,18 @@
 
 #define ARTH_TYPE_APPLY(F)                                                    \
   F(ARTH_OR, arth_parse_or, arth_exec_or)                                     \
-  F(ARTH_AND, arth_parse_word, NULL)                                          \
-  F(ARTH_BOR, arth_parse_word, NULL)                                          \
-  F(ARTH_XOR, arth_parse_word, NULL)                                          \
-  F(ARTH_BAND, arth_parse_word, NULL)                                         \
-  F(ARTH_PLUS, arth_parse_word, NULL)                                         \
-  F(ARTH_MINUS, arth_parse_word, NULL)                                        \
-  F(ARTH_TIME, arth_parse_word, NULL)                                         \
-  F(ARTH_DIV, arth_parse_word, NULL)                                          \
-  F(ARTH_POW, arth_parse_word, NULL)                                          \
-  F(ARTH_NOT, arth_parse_word, NULL)                                          \
-  F(ARTH_BNOT, arth_parse_word, NULL)                                         \
-  F(ARTH_WORD, arth_parse_word, NULL)
+  F(ARTH_AND, arth_parse_and, arth_exec_and)                                  \
+  F(ARTH_BOR, arth_parse_word, arth_exec_and)                                 \
+  F(ARTH_XOR, arth_parse_word, arth_exec_and)                                 \
+  F(ARTH_BAND, arth_parse_word, arth_exec_and)                                \
+  F(ARTH_PLUS, arth_parse_word, arth_exec_and)                                \
+  F(ARTH_MINUS, arth_parse_word, arth_exec_and)                               \
+  F(ARTH_TIME, arth_parse_word, arth_exec_and)                                \
+  F(ARTH_DIV, arth_parse_word, arth_exec_and)                                 \
+  F(ARTH_POW, arth_parse_word, arth_exec_and)                                 \
+  F(ARTH_NOT, arth_parse_word, arth_exec_and)                                 \
+  F(ARTH_BNOT, arth_parse_word, arth_exec_and)                                \
+  F(ARTH_WORD, arth_parse_word, arth_exec_and)
 
 
 typedef struct arth_ast
