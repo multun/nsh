@@ -3,12 +3,12 @@
 #include <err.h>
 #include <string.h>
 
-#include "utils/evect.h"
-#include "shexec/environment.h"
+#include "shexec/builtin_shopt.h"
 #include "shexec/builtins.h"
+#include "shexec/environment.h"
 #include "shexp/expansion.h"
 #include "shexp/variable.h"
-
+#include "utils/evect.h"
 
 typedef struct exp_ctx
 {

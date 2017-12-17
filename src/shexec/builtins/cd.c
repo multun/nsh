@@ -13,8 +13,8 @@
 
 void update_pwd(bool oldpwd, s_env *env)
 {
-  char *buf = xcalloc(PATH_MAX, sizeof(char));
-  size_t size = PATH_MAX;
+  const size_t size = PATH_MAX;
+  char *buf = xcalloc(size, sizeof(char));
   if (!getcwd(buf, size))
   {
     free(buf);

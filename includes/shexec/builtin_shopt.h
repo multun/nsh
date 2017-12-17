@@ -1,0 +1,8 @@
+#pragma once
+
+
+/**
+** \brief expands to a colon separated list of the currently enables shopts
+** \param res an address to store the result at
+*/
+void expand_shopt(char **res);

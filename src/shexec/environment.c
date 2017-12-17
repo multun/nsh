@@ -2,16 +2,16 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "repl/repl.h"
 #include "ast/assignment.h"
 #include "ast/ast_list.h"
+#include "repl/repl.h"
 #include "shexec/args.h"
+#include "shexec/builtin_cd.h"
 #include "shexec/builtins.h"
 #include "shexec/environment.h"
 #include "shexp/variable.h"
 #include "utils/alloc.h"
 #include "utils/hash_table.h"
-
 
 
 static char **arg_context_extract(s_arg_context *args)
