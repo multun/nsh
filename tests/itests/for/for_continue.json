@@ -1,0 +1,7 @@
+{
+  "desc": "Test a succeeding for with a single instruction",
+  "stdin": "for e in a b c; do echo $e; continue; echo oops; done",
+  "stdout": "a\nb\nc\n",
+  "stderr": "",
+  "retcode": 0
+}

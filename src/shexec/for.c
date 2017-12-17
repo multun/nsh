@@ -29,7 +29,7 @@ void for_print(FILE *f, s_ast *ast)
 
 static void for_exception_handler(volatile bool *local_continue,
                                   s_errcont *cont,
-                                  s_env *env)
+                                  s_env *env, s_wordlist *volatile *wl)
 {
   // the break builtin ensures no impossible break is emitted
   if (cont->errman->class != &g_lbreak || --env->break_count)
@@ -37,7 +37,9 @@ static void for_exception_handler(volatile bool *local_continue,
     env->depth--;
     shraise(cont, NULL);
   }
-  *local_continue = env->break_continue;
+
+  if ((*local_continue = env->break_continue))
+    (*wl) = (*wl)->next;
 }
 
 int for_exec(s_env *env, s_ast *ast, s_errcont *cont)
@@ -52,7 +54,7 @@ int for_exec(s_env *env, s_ast *ast, s_errcont *cont)
   s_keeper keeper = KEEPER(cont->keeper);
   s_errcont ncont = ERRCONT(cont->errman, &keeper);
   if (setjmp(keeper.env))
-    for_exception_handler(&local_continue, cont, env);
+    for_exception_handler(&local_continue, cont, env, &wl);
 
   if (local_continue)
     for (; wl; wl = wl->next)
