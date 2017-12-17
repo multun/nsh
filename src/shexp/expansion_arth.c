@@ -7,6 +7,27 @@
 #include <string.h>
 
 
+char *expand_arth_word(char *word, s_env *env, s_errcont *cont)
+{
+  s_evect vec;
+  evect_init(&vec, strlen(word) + 3);
+  bool ndollar = *word != '$';
+  if (ndollar)
+  {
+    evect_push(&vec, '$');
+    evect_push(&vec, '{');
+  }
+  for (; *word; word++)
+    evect_push(&vec, *word);
+  if (ndollar)
+    evect_push(&vec, '}');
+
+  char *res = expand(vec.data, env, cont);
+  evect_destroy(&vec);
+  return res;
+}
+
+
 void expand_arth(char **str, s_env *env, s_evect *vec)
 {
   bool err = false;
