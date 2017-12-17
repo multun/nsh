@@ -5,7 +5,7 @@
 
 
 /**
-** \desc clean_exit is thrown when the current objective is to
+** \details clean_exit is thrown when the current objective is to
 **   cleanly exit the program. Very little magic is done here, this
 **   exception assumes a handler will take it into account.
 */

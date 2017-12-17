@@ -36,7 +36,7 @@ typedef struct io_backend
 
 /**
 ** \brief a cstream is a character stream, similar to FILE*
-** \desc it can also read from a readline or string input
+** \details it can also read from a readline or string input
 */
 typedef struct cstream
 {
@@ -82,7 +82,7 @@ typedef struct cstream
 
 /**
 ** \brief constructs a base stream, initialized with sane default values
-** \desc using this interface ensures destructing the stream does not exploit
+** \details using this interface ensures destructing the stream does not exploit
 **    undefined behavior
 ** \return a partialy uninitialized stream
 */
@@ -122,7 +122,7 @@ void cstream_free(s_cstream *cs);
 
 /**
 ** \brief peek a character from a stream
-** \desc returns without removing the next character of the stream
+** \details returns without removing the next character of the stream
 **   the second call in a row to peek always returns the same character
 ** \param cs the stream to peek from
 ** \return the next character on the stream
@@ -132,7 +132,7 @@ int cstream_peek(s_cstream *cs);
 
 /**
 ** \brief pop a character from a stream
-** \desc returns and removes a character from the stream
+** \details returns and removes a character from the stream
 ** \param cs the stream to peek from
 ** \return the next character on the stream
 */

@@ -10,7 +10,7 @@
 
 /**
 ** \brief represents a type of exception
-** \desc this is nothing more than a link time constant.
+** \details this is nothing more than a link time constant.
 **   the reserved field is required for the structure to be valid
 */
 typedef struct ex_class
@@ -23,7 +23,7 @@ typedef struct ex_class
 
 /**
 ** \brief a kind of exception handler
-** \desc the current environment can be stored inside env, and
+** \details the current environment can be stored inside env, and
 **   the parent context inside father
 */
 typedef struct keeper
@@ -38,7 +38,7 @@ typedef struct keeper
 
 /**
 ** \brief a per-thread error context
-** \desc this structure is required in order to store some information
+** \details this structure is required in order to store some information
 **   about the current error context
 */
 typedef struct errman
@@ -49,8 +49,8 @@ typedef struct errman
 
 
 /**
-** \brief describes an error context
-** \desc this structure holds all the data required to raise an exception:
+** \brief detailsribes an error context
+** \details this structure holds all the data required to raise an exception:
 **   the keeper state can be uesd to go up the stack, and the error manager
 **   can store information about the exception being thrown.
 */
@@ -91,8 +91,9 @@ typedef struct errcont
 
 
 /**
+** \fn void shraise(s_errcont *cont, const s_ex_class *class)
 ** \brief raise an exception
-** \desc uses longjmp to notify the closest keeper
+** \details uses longjmp to notify the closest keeper
 **   in order to avoid allocated data being lost, all allocations
 **   between the keeper and the shraise call should be able to be
 **   cleaner up by the keeper.

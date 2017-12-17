@@ -14,7 +14,7 @@ FILE *history_open(void);
 
 /**
 ** \brief initializes the history context
-** \desc depending on the context, it may either initialize the history
+** \details depending on the context, it may either initialize the history
 **   handler or do nothing
 */
 void history_init(s_context *ctx);
@@ -22,7 +22,7 @@ void history_init(s_context *ctx);
 
 /**
 ** \brief updates the history
-** \desc if there is a readline stream running, read its line buffer and
+** \details if there is a readline stream running, read its line buffer and
 **   flush it into the history file. Also update the readline internal history.
 */
 void history_update(s_context *ctx);

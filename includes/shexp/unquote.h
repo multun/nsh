@@ -4,7 +4,7 @@
 
 /**
 ** \brief removes the quotes from a string variable
-** \desc on exception, the caller should free *sres
+** \details on exception, the caller should free *sres
 ** \param sres an address to store the result at
 ** \param str the string to unquote
 ** \param cont the error context

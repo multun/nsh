@@ -11,7 +11,7 @@
 
 
 /**
-** \brief describes the interpreted command line of the program
+** \brief detailsribes the interpreted command line of the program
 */
 typedef struct arg_context
 {
@@ -38,7 +38,7 @@ typedef struct arg_context
 
 
 /**
-** \brief describes the current context of the read eval loop
+** \brief detailsribes the current context of the read eval loop
 */
 typedef struct context
 {
@@ -74,11 +74,11 @@ bool repl(s_context *ctx);
 
 /**
 ** \brief initializes a context from command line arguments
-** \desc this routine also loads rc files, which may fork and exit, thus
+** \details this routine also loads rc files, which may fork and exit, thus
 **   explaining why this function may require the program to exit
 ** \param rc the expected return code
 ** \param cont the context to initialize
-** \param the arguments to read from
+** \param arg_cont the arguments to read from
 ** \returns whether the program should exit
 */
 bool context_init(int *rc, s_context *cont, s_arg_context *arg_cont);

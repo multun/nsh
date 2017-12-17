@@ -170,7 +170,7 @@ s_token *lexer_pop(s_lexer *lexer, s_errcont *errcont);
 
 /**
 ** \brief peeks after an unpoped token
-** \desc peeking after a poped token is UB
+** \details peeking after a poped token is UB
 ** \param lexer the lexer to peek at
 ** \param tok the token to peek after
 */

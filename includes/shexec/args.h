@@ -8,7 +8,7 @@ int argv_count(char **argv);
 
 /**
 ** \brief clones an argv array
-** \desc also clones all the strings inside the array
+** \details also clones all the strings inside the array
 */
 char **argv_dup(char **argv);
 

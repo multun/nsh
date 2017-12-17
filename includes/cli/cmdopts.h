@@ -3,7 +3,7 @@
 
 /**
 ** \brief what execution mode was expressed using the cli?
-** \desc a file with zero arguments read from stdin
+** \details a file with zero arguments read from stdin
 */
 enum shsrc
 {

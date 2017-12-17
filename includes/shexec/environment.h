@@ -38,7 +38,7 @@ typedef struct environment
 
 /**
 ** \brief creates an environment from command line arguments
-** \param the command line arguments to read from
+** \param arg_cont the command line arguments to read from
 ** \return a newly allocated environment
 */
 s_env *environment_create(struct arg_context *arg_cont);

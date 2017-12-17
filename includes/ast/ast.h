@@ -111,6 +111,6 @@ int ast_exec(s_env *env, s_ast *ast, s_errcont *cont);
 
 /**
 ** \brief free ast recursively
-** \param the tree
+** \param ast the tree
 **/
 void ast_free(s_ast *ast);
