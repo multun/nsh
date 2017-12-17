@@ -77,7 +77,6 @@ void expand_subshell_buffer(s_errcont *cont, char *buf, s_env *env,
     dup2(pfd[1], 1);
     int res = subshell_child(env, buf);
     free(buf);
-    evect_destroy(vec);
     close(pfd[1]);
     clean_exit(cont, res);
   }
