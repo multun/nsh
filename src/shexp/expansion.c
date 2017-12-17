@@ -97,8 +97,10 @@ static void fill_var(char **str, s_evect *vec, bool braces)
 
   if (braces)
   {
-    assert(**str == '}');
-    (*str)++;
+    if (**str != '}')
+      warnx("%s: bad substitution. expected '}'", *str);
+    else
+      (*str)++;
   }
 }
 
