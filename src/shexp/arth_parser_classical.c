@@ -8,7 +8,8 @@
 s_arth_ast *arth_parse_pow(char **start, char **end,
                            s_env *env, s_errcont *cont)
 {
-  char **pos = strsplit_r(start, end, "**", true);
+  const char *delim[] = { "**", NULL };
+  char **pos = strsplit_r(start, end, delim, true);
   if (!pos)
     return NULL;
 
@@ -21,55 +22,23 @@ s_arth_ast *arth_parse_pow(char **start, char **end,
 }
 
 
-s_arth_ast *arth_parse_div(char **start, char **end,
-                           s_env *env, s_errcont *cont)
-{
-  char **pos = strsplit_r(start, end, "/", false);
-  if (!pos)
-    return NULL;
-
-  free(*pos);
-  *pos = NULL;
-  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_DIV, arth_parse_rec(start, pos, env, cont),
-                  arth_parse_rec(pos + 1, end, env, cont));
-  return ast;
-}
-
-
 s_arth_ast *arth_parse_time(char **start, char **end,
                             s_env *env, s_errcont *cont)
 {
-  char **pos = strsplit_r(start, end, "*", true);
+  const char *delim[] = { "*", "/", NULL };
+  char **pos = strsplit_r(start, end, delim, false);
   if (!pos)
     return NULL;
+
+  int type = ARTH_TIME;
+  if (**pos == '/')
+    type = ARTH_DIV;
 
   free(*pos);
   *pos = NULL;
   s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_TIME, arth_parse_rec(start, pos, env, cont),
+  *ast = ARTH_AST(type, arth_parse_rec(start, pos, env, cont),
                   arth_parse_rec(pos + 1, end, env, cont));
-  return ast;
-}
-
-
-s_arth_ast *arth_parse_minus(char **start, char **end,
-                             s_env *env, s_errcont *cont)
-{
-  char **pos = strsplit_r(start, end, "-", true);
-  if (!pos)
-    return NULL;
-
-  free(*pos);
-  *pos = NULL;
-  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-
-  if (pos == start)
-    *ast = ARTH_AST(ARTH_MINUS, arth_parse_rec(start + 1, end, env, cont),
-                    NULL);
-  else
-    *ast = ARTH_AST(ARTH_MINUS, arth_parse_rec(start, pos, env, cont),
-                    arth_parse_rec(pos + 1, end, env, cont));
   return ast;
 }
 
@@ -77,18 +46,24 @@ s_arth_ast *arth_parse_minus(char **start, char **end,
 s_arth_ast *arth_parse_plus(char **start, char **end,
                             s_env *env, s_errcont *cont)
 {
-  char **pos = strsplit_r(start, end, "+", true);
+  const char *delim[] = { "+", "-", NULL };
+  char **pos = strsplit_r(start, end, delim, true);
   if (!pos)
     return NULL;
+
+  int type = ARTH_PLUS;
+  if (**pos == '-')
+    type = ARTH_MINUS;
 
   free(*pos);
   *pos = NULL;
 
-  if (pos == start)
-    return arth_parse_rec(start + 1, end, env, cont);
-
   s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_PLUS, arth_parse_rec(start, pos, env, cont),
-                  arth_parse_rec(pos + 1, end, env, cont));
+
+  if (pos == start)
+    *ast = ARTH_AST(type, arth_parse_rec(start + 1, end, env, cont), NULL);
+  else
+    *ast = ARTH_AST(type, arth_parse_rec(start, pos, env, cont),
+                    arth_parse_rec(pos + 1, end, env, cont));
   return ast;
 }

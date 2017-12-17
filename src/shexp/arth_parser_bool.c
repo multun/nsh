@@ -8,7 +8,8 @@
 s_arth_ast *arth_parse_not(char **start, char **end,
                            s_env *env, s_errcont *cont)
 {
-  char **pos = strsplit_r(start, end, "!", true);
+  const char *delim[] = { "!", NULL };
+  char **pos = strsplit_r(start, end, delim, true);
   if (!pos)
     return NULL;
 
@@ -29,7 +30,8 @@ s_arth_ast *arth_parse_not(char **start, char **end,
 s_arth_ast *arth_parse_and(char **start, char **end,
                            s_env *env, s_errcont *cont)
 {
-  char **pos = strsplit_r(start, end, "&&", true);
+  const char *delim[] = { "&&", NULL };
+  char **pos = strsplit_r(start, end, delim, true);
   if (!pos)
     return NULL;
 
@@ -45,7 +47,8 @@ s_arth_ast *arth_parse_and(char **start, char **end,
 s_arth_ast *arth_parse_or(char **start, char **end,
                           s_env *env, s_errcont *cont)
 {
-  char **pos = strsplit_r(start, end, "||", true);
+  const char *delim[] = { "||", NULL };
+  char **pos = strsplit_r(start, end, delim, true);
   if (!pos)
     return NULL;
 

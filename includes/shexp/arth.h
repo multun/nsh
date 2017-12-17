@@ -21,9 +21,9 @@
   F(ARTH_BOR, arth_parse_bor, arth_exec_bor)                                  \
   F(ARTH_XOR, arth_parse_xor, arth_exec_xor)                                  \
   F(ARTH_BAND, arth_parse_band, arth_exec_band)                               \
+  F(ARTH_MINUS, arth_parse_plus, arth_exec_minus)                             \
   F(ARTH_PLUS, arth_parse_plus, arth_exec_plus)                               \
-  F(ARTH_MINUS, arth_parse_minus, arth_exec_minus)                            \
-  F(ARTH_DIV, arth_parse_div, arth_exec_div)                                  \
+  F(ARTH_DIV, arth_parse_time, arth_exec_div)                                 \
   F(ARTH_TIME, arth_parse_time, arth_exec_time)                               \
   F(ARTH_POW, arth_parse_pow, arth_exec_pow)                                  \
   F(ARTH_NOT, arth_parse_not, arth_exec_not)                                  \
