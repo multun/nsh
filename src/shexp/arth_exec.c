@@ -91,7 +91,7 @@ static int arth_exec_pow(s_arth_ast *ast)
   for (int i = 0; i < exp; i++)
   {
     int newres = res * mult;
-    if (mult && newres / mult != newres)
+    if (mult && newres / mult != res)
       return 0;
     res = newres;
   }
