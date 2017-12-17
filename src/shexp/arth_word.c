@@ -28,19 +28,26 @@ s_arth_ast *arth_parse_word(char **start, char **end,
                             s_env *env, s_errcont *cont)
 {
   assert(start < end);
-  bool err = false;
-  int n = wordtoi(*start, &err);
-  if (err)
+
+  char *var = *start;
+  while (*var && (*var < '0' || *var > '9'))
   {
-    char *var = expand_arth_word(*start, env, cont);
-    err = false;
-    n = wordtoi(var, &err);
+    char *newvar = expand_arth_word(*start, env, cont);
     free(var);
-    if (err)
-      n = 0;
+    var = newvar;
   }
 
-  free(*start);
+  bool err = false;
+  int n = wordtoi(var, &err);
+  if (err)
+  {
+    warnx("'%s': value to great for base", var);
+    free(var);
+    return NULL;
+    // TODO
+  }
+
+  free(var);
   *start = NULL;
   s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
   *ast = ARTH_AST(ARTH_WORD, NULL, NULL);

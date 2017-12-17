@@ -24,7 +24,7 @@ int arth_exec_div(s_arth_ast *ast, s_env *env, s_errcont *cont)
   if (!right)
   {
     warnx("division by 0");
-    // TODO better error handling
+    // TODO
     return 0;
   }
   return arth_exec(ast->left, env, cont) / right;
@@ -39,7 +39,7 @@ int arth_exec_pow(s_arth_ast *ast, s_env *env, s_errcont *cont)
   if (exp < 0)
   {
     warnx("exponent less than 0");
-    // TODO better error handling
+    // TODO
     return 0;
   }
   for (int i = 0; i < exp; i++)

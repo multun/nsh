@@ -2,6 +2,7 @@
 #include "utils/alloc.h"
 #include "utils/strsplit.h"
 
+#include <err.h>
 #include <stdlib.h>
 
 
@@ -16,6 +17,7 @@ s_arth_ast *arth_parse_bnot(char **start, char **end,
   if (pos != start)
   {
     // TODO
+    warnx("syntax error in expression");
     return NULL;
   }
 

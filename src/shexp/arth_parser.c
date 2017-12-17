@@ -2,6 +2,7 @@
 #include "utils/alloc.h"
 #include "utils/strsplit.h"
 
+#include <err.h>
 #include <stdlib.h>
 
 
@@ -18,6 +19,7 @@ s_arth_ast *arth_parse_rec(char **start, char **end,
   if (/*ERROR || */start == end)
   {
     // TODO
+    warnx("syntax error: operand expected");
     return NULL;
   }
   s_arth_ast *res = NULL;
@@ -25,7 +27,6 @@ s_arth_ast *arth_parse_rec(char **start, char **end,
   for (int i = 0; i < 13; i++)
     if ((res = arth_parser_utils[i](start, end, env, cont)))
       return res;
-  // TODO
   return NULL;
 }
 
@@ -45,7 +46,9 @@ s_arth_ast *arth_parse(char *str, s_env *env, s_errcont *cont)
 {
   char **end;
   char **elms = arth_lex(str, &end);
-  s_arth_ast *res = arth_parse_rec(elms, end, env, cont);
+  s_arth_ast *res = NULL;
+  if (elms != end)
+    res = arth_parse_rec(elms, end, env, cont);
   free(elms);
   return res;
 }
