@@ -115,6 +115,8 @@ static bool read_double_quote(s_cstream *cs, s_token *tok, s_errcont *errcont)
                " while reading double quoted string");
     else if (tok->delim == '\\')
       read_backslash(cs, tok, errcont);
+    else if (tok->delim == '$')
+      read_subshell(cs, tok, errcont);
     else
       TOK_PUSH(tok, cstream_pop(cs));
   }
