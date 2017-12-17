@@ -1,5 +1,6 @@
 #include "shlex/lexer.h"
 #include "utils/alloc.h"
+#include "shexec/clean_exit.h"
 
 #include <assert.h>
 #include <err.h>
@@ -37,21 +38,20 @@ static bool is_only_digits(s_token *tok)
 }
 
 
-static s_token *lexer_lex(s_lexer *lexer, s_errcont *errcont)
+static void lexer_lex(s_token **tres, s_lexer *lexer, s_errcont *errcont)
 {
-  tok_alloc(lexer);
-  // the result is already at the head of the token, just in case
-  // an exception is thrown
-  s_token *res = lexer->head;
+  s_token *res = *tres = tok_alloc(lexer);
   word_read(lexer->stream, res, errcont);
 
   if (!TOK_SIZE(res) && res->delim == EOF)
   {
     res->type = TOK_EOF;
     res->specified = true;
-    return res;
+    return;
   }
 
+  for (size_t i = 0; i < TOK_SIZE(res); i++)
+    clean_assert(errcont, res->str.data[i], "no input NUL bytes are allowed");
 
   // this case is super annoying to handle inside word_read
   // TODO: move inside word_read and deepen the abstraction
@@ -63,21 +63,22 @@ static s_token *lexer_lex(s_lexer *lexer, s_errcont *errcont)
   }
 
   TOK_PUSH(res, '\0');
-  return res;
+  return;
 }
 
 
-void lexer_push(s_lexer *lexer, s_token *tok)
+s_token *lexer_peek_at(s_lexer *lexer, s_token *tok, s_errcont *errcont)
 {
-  tok->next = lexer->head;
-  lexer->head = tok;
+  if (!tok->next)
+    lexer_lex(&tok->next, lexer, errcont);
+  return tok->next;
 }
 
 
-const s_token *lexer_peek(s_lexer *lexer, s_errcont *errcont)
+s_token *lexer_peek(s_lexer *lexer, s_errcont *errcont)
 {
   if (!lexer->head)
-    lexer_lex(lexer, errcont);
+    lexer_lex(&lexer->head, lexer, errcont);
   return lexer->head;
 }
 
@@ -85,7 +86,7 @@ const s_token *lexer_peek(s_lexer *lexer, s_errcont *errcont)
 s_token *lexer_pop(s_lexer *lexer, s_errcont *errcont)
 {
   if (!lexer->head)
-    lexer_lex(lexer, errcont);
+    lexer_lex(&lexer->head, lexer, errcont);
 
   s_token *ret = lexer->head;
   lexer->head = ret->next;

@@ -118,9 +118,9 @@ typedef struct lexer
 
 
 /**
-** \brief allocates a new token and pushes it onto the lexer stack
+** \brief allocates a new token
 */
-void tok_alloc(s_lexer *lexer);
+s_token *tok_alloc(s_lexer *lexer);
 
 
 /**
@@ -155,7 +155,7 @@ void lexer_free(s_lexer *lexer);
 ** \param errcont the error context
 ** \return the next token to be read
 */
-const s_token *lexer_peek(s_lexer *lexer, s_errcont *errcont);
+s_token *lexer_peek(s_lexer *lexer, s_errcont *errcont);
 
 
 
@@ -169,11 +169,12 @@ s_token *lexer_pop(s_lexer *lexer, s_errcont *errcont);
 
 
 /**
-** \brief pushes back a previously popped token
-** \param lexer the lexer to push the token to
-** \param tok the pushed token
+** \brief peeks after an unpoped token
+** \desc peeking after a poped token is UB
+** \param lexer the lexer to peek at
+** \param tok the token to peek after
 */
-void lexer_push(s_lexer *lexer, s_token *tok);
+s_token *lexer_peek_at(s_lexer *lexer, s_token *tok, s_errcont *errcont);
 
 
 /**

@@ -71,10 +71,9 @@ void parse_command(s_ast **res, s_lexer *lexer, s_errcont *errcont)
   // TODO: change chose_shell_func api
   if (!chose_shell_func(lexer, errcont, res))
   {
-    s_token *word = lexer_pop(lexer, errcont);
-    const s_token *tok = lexer_peek(lexer, errcont); // TODO: catch
+    s_token *word = lexer_peek(lexer, errcont);
+    const s_token *tok = lexer_peek_at(lexer, word, errcont);
     bool is_par = tok_is(tok, TOK_LPAR);
-    lexer_push(lexer, word);
     if (is_par)
       parse_funcdec(res, lexer, errcont);
     else
