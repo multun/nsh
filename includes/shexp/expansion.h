@@ -29,8 +29,19 @@ void expand_subshell(s_errcont *errcont, char **str, s_env *env, s_evect *vec);
 ** \param str the original string cursor
 ** \param env the environment to expand from
 ** \param vec the vector to store the result in
+** \param errcont the error context to work with
 */
-void expand_arth(char **str, s_env *env, s_evect *vec);
+void expand_arth(char **str, s_env *env, s_evect *vec, s_errcont *errcont);
+
+
+/**
+** \brief prepare a arithmetic word to be expanded
+** \param word the word to prepare for expansion
+** \param env the environment used within the expansion
+** \param cont the error context to work with
+** \return the allocated buffer to give to expand
+*/
+char *expand_arth_word(char *word, s_env *env, s_errcont *cont);
 
 
 /**
