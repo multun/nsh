@@ -1,3 +1,7 @@
+Version 1.0:
+	- merge arithmetic expansion
+	- bug fixes
+
 Version 0.9:
 	- implement subshells
 	- variables
