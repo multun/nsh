@@ -38,7 +38,7 @@ void subshell_parent(int cfd, s_evect *res)
   }
 
   char c = 0;
-  while (res->size > 1 && (c = res->data[res->size - 1]) == '\n')
+  while (res->size > 0 && (c = res->data[res->size - 1]) == '\n')
     res->size--;
 
   fclose(creader);
@@ -65,10 +65,9 @@ static char *subshell_find_par(char *str)
   return str;
 }
 
-void expand_subshell(s_errcont *cont, char **str, s_env *env, s_evect *vec)
+void expand_subshell_buffer(s_errcont *cont, char *buf, s_env *env,
+                            s_evect *vec)
 {
-  char *buf = strndup(*str, subshell_find_par(*str) - *str);
-  // TODO: subshell error handling
   int pfd[2];
   pipe(pfd);
   int cpid = fork();
@@ -89,5 +88,13 @@ void expand_subshell(s_errcont *cont, char **str, s_env *env, s_evect *vec)
   close(pfd[0]);
   int status;
   waitpid(cpid, &status, 0);
+}
+
+
+void expand_subshell(s_errcont *cont, char **str, s_env *env, s_evect *vec)
+{
+  char *buf = strndup(*str, subshell_find_par(*str) - *str);
+  // TODO: subshell error handling
+  expand_subshell_buffer(cont, buf, env, vec);
   *str = subshell_find_par(*str) + 1;
 }

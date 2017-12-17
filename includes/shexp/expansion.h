@@ -21,7 +21,49 @@ char *expand(char *str, s_env *env, s_errcont *cont);
 ** \param env the environment to expand from
 ** \param vec the vector to store the result in
 */
-void expand_subshell(s_errcont *errcont, char **str, s_env *env, s_evect *vec);
+void expand_subshell(s_errcont *errcont, char **str, s_env *env,
+                     s_evect *vec);
+
+
+/**
+** \brief the expansion context
+*/
+typedef struct exp_ctx
+{
+  char **str;
+  bool *quoted;
+} s_exp_ctx;
+
+
+#define EXPCTX(Str, Quoted)     \
+  ((s_exp_ctx)                  \
+  {                             \
+    .str = (Str),               \
+    .quoted = (Quoted),         \
+  })
+
+
+/**
+** \brief expands a backquoted subshell into a character vector
+** \param errcont the error context to work with
+** \param str the original string cursor
+** \param env the environment to expand from
+** \param vec the vector to store the result in
+** \return whether or not the expansion was performed
+*/
+bool expand_backquote(s_errcont *errcont, s_exp_ctx ctx, s_env *env,
+                      s_evect *vec);
+
+
+/**
+** \brief executes the subshell with buf as input
+** \param errcont the error context to work with
+** \param buf the the buffed to execute in a subshell
+** \param env the environment to expand from
+** \param vec the vector to store the result in
+*/
+void expand_subshell_buffer(s_errcont *errcont, char *buf,
+                             s_env *env, s_evect *vec);
 
 
 /**

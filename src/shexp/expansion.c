@@ -10,21 +10,6 @@
 #include "shexp/variable.h"
 #include "utils/evect.h"
 
-typedef struct exp_ctx
-{
-  char **str;
-  bool *quoted;
-} s_exp_ctx;
-
-
-#define EXPCTX(Str, Quoted)     \
-  ((s_exp_ctx)                  \
-  {                             \
-    .str = (Str),               \
-    .quoted = (Quoted),         \
-  })
-
-
 
 static bool predefined_lookup(char **res, s_env *env, char *var)
 {
@@ -208,7 +193,8 @@ char *expand(char *str, s_env *env, s_errcont *cont)
   bool doub_quote = false;
   s_exp_ctx ctx = EXPCTX(&str, &doub_quote);
   while (*str)
-    if (!sing_quote && *str == '$' && expand_dollar(ctx, &vec, env, cont))
+    if (!sing_quote && ((*str == '$' && expand_dollar(ctx, &vec, env, cont))
+                        || expand_backquote(cont, ctx, env, &vec)))
       continue;
     else
     {

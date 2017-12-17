@@ -8,6 +8,7 @@ libshexp_la_SOURCES = arth_word.c expansion_arth.c \
                       expansion_subshell.c expansion_special.c arth_lex.c \
                       arth_parser_bool.c arth_parser_classical.c \
                       arth_parser_bitwise.c arth_parser.c \
+                      expansion_backquot.c \
                       $(TOP_INCL)/arth.h \
                       $(TOP_INCL)/shexp/unquote.h \
                       $(TOP_INCL)/shexp/variable.h \
