@@ -23,9 +23,10 @@ static int wordtoi(char *str, bool *err)
   return neg ? -n : n;
 }
 
-static int parse_word(char *var, s_arthcont *cont)
+static int parse_word(char **start, s_arthcont *cont)
 {
   int max_rec = 15;
+  char *var = *start;
 
   while (max_rec && *var && (*var < '0' || *var > '9'))
   {
@@ -44,10 +45,12 @@ static int parse_word(char *var, s_arthcont *cont)
       warnx("expression recursion level exceeded");
     else
       warnx("'%s': value to great for base", var);
+    *start = NULL;
     free(var);
     clean_exit(cont->cont, 1);
   }
   free(var);
+  *start = NULL;
   return n;
 }
 
@@ -55,8 +58,7 @@ void arth_parse_word(char **start, char **end,
                      s_arthcont *cont, s_arth_ast **ast)
 {
   assert(start < end);
-  int n = parse_word(*start, cont);
-  *start = NULL;
+  int n = parse_word(start, cont);
   *ast = xcalloc(1, sizeof(s_arth_ast));
   **ast = ARTH_AST(ARTH_WORD, NULL, NULL);
   (*ast)->value = n;
