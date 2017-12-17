@@ -5,20 +5,16 @@
 #include "utils/strsplit.h"
 
 
-static bool is_delim(const char **delim, size_t nb_delim, char *str)
+char **strsplit_r(char **start, char **end,  const char *delim, bool first)
 {
-  for (size_t i = 0; i < nb_delim; i++)
-    if (!strncmp(delim[i], str, strlen(delim[i])))
-      return true;
-  return false;
-}
-
-
-size_t strsplit_r(char **str, const char **delim, size_t nb_delim)
-{
-  size_t res = 0;
-  for (; str[res]; res++)
-    if (is_delim(delim, nb_delim, str[res]))
-      return res;
+  size_t delim_len = strlen(delim);
+  char **res = NULL;
+  for (; start < end; start++)
+    if (!strncmp(*start, delim, delim_len))
+    {
+      if (first)
+        return start;
+      res = start;
+    }
   return res;
 }

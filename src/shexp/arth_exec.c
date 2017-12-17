@@ -45,6 +45,9 @@ static int arth_exec_plus(s_arth_ast *ast)
 
 static int arth_exec_minus(s_arth_ast *ast)
 {
+  if (!ast->right)
+    return -arth_exec(ast->left);
+
   return arth_exec(ast->left) - arth_exec(ast->right);
 }
 
