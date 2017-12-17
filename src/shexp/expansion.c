@@ -204,8 +204,7 @@ char *expand(char *str, s_env *env, s_errcont *cont)
         doub_quote = !doub_quote;
       else if (!sing_quote && *str == '\\')
       {
-        if (expansion_protected_char(*str))
-          evect_push(&vec, *(str));
+        evect_push(&vec, *(str));
         str++;
       }
       evect_push(&vec, *(str++));
