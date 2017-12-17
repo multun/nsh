@@ -33,8 +33,12 @@ void expand_arth(char **str, s_env *env, s_evect *vec, s_errcont *cont)
 {
   (*str)++;
   char *tmp = strrchr(*str, ')');
+  if (!tmp)
+    return;
   *tmp = 0;
   tmp = strrchr(*str, ')');
+  if (!tmp)
+    return;
   *tmp = 0;
   s_arthcont acont = ARTHCONT(env, cont);
   s_arth_ast *ast = arth_parse(*str, &acont);
