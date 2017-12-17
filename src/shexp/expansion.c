@@ -184,17 +184,14 @@ bool expansion_protected_char(char c)
   }
 }
 
-
-char *expand(char *str, s_env *env, s_errcont *cont)
+static void expand_sub(s_evect *vec, char *str, s_env *env, s_errcont *cont)
 {
-  s_evect vec;
-  evect_init(&vec, strlen(str) + 1);
   bool sing_quote = false;
   bool doub_quote = false;
   s_exp_ctx ctx = EXPCTX(&str, &doub_quote);
   while (*str)
-    if (!sing_quote && ((*str == '$' && expand_dollar(ctx, &vec, env, cont))
-                        || expand_backquote(cont, ctx, env, &vec)))
+    if (!sing_quote && ((*str == '$' && expand_dollar(ctx, vec, env, cont))
+                        || expand_backquote(cont, ctx, env, vec)))
       continue;
     else
     {
@@ -204,11 +201,26 @@ char *expand(char *str, s_env *env, s_errcont *cont)
         doub_quote = !doub_quote;
       else if (!sing_quote && *str == '\\')
       {
-        evect_push(&vec, *(str));
+        evect_push(vec, *(str));
         str++;
       }
-      evect_push(&vec, *(str++));
+      evect_push(vec, *(str++));
     }
-  evect_push(&vec, '\0');
+  evect_push(vec, '\0');
+}
+
+
+char *expand(char *str, s_env *env, s_errcont *cont)
+{
+  s_evect vec;
+  evect_init(&vec, strlen(str) + 1);
+  s_keeper keeper = KEEPER(cont->keeper);
+  if (setjmp(keeper.env))
+  {
+    free(vec.data);
+    shraise(cont, NULL);
+  }
+  else
+    expand_sub(&vec, str, env, &ERRCONT(cont->errman, &keeper));
   return vec.data;
 }

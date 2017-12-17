@@ -17,16 +17,28 @@ static size_t wordlist_argc_count(s_wordlist *wl)
 }
 
 
-static void wordlist_to_argv_sub(char **volatile *res, s_wordlist *wl,
+static void wordlist_to_argv_sub(char **volatile *res, s_wordlist *volatile wl,
                                  s_env *env, s_errcont *cont)
 {
   size_t argc = wordlist_argc_count(wl);
   char **argv = *res = calloc(sizeof (char*), (argc + 1));
-  for (size_t i = 0; i < argc; (wl = wl->next), i++)
+  for (volatile size_t i = 0; i < argc; (wl = wl->next), i++)
   {
-    char *expanded = expand(wl->str, env, cont);
-    argv[i] = unquote(expanded);
-    free(expanded);
+    char *volatile expanded = NULL;
+    s_keeper keeper = KEEPER(cont->keeper);
+    if (setjmp(keeper.env))
+    {
+      free(expanded);
+      shraise(cont, NULL);
+    }
+    else
+    {
+      s_errcont ncont = ERRCONT(cont->errman, &keeper);
+      // TODO: handle expansion interuptions
+      expanded = expand(wl->str, env, &ncont);
+      unquote(&argv[i], expanded, &ncont);
+      free(expanded);
+    }
   }
 }
 

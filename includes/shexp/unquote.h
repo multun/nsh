@@ -1,8 +1,12 @@
 #pragma once
 
+#include "utils/error.h"
+
 /**
 ** \brief removes the quotes from a string variable
+** \desc on exception, the caller should free *sres
+** \param sres an address to store the result at
 ** \param str the string to unquote
-** \return the malloc allocated unquoted string
+** \param cont the error context
 */
-char *unquote(const char *str);
+void unquote(char **sres, const char *str, s_errcont *cont);
