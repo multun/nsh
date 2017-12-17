@@ -35,13 +35,25 @@ static const char *g_keywords[] =
 };
 
 
+bool tok_is_ass(char *str, bool first)
+{
+  if (!*str)
+    return false;
+  if (*str == '=')
+    return !first;
+  return ((*str >= '0' && *str <= '9' && !first) || *str == '_'
+          || (*str >= 'a' && *str <= 'z') || (*str >= 'A' && *str <= 'Z'))
+         && tok_is_ass(str + 1, false);
+}
+
+
 bool tok_is(const s_token *tok, enum token_type type)
 {
   if (tok->specified || TOK_IS_DET(type))
     return tok->type == type;
 
   if (type == TOK_ASSIGNMENT_WORD)
-    return TOK_STR(tok)[0] != '=' && !!strchr(TOK_STR(tok), '=');
+    return tok_is_ass(TOK_STR(tok), true);
 
   // TODO: handle name
   if (type == TOK_WORD || type == TOK_NAME)
