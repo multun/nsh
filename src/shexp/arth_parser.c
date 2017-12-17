@@ -35,12 +35,12 @@ void arth_parse_rec(char **start, char **end,
 
 void arth_free(s_arth_ast *ast)
 {
-  if (ast)
-  {
-    arth_free(ast->left);
-    arth_free(ast->right);
-    free(ast);
-  }
+  if (!ast)
+    return;
+
+  arth_free(ast->left);
+  arth_free(ast->right);
+  free(ast);
 }
 
 
@@ -50,7 +50,24 @@ s_arth_ast *arth_parse(char *str, s_arthcont *cont)
   char **elms = arth_lex(str, &end);
   s_arth_ast *res = NULL;
   if (elms != end)
-    arth_parse_rec(elms, end, cont, &res);
+  {
+    s_keeper keeper = KEEPER(cont->cont->keeper);
+    if (setjmp(keeper.env))
+    {
+      arth_free(res);
+      if (elms)
+        for (char **cur = elms; cur < end; cur++)
+          free(*cur);
+      free(elms);
+      shraise(cont->cont, NULL);
+    }
+    else
+    {
+      s_arthcont ncnt = ARTHCONT(cont->env,
+                                 &ERRCONT(cont->cont->errman, &keeper));
+      arth_parse_rec(elms, end, &ncnt, &res);
+    }
+  }
   free(elms);
   return res;
 }
