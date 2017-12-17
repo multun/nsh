@@ -6,28 +6,29 @@
 #include <stdlib.h>
 
 
-static s_arth_ast *(*arth_parser_utils[])(char **start, char **end,
-                                          s_arthcont *cont) =
+static void (*arth_parser_utils[])(char **start, char **end,
+                                   s_arthcont *cont, s_arth_ast **ast) =
 {
   ARTH_TYPE_APPLY(DECLARE_ARTH_PARSER_UTILS)
 };
 
 
-s_arth_ast *arth_parse_rec(char **start, char **end,
-                           s_arthcont *cont)
+void arth_parse_rec(char **start, char **end,
+                    s_arthcont *cont, s_arth_ast **ast)
 {
   if (/*ERROR || */start == end)
   {
     // TODO
     warnx("syntax error: operand expected");
-    return NULL;
   }
-  s_arth_ast *res = NULL;
+  *ast = NULL;
 
   for (int i = 0; i < 13; i++)
-    if ((res = arth_parser_utils[i](start, end, cont)))
-      return res;
-  return NULL;
+  {
+    arth_parser_utils[i](start, end, cont, ast);
+    if (*ast)
+      break;
+  }
 }
 
 
@@ -48,7 +49,7 @@ s_arth_ast *arth_parse(char *str, s_arthcont *cont)
   char **elms = arth_lex(str, &end);
   s_arth_ast *res = NULL;
   if (elms != end)
-    res = arth_parse_rec(elms, end, cont);
+    arth_parse_rec(elms, end, cont, &res);
   free(elms);
   return res;
 }

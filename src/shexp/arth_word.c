@@ -9,8 +9,7 @@
 
 static int wordtoi(char *str, bool *err)
 {
-  if (!(*str))
-    return 0;
+  if (!(*str)) return 0;
   int n = 0;
   bool neg = str[0] == '-';
   str += neg;
@@ -52,14 +51,13 @@ static int parse_word(char *var, s_arthcont *cont)
   return n;
 }
 
-s_arth_ast *arth_parse_word(char **start, char **end,
-                            s_arthcont *cont)
+void arth_parse_word(char **start, char **end,
+                     s_arthcont *cont, s_arth_ast **ast)
 {
   assert(start < end);
   int n = parse_word(*start, cont);
   *start = NULL;
-  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_WORD, NULL, NULL);
-  ast->value = n;
-  return ast;
+  *ast = xcalloc(1, sizeof(s_arth_ast));
+  **ast = ARTH_AST(ARTH_WORD, NULL, NULL);
+  (*ast)->value = n;
 }

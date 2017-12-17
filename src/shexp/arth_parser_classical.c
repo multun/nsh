@@ -5,30 +5,41 @@
 #include <stdlib.h>
 
 
-s_arth_ast *arth_parse_pow(char **start, char **end,
-                           s_arthcont *cont)
+void arth_parse_pow(char **start, char **end,
+                    s_arthcont *cont, s_arth_ast **ast)
 {
-  const char *delim[] = { "**", NULL };
+  const char *delim[] =
+  {
+    "**",
+    NULL,
+  };
+
   char **pos = strsplit_r(start, end, delim, true);
   if (!pos)
-    return NULL;
+    return;
 
   free(*pos);
   *pos = NULL;
-  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_POW, arth_parse_rec(start, pos, cont),
-                  arth_parse_rec(pos + 1, end, cont));
-  return ast;
+  *ast = xcalloc(1, sizeof(s_arth_ast));
+  **ast = ARTH_AST(ARTH_POW, NULL, NULL);
+  arth_parse_rec(start, pos, cont, &(*ast)->left);
+  arth_parse_rec(pos + 1, end, cont, &(*ast)->right);
 }
 
 
-s_arth_ast *arth_parse_time(char **start, char **end,
-                            s_arthcont *cont)
+void arth_parse_time(char **start, char **end,
+                     s_arthcont *cont, s_arth_ast **ast)
 {
-  const char *delim[] = { "*", "/", NULL };
+  const char *delim[] =
+  {
+    "*",
+    "/",
+    NULL,
+  };
+
   char **pos = strsplit_r(start, end, delim, false);
   if (!pos)
-    return NULL;
+    return;
 
   int type = ARTH_TIME;
   if (**pos == '/')
@@ -36,34 +47,43 @@ s_arth_ast *arth_parse_time(char **start, char **end,
 
   free(*pos);
   *pos = NULL;
-  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(type, arth_parse_rec(start, pos, cont),
-                  arth_parse_rec(pos + 1, end, cont));
-  return ast;
+  *ast = xcalloc(1, sizeof(s_arth_ast));
+  **ast = ARTH_AST(type, NULL, NULL);
+  arth_parse_rec(start, pos, cont, &(*ast)->left);
+  arth_parse_rec(pos + 1, end, cont, &(*ast)->right);
 }
 
 
-s_arth_ast *arth_parse_plus(char **start, char **end,
-                            s_arthcont *cont)
+void arth_parse_plus(char **start, char **end,
+                     s_arthcont *cont, s_arth_ast **ast)
 {
-  const char *delim[] = { "+", "-", NULL };
+  const char *delim[] =
+  {
+    "+",
+    "-",
+    NULL,
+  };
+
   char **pos = strsplit_r(start, end, delim, true);
   if (!pos)
-    return NULL;
+    return;
 
-  int type = ARTH_PLUS;
+  *ast = xcalloc(1, sizeof(s_arth_ast));
+
   if (**pos == '-')
-    type = ARTH_MINUS;
+    **ast = ARTH_AST(ARTH_MINUS, NULL, NULL);
+  else
+    **ast = ARTH_AST(ARTH_PLUS, NULL, NULL);
 
   free(*pos);
   *pos = NULL;
 
-  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
 
   if (pos == start)
-    *ast = ARTH_AST(type, arth_parse_rec(start + 1, end, cont), NULL);
+    arth_parse_rec(start + 1, end, cont, &(*ast)->left);
   else
-    *ast = ARTH_AST(type, arth_parse_rec(start, pos, cont),
-                    arth_parse_rec(pos + 1, end, cont));
-  return ast;
+  {
+    arth_parse_rec(start, pos, cont, &(*ast)->left);
+    arth_parse_rec(pos + 1, end, cont, &(*ast)->right);
+  }
 }

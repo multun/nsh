@@ -65,8 +65,6 @@ typedef struct arth_ast
   .right = (Right),                                 \
 })
 
-s_arth_ast *arth_parse_rec(char **start, char **end,
-                           s_arthcont *cont);
 
 void arth_default_index(int *index, char **elms);
 bool is_arth_op(char c);
@@ -94,41 +92,44 @@ int arth_exec_bnot(s_arth_ast *ast, s_arthcont *cont);
 
 s_arth_ast *arth_parse(char *str, s_arthcont *cont);
 
-s_arth_ast *arth_parse_word(char **str, char **end,
-                            s_arthcont *cont);
+void arth_parse_rec(char **start, char **end,
+                    s_arthcont *cont, s_arth_ast **ast);
 
-s_arth_ast *arth_parse_or(char **start, char **end,
-                          s_arthcont *cont);
+void arth_parse_word(char **str, char **end,
+                     s_arthcont *cont, s_arth_ast **ast);
 
-s_arth_ast *arth_parse_and(char **start, char **end,
-                           s_arthcont *cont);
+void arth_parse_or(char **start, char **end,
+                   s_arthcont *cont, s_arth_ast **ast);
 
-s_arth_ast *arth_parse_bor(char **start, char **end,
-                           s_arthcont *cont);
+void arth_parse_and(char **start, char **end,
+                   s_arthcont *cont, s_arth_ast **ast);
 
-s_arth_ast *arth_parse_xor(char **start, char **end,
-                           s_arthcont *cont);
+void arth_parse_bor(char **start, char **end,
+                    s_arthcont *cont, s_arth_ast **ast);
 
-s_arth_ast *arth_parse_band(char **start, char **end,
-                            s_arthcont *cont);
+void arth_parse_xor(char **start, char **end,
+                    s_arthcont *cont, s_arth_ast **ast);
 
-s_arth_ast *arth_parse_plus(char **start, char **end,
-                            s_arthcont *cont);
+void arth_parse_band(char **start, char **end,
+                     s_arthcont *cont, s_arth_ast **ast);
 
-s_arth_ast *arth_parse_minus(char **start, char **end,
-                             s_arthcont *cont);
+void arth_parse_plus(char **start, char **end,
+                     s_arthcont *cont, s_arth_ast **ast);
 
-s_arth_ast *arth_parse_div(char **start, char **end,
-                           s_arthcont *cont);
+void arth_parse_minus(char **start, char **end,
+                      s_arthcont *cont, s_arth_ast **ast);
 
-s_arth_ast *arth_parse_time(char **start, char **end,
-                            s_arthcont *cont);
+void arth_parse_div(char **start, char **end,
+                    s_arthcont *cont, s_arth_ast **ast);
 
-s_arth_ast *arth_parse_pow(char **start, char **end,
-                           s_arthcont *cont);
+void arth_parse_time(char **start, char **end,
+                     s_arthcont *cont, s_arth_ast **ast);
 
-s_arth_ast *arth_parse_not(char **start, char **end,
-                           s_arthcont *cont);
+void arth_parse_pow(char **start, char **end,
+                    s_arthcont *cont, s_arth_ast **ast);
 
-s_arth_ast *arth_parse_bnot(char **start, char **end,
-                            s_arthcont *cont);
+void arth_parse_not(char **start, char **end,
+                    s_arthcont *cont, s_arth_ast **ast);
+
+void arth_parse_bnot(char **start, char **end,
+                     s_arthcont *cont, s_arth_ast **ast);

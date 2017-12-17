@@ -6,75 +6,93 @@
 #include <stdlib.h>
 
 
-s_arth_ast *arth_parse_bnot(char **start, char **end,
-                            s_arthcont *cont)
+void arth_parse_bnot(char **start, char **end,
+                     s_arthcont *cont, s_arth_ast **ast)
 {
-  const char *delim[] = { "~", NULL };
+  const char *delim[] = {
+    "~",
+    NULL,
+  };
+
   char **pos = strsplit_r(start, end, delim, true);
   if (!pos)
-    return NULL;
+    return;
 
   if (pos != start)
   {
     // TODO
     warnx("syntax error in expression");
-    return NULL;
   }
 
   free(*pos);
   *pos = NULL;
-  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_BNOT, arth_parse_rec(start + 1, end, cont), NULL);
-  return ast;
+  *ast = xcalloc(1, sizeof(s_arth_ast));
+  **ast = ARTH_AST(ARTH_BNOT, NULL, NULL);
+  arth_parse_rec(start + 1, end, cont, &(*ast)->left);
 }
 
 
-s_arth_ast *arth_parse_band(char **start, char **end,
-                            s_arthcont *cont)
+void arth_parse_band(char **start, char **end,
+                     s_arthcont *cont, s_arth_ast **ast)
 {
-  const char *delim[] = { "&", NULL };
+  const char *delim[] =
+  {
+    "&",
+    NULL,
+  };
+
   char **pos = strsplit_r(start, end, delim, true);
   if (!pos)
-    return NULL;
+    return;
 
   free(*pos);
   *pos = NULL;
-  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_BAND, arth_parse_rec(start, pos, cont),
-                  arth_parse_rec(pos + 1, end, cont));
-  return ast;
+  *ast = xcalloc(1, sizeof(s_arth_ast));
+  **ast = ARTH_AST(ARTH_BAND, NULL, NULL);
+  arth_parse_rec(start, pos, cont, &(*ast)->left);
+  arth_parse_rec(pos + 1, end, cont, &(*ast)->right);
 }
 
 
-s_arth_ast *arth_parse_xor(char **start, char **end,
-                           s_arthcont *cont)
+void arth_parse_xor(char **start, char **end,
+                   s_arthcont *cont, s_arth_ast **ast)
 {
-  const char *delim[] = { "^", NULL };
+  const char *delim[] =
+  {
+    "^",
+    NULL,
+  };
+
   char **pos = strsplit_r(start, end, delim, true);
   if (!pos)
-    return NULL;
+    return;
 
   free(*pos);
   *pos = NULL;
-  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_XOR, arth_parse_rec(start, pos, cont),
-                  arth_parse_rec(pos + 1, end, cont));
-  return ast;
+  *ast = xcalloc(1, sizeof(s_arth_ast));
+  **ast = ARTH_AST(ARTH_XOR, NULL, NULL);
+  arth_parse_rec(start, pos, cont, &(*ast)->left);
+  arth_parse_rec(pos + 1, end, cont, &(*ast)->right);
 }
 
 
-s_arth_ast *arth_parse_bor(char **start, char **end,
-                           s_arthcont *cont)
+void arth_parse_bor(char **start, char **end,
+                    s_arthcont *cont, s_arth_ast **ast)
 {
-  const char *delim[] = { "|", NULL };
+  const char *delim[] =
+  {
+    "|",
+    NULL,
+  };
+
   char **pos = strsplit_r(start, end, delim, true);
   if (!pos)
-    return NULL;
+    return ;
 
   free(*pos);
   *pos = NULL;
-  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_BOR, arth_parse_rec(start, pos, cont),
-                  arth_parse_rec(pos + 1, end, cont));
-  return ast;
+  *ast = xcalloc(1, sizeof(s_arth_ast));
+  **ast = ARTH_AST(ARTH_BOR, NULL, NULL);
+  arth_parse_rec(start, pos, cont, &(*ast)->left);
+  arth_parse_rec(pos + 1, end, cont, &(*ast)->right);
 }
