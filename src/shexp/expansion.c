@@ -10,6 +10,21 @@
 #include "shexp/variable.h"
 
 
+typedef struct exp_ctx
+{
+  char **str;
+  bool *quoted;
+} s_exp_ctx;
+
+
+#define EXPCTX(Str, Quoted)     \
+  ((s_exp_ctx)                  \
+  {                             \
+    .str = (Str),               \
+    .quoted = (Quoted),         \
+  })
+
+
 
 static bool predefined_lookup(char **res, s_env *env, char *var)
 {
@@ -40,7 +55,7 @@ static bool special_var_lookup(char **res, s_env *env, char *var)
 {
   bool found = false;
   if (strlen(var) == 1)
-    found = special_char_lookup(res, env, var);
+    found = special_char_lookup(res, env, *var);
   else if ((found = !strcmp("RANDOM", var)))
     expand_random(res);
   else if ((found = !strcmp("UID", var)))

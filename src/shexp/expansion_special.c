@@ -56,9 +56,9 @@ static void expand_return(char **res, s_env *env)
 }
 
 
-bool special_char_lookup(char **res, s_env *env, char *var)
+bool special_char_lookup(char **res, s_env *env, char var)
 {
-  switch (*var)
+  switch (var)
   {
   case '@':
     expand_args(res, env, true);
@@ -78,7 +78,6 @@ bool special_char_lookup(char **res, s_env *env, char *var)
   default:
     return false;
   }
-  return false;
 }
 
 
