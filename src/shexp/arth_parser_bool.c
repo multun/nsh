@@ -5,7 +5,8 @@
 #include <stdlib.h>
 
 
-s_arth_ast *arth_parse_not(char **start, char **end, bool *err)
+s_arth_ast *arth_parse_not(char **start, char **end,
+                           s_env *env, s_errcont *cont)
 {
   char **pos = strsplit_r(start, end, "!", true);
   if (!pos)
@@ -13,19 +14,20 @@ s_arth_ast *arth_parse_not(char **start, char **end, bool *err)
 
   if (pos != start)
   {
-    *err = true;
+    // TODO
     return NULL;
   }
 
   free(*pos);
   *pos = NULL;
   s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_NOT, arth_parse_rec(start + 1, end, err), NULL);
+  *ast = ARTH_AST(ARTH_NOT, arth_parse_rec(start + 1, end, env, cont), NULL);
   return ast;
 }
 
 
-s_arth_ast *arth_parse_and(char **start, char **end, bool *err)
+s_arth_ast *arth_parse_and(char **start, char **end,
+                           s_env *env, s_errcont *cont)
 {
   char **pos = strsplit_r(start, end, "&&", true);
   if (!pos)
@@ -34,13 +36,14 @@ s_arth_ast *arth_parse_and(char **start, char **end, bool *err)
   free(*pos);
   *pos = NULL;
   s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_AND, arth_parse_rec(start, pos, err),
-                  arth_parse_rec(pos + 1, end, err));
+  *ast = ARTH_AST(ARTH_AND, arth_parse_rec(start, pos, env, cont),
+                  arth_parse_rec(pos + 1, end, env,cont));
   return ast;
 }
 
 
-s_arth_ast *arth_parse_or(char **start, char **end, bool *err)
+s_arth_ast *arth_parse_or(char **start, char **end,
+                          s_env *env, s_errcont *cont)
 {
   char **pos = strsplit_r(start, end, "||", true);
   if (!pos)
@@ -49,7 +52,7 @@ s_arth_ast *arth_parse_or(char **start, char **end, bool *err)
   free(*pos);
   *pos = NULL;
   s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_OR, arth_parse_rec(start, pos, err),
-                  arth_parse_rec(pos + 1, end, err));
+  *ast = ARTH_AST(ARTH_OR, arth_parse_rec(start, pos, env, cont),
+                  arth_parse_rec(pos + 1, end, env, cont));
   return ast;
 }

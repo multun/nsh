@@ -30,18 +30,15 @@ char *expand_arth_word(char *word, s_env *env, s_errcont *cont)
 
 void expand_arth(char **str, s_env *env, s_evect *vec, s_errcont *cont)
 {
-  bool err = false;
-  (void)env;
-  (void)cont;
   (*str)++;
   char *tmp = strrchr(*str, ')');
   *tmp = 0;
   tmp = strrchr(*str, ')');
   *tmp = 0;
-  s_arth_ast *ast = arth_parse(*str, &err);
+  s_arth_ast *ast = arth_parse(*str, env, cont);
   *str = tmp + 1;
   char tab[12];
-  int res = arth_exec(ast);
+  int res = arth_exec(ast, env, cont);
   sprintf(tab, "%d", res);
   for (char *c = tab; *c; c++)
     evect_push(vec, *c);

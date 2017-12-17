@@ -23,11 +23,15 @@ static int wordtoi(char *str, bool *err)
 }
 
 
-s_arth_ast *arth_parse_word(char **start, char **end, bool *err)
+s_arth_ast *arth_parse_word(char **start, char **end,
+                            s_env *env, s_errcont *cont)
 {
   assert(start < end);
-  int n = wordtoi(*start, err);
-  if (*err)
+  (void)env;
+  (void)cont;
+  bool err = false;
+  int n = wordtoi(*start, &err);
+  if (err)
   {
     warnx("%s: value is NaN", *start);
     return NULL;

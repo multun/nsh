@@ -1,5 +1,8 @@
 #pragma once
 
+#include "utils/error.h"
+#include "shexec/environment.h"
+
 #include <stdbool.h>
 
 
@@ -48,7 +51,8 @@ typedef struct arth_ast
   .right = (Right),                                 \
 })
 
-s_arth_ast *arth_parse_rec(char **start, char **end, bool *err);
+s_arth_ast *arth_parse_rec(char **start, char **end,
+                           s_env *env, s_errcont *cont);
 
 void arth_default_index(int *index, char **elms);
 bool is_arth_op(char c);
@@ -56,31 +60,61 @@ bool is_arth_op(char c);
 char **arth_lex(char *str, char ***end);
 void arth_free(s_arth_ast *ast);
 
-int arth_exec(s_arth_ast *ast);
-int arth_exec_or(s_arth_ast *ast);
-int arth_exec_and(s_arth_ast *ast);
-int arth_exec_bor(s_arth_ast *ast);
-int arth_exec_xor(s_arth_ast *ast);
-int arth_exec_band(s_arth_ast *ast);
-int arth_exec_plus(s_arth_ast *ast);
-int arth_exec_minus(s_arth_ast *ast);
-int arth_exec_div(s_arth_ast *ast);
-int arth_exec_time(s_arth_ast *ast);
-int arth_exec_pow(s_arth_ast *ast);
-int arth_exec_not(s_arth_ast *ast);
-int arth_exec_bnot(s_arth_ast *ast);
+int arth_exec(s_arth_ast *ast, s_env *env, s_errcont *cont);
+int arth_exec_or(s_arth_ast *ast, s_env *env, s_errcont *cont);
+int arth_exec_and(s_arth_ast *ast, s_env *env, s_errcont *cont);
+int arth_exec_bor(s_arth_ast *ast, s_env *env, s_errcont *cont);
+int arth_exec_xor(s_arth_ast *ast, s_env *env, s_errcont *cont);
+int arth_exec_band(s_arth_ast *ast, s_env *env, s_errcont *cont);
+int arth_exec_plus(s_arth_ast *ast, s_env *env, s_errcont *cont);
+int arth_exec_minus(s_arth_ast *ast, s_env *env, s_errcont *cont);
+int arth_exec_div(s_arth_ast *ast, s_env *env, s_errcont *cont);
+int arth_exec_time(s_arth_ast *ast, s_env *env, s_errcont *cont);
 
-s_arth_ast *arth_parse(char *str, bool *err);
-s_arth_ast *arth_parse_word(char **str, char **end, bool *err);
-s_arth_ast *arth_parse_or(char **start, char **end, bool *err);
-s_arth_ast *arth_parse_and(char **start, char **end, bool *err);
-s_arth_ast *arth_parse_bor(char **start, char **end, bool *err);
-s_arth_ast *arth_parse_xor(char **start, char **end, bool *err);
-s_arth_ast *arth_parse_band(char **start, char **end, bool *err);
-s_arth_ast *arth_parse_plus(char **start, char **end, bool *err);
-s_arth_ast *arth_parse_minus(char **start, char **end, bool *err);
-s_arth_ast *arth_parse_div(char **start, char **end, bool *err);
-s_arth_ast *arth_parse_time(char **start, char **end, bool *err);
-s_arth_ast *arth_parse_pow(char **start, char **end, bool *err);
-s_arth_ast *arth_parse_not(char **start, char **end, bool *err);
-s_arth_ast *arth_parse_bnot(char **start, char **end, bool *err);
+int arth_exec_pow(s_arth_ast *ast, s_env *env, s_errcont *cont);
+
+int arth_exec_not(s_arth_ast *ast, s_env *env, s_errcont *cont);
+
+int arth_exec_bnot(s_arth_ast *ast, s_env *env, s_errcont *cont);
+
+
+s_arth_ast *arth_parse(char *str, s_env *env, s_errcont *cont);
+
+s_arth_ast *arth_parse_word(char **str, char **end,
+                            s_env *env, s_errcont *cont);
+
+s_arth_ast *arth_parse_or(char **start, char **end,
+                          s_env *env, s_errcont *cont);
+
+s_arth_ast *arth_parse_and(char **start, char **end,
+                           s_env *env, s_errcont *cont);
+
+s_arth_ast *arth_parse_bor(char **start, char **end,
+                           s_env *env, s_errcont *cont);
+
+s_arth_ast *arth_parse_xor(char **start, char **end,
+                           s_env *env, s_errcont *cont);
+
+s_arth_ast *arth_parse_band(char **start, char **end,
+                            s_env *env, s_errcont *cont);
+
+s_arth_ast *arth_parse_plus(char **start, char **end,
+                            s_env *env, s_errcont *cont);
+
+s_arth_ast *arth_parse_minus(char **start, char **end,
+                             s_env *env, s_errcont *cont);
+
+s_arth_ast *arth_parse_div(char **start, char **end,
+                           s_env *env, s_errcont *cont);
+
+s_arth_ast *arth_parse_time(char **start, char **end,
+                            s_env *env, s_errcont *cont);
+
+s_arth_ast *arth_parse_pow(char **start, char **end,
+                           s_env *env, s_errcont *cont);
+
+s_arth_ast *arth_parse_not(char **start, char **end,
+                           s_env *env, s_errcont *cont);
+
+s_arth_ast *arth_parse_bnot(char **start, char **end,
+                            s_env *env, s_errcont *cont);
