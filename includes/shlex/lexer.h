@@ -184,3 +184,11 @@ s_token *lexer_peek_at(s_lexer *lexer, s_token *tok, s_errcont *errcont);
 ** \param tok the token to read in
 */
 void word_read(s_cstream *cs, s_token *tok, s_errcont *errcont);
+
+
+/**
+** \brief reads a varable name
+** \param cs the stream to read from
+** \param tok the token to read in
+*/
+bool read_braket(s_cstream *cs, s_token *tok, s_errcont *errcont);

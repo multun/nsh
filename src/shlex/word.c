@@ -140,6 +140,7 @@ static const f_tok_reader word_readers[] =
   read_backslash,
   read_back_quote,
   read_subshell,
+  read_braket,
 };
 
 
