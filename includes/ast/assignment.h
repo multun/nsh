@@ -9,9 +9,9 @@
 */
 typedef struct aassignment
 {
-  s_wordlist *name;
-  s_wordlist *value;
-  struct ast *action;
+  s_wordlist *name; /**< the variable name */
+  s_wordlist *value; /**< the value of the variable */
+  struct ast *action; /**< the following command */
 } s_aassignment;
 
 

@@ -9,8 +9,8 @@
 */
 typedef struct afunction
 {
-  s_wordlist *name;
-  struct ast *value;
+  s_wordlist *name; /**< the function name */
+  struct ast *value; /**< the function body */
 } s_afunction;
 
 

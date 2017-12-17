@@ -10,9 +10,9 @@
 */
 typedef struct afor
 {
-  s_wordlist *var;
-  s_wordlist *collection;
-  struct ast *actions;
+  s_wordlist *var; /**< the variable */
+  s_wordlist *collection; /**< the list of value */
+  struct ast *actions; /**< the action to execute for each value */
 } s_afor;
 
 

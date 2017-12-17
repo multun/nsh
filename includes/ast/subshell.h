@@ -9,7 +9,7 @@
 */
 typedef struct asubshell
 {
-  struct ast *action;
+  struct ast *action; /**< the subshell command */
 } s_asubshell;
 
 

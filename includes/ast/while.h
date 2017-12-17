@@ -10,8 +10,8 @@
 */
 typedef struct awhile
 {
-  struct ast *condition;
-  struct ast *actions;
+  struct ast *condition; /**< the loop condition */
+  struct ast *actions; /**< the actions to execute into the loop */
 } s_awhile;
 
 

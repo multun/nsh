@@ -9,9 +9,9 @@
 */
 typedef struct ablock
 {
-  struct ast *redir;
-  struct ast *def;
-  struct ast *cmd;
+  struct ast *redir; /**< the redirection node */
+  struct ast *def; /**< the assignment node */
+  struct ast *cmd; /**< the command node */
 } s_ablock;
 
 #define ABLOCK(Redir, Def, Cmd)   \

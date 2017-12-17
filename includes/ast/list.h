@@ -5,12 +5,12 @@
 
 
 /**
-** \brief represents a list node
+** \brief represents a linked list of ast
 */
 typedef struct alist
 {
-  struct ast *action;
-  struct alist *next;
+  struct ast *action; /**< the current ast */
+  struct alist *next; /**< the next ast */
 } s_alist;
 
 

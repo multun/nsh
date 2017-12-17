@@ -14,9 +14,9 @@ typedef struct abool_op
     BOOL_OR,
     BOOL_AND,
     BOOL_NOT,
-  } type;
-  struct ast *left;
-  struct ast *right;
+  } type; /**< the type of operator */
+  struct ast *left; /**< the first operand */
+  struct ast *right; /**< the second operand */
 } s_abool_op;
 
 

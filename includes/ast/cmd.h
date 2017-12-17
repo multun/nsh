@@ -10,7 +10,7 @@
 */
 typedef struct acmd
 {
-  s_wordlist *wordlist;
+  s_wordlist *wordlist; /**< the command to execute */
 } s_acmd;
 
 

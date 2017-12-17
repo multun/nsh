@@ -8,14 +8,14 @@
 
 
 /**
-** \brief represents a wordlist
+** \brief represents a linked list of word
 */
 typedef struct wordlist
 {
-  char *str;
-  bool split;
-  bool expand;
-  struct wordlist *next;
+  char *str; /**< the current word string */
+  bool split; /**< if the word has to be split */
+  bool expand; /**< if the word has to be expand */
+  struct wordlist *next; /**< the next word */
 } s_wordlist;
 
 

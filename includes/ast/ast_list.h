@@ -4,12 +4,12 @@
 
 
 /**
-** \brief replresents an ast linked list.
+** \brief represents an ast linked list.
 */
 typedef struct ast_list
 {
-  s_ast *ast;
-  struct ast_list *next;
+  s_ast *ast; /**< the current ast */
+  struct ast_list *next; /**< the next ast */
 } s_ast_list;
 
 

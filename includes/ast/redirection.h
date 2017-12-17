@@ -27,10 +27,10 @@ typedef struct aredirection
   enum redir_type
   {
     REDIRECTIONS_APPLY(REDIRECTIONS_ENUM)
-  } type;
-  int left;
-  struct wordlist *right;
-  struct ast *action;
+  } type; /**< the type of redirection */
+  int left; /**< the io number */
+  struct wordlist *right; /**< the command */
+  struct ast *action; /**< the next redirection */
 } s_aredirection;
 
 

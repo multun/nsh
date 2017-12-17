@@ -8,8 +8,8 @@
 */
 typedef struct apipe
 {
-  struct ast *left;
-  struct ast *right;
+  struct ast *left; /**< the left operand */
+  struct ast *right; /**< the right operand */
 } s_apipe;
 
 

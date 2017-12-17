@@ -10,9 +10,9 @@
 */
 typedef struct aif
 {
-  struct ast *condition;
-  struct ast *success;
-  struct ast *failure;
+  struct ast *condition; /**< the if condition */
+  struct ast *success; /**< the command to execute in case of success*/
+  struct ast *failure; /**< the command to execute in case of failure*/
 } s_aif;
 
 

@@ -51,32 +51,32 @@
 
 
 /**
-** \brief Abstract Syntax Tree
+** \brief represent an Abstract Syntax Tree (AST).
 **/
 typedef struct ast
 {
   enum shnode_type
   {
     AST_TYPE_APPLY(DECLARE_AST_TYPE_ENUM)
-  } type;
+  } type; /**< type of node */
 
   union
   {
-    s_acmd ast_cmd;
-    s_aif ast_if;
-    s_afor ast_for;
-    s_awhile ast_while;
-    s_auntil ast_until;
-    s_aredirection ast_redirection;
-    s_apipe ast_pipe;
-    s_acase ast_case;
-    s_abool_op ast_bool_op;
-    s_alist ast_list;
-    s_aassignment ast_assignment;
-    s_afunction ast_function;
-    s_ablock ast_block;
-    s_asubshell ast_subshell;
-  } data;
+    s_acmd ast_cmd; /**< command field */
+    s_aif ast_if; /**< if field */
+    s_afor ast_for; /**< for field */
+    s_awhile ast_while; /**< while field */
+    s_auntil ast_until; /**< until field */
+    s_aredirection ast_redirection; /**< redirection field */
+    s_apipe ast_pipe; /**< pipe field */
+    s_acase ast_case; /**< case field */
+    s_abool_op ast_bool_op; /**< bool operator field */
+    s_alist ast_list; /**< command field */
+    s_aassignment ast_assignment; /**< assignment field */
+    s_afunction ast_function; /**< function field */
+    s_ablock ast_block; /**< block field */
+    s_asubshell ast_subshell; /**< subshell field */
+  } data; /**< content of the node */ /**< command field */
 } s_ast;
 
 
