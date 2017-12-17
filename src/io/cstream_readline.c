@@ -1,8 +1,10 @@
 #include "io/cstream.h"
-#include "utils/alloc.h"
 #include "repl/repl.h"
+#include "shexp/variable.h"
+#include "utils/alloc.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <stdio.h>
 // readline's header requires including stdio beforehand
@@ -10,23 +12,36 @@
 #include <readline/readline.h>
 
 
-static const char *get_ps1(s_context *context)
+
+
+static char *cont_get_var(s_context *cont, const char *vname,
+                          char *def)
 {
-  (void)context;
-  return "42sh> ";
+  struct pair *hpair = htable_access(cont->env->vars, vname);
+  if (!hpair)
+    return def;
+  s_var *var = hpair->value;
+  if (!var->value)
+    return def;
+  return var ? var->value : "";
 }
 
 
-static const char *get_ps2(s_context *context)
+static char *get_ps1(s_context *context)
 {
-  (void)context;
-  return "> ";
+  return cont_get_var(context, "PS1", "42sh> ");
 }
 
 
-static const char *prompt_get(s_cstream *cs)
+static char *get_ps2(s_context *context)
 {
-  const char *res = (cs->context->line_start ? get_ps1 : get_ps2)(cs->context);
+  return cont_get_var(context, "PS2", "> ");
+}
+
+
+static char *prompt_get(s_cstream *cs)
+{
+  char *res = (cs->context->line_start ? get_ps1 : get_ps2)(cs->context);
   cs->context->line_start = false;
   return res;
 }
@@ -38,7 +53,8 @@ int readline_io_reader(s_cstream *cs)
 
   if (!str)
   {
-    str = cs->data = readline(prompt_get(cs));
+    char *prompt = prompt_get(cs);
+    str = cs->data = readline(prompt);
     cs->back_pos = 0;
   }
 
