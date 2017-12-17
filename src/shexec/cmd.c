@@ -56,7 +56,7 @@ int cmd_exec_argv(s_env *env, s_errcont *cont)
     char **penv = environment_array(env);
     execvpe(env->argv[0], env->argv, penv);
     argv_free(penv);
-    clean_err(cont, errno, "couldn't exec \"%s\"", env->argv[0]);
+    clean_err(cont, 125 + errno, "couldn't exec \"%s\"", env->argv[0]);
   }
   waitpid(pid, &status, 0);
   return WEXITSTATUS(status);
