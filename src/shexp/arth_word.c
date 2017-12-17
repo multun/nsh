@@ -34,17 +34,12 @@ s_arth_ast *arth_parse_word(char **start, char **end,
   {
     char *var = expand_arth_word(*start, env, cont);
     err = false;
-    if (!*var)
-      n = 0;
-    else
-      n = wordtoi(var, &err);
+    n = wordtoi(var, &err);
     free(var);
     if (err)
-    {
-      warnx("%s: value is NaN", *start);
-      return NULL;
-    }
+      n = 0;
   }
+
   free(*start);
   *start = NULL;
   s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
