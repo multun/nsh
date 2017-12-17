@@ -1,3 +1,4 @@
+#include "shexec/clean_exit.h"
 #include "shexp/arth.h"
 #include "utils/alloc.h"
 #include "utils/strsplit.h"
@@ -18,8 +19,8 @@ void arth_parse_rec(char **start, char **end,
 {
   if (/*ERROR || */start == end)
   {
-    // TODO
     warnx("syntax error: operand expected");
+    clean_exit(cont->cont, 1);
   }
   *ast = NULL;
 

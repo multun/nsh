@@ -1,3 +1,4 @@
+#include "shexec/clean_exit.h"
 #include "shexp/arth.h"
 #include "utils/alloc.h"
 #include "utils/strsplit.h"
@@ -20,8 +21,8 @@ void arth_parse_bnot(char **start, char **end,
 
   if (pos != start)
   {
-    // TODO
     warnx("syntax error in expression");
+    clean_exit(cont->cont, 1);
   }
 
   free(*pos);

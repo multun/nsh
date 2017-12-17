@@ -1,4 +1,5 @@
 #include "shexp/arth.h"
+#include "shexec/clean_exit.h"
 
 #include <err.h>
 
@@ -24,8 +25,7 @@ int arth_exec_div(s_arth_ast *ast, s_arthcont *cont)
   if (!right)
   {
     warnx("division by 0");
-    // TODO
-    return 0;
+    clean_exit(cont->cont, 1);
   }
   return arth_exec(ast->left, cont) / right;
 }
@@ -39,8 +39,7 @@ int arth_exec_pow(s_arth_ast *ast, s_arthcont *cont)
   if (exp < 0)
   {
     warnx("exponent less than 0");
-    // TODO
-    return 0;
+    clean_exit(cont->cont, 1);
   }
   for (int i = 0; i < exp; i++)
   {

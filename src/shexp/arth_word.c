@@ -1,3 +1,4 @@
+#include "shexec/clean_exit.h"
 #include "shexp/arth.h"
 #include "shexp/expansion.h"
 #include "utils/alloc.h"
@@ -39,13 +40,12 @@ static int parse_word(char *var, s_arthcont *cont)
 
   if (!max_rec || err)
   {
-    // TODO
     if (!max_rec)
       warnx("expression recursion level exceeded");
     else
       warnx("'%s': value to great for base", var);
     free(var);
-    return 0;
+    clean_exit(cont->cont, 1);
   }
   free(var);
   return n;

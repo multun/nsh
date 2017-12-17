@@ -93,7 +93,6 @@ void expand_subshell_buffer(s_errcont *cont, char *buf, s_env *env,
 void expand_subshell(s_errcont *cont, char **str, s_env *env, s_evect *vec)
 {
   char *buf = strndup(*str, subshell_find_par(*str) - *str);
-  // TODO: subshell error handling
   expand_subshell_buffer(cont, buf, env, vec);
   *str = subshell_find_par(*str) + 1;
 }
