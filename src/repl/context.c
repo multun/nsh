@@ -44,9 +44,7 @@ static bool context_load_rc(s_context *cont)
 
 bool context_init(int *rc, s_context *cont, s_arg_context *arg_cont)
 {
-  // these are initialized here in case managed_stream_init fails
-  cont->env = NULL;
-  cont->history = NULL;
+  memset(cont, 0, sizeof(*cont));
 
   if ((*rc = cstream_dispatch_init(cont, &cont->cs, arg_cont)))
     return true;
