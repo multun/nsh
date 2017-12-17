@@ -3,12 +3,13 @@
 
 #include <assert.h>
 #include <err.h>
+#include <stdlib.h>
 
 
 static int wordtoi(char *str, bool *err)
 {
   if (!(*str))
-    return 0; 
+    return 0;
   int n = 0;
   bool neg = str[0] == '-';
   str += neg;
@@ -31,6 +32,8 @@ s_arth_ast *arth_parse_word(char **start, char **end, bool *err)
     warnx("%s: value is NaN", *start);
     return NULL;
   }
+  free(*start);
+  *start = NULL;
   s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
   *ast = ARTH_AST(ARTH_WORD, NULL, NULL);
   ast->value = n;

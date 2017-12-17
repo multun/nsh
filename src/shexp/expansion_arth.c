@@ -44,4 +44,5 @@ void expand_arth(char **str, s_env *env, s_evect *vec)
   sprintf(tab, "%d", res);
   for (char *c = tab; *c; c++)
     evect_push(vec, *c);
+  arth_free(ast);
 }

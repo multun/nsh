@@ -44,5 +44,6 @@ s_arth_ast *arth_parse(char *str, bool *err)
   char **end;
   char **elms = arth_lex(str, &end);
   s_arth_ast *res = arth_parse_rec(elms, end, err);
+  free(elms);
   return res;
 }
