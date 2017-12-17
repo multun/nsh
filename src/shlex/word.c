@@ -117,6 +117,8 @@ static bool read_double_quote(s_cstream *cs, s_token *tok, s_errcont *errcont)
       read_backslash(cs, tok, errcont);
     else if (tok->delim == '$')
       read_subshell(cs, tok, errcont);
+    else if (tok->delim == '`')
+      read_back_quote(cs, tok, errcont);
     else
       TOK_PUSH(tok, cstream_pop(cs));
   }
