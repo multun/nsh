@@ -66,70 +66,261 @@ typedef struct arth_ast
 })
 
 
-void arth_default_index(int *index, char **elms);
-bool is_arth_op(char c);
-
+/**
+** \brief lex an arithmetic expansion
+**
+** \param str the raw expansion
+** \param end a pointer to the last token
+*/
 char **arth_lex(char *str, char ***end);
+
+/**
+** \brief free an arithmetic ast
+**
+** \param ast ast to free
+*/
 void arth_free(s_arth_ast *ast);
 
+/**
+** \brief execute an arithmetic ast
+**
+** \param ast ast to execute
+** \param cont the error context and environment
+*/
 int arth_exec(s_arth_ast *ast, s_arthcont *cont);
+
+/**
+** \brief execute an OR node of an arithmetic ast
+**
+** \param ast current OR ast node
+** \param cont the error context and environment
+*/
 int arth_exec_or(s_arth_ast *ast, s_arthcont *cont);
+
+/**
+** \brief execute an AND node of an arithmetic ast
+**
+** \param ast current AND ast node
+** \param cont the error context and environment
+*/
 int arth_exec_and(s_arth_ast *ast, s_arthcont *cont);
+
+/**
+** \brief execute an BOR node of an arithmetic ast
+**
+** \param ast current BOR ast node
+** \param cont the error context and environment
+*/
 int arth_exec_bor(s_arth_ast *ast, s_arthcont *cont);
+
+/**
+** \brief execute an XOR node of an arithmetic ast
+**
+** \param ast current XOR ast node
+** \param cont the error context and environment
+*/
 int arth_exec_xor(s_arth_ast *ast, s_arthcont *cont);
+
+/**
+** \brief execute an BAND node of an arithmetic ast
+**
+** \param ast current BAND ast node
+** \param cont the error context and environment
+*/
 int arth_exec_band(s_arth_ast *ast, s_arthcont *cont);
+
+/**
+** \brief execute an PLUS node of an arithmetic ast
+**
+** \param ast current PLUS ast node
+** \param cont the error context and environment
+*/
 int arth_exec_plus(s_arth_ast *ast, s_arthcont *cont);
+
+/**
+** \brief execute an MINUS node of an arithmetic ast
+**
+** \param ast current MINUS ast node
+** \param cont the error context and environment
+*/
 int arth_exec_minus(s_arth_ast *ast, s_arthcont *cont);
+
+/**
+** \brief execute an DIV node of an arithmetic ast
+**
+** \param ast current DIV ast node
+** \param cont the error context and environment
+*/
 int arth_exec_div(s_arth_ast *ast, s_arthcont *cont);
+
+/**
+** \brief execute an TIME node of an arithmetic ast
+**
+** \param ast current TIME ast node
+** \param cont the error context and environment
+*/
 int arth_exec_time(s_arth_ast *ast, s_arthcont *cont);
 
+/**
+** \brief execute an POW node of an arithmetic ast
+**
+** \param ast current POW ast node
+** \param cont the error context and environment
+*/
 int arth_exec_pow(s_arth_ast *ast, s_arthcont *cont);
 
+/**
+** \brief execute an NOT node of an arithmetic ast
+**
+** \param ast current NOT ast node
+** \param cont the error context and environment
+*/
 int arth_exec_not(s_arth_ast *ast, s_arthcont *cont);
 
+/**
+** \brief execute an BNOT node of an arithmetic ast
+**
+** \param ast current BNOT ast node
+** \param cont the error context and environment
+*/
 int arth_exec_bnot(s_arth_ast *ast, s_arthcont *cont);
 
-
+/**
+** \brief parse an arithmetic expression
+**
+** \param str the raw expression
+** \param cont the error context and environment
+*/
 s_arth_ast *arth_parse(char *str, s_arthcont *cont);
 
+/**
+** \brief parse recursively an arithmetic ast
+**
+** \param start the first token to parse
+** \param end the last token to parse
+** \param cont the error context and environment
+** \param ast a pointer to the created node
+*/
 void arth_parse_rec(char **start, char **end,
                     s_arthcont *cont, s_arth_ast **ast);
 
+/**
+** \brief parse a WORD ast node
+**
+** \param start the first token to parse
+** \param end the last token to parse
+** \param cont the error context and environment
+** \param ast a pointer to the created node
+*/
 void arth_parse_word(char **str, char **end,
                      s_arthcont *cont, s_arth_ast **ast);
 
+/**
+** \brief parse an OR ast node
+**
+** \param start the first token to parse
+** \param end the last token to parse
+** \param cont the error context and environment
+** \param ast a pointer to the created node
+*/
 void arth_parse_or(char **start, char **end,
                    s_arthcont *cont, s_arth_ast **ast);
 
+/**
+** \brief parse an AND ast node
+**
+** \param start the first token to parse
+** \param end the last token to parse
+** \param cont the error context and environment
+** \param ast a pointer to the created node
+*/
 void arth_parse_and(char **start, char **end,
                    s_arthcont *cont, s_arth_ast **ast);
 
+/**
+** \brief parse a BOR ast node
+**
+** \param start the first token to parse
+** \param end the last token to parse
+** \param cont the error context and environment
+** \param ast a pointer to the created node
+*/
 void arth_parse_bor(char **start, char **end,
                     s_arthcont *cont, s_arth_ast **ast);
 
+/**
+** \brief parse a XOR ast node
+**
+** \param start the first token to parse
+** \param end the last token to parse
+** \param cont the error context and environment
+** \param ast a pointer to the created node
+*/
 void arth_parse_xor(char **start, char **end,
                     s_arthcont *cont, s_arth_ast **ast);
 
+/**
+** \brief parse a BAND ast node
+**
+** \param start the first token to parse
+** \param end the last token to parse
+** \param cont the error context and environment
+** \param ast a pointer to the created node
+*/
 void arth_parse_band(char **start, char **end,
                      s_arthcont *cont, s_arth_ast **ast);
 
+/**
+** \brief parse a PLUS and MINUS ast node
+**
+** \param start the first token to parse
+** \param end the last token to parse
+** \param cont the error context and environment
+** \param ast a pointer to the created node
+*/
 void arth_parse_plus(char **start, char **end,
                      s_arthcont *cont, s_arth_ast **ast);
 
-void arth_parse_minus(char **start, char **end,
-                      s_arthcont *cont, s_arth_ast **ast);
-
-void arth_parse_div(char **start, char **end,
-                    s_arthcont *cont, s_arth_ast **ast);
-
+/**
+** \brief parse a TIME ast node
+**
+** \param start the first token to parse
+** \param end the last token to parse
+** \param cont the error context and environment
+** \param ast a pointer to the created node
+*/
 void arth_parse_time(char **start, char **end,
                      s_arthcont *cont, s_arth_ast **ast);
 
+/**
+** \brief parse a POW ast node
+**
+** \param start the first token to parse
+** \param end the last token to parse
+** \param cont the error context and environment
+** \param ast a pointer to the created node
+*/
 void arth_parse_pow(char **start, char **end,
                     s_arthcont *cont, s_arth_ast **ast);
 
+/**
+** \brief parse a NOT ast node
+**
+** \param start the first token to parse
+** \param end the last token to parse
+** \param cont the error context and environment
+** \param ast a pointer to the created node
+*/
 void arth_parse_not(char **start, char **end,
                     s_arthcont *cont, s_arth_ast **ast);
 
+/**
+** \brief parse a BNOT ast node
+**
+** \param start the first token to parse
+** \param end the last token to parse
+** \param cont the error context and environment
+** \param ast a pointer to the created node
+*/
 void arth_parse_bnot(char **start, char **end,
                      s_arthcont *cont, s_arth_ast **ast);

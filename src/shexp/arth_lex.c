@@ -4,7 +4,7 @@
 #include "utils/alloc.h"
 #include "shexp/arth.h"
 
-bool is_arth_op(char c)
+static bool is_arth_op(char c)
 {
   return c == '-' || c == '+' || c == '*' || c == '/' || c == '&' || c == '|'
          || c == '!' || c == '~' || c == '^';
