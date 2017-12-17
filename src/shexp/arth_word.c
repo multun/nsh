@@ -1,4 +1,5 @@
 #include "shexp/arth.h"
+#include "shexp/expansion.h"
 #include "utils/alloc.h"
 
 #include <assert.h>
@@ -27,14 +28,22 @@ s_arth_ast *arth_parse_word(char **start, char **end,
                             s_env *env, s_errcont *cont)
 {
   assert(start < end);
-  (void)env;
-  (void)cont;
   bool err = false;
   int n = wordtoi(*start, &err);
   if (err)
   {
-    warnx("%s: value is NaN", *start);
-    return NULL;
+    char *var = expand_arth_word(*start, env, cont);
+    err = false;
+    if (!*var)
+      n = 0;
+    else
+      n = wordtoi(var, &err);
+    free(var);
+    if (err)
+    {
+      warnx("%s: value is NaN", *start);
+      return NULL;
+    }
   }
   free(*start);
   *start = NULL;
