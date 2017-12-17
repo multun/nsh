@@ -118,7 +118,7 @@ typedef struct lexer
 
 
 /**
-** \brief allocates a new token
+** \brief allocates a new token and pushes it onto the lexer stack
 */
 void tok_alloc(s_lexer *lexer);
 
@@ -138,8 +138,10 @@ bool tok_is(const s_token *tok, enum token_type type);
 
 /**
 ** \brief allocates a new lexer
+** \param stream the character stream to bind the lexer to
 */
 s_lexer *lexer_create(s_cstream *stream);
+
 
 /**
 ** \brief frees a lexer
@@ -148,23 +150,36 @@ void lexer_free(s_lexer *lexer);
 
 
 /**
-** \brief peeks a token without unpoping it
-** \details this interface is an internal of the lexer
+** \brief peeks a token without removing it from the stack
+** \param lexer the lexer to peek at
+** \param errcont the error context
+** \return the next token to be read
 */
 const s_token *lexer_peek(s_lexer *lexer, s_errcont *errcont);
 
+
+
 /**
-** \brief removes a token from the stream, crafting it if necessary
+** \brief peeks a token and removes it from the stack
+** \param lexer the lexer to pop from
+** \param errcont the error context
+** \return the next token
 */
 s_token *lexer_pop(s_lexer *lexer, s_errcont *errcont);
 
+
 /**
 ** \brief pushes back a previously popped token
+** \param lexer the lexer to push the token to
+** \param tok the pushed token
 */
 void lexer_push(s_lexer *lexer, s_token *tok);
 
+
 /**
 ** \brief reads a word into a token
-** \details this interface is an internal of the lexer
+** \details this interface is a lexer internal
+** \param cs the stream to read from
+** \param tok the token to read in
 */
 void word_read(s_cstream *cs, s_token *tok, s_errcont *errcont);
