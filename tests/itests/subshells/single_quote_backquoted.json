@@ -1,0 +1,7 @@
+{
+  "desc": "A simple unexpanded subshell test",
+  "stdin": "echo -n '`echo coucou`'",
+  "stdout": "`echo coucou`",
+  "stderr": "",
+  "retcode": 0
+}

@@ -1,0 +1,7 @@
+{
+  "desc": "An escaped subshell containing an escaped backquote",
+  "stdin": "echo -n \"`echo \\``\"",
+  "stdout": "`",
+  "stderr": "",
+  "retcode": 0
+}

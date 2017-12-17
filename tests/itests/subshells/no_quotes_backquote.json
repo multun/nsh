@@ -1,0 +1,7 @@
+{
+  "desc": "An unquoted subshell",
+  "stdin": "echo -n `echo coucou`",
+  "stdout": "coucou",
+  "stderr": "",
+  "retcode": 0
+}
