@@ -17,7 +17,7 @@ static size_t wordlist_argc_count(s_wordlist *wl)
 }
 
 
-static void wordlist_to_argv_sub(char ***res, s_wordlist *wl,
+static void wordlist_to_argv_sub(char **volatile *res, s_wordlist *wl,
                                  s_env *env, s_errcont *cont)
 {
   size_t argc = wordlist_argc_count(wl);
@@ -35,7 +35,7 @@ static void wordlist_to_argv_sub(char ***res, s_wordlist *wl,
 // the parameters is done within the proper context
 void wordlist_to_argv(char ***res, s_wordlist *wl, s_env *env, s_errcont *cont)
 {
-  char **new_argv = NULL;
+  char **volatile new_argv = NULL;
   s_keeper keeper = KEEPER(cont->keeper);
   if (setjmp(keeper.env))
   {
