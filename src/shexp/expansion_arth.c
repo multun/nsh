@@ -28,10 +28,11 @@ char *expand_arth_word(char *word, s_env *env, s_errcont *cont)
 }
 
 
-void expand_arth(char **str, s_env *env, s_evect *vec)
+void expand_arth(char **str, s_env *env, s_evect *vec, s_errcont *cont)
 {
   bool err = false;
   (void)env;
+  (void)cont;
   (*str)++;
   char *tmp = strrchr(*str, ')');
   *tmp = 0;

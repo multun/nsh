@@ -31,7 +31,7 @@ void expand_subshell(s_errcont *errcont, char **str, s_env *env, s_evect *vec);
 ** \param vec the vector to store the result in
 ** \param errcont the error context to work with
 */
-void expand_arth(char **str, s_env *env, s_evect *vec, s_errcont *errcont);
+void expand_arth(char **str, s_env *env, s_evect *vec, s_errcont *cont);
 
 
 /**

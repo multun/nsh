@@ -174,7 +174,7 @@ static bool expand_dollar(s_exp_ctx ctx, s_evect *vec, s_env *env, s_errcont *co
   if (**ctx.str == '(' && (*ctx.str)++)
   {
     if (*(*ctx.str) == '(')
-      expand_arth(ctx.str, env, vec);
+      expand_arth(ctx.str, env, vec, cont);
     else
       expand_subshell(cont, ctx.str, env, vec);
   }
