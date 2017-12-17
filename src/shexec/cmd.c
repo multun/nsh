@@ -53,14 +53,13 @@ int cmd_exec_argv(s_env *env, s_errcont *cont)
     clean_err(cont, errno, "cmd_exec: error while forking");
   else if (pid == 0)
   {
-    execvpe(env->argv[0], env->argv, environment_array(env));
+    char **penv = environment_array(env);
+    execvpe(env->argv[0], env->argv, penv);
+    argv_free(penv);
     clean_err(cont, errno, "couldn't exec \"%s\"", env->argv[0]);
   }
-  else
-  {
-    waitpid(pid, &status, 0);
-    return WEXITSTATUS(status);
-  }
+  waitpid(pid, &status, 0);
+  return WEXITSTATUS(status);
 }
 
 int cmd_exec(s_env *env, s_ast *node, s_errcont *cont)
