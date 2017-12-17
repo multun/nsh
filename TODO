@@ -45,17 +45,17 @@
   * [X] Exit
   * [X] Cd
   * [X] Shopt
-  * [ ] Export
+  * [X] Export
   * [ ] Alias
   * [ ] Unalias
   * [X] Echo
   * [X] Continue
   * [X] Break
-  * [ ] Source
-  * [ ] History
-* [ ] Expansion
+  * [X] Source
+  * [X] History
+* [X] Expansion
   * [X] Vars
   * [X] Args
   * [X] Special vars
   * [X] Subshell
-  * [ ] Arth
+  * [X] Arth
