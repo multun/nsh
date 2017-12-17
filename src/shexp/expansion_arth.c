@@ -37,7 +37,7 @@ void expand_arth(char **str, s_env *env, s_evect *vec, s_errcont *cont)
   tmp = strrchr(*str, ')');
   *tmp = 0;
   s_arth_ast *ast = arth_parse(*str, env, cont);
-  *str = tmp + 1;
+  *str = tmp + 2;
   char tab[12];
   int res = arth_exec(ast, env, cont);
   sprintf(tab, "%d", res);
