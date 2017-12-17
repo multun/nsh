@@ -23,8 +23,8 @@
   F(ARTH_DIV, arth_parse_div, arth_exec_div)                                  \
   F(ARTH_TIME, arth_parse_time, arth_exec_time)                               \
   F(ARTH_POW, arth_parse_pow, arth_exec_pow)                                  \
-  F(ARTH_NOT, arth_parse_word, arth_exec_and)                                 \
-  F(ARTH_BNOT, arth_parse_word, arth_exec_and)                                \
+  F(ARTH_NOT, arth_parse_not, arth_exec_not)                                  \
+  F(ARTH_BNOT, arth_parse_bnot, arth_exec_bnot)                               \
   F(ARTH_WORD, arth_parse_word, arth_exec_and)
 
 

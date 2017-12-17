@@ -5,6 +5,46 @@
 #include <stdlib.h>
 
 
+static s_arth_ast *arth_parse_bnot(char **start, char **end, bool *err)
+{
+  char **pos = strsplit_r(start, end, "~", true);
+  if (!pos)
+    return NULL;
+
+  if (pos != start)
+  {
+    *err = true;
+    return NULL;
+  }
+
+  free(*pos);
+  *pos = NULL;
+  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
+  *ast = ARTH_AST(ARTH_BNOT, arth_parse_rec(start + 1, end, err), NULL);
+  return ast;
+}
+
+
+static s_arth_ast *arth_parse_not(char **start, char **end, bool *err)
+{
+  char **pos = strsplit_r(start, end, "!", true);
+  if (!pos)
+    return NULL;
+
+  if (pos != start)
+  {
+    *err = true;
+    return NULL;
+  }
+
+  free(*pos);
+  *pos = NULL;
+  s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
+  *ast = ARTH_AST(ARTH_NOT, arth_parse_rec(start + 1, end, err), NULL);
+  return ast;
+}
+
+
 static s_arth_ast *arth_parse_pow(char **start, char **end, bool *err)
 {
   char **pos = strsplit_r(start, end, "**", true);
