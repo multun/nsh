@@ -68,6 +68,9 @@ s_arth_ast *arth_parse(char *str, s_arthcont *cont)
       arth_parse_rec(elms, end, &ncnt, &res);
     }
   }
+  if (elms)
+    for (char **cur = elms; cur < end; cur++)
+      free(*cur);
   free(elms);
   return res;
 }
