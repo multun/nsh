@@ -13,6 +13,15 @@ extern s_ex_class g_clean_exit;
 
 
 /**
+** \brief if test if false, exit with status code 2 and a formatted message
+** \param cont the error context to raise exceptions in
+** \param test the asserted value
+** \param fmt the formated string
+*/
+void clean_assert(s_errcont *cont, bool test,
+                  const char *fmt, ...);
+
+/**
 ** \brief prints a formated error message and exits using clean_exit
 ** \param fmt a format string
 */
