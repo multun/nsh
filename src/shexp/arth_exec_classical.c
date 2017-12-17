@@ -3,39 +3,39 @@
 #include <err.h>
 
 
-int arth_exec_plus(s_arth_ast *ast, s_env *env, s_errcont *cont)
+int arth_exec_plus(s_arth_ast *ast, s_arthcont *cont)
 {
-  return arth_exec(ast->left, env, cont) + arth_exec(ast->right, env, cont);
+  return arth_exec(ast->left, cont) + arth_exec(ast->right, cont);
 }
 
 
-int arth_exec_minus(s_arth_ast *ast, s_env *env, s_errcont *cont)
+int arth_exec_minus(s_arth_ast *ast, s_arthcont *cont)
 {
   if (!ast->right)
-    return -arth_exec(ast->left, env, cont);
+    return -arth_exec(ast->left, cont);
 
-  return arth_exec(ast->left, env, cont) - arth_exec(ast->right, env, cont);
+  return arth_exec(ast->left, cont) - arth_exec(ast->right, cont);
 }
 
 
-int arth_exec_div(s_arth_ast *ast, s_env *env, s_errcont *cont)
+int arth_exec_div(s_arth_ast *ast, s_arthcont *cont)
 {
-  int right = arth_exec(ast->right, env, cont);
+  int right = arth_exec(ast->right, cont);
   if (!right)
   {
     warnx("division by 0");
     // TODO
     return 0;
   }
-  return arth_exec(ast->left, env, cont) / right;
+  return arth_exec(ast->left, cont) / right;
 }
 
 
-int arth_exec_pow(s_arth_ast *ast, s_env *env, s_errcont *cont)
+int arth_exec_pow(s_arth_ast *ast, s_arthcont *cont)
 {
   int res = 1;
-  int mult = arth_exec(ast->left, env, cont);
-  int exp = arth_exec(ast->right, env, cont);
+  int mult = arth_exec(ast->left, cont);
+  int exp = arth_exec(ast->right, cont);
   if (exp < 0)
   {
     warnx("exponent less than 0");
@@ -53,7 +53,7 @@ int arth_exec_pow(s_arth_ast *ast, s_env *env, s_errcont *cont)
 }
 
 
-int arth_exec_time(s_arth_ast *ast, s_env *env, s_errcont *cont)
+int arth_exec_time(s_arth_ast *ast, s_arthcont *cont)
 {
-  return arth_exec(ast->left, env, cont) * arth_exec(ast->right, env, cont);
+  return arth_exec(ast->left, cont) * arth_exec(ast->right, cont);
 }

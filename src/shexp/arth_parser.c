@@ -7,14 +7,14 @@
 
 
 static s_arth_ast *(*arth_parser_utils[])(char **start, char **end,
-                                          s_env *env, s_errcont *cont) =
+                                          s_arthcont *cont) =
 {
   ARTH_TYPE_APPLY(DECLARE_ARTH_PARSER_UTILS)
 };
 
 
 s_arth_ast *arth_parse_rec(char **start, char **end,
-                           s_env *env, s_errcont *cont)
+                           s_arthcont *cont)
 {
   if (/*ERROR || */start == end)
   {
@@ -25,7 +25,7 @@ s_arth_ast *arth_parse_rec(char **start, char **end,
   s_arth_ast *res = NULL;
 
   for (int i = 0; i < 13; i++)
-    if ((res = arth_parser_utils[i](start, end, env, cont)))
+    if ((res = arth_parser_utils[i](start, end, cont)))
       return res;
   return NULL;
 }
@@ -42,13 +42,13 @@ void arth_free(s_arth_ast *ast)
 }
 
 
-s_arth_ast *arth_parse(char *str, s_env *env, s_errcont *cont)
+s_arth_ast *arth_parse(char *str, s_arthcont *cont)
 {
   char **end;
   char **elms = arth_lex(str, &end);
   s_arth_ast *res = NULL;
   if (elms != end)
-    res = arth_parse_rec(elms, end, env, cont);
+    res = arth_parse_rec(elms, end, cont);
   free(elms);
   return res;
 }

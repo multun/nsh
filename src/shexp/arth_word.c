@@ -23,13 +23,13 @@ static int wordtoi(char *str, bool *err)
   return neg ? -n : n;
 }
 
-static int parse_word(char *var, s_env *env, s_errcont *cont)
+static int parse_word(char *var, s_arthcont *cont)
 {
   int max_rec = 15;
 
   while (max_rec && *var && (*var < '0' || *var > '9'))
   {
-    char *newvar = expand_arth_word(var, env, cont);
+    char *newvar = expand_arth_word(var, cont->env, cont->cont);
     free(var);
     var = newvar;
     max_rec--;
@@ -53,10 +53,10 @@ static int parse_word(char *var, s_env *env, s_errcont *cont)
 }
 
 s_arth_ast *arth_parse_word(char **start, char **end,
-                            s_env *env, s_errcont *cont)
+                            s_arthcont *cont)
 {
   assert(start < end);
-  int n = parse_word(*start, env, cont);
+  int n = parse_word(*start, cont);
   *start = NULL;
   s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
   *ast = ARTH_AST(ARTH_WORD, NULL, NULL);

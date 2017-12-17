@@ -7,7 +7,7 @@
 
 
 s_arth_ast *arth_parse_bnot(char **start, char **end,
-                            s_env *env, s_errcont *cont)
+                            s_arthcont *cont)
 {
   const char *delim[] = { "~", NULL };
   char **pos = strsplit_r(start, end, delim, true);
@@ -24,13 +24,13 @@ s_arth_ast *arth_parse_bnot(char **start, char **end,
   free(*pos);
   *pos = NULL;
   s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_BNOT, arth_parse_rec(start + 1, end, env, cont), NULL);
+  *ast = ARTH_AST(ARTH_BNOT, arth_parse_rec(start + 1, end, cont), NULL);
   return ast;
 }
 
 
 s_arth_ast *arth_parse_band(char **start, char **end,
-                            s_env *env, s_errcont *cont)
+                            s_arthcont *cont)
 {
   const char *delim[] = { "&", NULL };
   char **pos = strsplit_r(start, end, delim, true);
@@ -40,14 +40,14 @@ s_arth_ast *arth_parse_band(char **start, char **end,
   free(*pos);
   *pos = NULL;
   s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_BAND, arth_parse_rec(start, pos, env, cont),
-                  arth_parse_rec(pos + 1, end, env, cont));
+  *ast = ARTH_AST(ARTH_BAND, arth_parse_rec(start, pos, cont),
+                  arth_parse_rec(pos + 1, end, cont));
   return ast;
 }
 
 
 s_arth_ast *arth_parse_xor(char **start, char **end,
-                           s_env *env, s_errcont *cont)
+                           s_arthcont *cont)
 {
   const char *delim[] = { "^", NULL };
   char **pos = strsplit_r(start, end, delim, true);
@@ -57,14 +57,14 @@ s_arth_ast *arth_parse_xor(char **start, char **end,
   free(*pos);
   *pos = NULL;
   s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_XOR, arth_parse_rec(start, pos, env, cont),
-                  arth_parse_rec(pos + 1, end, env, cont));
+  *ast = ARTH_AST(ARTH_XOR, arth_parse_rec(start, pos, cont),
+                  arth_parse_rec(pos + 1, end, cont));
   return ast;
 }
 
 
 s_arth_ast *arth_parse_bor(char **start, char **end,
-                           s_env *env, s_errcont *cont)
+                           s_arthcont *cont)
 {
   const char *delim[] = { "|", NULL };
   char **pos = strsplit_r(start, end, delim, true);
@@ -74,7 +74,7 @@ s_arth_ast *arth_parse_bor(char **start, char **end,
   free(*pos);
   *pos = NULL;
   s_arth_ast *ast = xcalloc(1, sizeof(s_arth_ast));
-  *ast = ARTH_AST(ARTH_BOR, arth_parse_rec(start, pos, env, cont),
-                  arth_parse_rec(pos + 1, end, env, cont));
+  *ast = ARTH_AST(ARTH_BOR, arth_parse_rec(start, pos, cont),
+                  arth_parse_rec(pos + 1, end, cont));
   return ast;
 }

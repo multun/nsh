@@ -36,10 +36,11 @@ void expand_arth(char **str, s_env *env, s_evect *vec, s_errcont *cont)
   *tmp = 0;
   tmp = strrchr(*str, ')');
   *tmp = 0;
-  s_arth_ast *ast = arth_parse(*str, env, cont);
+  s_arthcont acont = ARTHCONT(env, cont);
+  s_arth_ast *ast = arth_parse(*str, &acont);
   *str = tmp + 2;
   char tab[12];
-  int res = arth_exec(ast, env, cont);
+  int res = arth_exec(ast, &acont);
   sprintf(tab, "%d", res);
   for (char *c = tab; *c; c++)
     evect_push(vec, *c);
