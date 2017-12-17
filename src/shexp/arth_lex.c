@@ -17,7 +17,7 @@ static void parse_arth_word(char **str, s_evect *vec)
   {
     char c = *((*str)++);
     evect_push(vec, c);
-    if (**str == c)
+    if ((c == '|' || c == '&' || c == '*') && **str == c)
     {
       evect_push(vec, c);
       (*str)++;
