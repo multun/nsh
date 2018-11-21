@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdbool.h>
+#include <string.h>
 #include "io/cstream.h"
 
 struct wtoken {
@@ -38,8 +40,21 @@ struct wlexer {
   } mode;
 
   // lookahead buffer
-  struct wtoken cache;
+  struct wtoken lookahead;
 };
+
+static inline bool wlexer_has_lookahead(const struct wlexer *wlex) {
+  return wlex->lookahead.type != WTOK_UNKNOWN;
+}
+
+static inline void wlexer_clear_lookahead(struct wlexer *wlex) {
+  wlex->lookahead.type = WTOK_UNKNOWN;
+}
+
+static inline void wlexer_init(struct wlexer *lexer, struct cstream *cs) {
+  memset(lexer, 0, sizeof(*lexer));
+  lexer->cs = cs;
+}
 
 int wlexer_peek(struct wtoken *res, struct wlexer *lex);
 int wlexer_pop(struct wtoken *res, struct wlexer *lex);

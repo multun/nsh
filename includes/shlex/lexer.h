@@ -7,6 +7,7 @@
 #include "utils/error.h"
 #include "utils/evect.h"
 #include "shlex/lexer_error.h"
+#include "shwlex/wlexer.h"
 
 #define LEXERROR(LineInfo, Errcont, ...) \
   sherror((LineInfo), (Errcont), &g_lexer_error, __VA_ARGS__)
@@ -94,7 +95,6 @@ typedef struct token
 
   s_lineinfo lineinfo;
   int delim;
-  bool specified;
   struct evect str;
   struct token *next;
 } s_token;
@@ -112,8 +112,8 @@ typedef struct lexer
 {
   /* the head of the token stack */
   s_token *head;
-  /* the underlying stream */
-  s_cstream *stream;
+  /* the toplevel word lexer */
+  struct wlexer wlexer;
 } s_lexer;
 
 
@@ -175,20 +175,3 @@ s_token *lexer_pop(s_lexer *lexer, s_errcont *errcont);
 ** \param tok the token to peek after
 */
 s_token *lexer_peek_at(s_lexer *lexer, s_token *tok, s_errcont *errcont);
-
-
-/**
-** \brief reads a word into a token
-** \details this interface is a lexer internal
-** \param cs the stream to read from
-** \param tok the token to read in
-*/
-void word_read(s_cstream *cs, s_token *tok, s_errcont *errcont);
-
-
-/**
-** \brief reads a varable name
-** \param cs the stream to read from
-** \param tok the token to read in
-*/
-bool read_braket(s_cstream *cs, s_token *tok, s_errcont *errcont);
