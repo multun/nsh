@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <string.h>
-
 #include "shwlex/wlexer.h"
 
 
@@ -8,27 +7,27 @@ static int wlexer_lex(struct wtoken *res, struct wlexer *lex);
 
 int wlexer_peek(struct wtoken *res, struct wlexer *lex) {
   int rc;
-  if (lex->cache.type == WTOK_UNKNOWN)
+  if (!wlexer_has_lookahead(lex))
     if ( (rc = wlexer_lex(res, lex) != 0))
       return rc;
 
-  *res = lex->cache;
+  *res = lex->lookahead;
   return 0;
 }
 
 
 int wlexer_pop(struct wtoken *res, struct wlexer *lex) {
-  if (lex->cache.type == WTOK_UNKNOWN)
+  if (!wlexer_has_lookahead(lex))
     return wlexer_lex(res, lex);
 
-  *res = lex->cache;
-  lex->cache.type = WTOK_UNKNOWN;
+  *res = lex->lookahead;
+  wlexer_clear_lookahead(lex);
   return 0;
 }
 
 int wlexer_push(const struct wtoken *res, struct wlexer *lex) {
-  assert(lex->cache.type == WTOK_UNKNOWN);
-  lex->cache = *res;
+  assert(!wlexer_has_lookahead(lex));
+  lex->lookahead = *res;
   return 0;
 }
 
