@@ -176,8 +176,10 @@ int lexer_lex_untyped(struct token *token,
 	errx(1, "unexpected EOF in escape\n");
 
       // don't push carriage returns
-      if (ch != '\n')
+      if (ch != '\n') {
+	evect_push(&token->str, '\\');
 	evect_push(&token->str, ch);
+      }
       break;
     case WTOK_SUBSH_OPEN:
       wtoken_push(token, &wtok);
