@@ -130,7 +130,7 @@ int lexer_lex_untyped(struct token *token,
 	break;
       }
 
-      if (wtok.ch[0] == '\n') {
+      if (wtok.ch[0] == '\n' || wtok.ch[0] == ';') {
 	token->type = TOK_NEWLINE;
 	wtoken_push(token, &wtok);
 	return 0;
