@@ -271,12 +271,12 @@ int lexer_lex_untyped(struct token *token,
                 errx(1, "unexpected EOF in ` section\n");
             wtoken_push(token, &wtok);
 
-            if (wtok.type == WTOK_ESCAPE)
-                escape = true;
-            else if (wtok.type == WTOK_BTICK && !escape)
-                break;
-            else
+            if (escape)
                 escape = false;
+            else if (wtok.type == WTOK_ESCAPE)
+                escape = true;
+            else if (wtok.type == WTOK_BTICK)
+                break;
         } while (true);
         break;
     }
