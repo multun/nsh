@@ -8,7 +8,7 @@ static int wlexer_lex(struct wtoken *res, struct wlexer *lex);
 int wlexer_peek(struct wtoken *res, struct wlexer *lex) {
   int rc;
   if (!wlexer_has_lookahead(lex))
-    if ( (rc = wlexer_lex(res, lex) != 0))
+    if ( (rc = wlexer_lex(&lex->lookahead, lex) != 0))
       return rc;
 
   *res = lex->lookahead;
