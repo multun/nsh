@@ -301,24 +301,27 @@ int lexer_lex_untyped(struct token *token,
       break;
     case WTOK_SUBSH_CLOSE:
       wtoken_push(token, &wtok);
-      assert(wlexer->mode == MODE_SUBSHELL);
-      return 0;
+      if (wlexer->mode == MODE_SUBSHELL)
+          return 0;
+      break;
     case WTOK_ARITH_OPEN:
       wtoken_push(token, &wtok);
       lexer_lex_untyped(token, &WLEXER_FORK(wlexer, MODE_ARITH), lexer);
       break;
     case WTOK_ARITH_CLOSE:
       wtoken_push(token, &wtok);
-      assert(wlexer->mode == MODE_ARITH);
-      return 0;
+      if (wlexer->mode == MODE_ARITH)
+          return 0;
+      break;
     case WTOK_EXP_OPEN:
       wtoken_push(token, &wtok);
       lexer_lex_untyped(token, &WLEXER_FORK(wlexer, MODE_EXPANSION), lexer);
       break;
     case WTOK_EXP_CLOSE:
       wtoken_push(token, &wtok);
-      assert(wlexer->mode == MODE_EXPANSION);
-      return 0;
+      if (wlexer->mode == MODE_EXPANSION)
+          return 0;
+      break;
 
     case WTOK_UNKNOWN:
       errx(1, "lol?");
