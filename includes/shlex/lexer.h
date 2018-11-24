@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "io/cstream.h"
+#include "utils/attr.h"
 #include "utils/error.h"
 #include "utils/evect.h"
 #include "shlex/lexer_error.h"
@@ -33,7 +34,7 @@
   F(TOK_GREATAND,  ">&")  \
   F(TOK_LESSGREAT, "<>")  \
   F(TOK_CLOBBER,   ">|")  \
-  F(TOK_LESSDASH,  "<<-") \
+  F(TOK_LESSDASH,  "<<-")
 
 
 #define TOK_IS_KW(Type) ((Type) >= TOK_IF && (Type) <= TOK_FUNC)
@@ -99,6 +100,13 @@ typedef struct token
   struct token *next;
 } s_token;
 
+static __unused const char *tok_buf(const struct token *token) {
+    return token->str.data;
+}
+
+static __unused size_t tok_size(const struct token *token) {
+    return token->str.size;
+}
 
 #define TOK_PUSH(Tok, C) evect_push(&(Tok)->str, C)
 #define TOK_SIZE(Tok) (Tok)->str.size

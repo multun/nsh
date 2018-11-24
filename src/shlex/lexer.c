@@ -3,6 +3,7 @@
 #include "utils/macros.h"
 #include "shexec/clean_exit.h"
 #include "shwlex/wlexer.h"
+#include "utils/attr.h"
 
 #include <assert.h>
 #include <ctype.h>
@@ -25,18 +26,32 @@ static const struct operator
 };
 
 
-static bool starts_operator(char c)
+static const struct operator *find_operator(const char *buf, size_t size,
+                                            char next_ch)
 {
-  for (size_t i = 0; i < ARR_SIZE(g_operators); i++)
-    if (c ==  g_operators[i].repr[0])
-      return true;
-  return false;
+    // TODO: handle null bytes
+    for (size_t i = 0; i < ARR_SIZE(g_operators); i++) {
+        // skip operators shorter than the current buffer size
+        if (g_operators[i].repr_size <= size)
+            continue;
+
+        if (strncmp(buf, g_operators[i].repr, size) == 0
+            && g_operators[i].repr[size] == next_ch)
+            return &g_operators[i];
+    }
+
+    return NULL;
 }
 
-
-static bool is_breaking(char c)
+static const struct operator *tok_find_operator(const struct token *token, int next_ch)
 {
-  return isblank(c) || c == '\n' || c == '#' || starts_operator(c);
+    if (next_ch == EOF)
+        return NULL;
+    return find_operator(tok_buf(token), tok_size(token), next_ch);
+}
+
+static const struct operator *find_simple_operator(int c) {
+    return find_operator(NULL, 0, c);
 }
 
 
@@ -60,7 +75,6 @@ void lexer_free(s_lexer *lexer)
   free(lexer);
 }
 
-
 static bool is_only_digits(s_token *tok)
 {
   for (size_t i = 0; i < TOK_SIZE(tok); i++)
@@ -69,18 +83,139 @@ static bool is_only_digits(s_token *tok)
   return true;
 }
 
-#define WLEXER_FORK(Wlexer, Mode)		\
-  (struct wlexer) {				\
-    .cs = (Wlexer)->cs,				\
-    .mode = (Mode),				\
-  }
+#define WLEXER_FORK(Wlexer, Mode)               \
+    (struct wlexer) {                           \
+        .cs = (Wlexer)->cs,                     \
+        .mode = (Mode),                         \
+    }
 
 static void wtoken_push(struct token *token, struct wtoken *wtok) {
-  for (char *cur = wtok->ch; *cur; cur++) {
-    assert(cur < wtok->ch + 4);
-    evect_push(&token->str, *cur);
-  }
+    for (char *cur = wtok->ch; *cur; cur++) {
+        assert(cur < wtok->ch + 4);
+        evect_push(&token->str, *cur);
+    }
 }
+
+enum word_breaker_op {
+    WBREAKER_FALLTHROUGH = 0,
+    WBREAKER_CONTINUE = 1,
+    WBREAKER_RETURN = 2,
+    WBREAKER_PUSH = 4,
+    WBREAKER_CANCEL = WBREAKER_RETURN | WBREAKER_PUSH,
+};
+
+enum word_breaker_op word_breaker_space(
+    struct lexer *lexer __unused, struct wlexer *wlexer __unused,
+    struct token *token, struct wtoken *wtoken) {
+    if (!isblank(wtoken->ch[0]))
+        return WBREAKER_FALLTHROUGH;
+
+    if (tok_size(token) != 0)
+        return WBREAKER_CANCEL;
+
+    // then wtoken isn't pushed by default
+    return WBREAKER_CONTINUE;
+}
+
+enum word_breaker_op word_breaker_operator(
+    struct lexer *lexer __unused, struct wlexer *wlexer,
+    struct token *token, struct wtoken *wtoken) {
+    const struct operator *operator = find_simple_operator(wtoken->ch[0]);
+    if (operator == NULL)
+        return WBREAKER_FALLTHROUGH;
+
+    if (tok_size(token) != 0)
+        return WBREAKER_CANCEL;
+
+    // we already found an operator, push it so we can use the token as a buffer
+    evect_push(&token->str, wtoken->ch[0]);
+    assert(!wlexer_has_lookahead(wlexer));
+    do {
+        int ch = cstream_peek(wlexer->cs);
+        const struct operator *better_operator = tok_find_operator(token, ch);
+        if (!better_operator)
+            break;
+
+        operator = better_operator;
+        evect_push(&token->str, cstream_pop(wlexer->cs));
+    } while (true);
+
+    token->type = operator->type;
+    return WBREAKER_RETURN;
+}
+
+
+enum word_breaker_op word_breaker_newline(
+    struct lexer *lexer __unused, struct wlexer *wlexer __unused,
+    struct token *token, struct wtoken *wtoken) {
+    int ch = wtoken->ch[0];
+    if (ch != '\n')
+        return WBREAKER_FALLTHROUGH;
+
+    if (tok_size(token) != 0)
+        return WBREAKER_CANCEL;
+
+    token->type = TOK_NEWLINE;
+    evect_push(&token->str, ch);
+    return WBREAKER_RETURN;
+}
+
+
+enum word_breaker_op word_breaker_comment(
+    struct lexer *lexer __unused, struct wlexer *wlexer,
+    struct token *token, struct wtoken *wtoken) {
+    if (wtoken->ch[0] != '#')
+        return WBREAKER_FALLTHROUGH;
+
+    if (tok_size(token) != 0)
+        return WBREAKER_CANCEL;
+
+    assert(!wlexer_has_lookahead(wlexer));
+    do {
+        // skip characters until the EOL
+        int ch = cstream_peek(wlexer->cs);
+        if (ch == EOF || ch == '\n')
+            break;
+        cstream_pop(wlexer->cs);
+    } while (true);
+    // continue parsing
+    return WBREAKER_CONTINUE;
+}
+
+
+enum word_breaker_op word_breaker_regular(
+    struct lexer *lexer __unused, struct wlexer *wlexer __unused,
+    struct token *token, struct wtoken *wtoken) {
+    // otherwise it's just a regular word
+    wtoken_push(token, wtoken);
+    return WBREAKER_CONTINUE;
+}
+
+
+// only break unquoted words
+enum word_breaker_op word_breaker_quoting(
+    struct lexer *lexer __unused, struct wlexer *wlexer,
+    struct token *token, struct wtoken *wtoken) {
+    if (wlexer->mode == MODE_UNQUOTED)
+        return WBREAKER_FALLTHROUGH;
+
+    wtoken_push(token, wtoken);
+    return WBREAKER_CONTINUE;
+}
+
+
+typedef enum word_breaker_op (*word_breaker)(
+    struct lexer *lexer, struct wlexer *wlexer,
+    struct token *token, struct wtoken *wtoken);
+
+static word_breaker word_breakers[] = {
+    word_breaker_quoting,
+    word_breaker_space,
+    word_breaker_comment,
+    word_breaker_newline,
+    word_breaker_operator,
+    word_breaker_regular,
+};
 
 int lexer_lex_untyped(struct token *token,
 		      struct wlexer *wlexer,
@@ -99,49 +234,17 @@ int lexer_lex_untyped(struct token *token,
 	token->type = TOK_EOF;
       return 0;
     case WTOK_REGULAR:
-      if (wlexer->mode != MODE_UNQUOTED) {
-	wtoken_push(token, &wtok);
-	break;
+      for (size_t i = 0; i < ARR_SIZE(word_breakers); i++) {
+          enum word_breaker_op op = word_breakers[i](lexer, wlexer, token, &wtok);
+          if (op == WBREAKER_FALLTHROUGH)
+              continue;
+          if (op & WBREAKER_PUSH)
+              wlexer_push(&wtok, wlexer);
+          if (op & WBREAKER_RETURN)
+              return 0;
+          if (op & WBREAKER_CONTINUE)
+              break;
       }
-
-      /* if the next char would break and there's already
-       * something in the buffer, push it back and stop
-       */
-
-      if (is_breaking(wtok.ch[0]) &&
-	  token->str.size != 0) {
-	wlexer_push(&wtok, wlexer);
-        return 0;
-      }
-
-      if (wtok.ch[0] == '#') {
-	// clearing characters isn't safe if
-	// the wlexer has some cached tokens
-	assert(!wlexer_has_lookahead(wlexer));
-	int ch;
-	do {
-	  // skip characters until the EOL
-	  ch = cstream_peek(wlexer->cs);
-	  if (ch == EOF || ch == '\n')
-	    break;
-	  cstream_pop(wlexer->cs);
-	} while (true);
-	// continue parsing
-	break;
-      }
-
-      if (wtok.ch[0] == '\n' || wtok.ch[0] == ';') {
-	token->type = TOK_NEWLINE;
-	wtoken_push(token, &wtok);
-	return 0;
-      }
-
-      // skip spaces
-      if (isblank(wtok.ch[0]) && token->str.size == 0)
-	break;
-
-      // otherwise it's just a regular word
-      wtoken_push(token, &wtok);
       break;
     case WTOK_SQUOTE:
       wtoken_push(token, &wtok);
