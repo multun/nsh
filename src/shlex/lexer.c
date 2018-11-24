@@ -273,11 +273,10 @@ int lexer_lex_untyped(struct token *token,
 
             if (wtok.type == WTOK_ESCAPE)
                 escape = true;
-            else if (wtok.type == WTOK_BTICK) {
-                if (!escape)
-                    break;
+            else if (wtok.type == WTOK_BTICK && !escape)
+                break;
+            else
                 escape = false;
-            }
         } while (true);
         break;
     }
