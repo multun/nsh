@@ -11,19 +11,22 @@ struct wtoken {
     // used as a placeholder
     WTOK_UNKNOWN,
 
+    // various single chars
     WTOK_SQUOTE,
     WTOK_DQUOTE,
     WTOK_BTICK,
     WTOK_ESCAPE,
     WTOK_EOF,
-    // longer than a single char
-    WTOK_SUBSH_OPEN,
-    WTOK_SUBSH_CLOSE,
+
+    WTOK_EXP_SUBSH_OPEN,
+    WTOK_EXP_SUBSH_CLOSE, // single char
+    WTOK_SUBSH_OPEN, // single char
+    WTOK_SUBSH_CLOSE, // single char
     WTOK_ARITH_OPEN,
     WTOK_ARITH_CLOSE,
     WTOK_EXP_OPEN,
-    WTOK_EXP_CLOSE,
-    WTOK_REGULAR,
+    WTOK_EXP_CLOSE, // single char
+    WTOK_REGULAR, // single char
   } type;
 };
 
@@ -34,6 +37,7 @@ struct wlexer {
     MODE_UNQUOTED,
     MODE_SINGLE_QUOTED,
     MODE_DOUBLE_QUOTED,
+    MODE_EXP_SUBSHELL,
     MODE_SUBSHELL,
     MODE_ARITH,
     MODE_EXPANSION,
@@ -42,6 +46,10 @@ struct wlexer {
   // lookahead buffer
   struct wtoken lookahead;
 };
+
+static inline bool wlexer_in_subshell(const struct wlexer *wlex) {
+  return wlex->mode == MODE_EXP_SUBSHELL || wlex->mode == MODE_SUBSHELL;
+}
 
 static inline bool wlexer_has_lookahead(const struct wlexer *wlex) {
   return wlex->lookahead.type != WTOK_UNKNOWN;

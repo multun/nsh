@@ -34,6 +34,7 @@ int wlexer_push(const struct wtoken *res, struct wlexer *lex) {
 
 static bool is_significant(struct wlexer *lex, int ch) {
   switch (ch) {
+  case '(':     return wlexer_in_subshell(lex);
   case '"':	return lex->mode != MODE_SINGLE_QUOTED;
   case '\'':	return lex->mode != MODE_DOUBLE_QUOTED;
   case '`':	return lex->mode != MODE_SINGLE_QUOTED;
@@ -48,6 +49,7 @@ static bool is_significant(struct wlexer *lex, int ch) {
 
 static int wtok_single_type(int ch) {
   switch (ch) {
+  case '(':     return WTOK_SUBSH_OPEN;
   case '"':	return WTOK_DQUOTE;
   case '\'':	return WTOK_SQUOTE;
   case '`':	return WTOK_BTICK;
@@ -83,7 +85,7 @@ static int wlexer_lex_dollar(struct wtoken *res,
     res->type = WTOK_ARITH_OPEN;
   }
   else
-    res->type = WTOK_SUBSH_OPEN;
+    res->type = WTOK_EXP_SUBSH_OPEN;
 
   return 0;
 
@@ -95,24 +97,30 @@ wtok_regular:
 
 static int wlexer_lex_closing_paren(struct wtoken *res,
 				    struct wlexer *lex) {
-  if (lex->mode == MODE_SINGLE_QUOTED) {
-    res->type = WTOK_REGULAR;
-    return 0;
-  }
-
-  if (lex->mode == MODE_SUBSHELL) {
+  // the type of a right paren is context dependant.
+  // if we're not in a subshell or we're in arith mode
+  // and there's only a single paren, it's just a regular
+  // token.
+  if (lex->mode == MODE_EXP_SUBSHELL)
+    res->type = WTOK_EXP_SUBSH_CLOSE;
+  else if (lex->mode == MODE_SUBSHELL)
     res->type = WTOK_SUBSH_CLOSE;
-    return 0;
-  }
+  else if (lex->mode == MODE_ARITH) {
+    int ch = cstream_peek(lex->cs);
+    if (ch != ')')
+      goto regular;
 
-  int ch = cstream_peek(lex->cs);
-  if (ch == ')' && lex->mode == MODE_ARITH) {
     res->ch[1] = cstream_pop(lex->cs);
     res->type = WTOK_ARITH_CLOSE;
     return 0;
   }
+  else
+    goto regular;
 
-  res->type = WTOK_SUBSH_CLOSE;
+  return 0;
+
+regular:
+  res->type = WTOK_REGULAR;
   return 0;
 }
 

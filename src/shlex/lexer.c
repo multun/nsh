@@ -295,33 +295,42 @@ int lexer_lex_untyped(struct token *token,
 	evect_push(&token->str, ch);
       }
       break;
+      // subshell expansions: $(echo a)
+    case WTOK_EXP_SUBSH_OPEN:
+      wtoken_push(token, &wtok);
+      lexer_lex_untyped(token, &WLEXER_FORK(wlexer, MODE_EXP_SUBSHELL), lexer);
+      break;
+    case WTOK_EXP_SUBSH_CLOSE:
+      wtoken_push(token, &wtok);
+      assert (wlexer->mode == MODE_EXP_SUBSHELL);
+      return 0;
+      // enclosed subshell: $( (echo a) )
     case WTOK_SUBSH_OPEN:
       wtoken_push(token, &wtok);
       lexer_lex_untyped(token, &WLEXER_FORK(wlexer, MODE_SUBSHELL), lexer);
       break;
     case WTOK_SUBSH_CLOSE:
       wtoken_push(token, &wtok);
-      if (wlexer->mode == MODE_SUBSHELL)
-          return 0;
-      break;
+      assert (wlexer->mode == MODE_SUBSHELL);
+      return 0;
+      // arithmetic expansion: $((1 + 1))
     case WTOK_ARITH_OPEN:
       wtoken_push(token, &wtok);
       lexer_lex_untyped(token, &WLEXER_FORK(wlexer, MODE_ARITH), lexer);
       break;
     case WTOK_ARITH_CLOSE:
       wtoken_push(token, &wtok);
-      if (wlexer->mode == MODE_ARITH)
-          return 0;
-      break;
+      assert (wlexer->mode == MODE_ARITH);
+      return 0;
+      // expansions: ${a}
     case WTOK_EXP_OPEN:
       wtoken_push(token, &wtok);
       lexer_lex_untyped(token, &WLEXER_FORK(wlexer, MODE_EXPANSION), lexer);
       break;
     case WTOK_EXP_CLOSE:
       wtoken_push(token, &wtok);
-      if (wlexer->mode == MODE_EXPANSION)
-          return 0;
-      break;
+      assert (wlexer->mode == MODE_EXPANSION);
+      return 0;
 
     case WTOK_UNKNOWN:
       errx(1, "lol?");
