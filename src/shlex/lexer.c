@@ -261,15 +261,26 @@ int lexer_lex_untyped(struct token *token,
       lexer_lex_untyped(token, &WLEXER_FORK(wlexer, MODE_DOUBLE_QUOTED), lexer);
       break;
     case WTOK_BTICK:
-      wtoken_push(token, &wtok);
-      do {
-	memset(&wtok, 0, sizeof(wtok));
-	wlexer_pop(&wtok, wlexer);
-	if (wtok.type == WTOK_EOF)
-	  errx(1, "unexpected EOF in ` section\n");
-	wtoken_push(token, &wtok);
-      } while (wtok.type != WTOK_BTICK);
-      break;
+    {
+        bool escape = false;
+        wtoken_push(token, &wtok);
+        do {
+            memset(&wtok, 0, sizeof(wtok));
+            wlexer_pop(&wtok, wlexer);
+            if (wtok.type == WTOK_EOF)
+                errx(1, "unexpected EOF in ` section\n");
+            wtoken_push(token, &wtok);
+
+            if (wtok.type == WTOK_ESCAPE)
+                escape = true;
+            else if (wtok.type == WTOK_BTICK) {
+                if (!escape)
+                    break;
+                escape = false;
+            }
+        } while (true);
+        break;
+    }
     case WTOK_ESCAPE:
       // clearing characters isn't safe if
       // the wlexer has some cached tokens
