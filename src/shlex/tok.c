@@ -34,7 +34,7 @@ static const char *g_keywords[] =
 };
 
 
-bool tok_is_ass(char *str, bool first)
+bool tok_is_ass(const char *str, bool first)
 {
   if (!*str)
     return false;
@@ -52,14 +52,14 @@ bool tok_is(const s_token *tok, enum token_type type)
     return tok->type == type;
 
   if (type == TOK_ASSIGNMENT_WORD)
-    return tok_is_ass(TOK_STR(tok), true);
+    return tok_is_ass(tok_buf(tok), true);
 
   // TODO: handle name
   if (type == TOK_WORD || type == TOK_NAME)
     return true;
 
   if (TOK_IS_KW(type))
-    return !strcmp(g_keywords[TOK_KW_ALIGN(type)], TOK_STR(tok));
+    return !strcmp(g_keywords[TOK_KW_ALIGN(type)], tok_buf(tok));
 
   return true;
 }

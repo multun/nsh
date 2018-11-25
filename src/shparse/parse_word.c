@@ -12,6 +12,6 @@ void parse_word(s_wordlist **res, s_lexer *lexer, s_errcont *errcont)
 
   *res = xcalloc(sizeof(s_wordlist), 1);
   s_token *wrd = lexer_pop(lexer, errcont);
-  **res = WORDLIST(TOK_STR(wrd), true, true, NULL);
+  **res = WORDLIST(tok_buf(wrd), true, true, NULL);
   tok_free(wrd, false);
 }
