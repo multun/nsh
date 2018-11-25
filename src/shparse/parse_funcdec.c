@@ -24,7 +24,7 @@ void parse_funcdec(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 
   s_token *word = lexer_pop(lexer, errcont);
   s_wordlist *name = xcalloc(sizeof(s_wordlist), 1);
-  *name = WORDLIST(TOK_STR(word), true, true, NULL);
+  *name = WORDLIST(tok_buf(word), true, true, NULL);
   (*res)->data.ast_function.name = name;
   tok_free(word, false);
   if (!parse_func_remove_par(lexer, errcont))

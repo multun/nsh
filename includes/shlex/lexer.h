@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include "io/cstream.h"
 #include "utils/attr.h"
@@ -100,17 +101,28 @@ typedef struct token
   struct token *next;
 } s_token;
 
-static __unused const char *tok_buf(const struct token *token) {
+
+static __unused char *tok_buf(const struct token *token) {
     return token->str.data;
 }
+
 
 static __unused size_t tok_size(const struct token *token) {
     return token->str.size;
 }
 
-#define TOK_PUSH(Tok, C) evect_push(&(Tok)->str, C)
-#define TOK_SIZE(Tok) (Tok)->str.size
-#define TOK_STR(Tok) ((Tok)->str.data)
+
+static __unused void wtoken_push(struct token *token, struct wtoken *wtok) {
+    for (char *cur = wtok->ch; *cur; cur++) {
+        assert(cur < wtok->ch + sizeof(wtok->ch));
+        evect_push(&token->str, *cur);
+    }
+}
+
+
+static __unused void tok_push(struct token *token, char c) {
+    evect_push(&token->str, c);
+}
 
 
 /**
@@ -124,6 +136,29 @@ typedef struct lexer
   struct wlexer wlexer;
 } s_lexer;
 
+
+#define WLEXER_FORK(Wlexer, Mode)               \
+    (struct wlexer) {                           \
+        .cs = (Wlexer)->cs,                     \
+        .mode = (Mode),                         \
+    }
+
+
+enum lexer_op {
+    LEXER_OP_FALLTHROUGH = 0,
+    LEXER_OP_CONTINUE = 1,
+    LEXER_OP_RETURN = 2,
+    LEXER_OP_PUSH = 4,
+    LEXER_OP_CANCEL = LEXER_OP_RETURN | LEXER_OP_PUSH,
+};
+
+typedef enum lexer_op (*sublexer)(
+    struct lexer *lexer, struct wlexer *wlexer,
+    struct token *token, struct wtoken *wtoken);
+
+enum lexer_op sublexer_regular(
+    struct lexer *lexer, struct wlexer *wlexer,
+    struct token *token, struct wtoken *wtoken);
 
 /**
 ** \brief allocates a new token

@@ -86,7 +86,7 @@ void parse_redirection(s_ast **res, s_lexer *lexer, s_errcont *errcont)
   int left = -1;
   if (tok_is(tok, TOK_IO_NUMBER))
   {
-    left = atoi(TOK_STR(tok));
+    left = atoi(tok_buf(tok));
     tok_free(tok, true);
     tok = lexer_pop(lexer, errcont);
   }

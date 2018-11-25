@@ -39,7 +39,7 @@ int print_tokens(FILE *f, s_cstream *cs, s_errcont *errcont)
 
     fprintf(f, "%zu:%zu\t%s(%s)[%c]\n", tok->lineinfo.line, tok->lineinfo.column,
            token_type_to_string(tok->type),
-           TOK_STR(tok), tok->delim);
+           tok_buf(tok), tok->delim);
     tok_free(tok, true);
   }
   lexer_free(lex);
