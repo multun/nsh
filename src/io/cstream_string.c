@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 
-int string_io_reader(s_cstream *cs)
+static int string_io_reader(s_cstream *cs)
 {
   char *str = cs->data;
   if (!*str)
@@ -16,7 +16,7 @@ int string_io_reader(s_cstream *cs)
 }
 
 
-s_cstream *cstream_from_string(char *string, char *source)
+s_cstream *cstream_from_string(char *string, const char *source)
 {
   s_cstream *cs = cstream_create_base();
   cs->line_info = LINEINFO(source);

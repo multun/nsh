@@ -1,4 +1,5 @@
 #include "utils/alloc.h"
+#include "shexec/args.h"
 
 #include <stdlib.h>
 #include <string.h>

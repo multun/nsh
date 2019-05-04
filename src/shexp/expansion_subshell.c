@@ -25,7 +25,7 @@ static int subshell_child(s_env *env, char *str)
 }
 
 
-void subshell_parent(int cfd, s_evect *res)
+static void subshell_parent(int cfd, s_evect *res)
 {
   FILE *creader = fdopen(cfd, "r");
   int cur_char;

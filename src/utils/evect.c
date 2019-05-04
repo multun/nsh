@@ -23,7 +23,7 @@ void evect_push(s_evect *vect, char c)
 {
   if (vect->size == vect->capacity)
   {
-    vect->capacity = 2 * vect->capacity + 1;
+    vect->capacity = 2 * vect->capacity + 1; // TODO: check for overflow
     vect->data = xrealloc(vect->data, vect->capacity);
   }
   vect->data[vect->size++] = c;

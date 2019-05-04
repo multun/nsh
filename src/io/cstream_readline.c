@@ -14,8 +14,8 @@
 
 
 
-static char *cont_get_var(s_context *cont, const char *vname,
-                          char *def)
+static const char *cont_get_var(s_context *cont, const char *vname,
+                                const char *def)
 {
   struct pair *hpair = htable_access(cont->env->vars, vname);
   if (!hpair)
@@ -27,33 +27,33 @@ static char *cont_get_var(s_context *cont, const char *vname,
 }
 
 
-static char *get_ps1(s_context *context)
+static const char *get_ps1(s_context *context)
 {
   return cont_get_var(context, "PS1", "42sh> ");
 }
 
 
-static char *get_ps2(s_context *context)
+static const char *get_ps2(s_context *context)
 {
   return cont_get_var(context, "PS2", "> ");
 }
 
 
-static char *prompt_get(s_cstream *cs)
+static const char *prompt_get(s_cstream *cs)
 {
-  char *res = (cs->context->line_start ? get_ps1 : get_ps2)(cs->context);
+  const char *res = (cs->context->line_start ? get_ps1 : get_ps2)(cs->context);
   cs->context->line_start = false;
   return res;
 }
 
 
-int readline_io_reader(s_cstream *cs)
+static int readline_io_reader(s_cstream *cs)
 {
   char *str = cs->data;
 
   if (!str)
   {
-    char *prompt = prompt_get(cs);
+    const char *prompt = prompt_get(cs);
     str = cs->data = readline(prompt);
     cs->back_pos = 0;
   }

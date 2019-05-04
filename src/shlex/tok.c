@@ -34,7 +34,7 @@ static const char *g_keywords[] =
 };
 
 
-bool tok_is_ass(const char *str, bool first)
+static bool tok_is_ass(const char *str, bool first)
 {
   if (!*str)
     return false;

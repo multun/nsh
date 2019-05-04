@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 
-int file_io_reader(s_cstream *cs)
+static int file_io_reader(s_cstream *cs)
 {
   return getc(cs->data);
 }

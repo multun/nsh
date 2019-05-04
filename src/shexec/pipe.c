@@ -41,7 +41,7 @@ enum pipe_pos
 };
 
 
-int child_redir(int pd[2], enum pipe_pos pos)
+static int child_redir(int pd[2], enum pipe_pos pos)
 {
   if (close(pd[pos]) < 0)
   {
@@ -72,7 +72,7 @@ struct pipe_context
 };
 
 
-int pipe_father(struct pipe_context *pc)
+static int pipe_father(struct pipe_context *pc)
 {
   if (close(pc->pd[0]) < 0)
     warnx("pipe_exec: error while closing %d", pc->pd[0]);
@@ -86,7 +86,7 @@ int pipe_father(struct pipe_context *pc)
 }
 
 
-bool pipe_init(struct pipe_context *pc)
+static bool pipe_init(struct pipe_context *pc)
 {
   if (pipe(pc->pd) < 0)
   {

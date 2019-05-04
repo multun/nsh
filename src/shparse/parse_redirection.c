@@ -52,7 +52,7 @@ void parse_pipeline(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 }
 
 
-enum redir_type parse_redir_type(const s_token *tok)
+static enum redir_type parse_redir_type(const s_token *tok)
 {
   if (tok_is(tok, TOK_LESS))
     return REDIR_LESS;

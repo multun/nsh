@@ -58,7 +58,7 @@ void parse_case_clause(s_acase_node **res, s_lexer *lexer, s_errcont *errcont)
 }
 
 
-void parse_pattern(s_wordlist **res, s_lexer *lexer, s_errcont *errcont)
+static void parse_pattern(s_wordlist **res, s_lexer *lexer, s_errcont *errcont)
 {
   parse_word(res, lexer, errcont);
   const s_token *tok = lexer_peek(lexer, errcont);

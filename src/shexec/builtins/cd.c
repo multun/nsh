@@ -9,6 +9,7 @@
 #include "ast/assignment.h"
 #include "utils/hash_table.h"
 #include "shexp/variable.h"
+#include "shexec/builtin_cd.h"
 
 
 void update_pwd(bool oldpwd, s_env *env)

@@ -1,7 +1,8 @@
+#include "shexec/redirection_utils.h"
+
 #include <err.h>
 #include <fcntl.h>
 #include <unistd.h>
-
 
 int fd_copy(int fd)
 {

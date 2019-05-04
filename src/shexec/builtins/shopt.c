@@ -5,6 +5,7 @@
 
 #include "cli/shopt.h"
 #include "shexec/builtins.h"
+#include "shexec/builtin_shopt.h"
 #include "utils/evect.h"
 
 enum shopt_options
@@ -23,7 +24,7 @@ typedef bool t_shopt_options[SHOPT_OPT_COUNT];
   }
 
 
-bool parse_builtin_shopt_opt(t_shopt_options opts, char **argv, int *index)
+static bool parse_builtin_shopt_opt(t_shopt_options opts, char **argv, int *index)
 {
   for (; argv[*index] && *(argv[*index]) == '-'; (*index)++)
     if (!strcmp(argv[*index], "-q"))

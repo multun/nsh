@@ -14,7 +14,7 @@ static void unquote_assert(s_errcont *cont, bool test)
 }
 
 
-size_t unquote_simple(s_errcont *cont, s_evect *v, const char *str)
+static size_t unquote_simple(s_errcont *cont, s_evect *v, const char *str)
 {
   size_t i = 1; // skip the quote
   for (; str[i] != '\''; i++)
@@ -26,7 +26,7 @@ size_t unquote_simple(s_errcont *cont, s_evect *v, const char *str)
 }
 
 
-size_t unquote_double(s_errcont *cont, s_evect *v, const char *str)
+static size_t unquote_double(s_errcont *cont, s_evect *v, const char *str)
 {
   size_t i = 1; // skip the quote
   for (; str[i] != '"'; i++)

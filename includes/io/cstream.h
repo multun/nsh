@@ -62,6 +62,7 @@ typedef struct cstream
 
   /*
   ** Backend-specific data
+  ** TODO: move to separate structs
   */
 
   // contains each poped character since the beginning of the line.
@@ -110,7 +111,7 @@ s_cstream *cstream_readline(void);
 ** \param source the source to display on error
 ** \return a string stream
 */
-s_cstream *cstream_from_string(char *string, char *source);
+s_cstream *cstream_from_string(char *string, const char *source);
 
 
 /**
