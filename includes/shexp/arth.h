@@ -7,64 +7,54 @@
 
 typedef struct arthcont
 {
-  s_env *env;
-  s_errcont *cont;
+    s_env *env;
+    s_errcont *cont;
 } s_arthcont;
 
+#define ARTHCONT(Env, Cont)                                                              \
+    (s_arthcont)                                                                         \
+    {                                                                                    \
+        .env = (Env), .cont = (Cont),                                                    \
+    }
 
-#define ARTHCONT(Env, Cont)                     \
-  (s_arthcont)                                  \
-  {                                             \
-    .env = (Env),                               \
-    .cont = (Cont),                             \
-  }
+#define DECLARE_ARTH_TYPE_ENUM(Name, Parser, Exec) Name,
 
+#define DECLARE_ARTH_PARSER_UTILS(Name, Parser, Exec) Parser,
 
-#define DECLARE_ARTH_TYPE_ENUM(Name, Parser, Exec)                            \
-  Name,
+#define DECLARE_ARTH_EXEC_UTILS(Name, Parser, Exec) Exec,
 
-#define DECLARE_ARTH_PARSER_UTILS(Name, Parser, Exec)                         \
-  Parser,
-
-#define DECLARE_ARTH_EXEC_UTILS(Name, Parser, Exec)                           \
-  Exec,
-
-#define ARTH_TYPE_APPLY(F)                                                    \
-  F(ARTH_OR, arth_parse_or, arth_exec_or)                                     \
-  F(ARTH_AND, arth_parse_and, arth_exec_and)                                  \
-  F(ARTH_BOR, arth_parse_bor, arth_exec_bor)                                  \
-  F(ARTH_XOR, arth_parse_xor, arth_exec_xor)                                  \
-  F(ARTH_BAND, arth_parse_band, arth_exec_band)                               \
-  F(ARTH_MINUS, arth_parse_plus, arth_exec_minus)                             \
-  F(ARTH_PLUS, arth_parse_plus, arth_exec_plus)                               \
-  F(ARTH_DIV, arth_parse_time, arth_exec_div)                                 \
-  F(ARTH_TIME, arth_parse_time, arth_exec_time)                               \
-  F(ARTH_POW, arth_parse_pow, arth_exec_pow)                                  \
-  F(ARTH_NOT, arth_parse_not, arth_exec_not)                                  \
-  F(ARTH_BNOT, arth_parse_bnot, arth_exec_bnot)                               \
-  F(ARTH_WORD, arth_parse_word, arth_exec_and)
-
+#define ARTH_TYPE_APPLY(F)                                                               \
+    F(ARTH_OR, arth_parse_or, arth_exec_or)                                              \
+    F(ARTH_AND, arth_parse_and, arth_exec_and)                                           \
+    F(ARTH_BOR, arth_parse_bor, arth_exec_bor)                                           \
+    F(ARTH_XOR, arth_parse_xor, arth_exec_xor)                                           \
+    F(ARTH_BAND, arth_parse_band, arth_exec_band)                                        \
+    F(ARTH_MINUS, arth_parse_plus, arth_exec_minus)                                      \
+    F(ARTH_PLUS, arth_parse_plus, arth_exec_plus)                                        \
+    F(ARTH_DIV, arth_parse_time, arth_exec_div)                                          \
+    F(ARTH_TIME, arth_parse_time, arth_exec_time)                                        \
+    F(ARTH_POW, arth_parse_pow, arth_exec_pow)                                           \
+    F(ARTH_NOT, arth_parse_not, arth_exec_not)                                           \
+    F(ARTH_BNOT, arth_parse_bnot, arth_exec_bnot)                                        \
+    F(ARTH_WORD, arth_parse_word, arth_exec_and)
 
 typedef struct arth_ast
 {
-  enum
-  {
-    ARTH_TYPE_APPLY(DECLARE_ARTH_TYPE_ENUM)
-  } type;
-  struct arth_ast *left;
-  struct arth_ast *right;
-  int value;
+    enum
+    {
+        ARTH_TYPE_APPLY(DECLARE_ARTH_TYPE_ENUM)
+    } type;
+    struct arth_ast *left;
+    struct arth_ast *right;
+    int value;
 } s_arth_ast;
 
-
-#define ARTH_AST(Type, Left, Right)                 \
-((s_arth_ast)                                       \
-{                                                   \
-  .type = (Type),                                   \
-  .left = (Left),                                   \
-  .right = (Right),                                 \
-})
-
+#define ARTH_AST(Type, Left, Right)                                                      \
+    ((s_arth_ast){                                                                       \
+        .type = (Type),                                                                  \
+        .left = (Left),                                                                  \
+        .right = (Right),                                                                \
+    })
 
 /**
 ** \brief lex an arithmetic expansion
@@ -201,8 +191,7 @@ s_arth_ast *arth_parse(char *str, s_arthcont *cont);
 ** \param cont the error context and environment
 ** \param ast a pointer to the created node
 */
-void arth_parse_rec(char **start, char **end,
-                    s_arthcont *cont, s_arth_ast **ast);
+void arth_parse_rec(char **start, char **end, s_arthcont *cont, s_arth_ast **ast);
 
 /**
 ** \brief parse a WORD ast node
@@ -212,8 +201,7 @@ void arth_parse_rec(char **start, char **end,
 ** \param cont the error context and environment
 ** \param ast a pointer to the created node
 */
-void arth_parse_word(char **str, char **end,
-                     s_arthcont *cont, s_arth_ast **ast);
+void arth_parse_word(char **str, char **end, s_arthcont *cont, s_arth_ast **ast);
 
 /**
 ** \brief parse an OR ast node
@@ -223,8 +211,7 @@ void arth_parse_word(char **str, char **end,
 ** \param cont the error context and environment
 ** \param ast a pointer to the created node
 */
-void arth_parse_or(char **start, char **end,
-                   s_arthcont *cont, s_arth_ast **ast);
+void arth_parse_or(char **start, char **end, s_arthcont *cont, s_arth_ast **ast);
 
 /**
 ** \brief parse an AND ast node
@@ -234,8 +221,7 @@ void arth_parse_or(char **start, char **end,
 ** \param cont the error context and environment
 ** \param ast a pointer to the created node
 */
-void arth_parse_and(char **start, char **end,
-                   s_arthcont *cont, s_arth_ast **ast);
+void arth_parse_and(char **start, char **end, s_arthcont *cont, s_arth_ast **ast);
 
 /**
 ** \brief parse a BOR ast node
@@ -245,8 +231,7 @@ void arth_parse_and(char **start, char **end,
 ** \param cont the error context and environment
 ** \param ast a pointer to the created node
 */
-void arth_parse_bor(char **start, char **end,
-                    s_arthcont *cont, s_arth_ast **ast);
+void arth_parse_bor(char **start, char **end, s_arthcont *cont, s_arth_ast **ast);
 
 /**
 ** \brief parse a XOR ast node
@@ -256,8 +241,7 @@ void arth_parse_bor(char **start, char **end,
 ** \param cont the error context and environment
 ** \param ast a pointer to the created node
 */
-void arth_parse_xor(char **start, char **end,
-                    s_arthcont *cont, s_arth_ast **ast);
+void arth_parse_xor(char **start, char **end, s_arthcont *cont, s_arth_ast **ast);
 
 /**
 ** \brief parse a BAND ast node
@@ -267,8 +251,7 @@ void arth_parse_xor(char **start, char **end,
 ** \param cont the error context and environment
 ** \param ast a pointer to the created node
 */
-void arth_parse_band(char **start, char **end,
-                     s_arthcont *cont, s_arth_ast **ast);
+void arth_parse_band(char **start, char **end, s_arthcont *cont, s_arth_ast **ast);
 
 /**
 ** \brief parse a PLUS and MINUS ast node
@@ -278,8 +261,7 @@ void arth_parse_band(char **start, char **end,
 ** \param cont the error context and environment
 ** \param ast a pointer to the created node
 */
-void arth_parse_plus(char **start, char **end,
-                     s_arthcont *cont, s_arth_ast **ast);
+void arth_parse_plus(char **start, char **end, s_arthcont *cont, s_arth_ast **ast);
 
 /**
 ** \brief parse a TIME ast node
@@ -289,8 +271,7 @@ void arth_parse_plus(char **start, char **end,
 ** \param cont the error context and environment
 ** \param ast a pointer to the created node
 */
-void arth_parse_time(char **start, char **end,
-                     s_arthcont *cont, s_arth_ast **ast);
+void arth_parse_time(char **start, char **end, s_arthcont *cont, s_arth_ast **ast);
 
 /**
 ** \brief parse a POW ast node
@@ -300,8 +281,7 @@ void arth_parse_time(char **start, char **end,
 ** \param cont the error context and environment
 ** \param ast a pointer to the created node
 */
-void arth_parse_pow(char **start, char **end,
-                    s_arthcont *cont, s_arth_ast **ast);
+void arth_parse_pow(char **start, char **end, s_arthcont *cont, s_arth_ast **ast);
 
 /**
 ** \brief parse a NOT ast node
@@ -311,8 +291,7 @@ void arth_parse_pow(char **start, char **end,
 ** \param cont the error context and environment
 ** \param ast a pointer to the created node
 */
-void arth_parse_not(char **start, char **end,
-                    s_arthcont *cont, s_arth_ast **ast);
+void arth_parse_not(char **start, char **end, s_arthcont *cont, s_arth_ast **ast);
 
 /**
 ** \brief parse a BNOT ast node
@@ -322,5 +301,4 @@ void arth_parse_not(char **start, char **end,
 ** \param cont the error context and environment
 ** \param ast a pointer to the created node
 */
-void arth_parse_bnot(char **start, char **end,
-                     s_arthcont *cont, s_arth_ast **ast);
+void arth_parse_bnot(char **start, char **end, s_arthcont *cont, s_arth_ast **ast);

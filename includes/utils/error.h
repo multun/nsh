@@ -7,7 +7,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-
 /**
 ** \brief represents a type of exception
 ** \details this is nothing more than a link time constant.
@@ -15,11 +14,10 @@
 */
 typedef struct ex_class
 {
-  // this structure isn't useful for anything but to use the
-  // linker as a way to differentiate exceptions
-  char reserved[1];
+    // this structure isn't useful for anything but to use the
+    // linker as a way to differentiate exceptions
+    char reserved[1];
 } s_ex_class;
-
 
 /**
 ** \brief a kind of exception handler
@@ -29,12 +27,10 @@ typedef struct ex_class
 typedef struct keeper
 {
 #ifndef NDEBUG
-  struct keeper *father;
+    struct keeper *father;
 #endif
-  jmp_buf env;
+    jmp_buf env;
 } s_keeper;
-
-
 
 /**
 ** \brief a per-thread error context
@@ -43,10 +39,9 @@ typedef struct keeper
 */
 typedef struct errman
 {
-  const s_ex_class *class;
-  int retcode;
+    const s_ex_class *class;
+    int retcode;
 } s_errman;
-
 
 /**
 ** \brief detailsribes an error context
@@ -56,39 +51,31 @@ typedef struct errman
 */
 typedef struct errcont
 {
-  struct errman *errman;
-  struct keeper *keeper;
+    struct errman *errman;
+    struct keeper *keeper;
 } s_errcont;
 
+#define ERRMAN                                                                           \
+    (s_errman)                                                                           \
+    {                                                                                    \
+        .class = NULL,                                                                   \
+    }
 
-#define ERRMAN                                  \
-  (s_errman)                                    \
-  {                                             \
-    .class = NULL,                              \
-  }
-
-
-#define ERRCONT(Man, Keeper)                    \
-  (s_errcont)                                   \
-  {                                             \
-    .errman = (Man), .keeper = (Keeper)         \
-  }
-
+#define ERRCONT(Man, Keeper)                                                             \
+    (s_errcont)                                                                          \
+    {                                                                                    \
+        .errman = (Man), .keeper = (Keeper)                                              \
+    }
 
 #ifndef NDEBUG
-#define KEEPER(Father)                          \
-  (s_keeper)                                    \
-  {                                             \
-    .father = (Father)                          \
-  }
+#    define KEEPER(Father)                                                               \
+        (s_keeper)                                                                       \
+        {                                                                                \
+            .father = (Father)                                                           \
+        }
 #else
-#define KEEPER(Father)                          \
-  ((s_keeper)                                   \
-  {                                             \
-    0                                           \
-  })
+#    define KEEPER(Father) ((s_keeper){0})
 #endif
-
 
 /**
 ** \fn void shraise(s_errcont *cont, const s_ex_class *class)
@@ -102,7 +89,6 @@ typedef struct errcont
 */
 void ATTR(noreturn) shraise(s_errcont *cont, const s_ex_class *class);
 
-
 /**
 ** \brief prints line information, a message, and exit using shraise
 ** \param lineinfo the line-related metadata
@@ -111,5 +97,4 @@ void ATTR(noreturn) shraise(s_errcont *cont, const s_ex_class *class);
 ** \param format the error message's format string
 */
 void ATTR(noreturn) sherror(const s_lineinfo *lineinfo, s_errcont *cont,
-                            const s_ex_class *ex_class,
-                            const char *format, ...);
+                            const s_ex_class *ex_class, const char *format, ...);

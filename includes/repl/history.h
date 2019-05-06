@@ -4,13 +4,11 @@
 
 #include <stdio.h>
 
-
 /**
 ** \brief opens the history file
 ** \return a handler to the history file
 */
 FILE *history_open(void);
-
 
 /**
 ** \brief initializes the history context
@@ -18,7 +16,6 @@ FILE *history_open(void);
 **   handler or do nothing
 */
 void history_init(s_context *ctx);
-
 
 /**
 ** \brief updates the history

@@ -3,7 +3,6 @@
 #include <stdbool.h>
 #include "shexec/environment.h"
 
-
 /**
 ** \brief sets either PWD or OLDPWD to the current working directory
 ** \param oldpwd whether oldpwd should be set instead of pwd

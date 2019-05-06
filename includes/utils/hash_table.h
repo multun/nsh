@@ -9,10 +9,10 @@
 */
 struct pair
 {
-  uint32_t hkey;
-  char *key;
-  void *value;
-  struct pair *next;
+    uint32_t hkey;
+    char *key;
+    void *value;
+    struct pair *next;
 };
 
 /**
@@ -20,11 +20,10 @@ struct pair
 */
 typedef struct htable
 {
-  size_t size;
-  size_t capacity;
-  struct pair **tab;
+    size_t size;
+    size_t capacity;
+    struct pair **tab;
 } s_htable;
-
 
 /**
 ** \brief build a new hash table with initial capacity.
@@ -62,7 +61,6 @@ void htable_remove(s_htable *htable, char *key);
 ** \param htable the htable to remove from
 */
 void htable_free(s_htable *htable);
-
 
 /**
 ** \brief map a function on every node of the htable

@@ -1,34 +1,30 @@
 #pragma once
 
-
 /**
 ** \brief what execution mode was expressed using the cli?
 ** \details a file with zero arguments read from stdin
 */
 enum shsrc
 {
-  SHSRC_FILE,
-  SHSRC_COMMAND,
+    SHSRC_FILE,
+    SHSRC_COMMAND,
 };
-
 
 /**
 ** \brief all command line options
 */
 struct cmdopts
 {
-  // was the norc option passed?
-  int norc;
+    // was the norc option passed?
+    int norc;
 
-  // the source to read data from.
-  // the underlying type is enum shsrc, but it's an
-  // int to comply with getopt
-  int src;
+    // the source to read data from.
+    // the underlying type is enum shsrc, but it's an
+    // int to comply with getopt
+    int src;
 };
 
-
 extern struct cmdopts g_cmdopts;
-
 
 #define CMDOPTS_STATUS(Code) (-((Code) + 1))
 

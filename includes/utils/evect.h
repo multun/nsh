@@ -7,20 +7,19 @@
 */
 typedef struct evect
 {
-  /**
-  ** the current size of the vector
-  */
-  size_t size;
-  /**
-  ** the maximum capacity
-  */
-  size_t capacity;
-  /**
-  ** the data stored in the vector
-  */
-  char *data;
+    /**
+    ** the current size of the vector
+    */
+    size_t size;
+    /**
+    ** the maximum capacity
+    */
+    size_t capacity;
+    /**
+    ** the data stored in the vector
+    */
+    char *data;
 } s_evect;
-
 
 #define EVECT_INITIALIZED(Vect) (!!(Vect)->data)
 

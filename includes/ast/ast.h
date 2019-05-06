@@ -20,73 +20,64 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#define DECLARE_AST_TYPE_ENUM(Name, Printer, Exec, Free) Name,
 
-#define DECLARE_AST_TYPE_ENUM(Name, Printer, Exec, Free)                      \
-  Name,
+#define DECLARE_AST_PRINT_UTILS(Name, Printer, Exec, Free) Printer,
 
-#define DECLARE_AST_PRINT_UTILS(Name, Printer, Exec, Free)                    \
-  Printer,
+#define DECLARE_AST_EXEC_UTILS(Name, Printer, Exec, Free) Exec,
 
-#define DECLARE_AST_EXEC_UTILS(Name, Printer, Exec, Free)                     \
-  Exec,
+#define DECLARE_AST_FREE_UTILS(Name, Printer, Exec, Free) Free,
 
-#define DECLARE_AST_FREE_UTILS(Name, Printer, Exec, Free)                     \
-  Free,
-
-#define AST_TYPE_APPLY(F)                                                     \
-  F(SHNODE_CMD, cmd_print, cmd_exec, cmd_free)                                \
-  F(SHNODE_IF, if_print, if_exec, if_free)                                    \
-  F(SHNODE_FOR, for_print, for_exec, for_free)                                \
-  F(SHNODE_WHILE, while_print, while_exec, while_free)                        \
-  F(SHNODE_UNTIL, until_print, until_exec, until_free)                        \
-  F(SHNODE_REDIRECTION, redirection_print, NULL, redirection_free)            \
-  F(SHNODE_PIPE, pipe_print, pipe_exec, pipe_free)                            \
-  F(SHNODE_CASE, case_print, case_exec, case_free)                            \
-  F(SHNODE_BOOL_OP, bool_op_print, bool_op_exec, bool_op_free)                \
-  F(SHNODE_LIST, list_print, list_exec, list_free)                            \
-  F(SHNODE_SUBSHELL, subshell_print, subshell_exec, subshell_free)            \
-  F(SHNODE_ASSIGNMENT, assignment_print, NULL, assignment_free)               \
-  F(SHNODE_FUNCTION, function_print, function_exec, function_free)            \
-  F(SHNODE_BLOCK, block_print, block_exec, block_free)
-
+#define AST_TYPE_APPLY(F)                                                                \
+    F(SHNODE_CMD, cmd_print, cmd_exec, cmd_free)                                         \
+    F(SHNODE_IF, if_print, if_exec, if_free)                                             \
+    F(SHNODE_FOR, for_print, for_exec, for_free)                                         \
+    F(SHNODE_WHILE, while_print, while_exec, while_free)                                 \
+    F(SHNODE_UNTIL, until_print, until_exec, until_free)                                 \
+    F(SHNODE_REDIRECTION, redirection_print, NULL, redirection_free)                     \
+    F(SHNODE_PIPE, pipe_print, pipe_exec, pipe_free)                                     \
+    F(SHNODE_CASE, case_print, case_exec, case_free)                                     \
+    F(SHNODE_BOOL_OP, bool_op_print, bool_op_exec, bool_op_free)                         \
+    F(SHNODE_LIST, list_print, list_exec, list_free)                                     \
+    F(SHNODE_SUBSHELL, subshell_print, subshell_exec, subshell_free)                     \
+    F(SHNODE_ASSIGNMENT, assignment_print, NULL, assignment_free)                        \
+    F(SHNODE_FUNCTION, function_print, function_exec, function_free)                     \
+    F(SHNODE_BLOCK, block_print, block_exec, block_free)
 
 /**
 ** \brief represent an Abstract Syntax Tree (AST).
 **/
 typedef struct ast
 {
-  enum shnode_type
-  {
-    AST_TYPE_APPLY(DECLARE_AST_TYPE_ENUM)
-  } type; /**< type of node */
+    enum shnode_type
+    {
+        AST_TYPE_APPLY(DECLARE_AST_TYPE_ENUM)
+    } type; /**< type of node */
 
-  union
-  {
-    s_acmd ast_cmd; /**< command field */
-    s_aif ast_if; /**< if field */
-    s_afor ast_for; /**< for field */
-    s_awhile ast_while; /**< while field */
-    s_auntil ast_until; /**< until field */
-    s_aredirection ast_redirection; /**< redirection field */
-    s_apipe ast_pipe; /**< pipe field */
-    s_acase ast_case; /**< case field */
-    s_abool_op ast_bool_op; /**< bool operator field */
-    s_alist ast_list; /**< command field */
-    s_aassignment ast_assignment; /**< assignment field */
-    s_afunction ast_function; /**< function field */
-    s_ablock ast_block; /**< block field */
-    s_asubshell ast_subshell; /**< subshell field */
-  } data; /**< content of the node */ /**< command field */
+    union
+    {
+        s_acmd ast_cmd; /**< command field */
+        s_aif ast_if; /**< if field */
+        s_afor ast_for; /**< for field */
+        s_awhile ast_while; /**< while field */
+        s_auntil ast_until; /**< until field */
+        s_aredirection ast_redirection; /**< redirection field */
+        s_apipe ast_pipe; /**< pipe field */
+        s_acase ast_case; /**< case field */
+        s_abool_op ast_bool_op; /**< bool operator field */
+        s_alist ast_list; /**< command field */
+        s_aassignment ast_assignment; /**< assignment field */
+        s_afunction ast_function; /**< function field */
+        s_ablock ast_block; /**< block field */
+        s_asubshell ast_subshell; /**< subshell field */
+    } data; /**< content of the node */ /**< command field */
 } s_ast;
 
-
-#define AST(Type, Field, Data)                  \
-  ((s_ast)                                      \
-  {                                             \
-    .type = (Type),                             \
-    .data.ast_ ## Field = (Data),               \
-  })
-
+#define AST(Type, Field, Data)                                                           \
+    ((s_ast){                                                                            \
+        .type = (Type),                                                                  \
+        .data.ast_##Field = (Data),                                                      \
+    })
 
 /**
 ** \brief call a print function depending on node type

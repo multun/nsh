@@ -9,68 +9,59 @@
 
 #include <stdbool.h>
 
-
 /**
 ** \brief detailsribes the interpreted command line of the program
 */
 typedef struct arg_context
 {
-  // the index of the program name inside the array.
-  // may not be 0 in case -c is used
-  int progname_ind;
+    // the index of the program name inside the array.
+    // may not be 0 in case -c is used
+    int progname_ind;
 
-  // the index of the first positional argument
-  int argc_base;
+    // the index of the first positional argument
+    int argc_base;
 
-  int argc;
-  char **argv;
+    int argc;
+    char **argv;
 } s_arg_context;
 
-
-#define ARG_CONTEXT(Argc, ArgcBase, Argv)       \
-  (s_arg_context)                               \
-  {                                             \
-    .progname_ind = 0,                          \
-    .argc = (Argc),                             \
-    .argc_base = (ArgcBase),                    \
-    .argv = (Argv)                              \
-  }
-
+#define ARG_CONTEXT(Argc, ArgcBase, Argv)                                                \
+    (s_arg_context)                                                                      \
+    {                                                                                    \
+        .progname_ind = 0, .argc = (Argc), .argc_base = (ArgcBase), .argv = (Argv)       \
+    }
 
 /**
 ** \brief detailsribes the current context of the read eval loop
 */
 typedef struct context
 {
-  // the runtime environment, such as functions and variables
-  s_env *env;
+    // the runtime environment, such as functions and variables
+    s_env *env;
 
-  // whether we should display the ps1 instead of the ps2
-  // it may feel awkward to store this here, but it wouldn't
-  // make much sense either to store it inside the stream structure.
-  bool line_start;
+    // whether we should display the ps1 instead of the ps2
+    // it may feel awkward to store this here, but it wouldn't
+    // make much sense either to store it inside the stream structure.
+    bool line_start;
 
-  // the currently processed ast
-  s_ast *ast;
+    // the currently processed ast
+    s_ast *ast;
 
-  // the stream the context works on
-  s_cstream *cs;
+    // the stream the context works on
+    s_cstream *cs;
 
-  // the lexer the loops pulls data from
-  s_lexer *lexer;
+    // the lexer the loops pulls data from
+    s_lexer *lexer;
 
-  // the history file, which may be NULL in case none should be opened
-  FILE *history;
+    // the history file, which may be NULL in case none should be opened
+    FILE *history;
 } s_context;
-
 
 /**
 ** \brief runs shell command from an already setup context
 ** \param ctx a runtime context
 */
 bool repl(s_context *ctx);
-
-
 
 /**
 ** \brief initializes a context from command line arguments
@@ -82,7 +73,6 @@ bool repl(s_context *ctx);
 ** \returns whether the program should exit
 */
 bool context_init(int *rc, s_context *cont, s_arg_context *arg_cont);
-
 
 /**
 ** \brief destroys an exiting context and all the ressources allocated

@@ -7,7 +7,7 @@
 
 char *home_suffix(const char *suffix)
 {
-  char *home = getpwuid(getuid())->pw_dir;
-  char *path = malloc(strlen(home) + strlen(suffix) + 1);
-  return strcat(strcpy(path, home), suffix);
+    char *home = getpwuid(getuid())->pw_dir;
+    char *path = malloc(strlen(home) + strlen(suffix) + 1);
+    return strcat(strcpy(path, home), suffix);
 }

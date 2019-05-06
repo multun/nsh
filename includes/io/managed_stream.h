@@ -4,7 +4,6 @@
 
 #include <stdio.h>
 
-
 struct arg_context;
 
 /**

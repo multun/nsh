@@ -5,7 +5,6 @@
 */
 int argv_count(char **argv);
 
-
 /**
 ** \brief clones an argv array
 ** \details also clones all the strings inside the array
