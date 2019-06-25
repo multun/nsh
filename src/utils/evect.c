@@ -23,3 +23,8 @@ void evect_push(s_evect *vect, char c)
     }
     vect->data[vect->size++] = c;
 }
+
+void evect_push_string(s_evect *vect, const char *str) {
+    for (; *str; str++)
+        evect_push(vect, *str);
+}

@@ -105,6 +105,8 @@ s_cstream *cstream_readline(void);
 */
 s_cstream *cstream_from_string(char *string, const char *source);
 
+void cstream_string_init(struct cstream *cstream, char *string, const char *source);
+
 /**
 ** \brief destructs a stream and all the underlying resources
 ** \param cs the stream to destroy

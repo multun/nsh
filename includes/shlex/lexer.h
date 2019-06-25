@@ -129,27 +129,15 @@ typedef struct lexer
     s_token *head;
     /* the toplevel word lexer */
     struct wlexer wlexer;
+    /* using a global per lexer errcont avoids passing it around all functions
+     * inside the lexer, why doesn't create new contexts anyway */
+    s_errcont *errcont;
 } s_lexer;
 
-#define WLEXER_FORK(Wlexer, Mode)                                                        \
-    (struct wlexer)                                                                      \
-    {                                                                                    \
-        .cs = (Wlexer)->cs, .mode = (Mode),                                              \
-    }
-
-enum lexer_op
-{
-    LEXER_OP_FALLTHROUGH = 0,
-    LEXER_OP_CONTINUE = 1,
-    LEXER_OP_RETURN = 2,
-    LEXER_OP_PUSH = 4,
-    LEXER_OP_CANCEL = LEXER_OP_RETURN | LEXER_OP_PUSH,
-};
-
-typedef enum lexer_op (*sublexer)(struct lexer *lexer, struct wlexer *wlexer,
+typedef enum wlexer_op (*sublexer)(struct lexer *lexer, struct wlexer *wlexer,
                                   struct token *token, struct wtoken *wtoken);
 
-enum lexer_op sublexer_regular(struct lexer *lexer, struct wlexer *wlexer,
+enum wlexer_op sublexer_regular(struct lexer *lexer, struct wlexer *wlexer,
                                struct token *token, struct wtoken *wtoken);
 
 /**
@@ -202,3 +190,11 @@ s_token *lexer_pop(s_lexer *lexer, s_errcont *errcont);
 ** \param tok the token to peek after
 */
 s_token *lexer_peek_at(s_lexer *lexer, s_token *tok, s_errcont *errcont);
+
+/**
+** \brief read a word lexer stream and shove it into a string
+** \details this is needed to parse and run subshells
+** \param errcont the error context
+** \param wlexer word lexer to pull words from
+*/
+char *lexer_lex_string(s_errcont *errcont, struct wlexer *wlexer);

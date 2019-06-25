@@ -1,35 +1,54 @@
-#include <assert.h>
-#include <string.h>
 #include "shwlex/wlexer.h"
 
-static int wlexer_lex(struct wtoken *res, struct wlexer *lex);
+#include <assert.h>
+#include <string.h>
 
-int wlexer_peek(struct wtoken *res, struct wlexer *lex)
-{
-    int rc;
+static void wlexer_lex(struct wtoken *res, struct wlexer *lex);
+
+enum wtoken_type wlexer_peek_type(struct wlexer *lex) {
     if (!wlexer_has_lookahead(lex))
-        if ((rc = wlexer_lex(&lex->lookahead, lex) != 0))
-            return rc;
+        wlexer_lex(&lex->lookahead, lex);
 
-    *res = lex->lookahead;
-    return 0;
+    return lex->lookahead.type;
 }
 
-int wlexer_pop(struct wtoken *res, struct wlexer *lex)
+void wlexer_peek(struct wtoken *res, struct wlexer *lex)
 {
     if (!wlexer_has_lookahead(lex))
-        return wlexer_lex(res, lex);
+        wlexer_lex(&lex->lookahead, lex);
+
+    *res = lex->lookahead;
+}
+
+void wlexer_discard(struct wlexer *lex)
+{
+    if (!wlexer_has_lookahead(lex)) {
+        struct wtoken res;
+        wlexer_lex(&res, lex);
+        return;
+    }
+
+    wlexer_clear_lookahead(lex);
+    return;
+}
+
+void wlexer_pop(struct wtoken *res, struct wlexer *lex)
+{
+    if (!wlexer_has_lookahead(lex)) {
+        wlexer_lex(res, lex);
+        return;
+    }
 
     *res = lex->lookahead;
     wlexer_clear_lookahead(lex);
-    return 0;
+    return;
 }
 
-int wlexer_push(const struct wtoken *res, struct wlexer *lex)
+void wlexer_push(const struct wtoken *res, struct wlexer *lex)
 {
     assert(!wlexer_has_lookahead(lex));
     lex->lookahead = *res;
-    return 0;
+    return;
 }
 
 static bool is_significant(struct wlexer *lex, int ch)
@@ -74,7 +93,7 @@ static int wtok_single_type(int ch)
     }
 }
 
-static int wlexer_lex_dollar(struct wtoken *res, struct wlexer *lex)
+static void wlexer_lex_dollar(struct wtoken *res, struct wlexer *lex)
 {
     int ch = cstream_peek(lex->cs);
 
@@ -84,7 +103,7 @@ static int wlexer_lex_dollar(struct wtoken *res, struct wlexer *lex)
     if (ch == '{') {
         res->ch[1] = cstream_pop(lex->cs);
         res->type = WTOK_EXP_OPEN;
-        return 0;
+        return;
     }
 
     if (ch != '(')
@@ -98,14 +117,14 @@ static int wlexer_lex_dollar(struct wtoken *res, struct wlexer *lex)
     } else
         res->type = WTOK_EXP_SUBSH_OPEN;
 
-    return 0;
+    return;
 
 wtok_regular:
     res->type = WTOK_REGULAR;
-    return 0;
+    return;
 }
 
-static int wlexer_lex_closing_paren(struct wtoken *res, struct wlexer *lex)
+static void wlexer_lex_closing_paren(struct wtoken *res, struct wlexer *lex)
 {
     // the type of a right paren is context dependant.
     // if we're not in a subshell or we're in arith mode
@@ -122,39 +141,41 @@ static int wlexer_lex_closing_paren(struct wtoken *res, struct wlexer *lex)
 
         res->ch[1] = cstream_pop(lex->cs);
         res->type = WTOK_ARITH_CLOSE;
-        return 0;
+        return;
     } else
         goto regular;
 
-    return 0;
+    return;
 
 regular:
     res->type = WTOK_REGULAR;
-    return 0;
+    return;
 }
 
-static int wlexer_lex(struct wtoken *res, struct wlexer *lex)
+static void wlexer_lex(struct wtoken *res, struct wlexer *lex)
 {
     memset(res->ch, 0, sizeof(res->ch));
 
     int ch = cstream_pop(lex->cs);
     if (ch == EOF) {
         res->type = WTOK_EOF;
-        return 0;
+        return;
     }
 
     res->ch[0] = ch;
 
     if (is_significant(lex, ch) && (res->type = wtok_single_type(ch)) != WTOK_UNKNOWN)
-        return 0;
+        return;
 
     switch (ch) {
     case '$':
-        return wlexer_lex_dollar(res, lex);
+        wlexer_lex_dollar(res, lex);
+        break;
     case ')':
-        return wlexer_lex_closing_paren(res, lex);
+        wlexer_lex_closing_paren(res, lex);
+        break;
     default:
         res->type = WTOK_REGULAR;
-        return 0;
+        return;
     }
 }

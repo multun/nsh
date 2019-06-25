@@ -2,7 +2,9 @@
 
 #include <stdbool.h>
 #include <string.h>
+
 #include "io/cstream.h"
+#include "utils/attr.h"
 
 struct wtoken
 {
@@ -71,6 +73,49 @@ static inline void wlexer_init(struct wlexer *lexer, struct cstream *cs)
     lexer->cs = cs;
 }
 
-int wlexer_peek(struct wtoken *res, struct wlexer *lex);
-int wlexer_pop(struct wtoken *res, struct wlexer *lex);
-int wlexer_push(const struct wtoken *res, struct wlexer *lex);
+
+#define WLEXER_FORK(Wlexer, Mode)                                                        \
+    (struct wlexer)                                                                      \
+    {                                                                                    \
+        .cs = (Wlexer)->cs, .mode = (Mode),                                              \
+    }
+
+enum wlexer_op
+{
+    LEXER_OP_FALLTHROUGH = 0,
+    LEXER_OP_CONTINUE = 1,
+    LEXER_OP_RETURN = 2,
+    LEXER_OP_PUSH = 4,
+    LEXER_OP_CANCEL = LEXER_OP_RETURN | LEXER_OP_PUSH,
+};
+
+
+void wlexer_peek(struct wtoken *res, struct wlexer *lex);
+enum wtoken_type wlexer_peek_type(struct wlexer *lex);
+void wlexer_discard(struct wlexer *lex);
+void wlexer_pop(struct wtoken *res, struct wlexer *lex);
+void wlexer_push(const struct wtoken *res, struct wlexer *lex);
+
+struct wlexer_btick_state {
+    bool ran;
+    bool escape;
+};
+
+#define WLEXER_BTICK_INIT { .ran = false, .escape = false }
+
+__unused static bool wlexer_btick_cond(struct wlexer_btick_state *state, struct wtoken *wtok)
+{
+    if (!state->ran)
+        return true;
+
+    if (state->escape)
+        state->escape = false;
+    else if (wtok->type == WTOK_ESCAPE)
+        state->escape = true;
+    else if (wtok->type == WTOK_BTICK)
+        return false;
+    return true;
+}
+
+#define WLEXER_BTICK_FOR(State, WTok)                                                    \
+    for (; wlexer_btick_cond((State), (WTok)); (State)->ran = true)

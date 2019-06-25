@@ -28,40 +28,25 @@ static void subshell_parent(int cfd, s_evect *res)
     FILE *creader = fdopen(cfd, "r");
     int cur_char;
 
-    while ((cur_char = fgetc(creader)) != EOF) {
-        if (expansion_protected_char(cur_char))
-            evect_push(res, '\\');
+    // TODO: optimize
+    while ((cur_char = fgetc(creader)) != EOF)
         evect_push(res, cur_char);
-    }
 
-    char c = 0;
-    while (res->size > 0 && (c = res->data[res->size - 1]) == '\n')
+    // remove trailing newlines
+    while (res->size) {
+        if (res->data[res->size - 1] != '\n')
+            break;
         res->size--;
+    }
 
     fclose(creader);
 }
 
-static char *subshell_find_par(char *str)
-{
-    size_t count = 1;
-    while (count && *str) {
-        if (*str == '\\') {
-            str += 2;
-            continue;
-        }
-        if (*str == '(')
-            count++;
-        else if (*str == ')')
-            count--;
-        if (count)
-            str++;
-    }
-    return str;
-}
-
-void expand_subshell_buffer(s_errcont *cont, char *buf, s_env *env, s_evect *vec)
+// TODO: handle child exit errors
+void expand_subshell(s_errcont *cont, char *buf, s_env *env, s_evect *vec)
 {
     int pfd[2];
+    // TODO: handle errors
     pipe(pfd);
     int cpid = fork();
     if (!cpid) {
@@ -79,11 +64,4 @@ void expand_subshell_buffer(s_errcont *cont, char *buf, s_env *env, s_evect *vec
     close(pfd[0]);
     int status;
     waitpid(cpid, &status, 0);
-}
-
-void expand_subshell(s_errcont *cont, char **str, s_env *env, s_evect *vec)
-{
-    char *buf = strndup(*str, subshell_find_par(*str) - *str);
-    expand_subshell_buffer(cont, buf, env, vec);
-    *str = subshell_find_par(*str) + 1;
 }

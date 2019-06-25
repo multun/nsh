@@ -11,18 +11,29 @@
 extern s_ex_class g_clean_exit;
 
 /**
+** \brief prints a formated error message and exits using clean_exit, just like err
+** \param fmt a format string
+*/
+void ATTR(noreturn) clean_err(s_errcont *cont, int retcode, const char *fmt, ...);
+
+/**
+** \brief prints a formated error message and exits using clean_exit, just like errx
+** \param fmt a format string
+*/
+void ATTR(noreturn) clean_errx(s_errcont *cont, int retcode, const char *fmt, ...);
+
+
+/**
 ** \brief if test if false, exit with status code 2 and a formatted message
 ** \param cont the error context to raise exceptions in
 ** \param test the asserted value
 ** \param fmt the formated string
 */
-void clean_assert(s_errcont *cont, bool test, const char *fmt, ...);
-
-/**
-** \brief prints a formated error message and exits using clean_exit
-** \param fmt a format string
-*/
-void ATTR(noreturn) clean_err(s_errcont *cont, int retcode, const char *fmt, ...);
+#define clean_assert(Cont, Test, ...)                                                    \
+    do {                                                                                 \
+        if (Test)                                                                        \
+            clean_err(Cont, __VA_ARGS__);                                                \
+    } while (0)
 
 /**
 ** \brief cleanly exit by raising an exception

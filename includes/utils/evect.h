@@ -41,3 +41,10 @@ void evect_destroy(s_evect *vect);
 ** \param c the character to push in
 */
 void evect_push(s_evect *vect, char c);
+
+/**
+** \brief push a string to the end of the vector
+** \param vect the vector to push into
+** \param str the string to push
+*/
+void evect_push_string(s_evect *vect, const char *str);
