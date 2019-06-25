@@ -10,7 +10,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-static int subshell_child(s_env *env, char *str)
+static int subshell_child(struct environment *env, char *str)
 {
     s_context ctx;
     memset(&ctx, 0, sizeof(ctx));
@@ -23,7 +23,7 @@ static int subshell_child(s_env *env, char *str)
     return rc;
 }
 
-static void subshell_parent(int cfd, s_evect *res)
+static void subshell_parent(int cfd, struct evect *res)
 {
     FILE *creader = fdopen(cfd, "r");
     int cur_char;
@@ -43,7 +43,7 @@ static void subshell_parent(int cfd, s_evect *res)
 }
 
 // TODO: handle child exit errors
-void expand_subshell(s_errcont *cont, char *buf, s_env *env, s_evect *vec)
+void expand_subshell(struct errcont *cont, char *buf, s_env *env, struct evect *vec)
 {
     int pfd[2];
     // TODO: handle errors

@@ -61,19 +61,19 @@ char *expand_arth_word(char *word, s_env *env, s_errcont *cont);
 ** \param env the environment to expand from
 ** \param var the character being considered
 */
-bool special_char_lookup(char **res, s_env *env, char var);
+char *special_char_lookup(s_env *env, char var);
 
 /**
 ** \brief expands to a random integer
 ** \param res a pointer to target the result with
 */
-void expand_random(char **res);
+char *expand_random(void);
 
 /**
 ** \brief expands the current uid
 ** \param res a pointer to target the result with
 */
-void expand_uid(char **res);
+char *expand_uid(void);
 
 /**
 ** \brief tests whether a character should be protected from further expansion

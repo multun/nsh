@@ -88,7 +88,7 @@ int builtin_shopt(s_env *env, s_errcont *cont, int argc, char **argv)
     return 0;
 }
 
-void expand_shopt(char **res)
+char *expand_shopt(void)
 {
     s_evect vec;
     evect_init(&vec, 50);
@@ -101,5 +101,6 @@ void expand_shopt(char **res)
                 evect_push(&vec, *tmp);
             first = false;
         }
-    *res = vec.data;
+    evect_push(&vec, '\0');
+    return vec.data;
 }

@@ -2,21 +2,22 @@
 #include <stdio.h>
 #include <sys/random.h>
 #include <unistd.h>
+#include <err.h>
 
 #include "shexec/environment.h"
 #include "shexp/expansion.h"
 #include "shexp/variable.h"
-#include "utils/evect.h"
 #include "utils/alloc.h"
+#include "utils/evect.h"
+#include "utils/mprintf.h"
 
-static void expand_pid(char **res)
+static char *expand_pid(void)
 {
     pid_t id = getpid();
-    *res = xcalloc(25, sizeof(char));
-    sprintf(*res, "%u", id);
+    return mprintf("%u", id);
 }
 
-static void expand_args(char **res, s_env *env, bool split)
+static char *expand_args(s_env *env)
 {
     s_evect vec;
     evect_init(&vec, 10);
@@ -29,62 +30,52 @@ static void expand_args(char **res, s_env *env, bool split)
             evect_push(&vec, *tmp);
     }
     evect_push(&vec, '\0');
-    *res = vec.data;
-    if (split)
-        return;
+    return vec.data;
 }
 
-static void expand_sharp(char **res, s_env *env)
+static char *expand_sharp(s_env *env)
 {
     size_t argc = 0;
     while (env->argv[argc])
         argc++;
 
-    *res = xcalloc(25, sizeof(char));
-    argc = argc ? argc - 1 : 0;
-    sprintf(*res, "%zu", argc);
+    if (argc)
+        argc--;
+    return mprintf("%zu", argc);
 }
 
-static void expand_return(char **res, s_env *env)
+static char *expand_return(s_env *env)
 {
-    *res = xcalloc(25, sizeof(char));
-    sprintf(*res, "%u", (256 + env->code) % 256);
+    return mprintf("%u", (256 + env->code) % 256);
 }
 
-bool special_char_lookup(char **res, s_env *env, char var)
+char *special_char_lookup(s_env *env, char var)
 {
     switch (var) {
     case '@':
-        expand_args(res, env, true);
-        return true;
+        return expand_args(env);
     case '*':
-        expand_args(res, env, false);
-        return true;
+        return expand_args(env);
     case '?':
-        expand_return(res, env);
-        return true;
+        return expand_return(env);
     case '$':
-        expand_pid(res);
-        return true;
+        return expand_pid();
     case '#':
-        expand_sharp(res, env);
-        return true;
+        return expand_sharp(env);
     default:
-        return false;
+        return NULL;
     }
 }
 
-void expand_random(char **res)
+char *expand_random(void)
 {
     int rnd = 0;
     getrandom(&rnd, sizeof(int), 0);
-    *res = xcalloc(6, sizeof(char));
-    sprintf(*res, "%d", (rnd % 32768 + 32768) % 32768);
+    return mprintf("%d", (rnd % 32768 + 32768) % 32768);
 }
 
-void expand_uid(char **res)
+char *expand_uid(void)
 {
     uid_t id = getuid();
-    *res = xcalloc(25, sizeof(char));
-    sprintf(*res, "%u", id);
+    return mprintf("%u", id);
 }

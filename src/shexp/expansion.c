@@ -13,137 +13,121 @@
 #include "shwlex/wlexer.h"
 #include "shlex/lexer.h"
 
-/* static bool predefined_lookup(char **res, s_env *env, char *var) */
-/* { */
-/*     for (size_t i = 0; var[i]; i++) */
-/*         if (!isdigit(var[i])) */
-/*             return false; */
+static char *arguments_var_lookup(s_env *env, char c)
+{
+    if (c < '0' || c > '9')
+        return NULL;
 
-/*     size_t iarg = atoi(var); */
-/*     if (!iarg) */
-/*         *res = env->progname; */
-/*     else { */
-/*         for (size_t i = 0; i < iarg; i++) */
-/*             if (!env->argv[i]) { */
-/*                 *res = NULL; */
-/*                 return false; */
-/*             } */
-/*         *res = env->argv[iarg]; */
-/*     } */
+    size_t arg_index = c - '0';
+    if (arg_index == 0)
+        return strdup(env->progname);
 
-/*     free(var); */
-/*     return true; */
-/* } */
+    // TODO: use argc
+    for (size_t i = 1; i <= arg_index; i++)
+        if (env->argv[i] == NULL)
+            return strdup("");
+    return strdup(env->argv[arg_index]);
+}
 
-/* static bool special_var_lookup(char **res, s_env *env, char *var) */
-/* { */
-/*     bool found = false; */
-/*     if (strlen(var) == 1) */
-/*         found = special_char_lookup(res, env, *var); */
-/*     else if ((found = !strcmp("RANDOM", var))) */
-/*         expand_random(res); */
-/*     else if ((found = !strcmp("UID", var))) */
-/*         expand_uid(res); */
-/*     else if ((found = !strcmp("SHELLOPTS", var))) */
-/*         expand_shopt(res); */
-/*     if (found) */
-/*         free(var); */
-/*     return found; */
-/* } */
+static char *special_var_lookup(s_env *env, char *var)
+{
+    assert(var[0]);
+    if (var[1] != '\0')
+        return NULL;
 
-/* static char *var_lookup(s_env *env, char *var) */
-/* { */
-/*     char *look = NULL; */
-/*     if (predefined_lookup(&look, env, var)) */
-/*         return look; */
-/*     if (special_var_lookup(&look, env, var)) */
-/*         return look; */
+    char *res;
 
-/*     struct pair *var_pair = htable_access(env->vars, var); */
-/*     free(var); */
-/*     if (!var_pair) */
-/*         return NULL; */
-/*     s_var *nvar = var_pair->value; */
-/*     return nvar->value; */
-/* } */
+    if ((res = arguments_var_lookup(env, var[0])))
+        return res;
 
-/* static bool is_name_char(char c, bool first) */
-/* { */
-/*     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' */
-/*         || (!first && c >= '0' && c <= '9'); */
-/* } */
+    return special_char_lookup(env, *var);
+}
 
-/* static void fill_var(char **str, s_evect *vec, bool braces) */
-/* { */
-/*     evect_init(vec, strlen(*str)); */
+static char *builtin_var_lookup(char *var)
+{
+    if (!strcmp("RANDOM", var))
+        return expand_random();
+    else if (!strcmp("UID", var))
+        return expand_uid();
+    else if (!strcmp("SHELLOPTS", var))
+        return expand_shopt();
+    return NULL;
+}
 
-/*     bool num = false; */
-/*     if (is_name_char(**str, false)) */
-/*         num = !is_name_char(**str, true); */
-/*     else */
-/*         return; */
+static char *expand_name(s_env *env, char *var)
+{
+    char *res;
+    if ((res = special_var_lookup(env, var)))
+        return res;
+    if ((res = builtin_var_lookup(var)))
+        return res;
 
-/*     evect_push(vec, **str); */
-/*     (*str)++; */
+    struct pair *var_pair = htable_access(env->vars, var);
+    if (!var_pair)
+        return NULL;
 
-/*     for (; **str */
-/*          && ((is_name_char(**str, false) && !num) */
-/*              || (**str >= '0' && **str <= '9' && num)) */
-/*          && (!braces || **str != '}'); */
-/*          (*str)++) */
-/*         evect_push(vec, **str); */
+    s_var *nvar = var_pair->value;
+    return nvar->value;
+}
 
-/*     if (braces) { */
-/*         if (**str != '}') */
-/*             warnx("%s: bad substitution. expected '}'", *str); */
-/*         else */
-/*             (*str)++; */
-/*     } */
-/* } */
+struct variable_name {
+    struct evect name_buf;
+    bool is_special;
+};
 
-/* static void expand_var(char **str, s_env *env, s_evect *vec) */
-/* { */
-/*     bool braces = **str == '{'; */
-/*     if (braces) */
-/*         (*str)++; */
+static bool is_basic(char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+}
 
-/*     s_evect var; */
-/*     fill_var(str, &var, braces); */
+static bool is_exp_special(char c)
+{
+    switch (c) {
+    case '?':
+    case '@':
+    case '*':
+    case '$':
+    case '#':
+        return true;
+    default:
+        return false;
+    }
+}
 
-/*     size_t i = var.size; */
-/*     if (!braces) */
-/*         for (; i > 0; i--) */
-/*             if (var_lookup(env, strndup(var.data, i))) */
-/*                 break; */
-/*     char *res = i ? var_lookup(env, strndup(var.data, i)) : NULL; */
-/*     evect_destroy(&var); */
+static bool variable_name_check(struct variable_name *var, char c) {
+    if (var->is_special)
+        // ${#foo} isn't valid
+        return false;
 
-/*     if (res) */
-/*         for (char *it = res; *it; it++) { */
-/*             if (expansion_protected_char(*it)) */
-/*                 evect_push(vec, '\\'); */
-/*             evect_push(vec, *it); */
-/*         } */
-/* } */
+    if (var->name_buf.size == 0)
+        return is_basic(c) || isdigit(c) || is_exp_special(c);
 
-/* static bool starts_expansion(char c) */
-/* { */
-/*     if (isalpha(c) || isdigit(c)) */
-/*         return true; */
+    return is_basic(c) || isdigit(c);
+}
 
-/*     switch (c) { */
-/*     case '(': */
-/*     case '{': */
-/*     case '?': */
-/*     case '@': */
-/*     case '*': */
-/*     case '$': */
-/*     case '#': */
-/*         return true; */
-/*     default: */
-/*         return false; */
-/*     } */
-/* } */
+static void variable_name_push(struct variable_name *var, char c)
+{
+    assert(variable_name_check(var, c));
+    if (var->name_buf.size == 0 && (isdigit(c) || is_exp_special(c)))
+        var->is_special = true;
+
+    evect_push(&var->name_buf, c);
+}
+
+static void variable_name_destroy(struct variable_name *var)
+{
+    evect_destroy(&var->name_buf);
+}
+
+static void variable_name_init(struct variable_name *var, size_t size)
+{
+    var->is_special = false;
+    evect_init(&var->name_buf, size);
+}
+
+static void variable_name_finalize(struct variable_name *var)
+{
+    evect_push(&var->name_buf, '\0');
+}
 
 struct expansion_state {
     s_errcont *errcont;
@@ -157,11 +141,90 @@ static void expand_guarded(struct expansion_state *exp_state,
 typedef enum wlexer_op (*f_expander)(struct expansion_state *exp_state,
                                      struct wlexer *wlexer, struct wtoken *wtoken);
 
+static enum wlexer_op expand_dollar(struct expansion_state *exp_state,
+                                    struct wlexer *wlexer,
+                                    struct wtoken *wtoken)
+{
+    struct wlexer exp_wlexer = WLEXER_FORK(wlexer, MODE_EXPANSION);
+    struct variable_name var_name;
+    variable_name_init(&var_name, 16); // reasonable variable name size
+
+    do {
+        memset(wtoken, 0, sizeof(*wtoken));
+        wlexer_pop(wtoken, &exp_wlexer);
+        if (wtoken->type == WTOK_EXP_CLOSE)
+            break;
+
+        assert(wtoken->type == WTOK_REGULAR);
+
+        if (!variable_name_check(&var_name, wtoken->ch[0])) {
+            variable_name_destroy(&var_name);
+            clean_errx(exp_state->errcont, 1, "invalid characted in ${} section: %c", wtoken->ch[0]);
+        }
+
+        variable_name_push(&var_name, wtoken->ch[0]);
+    } while (true);
+
+    variable_name_finalize(&var_name);
+    const char *var_content = expand_name(exp_state->env, var_name.name_buf.data);
+    if (var_content == NULL)
+        var_content = "";
+
+    evect_push_string(&exp_state->vec, var_content);
+    variable_name_destroy(&var_name);
+    return LEXER_OP_CONTINUE;
+}
+
 static enum wlexer_op expand_regular(struct expansion_state *exp_state,
-                                     struct wlexer *wlexer __unused,
+                                     struct wlexer *wlexer,
                                      struct wtoken *wtoken)
 {
-    evect_push(&exp_state->vec, wtoken->ch[0]);
+    if (wtoken->ch[0] != '$') {
+        evect_push(&exp_state->vec, wtoken->ch[0]);
+        return LEXER_OP_CONTINUE;
+    }
+
+    // fetch the longest valid variable name
+    struct variable_name var_name;
+    variable_name_init(&var_name, 16); // reasonable variable name size
+    do {
+        struct wtoken next_tok = { 0 };
+        wlexer_peek(&next_tok, wlexer);
+        if (next_tok.type != WTOK_REGULAR)
+            break;
+        if (!variable_name_check(&var_name, next_tok.ch[0]))
+            break;
+        variable_name_push(&var_name, next_tok.ch[0]);
+        assert(wlexer_has_lookahead(wlexer));
+        wlexer_clear_lookahead(wlexer);
+    } while (true);
+
+    // push lonely dollars as is
+    if (var_name.name_buf.size == 0) {
+        variable_name_destroy(&var_name);
+        evect_push(&exp_state->vec, wtoken->ch[0]);
+        return LEXER_OP_CONTINUE;
+    }
+
+    // make a copy to search the longest prefix
+    variable_name_finalize(&var_name);
+    size_t var_prefix_len = var_name.name_buf.size - 1;
+    char *var_prefix = strdup(var_name.name_buf.data);
+
+    // look for the longest existing prefix variable
+    do {
+        const char *var_content = expand_name(exp_state->env, var_prefix);
+        if (var_content != NULL) {
+            evect_push_string(&exp_state->vec, var_content);
+            evect_push_string(&exp_state->vec, var_name.name_buf.data + var_prefix_len);
+            break;
+        }
+
+        var_prefix_len--;
+        var_prefix[var_prefix_len] = '\0';
+    } while (var_prefix_len);
+    free(var_prefix);
+    variable_name_destroy(&var_name); // reasonable variable name size
     return LEXER_OP_CONTINUE;
 }
 
@@ -257,7 +320,7 @@ static f_expander expanders[] = {
     // TODO
     [WTOK_ARITH_OPEN] = expand_invalid_state,
     [WTOK_ARITH_CLOSE] = expand_invalid_state,
-    [WTOK_EXP_OPEN] = expand_invalid_state,
+    [WTOK_EXP_OPEN] = expand_dollar,
     [WTOK_EXP_CLOSE] = expand_invalid_state,
 };
 
