@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stddef.h>
+#include <stdio.h>
 
 /**
 ** \brief information about the current context
@@ -17,13 +18,19 @@ typedef struct lineinfo
     */
     size_t column;
     /**
-    ** the whole source code
+    ** a path to the source of the error
     */
     const char *source;
+    /**
+    ** A parent line info context
+    */
+    struct lineinfo *parent;
 } s_lineinfo;
 
-#define LINEINFO(Source)                                                                 \
+void lineinfo_print(const struct lineinfo *li, FILE *stream);
+
+#define LINEINFO(Source, Parent)                                                         \
     (s_lineinfo)                                                                         \
     {                                                                                    \
-        .line = 1, .column = 1, .source = (Source),                                      \
+        .line = 1, .column = 1, .source = (Source), .parent = (Parent)                   \
     }

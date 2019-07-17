@@ -1,7 +1,7 @@
 {
   "desc": "An escaped subshell containing an escaped backquote",
   "stdin": "echo -n \"`echo \\``\"",
-  "stdout": "`",
-  "stderr": "",
+  "stdout": "",
+  "stderr": "sh: command substitution: line 1: unexpected EOF while looking for matching ``'\nsh: command substitution: line 2: syntax error: unexpected end of file\n",
   "retcode": 0
 }

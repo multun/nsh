@@ -1,9 +1,3 @@
-#include <assert.h>
-#include <ctype.h>
-#include <err.h>
-#include <string.h>
-
-#include "shexec/clean_exit.h"
 #include "shexec/builtin_shopt.h"
 #include "shexec/builtins.h"
 #include "shexec/environment.h"
@@ -12,6 +6,30 @@
 #include "utils/evect.h"
 #include "shwlex/wlexer.h"
 #include "shlex/lexer.h"
+
+#include <assert.h>
+#include <ctype.h>
+#include <err.h>
+#include <string.h>
+#include <stdarg.h>
+
+
+struct expansion_state {
+    struct lineinfo *line_info;
+    struct errcont *errcont;
+    struct evect vec;
+    struct environment *env;
+};
+
+static void ATTR(noreturn) expansion_error(struct expansion_state *exp_state, char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+
+    vsherror(exp_state->line_info, exp_state->errcont, &g_lexer_error, fmt, ap);
+
+    va_end(ap);
+}
 
 static char *arguments_var_lookup(s_env *env, char c)
 {
@@ -22,10 +40,8 @@ static char *arguments_var_lookup(s_env *env, char c)
     if (arg_index == 0)
         return strdup(env->progname);
 
-    // TODO: use argc
-    for (size_t i = 1; i <= arg_index; i++)
-        if (env->argv[i] == NULL)
-            return strdup("");
+    if ((int)arg_index >= env->argc)
+        return strdup("");
     return strdup(env->argv[arg_index]);
 }
 
@@ -129,12 +145,6 @@ static void variable_name_finalize(struct variable_name *var)
     evect_push(&var->name_buf, '\0');
 }
 
-struct expansion_state {
-    s_errcont *errcont;
-    struct evect vec;
-    s_env *env;
-};
-
 static void expand_guarded(struct expansion_state *exp_state,
                            struct wlexer *wlexer);
 
@@ -159,7 +169,7 @@ static enum wlexer_op expand_dollar(struct expansion_state *exp_state,
 
         if (!variable_name_check(&var_name, wtoken->ch[0])) {
             variable_name_destroy(&var_name);
-            clean_errx(exp_state->errcont, 1, "invalid characted in ${} section: %c", wtoken->ch[0]);
+            expansion_error(exp_state, "invalid characted in ${} section: %c", wtoken->ch[0]);
         }
 
         variable_name_push(&var_name, wtoken->ch[0]);
@@ -167,10 +177,8 @@ static enum wlexer_op expand_dollar(struct expansion_state *exp_state,
 
     variable_name_finalize(&var_name);
     const char *var_content = expand_name(exp_state->env, var_name.name_buf.data);
-    if (var_content == NULL)
-        var_content = "";
-
-    evect_push_string(&exp_state->vec, var_content);
+    if (var_content != NULL)
+        evect_push_string(&exp_state->vec, var_content);
     variable_name_destroy(&var_name);
     return LEXER_OP_CONTINUE;
 }
@@ -179,7 +187,7 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
                                      struct wlexer *wlexer,
                                      struct wtoken *wtoken)
 {
-    if (wtoken->ch[0] != '$') {
+    if (wlexer->mode == MODE_SINGLE_QUOTED || wtoken->ch[0] != '$') {
         evect_push(&exp_state->vec, wtoken->ch[0]);
         return LEXER_OP_CONTINUE;
     }
@@ -233,7 +241,7 @@ static enum wlexer_op expand_eof(struct expansion_state *exp_state,
                                  struct wtoken *wtoken __unused)
 {
     if (wlexer->mode != MODE_UNQUOTED)
-        clean_errx(exp_state->errcont, 1, "EOF while expecting quote during expansion");
+        expansion_error(exp_state, "EOF while expecting quote during expansion");
     return LEXER_OP_RETURN;
 }
 
@@ -260,16 +268,24 @@ static enum wlexer_op expand_dquote(struct expansion_state *exp_state __unused,
 static enum wlexer_op expand_btick(struct expansion_state *exp_state,
                                    struct wlexer *wlexer, struct wtoken *wtoken __unused)
 {
-    evect_push_string(&exp_state->vec, "btick_subshell<<");
+    struct evect btick_content;
+    evect_init(&btick_content, 32); // hopefuly sane default :(
     struct wlexer_btick_state btick_state = WLEXER_BTICK_INIT;
     WLEXER_BTICK_FOR(&btick_state, wtoken) {
         memset(wtoken, 0, sizeof(*wtoken));
         wlexer_pop(wtoken, wlexer);
+        // discard the final backtick
         if (wtoken->type == WTOK_EOF)
-            clean_errx(exp_state->errcont, 1, "unexpected EOF in ` section, during expansion");
-        evect_push_string(&exp_state->vec, wtoken->ch);
+            expansion_error(exp_state, "unexpected EOF in ` section, during expansion");
+        if (wlexer_btick_escaped(&btick_state))
+            continue;
+        if (wtoken->type == WTOK_BTICK)
+            break;
+        evect_push_string(&btick_content, wtoken->ch);
     }
-    evect_push_string(&exp_state->vec, ">>");
+
+    expand_subshell(exp_state->errcont, btick_content.data, exp_state->env, &exp_state->vec);
+    btick_content.data = NULL; // the ownership was transfered to expand_subshell
     return LEXER_OP_CONTINUE;
 }
 
@@ -281,7 +297,7 @@ static enum wlexer_op expand_escape(struct expansion_state *exp_state,
     assert(!wlexer_has_lookahead(wlexer));
     int ch = cstream_pop(wlexer->cs);
     if (ch == EOF)
-        clean_errx(exp_state->errcont, 1, "unexpected EOF in escape, during expansion");
+        expansion_error(exp_state, "unexpected EOF in escape, during expansion");
 
     evect_push(&exp_state->vec, ch);
     return LEXER_OP_CONTINUE;
@@ -293,16 +309,16 @@ static enum wlexer_op expand_exp_subshell_open(struct expansion_state *exp_state
 {
     struct wlexer sub_wlexer = WLEXER_FORK(wlexer, MODE_SUBSHELL);
     char *subshell_content = lexer_lex_string(exp_state->errcont, &sub_wlexer);
-    expand_subshell(exp_state->errcont, subshell_content,  exp_state->env, &exp_state->vec);
+    expand_subshell(exp_state->errcont, subshell_content, exp_state->env, &exp_state->vec);
     subshell_content = NULL; // the ownership was transfered to expand_subshell
     return LEXER_OP_CONTINUE;
 }
 
 static enum wlexer_op expand_invalid_state(struct expansion_state *exp_state,
-                                              struct wlexer *wlexer __unused,
-                                              struct wtoken *wtoken __unused)
+                                           struct wlexer *wlexer __unused,
+                                           struct wtoken *wtoken __unused)
 {
-    clean_errx(exp_state->errcont, 1, "reached an invalid state during expansion");
+    expansion_error(exp_state, "reached an invalid state during expansion");
 }
 
 static f_expander expanders[] = {
@@ -341,17 +357,19 @@ static void expand_guarded(struct expansion_state *exp_state,
     }
 }
 
-char *expand(char *str, s_env *env, s_errcont *errcont)
+char *expand(struct lineinfo *line_info, char *str, s_env *env, s_errcont *errcont)
 {
+    struct cstream cs = { 0 };
+    cstream_string_init(&cs, str, "<in expansion>", line_info);
+
     struct expansion_state exp_state = {
+        .line_info = &cs.line_info,
         .env = env,
     };
 
     evect_init(&exp_state.vec, strlen(str) + 1);
     struct keeper keeper = KEEPER(errcont->keeper);
 
-    struct cstream cs = { 0 };
-    cstream_string_init(&cs, str, "<in expansion>");
     struct wlexer wlexer;
     wlexer_init(&wlexer, &cs);
 
@@ -359,7 +377,7 @@ char *expand(char *str, s_env *env, s_errcont *errcont)
         free(exp_state.vec.data);
         shraise(errcont, NULL);
     } else {
-        s_errcont sub_errcont = ERRCONT(errcont->errman, &keeper);
+        struct errcont sub_errcont = ERRCONT(errcont->errman, &keeper);
         exp_state.errcont = &sub_errcont;
         expand_guarded(&exp_state, &wlexer);
     }

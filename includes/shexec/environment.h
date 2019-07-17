@@ -17,6 +17,7 @@ typedef struct environment
     // when running functions
     char *progname;
     char **argv;
+    int argc;
 
     // the number of loops we need to break out of
     // this is needed during lbreak exception handling

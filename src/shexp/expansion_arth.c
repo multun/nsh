@@ -20,7 +20,7 @@ char *expand_arth_word(char *word, s_env *env, s_errcont *cont)
         evect_push(&vec, '}');
     evect_push(&vec, '\0');
 
-    char *res = expand(vec.data, env, cont);
+    char *res = expand(NULL, vec.data, env, cont);
     evect_destroy(&vec);
     return res;
 }

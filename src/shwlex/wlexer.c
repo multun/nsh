@@ -51,6 +51,19 @@ void wlexer_push(const struct wtoken *res, struct wlexer *lex)
     return;
 }
 
+static bool is_dquoted_escape_special(int next_char)
+{
+    switch (next_char) {
+    case '$':
+    case '`':
+    case '"':
+    case '\\':
+        return true;
+    default:
+        return false;
+    }
+}
+
 static bool is_significant(struct wlexer *lex, int ch)
 {
     switch (ch) {
@@ -63,7 +76,16 @@ static bool is_significant(struct wlexer *lex, int ch)
     case '`':
         return lex->mode != MODE_SINGLE_QUOTED;
     case '\\':
-        return lex->mode != MODE_SINGLE_QUOTED;
+        // TODO: MODE_EXPANSION specific handling
+        switch (lex->mode) {
+        case MODE_SINGLE_QUOTED:
+            return false;
+        case MODE_DOUBLE_QUOTED:
+        case MODE_ARITH:
+            return is_dquoted_escape_special(cstream_peek(lex->cs));
+        default:
+            return true;
+        }
     case '$':
         return lex->mode != MODE_SINGLE_QUOTED;
     case '}':
@@ -164,8 +186,11 @@ static void wlexer_lex(struct wtoken *res, struct wlexer *lex)
 
     res->ch[0] = ch;
 
-    if (is_significant(lex, ch) && (res->type = wtok_single_type(ch)) != WTOK_UNKNOWN)
-        return;
+    if (is_significant(lex, ch)) {
+        res->type = wtok_single_type(ch);
+        if (res->type != WTOK_UNKNOWN)
+            return;
+    }
 
     switch (ch) {
     case '$':

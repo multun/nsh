@@ -61,6 +61,7 @@ static int cmd_exec_argv(s_env *env, s_errcont *cont)
 int cmd_exec(s_env *env, s_ast *node, s_errcont *cont)
 {
     s_wordlist *wl = node->data.ast_cmd.wordlist;
+    int volatile prev_argc = env->argc;
     char **volatile prev_argv = env->argv;
     s_keeper keeper = KEEPER(cont->keeper);
 
@@ -68,6 +69,7 @@ int cmd_exec(s_env *env, s_ast *node, s_errcont *cont)
     if (setjmp(keeper.env)) {
         if (prev_argv != env->argv) {
             argv_free(env->argv);
+            env->argc = prev_argc;
             env->argv = prev_argv;
         }
         shraise(cont, NULL);
@@ -78,6 +80,7 @@ int cmd_exec(s_env *env, s_ast *node, s_errcont *cont)
     }
 
     argv_free(env->argv);
+    env->argc = prev_argc;
     env->argv = prev_argv;
     return res;
 }

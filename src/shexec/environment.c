@@ -13,9 +13,10 @@
 #include "utils/alloc.h"
 #include "utils/hash_table.h"
 
-static char **arg_context_extract(s_arg_context *args)
+static char **arg_context_extract(int *target_argc, s_arg_context *args)
 {
     int argc = args->argc - args->argc_base;
+    *target_argc = argc;
     // the first additional element is argv[0],
     // the other one is the terminating NULL
     char **ret = xcalloc(sizeof(char **), argc + 2);
@@ -29,7 +30,7 @@ static char **arg_context_extract(s_arg_context *args)
 s_env *environment_create(s_arg_context *arg_cont)
 {
     s_env *env = xmalloc(sizeof(s_env));
-    env->argv = arg_context_extract(arg_cont);
+    env->argv = arg_context_extract(&env->argc, arg_cont);
     env->progname = strdup(arg_cont->argv[arg_cont->progname_ind]);
     env->vars = htable_create(10);
     env->functions = htable_create(10);

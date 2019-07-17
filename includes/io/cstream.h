@@ -103,9 +103,9 @@ s_cstream *cstream_readline(void);
 ** \param source the source to display on error
 ** \return a string stream
 */
-s_cstream *cstream_from_string(char *string, const char *source);
+s_cstream *cstream_from_string(char *string, const char *source, struct lineinfo *parent);
 
-void cstream_string_init(struct cstream *cstream, char *string, const char *source);
+void cstream_string_init(struct cstream *cstream, char *string, const char *source, struct lineinfo *parent);
 
 /**
 ** \brief destructs a stream and all the underlying resources

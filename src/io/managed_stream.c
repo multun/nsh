@@ -23,7 +23,7 @@ static int init_command(s_cstream **cs, int argc, char *path)
         return 2;
     }
 
-    *cs = cstream_from_string(path, "<command line>");
+    *cs = cstream_from_string(path, "<command line>", NULL);
     (*cs)->interactive = false;
     (*cs)->context = NULL;
     return 0;

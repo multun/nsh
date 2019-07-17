@@ -52,6 +52,12 @@ struct wlexer
     struct wtoken lookahead;
 };
 
+static inline __unused struct lineinfo *wlexer_line_info(struct wlexer *wlexer)
+{
+    return &wlexer->cs->line_info;
+}
+
+
 static inline bool wlexer_in_subshell(const struct wlexer *wlex)
 {
     return wlex->mode == MODE_EXP_SUBSHELL || wlex->mode == MODE_SUBSHELL;
@@ -115,6 +121,12 @@ __unused static bool wlexer_btick_cond(struct wlexer_btick_state *state, struct 
     else if (wtok->type == WTOK_BTICK)
         return false;
     return true;
+}
+
+
+__unused static bool wlexer_btick_escaped(struct wlexer_btick_state *state)
+{
+    return state->escape;
 }
 
 #define WLEXER_BTICK_FOR(State, WTok)                                                    \

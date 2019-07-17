@@ -1,0 +1,7 @@
+{
+  "desc": "Expansion in simple quotes",
+  "stdin": "A=42; printf %s '$A'",
+  "stdout": "$A",
+  "stderr": "",
+  "retcode": 0
+}

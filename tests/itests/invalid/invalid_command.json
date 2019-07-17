@@ -1,0 +1,7 @@
+{
+  "desc": "An invalid simple command",
+  "stdin": ")",
+  "stdout": "",
+  "stderr": "something",
+  "retcode": 2
+}

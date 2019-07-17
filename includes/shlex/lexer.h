@@ -134,6 +134,11 @@ typedef struct lexer
     s_errcont *errcont;
 } s_lexer;
 
+static inline __unused struct lineinfo *lexer_line_info(struct lexer *lexer)
+{
+    return wlexer_line_info(&lexer->wlexer);
+}
+
 typedef enum wlexer_op (*sublexer)(struct lexer *lexer, struct wlexer *wlexer,
                                   struct token *token, struct wtoken *wtoken);
 

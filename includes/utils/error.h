@@ -98,3 +98,6 @@ void ATTR(noreturn) shraise(s_errcont *cont, const s_ex_class *class);
 */
 void ATTR(noreturn) sherror(const s_lineinfo *lineinfo, s_errcont *cont,
                             const s_ex_class *ex_class, const char *format, ...);
+
+void ATTR(noreturn) vsherror(const s_lineinfo *li, s_errcont *cont,
+                             const s_ex_class *ex_class, const char *format, va_list ap);

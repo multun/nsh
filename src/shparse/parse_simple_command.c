@@ -15,8 +15,7 @@ bool start_redir(const s_token *tok)
 
 static void parse_assignment(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
-    *res = xcalloc(sizeof(s_ast), 1);
-    (*res)->type = SHNODE_ASSIGNMENT;
+    *res = ast_node_create(SHNODE_ASSIGNMENT, lexer);
     s_token *tok = lexer_pop(lexer, errcont);
     char *val = strchr(tok_buf(tok), '=');
     *val = '\0';

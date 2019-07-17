@@ -16,7 +16,11 @@
 #include "ast/until.h"
 #include "ast/while.h"
 #include "shexec/environment.h"
+#include "shlex/lexer.h"
+#include "utils/alloc.h"
 #include "utils/error.h"
+#include "utils/lineinfo.h"
+
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -54,6 +58,8 @@ typedef struct ast
         AST_TYPE_APPLY(DECLARE_AST_TYPE_ENUM)
     } type; /**< type of node */
 
+    struct lineinfo line_info;
+
     union
     {
         s_acmd ast_cmd; /**< command field */
@@ -78,6 +84,14 @@ typedef struct ast
         .type = (Type),                                                                  \
         .data.ast_##Field = (Data),                                                      \
     })
+
+static inline __unused struct ast *ast_node_create(enum shnode_type type, struct lexer *lexer)
+{
+    struct ast *res = xcalloc(sizeof(*res), 1);
+    res->type = type;
+    res->line_info = *lexer_line_info(lexer);
+    return res;
+}
 
 /**
 ** \brief call a print function depending on node type

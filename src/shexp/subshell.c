@@ -15,7 +15,7 @@ static int subshell_child(struct environment *env, char *str)
     s_context ctx;
     memset(&ctx, 0, sizeof(ctx));
     ctx.env = env;
-    ctx.cs = cstream_from_string(str, "<subshell>");
+    ctx.cs = cstream_from_string(str, "<subshell>", NULL);
     repl(&ctx);
     int rc = ctx.env->code;
     ctx.env = NULL; // avoid double free
@@ -43,12 +43,18 @@ static void subshell_parent(int cfd, struct evect *res)
 }
 
 // TODO: handle child exit errors
-void expand_subshell(struct errcont *cont, char *buf, s_env *env, struct evect *vec)
+void expand_subshell(struct errcont *cont, char *buf, struct environment *env,
+                     struct evect *vec)
 {
     int pfd[2];
     // TODO: handle errors
-    pipe(pfd);
+    if (pipe(pfd) < 0)
+        err(1, "pipe() failed");
+
     int cpid = fork();
+    if (cpid < 0)
+        err(1, "fork() failed");
+
     if (!cpid) {
         close(pfd[0]);
         dup2(pfd[1], 1);

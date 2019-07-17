@@ -20,7 +20,7 @@ static void unexport_var(s_env *env, char *name)
 static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
 {
     int res = 0;
-    char *var = expand(entry, env, cont);
+    char *var = expand(NULL, entry, env, cont);
     char *word = NULL;
     char *name = strdup(strtok_r(var, "=", &word));
     bool valid =
@@ -39,7 +39,8 @@ static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
     else if (*word == '\0' && *(word - 1) != '=')
         assign_var(env, name, NULL, true);
     else
-        assign_var(env, name, expand(word, env, cont), true);
+        // TODO: wtf is there an expand here
+        assign_var(env, name, expand(NULL, word, env, cont), true);
     free(var);
     return res;
 }

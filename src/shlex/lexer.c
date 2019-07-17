@@ -74,7 +74,7 @@ static enum wlexer_op sublexer_btick(struct lexer *lexer __unused, struct wlexer
         wlexer_pop(wtok, wlexer);
         if (wtok->type == WTOK_EOF)
             clean_errx(lexer->errcont, 1, "unexpected EOF in ` section");
-        wtoken_push(token, wtok);
+        evect_push(&token->str, wtok->ch[0]);
     }
     return LEXER_OP_CONTINUE;
 }

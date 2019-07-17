@@ -42,7 +42,7 @@ int assignment_exec(s_env *env, s_ast *ast, s_ast *cmd, s_errcont *cont)
     if (!ast)
         return ast_exec(env, cmd, cont);
     char *name = strdup(ast->data.ast_assignment.name->str);
-    char *value = expand(ast->data.ast_assignment.value->str, env, cont);
+    char *value = expand(&ast->line_info, ast->data.ast_assignment.value->str, env, cont);
     bool valid =
         *name == '_' || (*name >= 'a' && *name <= 'z') || (*name >= 'A' && *name <= 'Z');
 

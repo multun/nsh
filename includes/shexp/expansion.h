@@ -10,7 +10,7 @@
 ** \param cont the error context to work with
 ** \return a malloc allocated expanded string
 */
-char *expand(char *str, s_env *env, s_errcont *cont);
+char *expand(struct lineinfo *line_info, char *str, s_env *env, s_errcont *errcont);
 
 /**
 ** \brief the expansion context

@@ -66,7 +66,7 @@ static int readline_io_reader(s_cstream *cs)
 s_cstream *cstream_readline(void)
 {
     s_cstream *cs = cstream_create_base();
-    cs->line_info = LINEINFO("<tty>");
+    cs->line_info = LINEINFO("<tty>", NULL);
     evect_init(&cs->linebuf, 100);
     cs->backend = &g_io_readline_backend;
     using_history();
