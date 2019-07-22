@@ -107,7 +107,7 @@ static enum wlexer_op word_breaker_comment(struct lexer *lexer __unused,
         return LEXER_OP_FALLTHROUGH;
 
     if (tok_size(token) != 0)
-        return LEXER_OP_CANCEL;
+        return LEXER_OP_FALLTHROUGH;
 
     assert(!wlexer_has_lookahead(wlexer));
     do {

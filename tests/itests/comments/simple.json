@@ -1,0 +1,7 @@
+{
+  "desc": "test comments",
+  "stdin": "echo # a\necho b # a\necho b#a\necho b# a\necho $b#a\necho $b# a\necho ${b}# a",
+  "stdout": "\nb\nb#a\nb# a\n#a\n# a\n# a\n",
+  "stderr": "",
+  "retcode": 0
+}
