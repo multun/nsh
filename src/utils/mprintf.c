@@ -3,6 +3,7 @@
 #include <stdarg.h>
 
 #include "utils/alloc.h"
+#include "utils/mprintf.h"
 
 
 char *mprintf(const char *fmt, ...)
