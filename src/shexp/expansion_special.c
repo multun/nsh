@@ -1,6 +1,6 @@
 #include <string.h>
 #include <stdio.h>
-#include <sys/random.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <err.h>
 
@@ -69,9 +69,10 @@ char *special_char_lookup(s_env *env, char var)
 
 char *expand_random(void)
 {
-    int rnd = 0;
-    getrandom(&rnd, sizeof(int), 0);
-    return mprintf("%d", (rnd % 32768 + 32768) % 32768);
+    // $RANDOM isn't yet in POSIX
+    // see https://pubs.opengroup.org/onlinepubs/9699919799/xrat/V4_xcu_chap02.html#tag_23_02_05_03
+    // "This pseudo-random number generator was not seen as being useful to interactive users."
+    return mprintf("%d", rand() % 32768);
 }
 
 char *expand_uid(void)
