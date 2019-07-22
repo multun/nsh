@@ -20,4 +20,4 @@ libutils_la_SOURCES = xalloc.c \
                       $(TOP_INCL)/utils/hash_table.h \
                       $(TOP_INCL)/utils/attr.h \
                       $(TOP_INCL)/utils/pathutils.h \
-                      $(TOP_INCL)/utils/progname.h \
+                      $(TOP_INCL)/utils/progname.h
