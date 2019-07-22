@@ -1,3 +1,5 @@
+PYTHON3 ?= python3
+
 include $(top_srcdir)/Makefile.common
 
 ACLOCAL_AMFLAGS = -I m4
@@ -13,7 +15,7 @@ EXTRA_DIST = $(srcdir)/tests/check.py $(itest_files)
 
 
 check-local:
-	$(srcdir)/tests/check.py $(top_builddir)/42sh
+	$(PYTHON3) $(srcdir)/tests/check.py $(top_builddir)/42sh
 
 doc:
 	doxygen $(srcdir)/doc/doxyconfig
