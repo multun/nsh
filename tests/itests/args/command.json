@@ -1,0 +1,7 @@
+{
+  "desc": "test -c arguments",
+  "stdin": "echo count\n$0 -c 'echo none:  $#'\n$0 -c 'echo a:     $#' a\n$0 -c 'echo a b:   $#' a b\n$0 -c 'echo a b c: $#' a b c\n\necho value\n$0 -c \"echo \\\"$0\\\" | grep -qE '^.*sh\\$' && echo none ok: yes || echo none ok: no\"\n$0 -c 'echo [0] a:     $0' a\n$0 -c 'echo [0] a b:   $0' a b\n$0 -c 'echo [1] a b c: $1' a b c\n$0 -c 'echo [2] a b c: $2' a b c\n",
+  "stdout": "count\nnone: 0\na: 0\na b: 1\na b c: 2\nvalue\nnone ok: yes\n[0] a: a\n[0] a b: a\n[1] a b c: b\n[2] a b c: c\n",
+  "stderr": "",
+  "retcode": 0
+}

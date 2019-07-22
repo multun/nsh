@@ -35,13 +35,18 @@ static char *expand_args(s_env *env)
 
 static char *expand_sharp(s_env *env)
 {
-    size_t argc = 0;
-    while (env->argv[argc])
-        argc++;
+    // the shell argc always is one step behind the C argc
+    int argc = env->argc;
 
-    if (argc)
+    // argc might be equal to 0 !
+    // $ sh -c 'echo $#'
+    // 0
+    // $ sh -c 'echo $#' coucou
+    // 0
+
+    if (argc > 0)
         argc--;
-    return mprintf("%zu", argc);
+    return mprintf("%d", argc);
 }
 
 static char *expand_return(s_env *env)

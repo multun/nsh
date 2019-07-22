@@ -22,6 +22,10 @@ struct cmdopts
     // the underlying type is enum shsrc, but it's an
     // int to comply with getopt
     int src;
+
+    // if -c was used, the command
+    // TODO: switch to const
+    char *command;
 };
 
 extern struct cmdopts g_cmdopts;

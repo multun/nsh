@@ -1,0 +1,7 @@
+{
+  "desc": "test arguments with file input",
+  "stdin": "echo 'echo arg0: -$0-' > test.sh\necho 'echo arg1: -$1-' >> test.sh\necho 'echo argc: -$#-' >> test.sh\n$0 ./test.sh",
+  "stdout": "arg0: -./test.sh-\narg1: --\nargc: -0-\n",
+  "stderr": "",
+  "retcode": 0
+}

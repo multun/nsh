@@ -11,19 +11,9 @@
 #include <string.h>
 #include <unistd.h>
 
-static bool is_interactive(int argc)
+static int init_command(s_cstream **cs)
 {
-    return (g_cmdopts.src != SHSRC_COMMAND) && argc <= 0 && isatty(STDIN_FILENO);
-}
-
-static int init_command(s_cstream **cs, int argc, char *path)
-{
-    if (argc == 0) {
-        warnx("missing command");
-        return 2;
-    }
-
-    *cs = cstream_from_string(path, "<command line>", NULL);
+    *cs = cstream_from_string(g_cmdopts.command, "<command line>", NULL);
     (*cs)->interactive = false;
     (*cs)->context = NULL;
     return 0;
@@ -53,22 +43,24 @@ static int init_file(s_cstream **cs, char *path)
 
 int cstream_dispatch_init(s_context *context, s_cstream **cs, s_arg_context *arg_cont)
 {
-    char *first_arg = arg_cont->argv[arg_cont->argc_base];
-    int rebased_argc = arg_cont->argc - arg_cont->argc_base;
-    if (g_cmdopts.src == SHSRC_COMMAND) {
-        // we need to increase the base so that the other
-        // routines properly consider arguments
-        int new_progind = arg_cont->argc_base + 1;
-        if (arg_cont->argv[new_progind])
-            arg_cont->progname_ind = new_progind;
-        arg_cont->argc_base += 1 + !!arg_cont->argv[new_progind];
-        return init_command(cs, rebased_argc, first_arg);
+    int remaining_argc = arg_cont->argc - arg_cont->argc_base;
+
+    // if there are remaining arguments after options parsing,
+    // set the program name to the first argument and higher the base
+    if (remaining_argc) {
+        arg_cont->progname_ind = arg_cont->argc_base;
+        arg_cont->argc_base++;
     }
 
-    if (rebased_argc >= 1)
-        return init_file(cs, first_arg);
+    if (g_cmdopts.src == SHSRC_COMMAND)
+        return init_command(cs);
 
-    if (is_interactive(rebased_argc)) {
+    if (remaining_argc) {
+        char *program_name = arg_cont->argv[arg_cont->progname_ind];
+        return init_file(cs, program_name);
+    }
+
+    if (isatty(STDIN_FILENO)) {
         *cs = cstream_readline();
         (*cs)->interactive = true;
         (*cs)->context = context;

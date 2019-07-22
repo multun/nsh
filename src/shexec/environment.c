@@ -15,13 +15,15 @@
 
 static char **arg_context_extract(int *target_argc, s_arg_context *args)
 {
-    int argc = args->argc - args->argc_base;
+    int arguments_count = args->argc - args->argc_base;
+    // don't forget $0 in the total argument count
+    int argc = arguments_count + 1;
     *target_argc = argc;
-    // the first additional element is argv[0],
+
     // the other one is the terminating NULL
-    char **ret = xcalloc(sizeof(char **), argc + 2);
+    char **ret = xcalloc(sizeof(char **), argc + 1);
     ret[0] = strdup(args->argv[args->progname_ind]);
-    for (int i = 0; i < argc; i++)
+    for (int i = 0; i < arguments_count; i++)
         ret[i + 1] = strdup(args->argv[args->argc_base + i]);
     // no need to add the terminating null, as we already calloced
     return ret;

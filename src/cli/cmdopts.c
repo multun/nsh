@@ -59,7 +59,7 @@ int cmdopts_parse(int argc, char *argv[])
     int c;
 
     preprocess_cmdline(argc, argv);
-    while ((c = getopt_long(argc, argv, "+hvanco:O:", g_long_options, &opt_i)) != -1)
+    while ((c = getopt_long(argc, argv, "+hvanc:o:O:", g_long_options, &opt_i)) != -1)
         switch (c) {
         case 0:
             break;
@@ -67,6 +67,7 @@ int cmdopts_parse(int argc, char *argv[])
             return handle_version();
         case 'c':
             g_cmdopts.src = SHSRC_COMMAND;
+            g_cmdopts.command = optarg;
             break;
         case 'o':
         case 'O':
