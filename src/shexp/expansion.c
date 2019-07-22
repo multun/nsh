@@ -214,25 +214,15 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
         return LEXER_OP_CONTINUE;
     }
 
-    // make a copy to search the longest prefix
+    // add the trailing null byte
     variable_name_finalize(&var_name);
-    size_t var_prefix_len = var_name.name_buf.size - 1;
-    char *var_prefix = strdup(var_name.name_buf.data);
 
-    // look for the longest existing prefix variable
-    do {
-        const char *var_content = expand_name(exp_state->env, var_prefix);
-        if (var_content != NULL) {
-            evect_push_string(&exp_state->vec, var_content);
-            evect_push_string(&exp_state->vec, var_name.name_buf.data + var_prefix_len);
-            break;
-        }
+    // look for the variable value
+    const char *var_content = expand_name(exp_state->env, var_name.name_buf.data);
+    if (var_content != NULL)
+        evect_push_string(&exp_state->vec, var_content);
 
-        var_prefix_len--;
-        var_prefix[var_prefix_len] = '\0';
-    } while (var_prefix_len);
-    free(var_prefix);
-    variable_name_destroy(&var_name); // reasonable variable name size
+    variable_name_destroy(&var_name);
     return LEXER_OP_CONTINUE;
 }
 

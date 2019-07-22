@@ -1,7 +1,7 @@
 {
-  "desc": "Expansion of prefix variables",
-  "stdin": "A=41; AA=42; printf %s \"$AAA\"",
-  "stdout": "42A",
+  "desc": "Expansion of prefix variables. Only the longest valid name matters",
+  "stdin": "A=41; AA=42; printf %s \"$AAA nop\"",
+  "stdout": " nop",
   "stderr": "",
   "retcode": 0
 }
