@@ -21,7 +21,7 @@ struct expansion_state {
     struct environment *env;
 };
 
-static void ATTR(noreturn) expansion_error(struct expansion_state *exp_state, char *fmt, ...)
+static void ATTR(noreturn) expansion_error(struct expansion_state *exp_state, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
