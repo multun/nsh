@@ -16,6 +16,8 @@ static const char *cont_get_var(s_context *cont, const char *vname, const char *
     struct pair *hpair = htable_access(cont->env->vars, vname);
     if (!hpair)
         return def;
+
+    // TODO: check weird sequence var->value ... if var
     s_var *var = hpair->value;
     if (!var->value)
         return def;
@@ -32,53 +34,60 @@ static const char *get_ps2(s_context *context)
     return cont_get_var(context, "PS2", "> ");
 }
 
-static const char *prompt_get(s_cstream *cs)
+static const char *prompt_get(struct cstream *cs)
 {
     const char *res = (cs->context->line_start ? get_ps1 : get_ps2)(cs->context);
     cs->context->line_start = false;
     return res;
 }
 
-static int readline_io_reader(s_cstream *cs)
+static int readline_io_reader_unwrapped(struct cstream_readline *cs)
 {
-    char *str = cs->data;
+    char *str = cs->current_line;
 
     if (!str) {
-        const char *prompt = prompt_get(cs);
-        str = cs->data = readline(prompt);
-        cs->back_pos = 0;
+        const char *prompt = prompt_get(&cs->base);
+        str = cs->current_line = readline(prompt);
+        cs->line_position = 0;
     }
 
     int res;
-    if (str && !str[cs->back_pos]) {
+    if (str && !str[cs->line_position]) {
         free(str);
-        cs->data = NULL;
+        cs->current_line = NULL;
         return '\n';
     }
 
-    if (!str || !(res = str[cs->back_pos]))
+    if (!str || !(res = str[cs->line_position]))
         return EOF;
 
-    cs->back_pos++;
+    cs->line_position++;
     return res;
 }
 
-s_cstream *cstream_readline(void)
+static int readline_io_reader(struct cstream *base_cs)
 {
-    s_cstream *cs = cstream_create_base();
-    cs->line_info = LINEINFO("<tty>", NULL);
-    evect_init(&cs->linebuf, 100);
-    cs->backend = &g_io_readline_backend;
-    using_history();
-    return cs;
+    struct cstream_readline *cs = (struct cstream_readline *)base_cs;
+    int res = readline_io_reader_unwrapped(cs);
+    if (res != EOF)
+        evect_push(&cs->base.context->line_buffer, res);
+    return res;
 }
 
-static void readline_io_dest(s_cstream *cs)
+static void readline_io_dest(struct cstream *base_cs)
 {
-    free(cs->data);
+    struct cstream_readline *cs = (struct cstream_readline *)base_cs;
+    free(cs->current_line);
 }
 
-s_io_backend g_io_readline_backend = {
+struct io_backend io_readline_backend = {
     .reader = readline_io_reader,
     .dest = readline_io_dest,
 };
+
+void cstream_readline_init(struct cstream_readline *cs)
+{
+    cstream_init(&cs->base, &io_readline_backend, true);
+    cs->base.line_info = LINEINFO("<tty>", NULL);
+    using_history();
+}

@@ -44,6 +44,8 @@ typedef struct context
     // make much sense either to store it inside the stream structure.
     bool line_start;
 
+    struct evect line_buffer;
+
     // the currently processed ast
     s_ast *ast;
 

@@ -1,5 +1,6 @@
 #include "ast/ast_list.h"
 #include "cli/cmdopts.h"
+#include "io/cstream.h"
 #include "repl/history.h"
 #include "repl/repl.h"
 #include "shexec/environment.h"
@@ -10,31 +11,36 @@
 #include <string.h>
 #include <unistd.h>
 
-static bool env_feed(s_env *env, const char *path, const char *name)
+static bool context_load_rc(s_env *env, const char *path, const char *source)
 {
     s_context cont;
     memset(&cont, 0, sizeof(cont));
     FILE *file = fopen(path, "r");
-    if (!file)
+    int res;
+    if ((res = cstream_file_setup(&file, path, true)))
         return 0; // not being able to load an rc file is ok
 
+    struct cstream_file cs = { 0 };
+    cstream_file_init(&cs, file, true);
+    cont.cs = &cs.base;
     cont.env = env;
-    cont.cs = cstream_from_file(file, name, true);
+    cs.base.line_info = LINEINFO(source, NULL);
+    cs.base.context = &cont;
 
     bool should_exit = repl(&cont);
 
-    cstream_free(cont.cs);
+    cstream_destroy(cont.cs);
     return should_exit;
 }
 
-static bool context_load_rc(s_context *cont)
+static bool context_load_all_rc(s_context *cont)
 {
     const char global_rc[] = "/etc/42shrc";
-    if (env_feed(cont->env, global_rc, global_rc))
+    if (context_load_rc(cont->env, global_rc, global_rc))
         return true;
 
     char *rc_path = home_suffix("/.42shrc");
-    bool should_exit = env_feed(cont->env, rc_path, "~/.42shrc");
+    bool should_exit = context_load_rc(cont->env, rc_path, "~/.42shrc");
     free(rc_path);
     return should_exit;
 }
@@ -48,7 +54,7 @@ bool context_init(int *rc, s_context *cont, s_arg_context *arg_cont)
 
     cont->env = environment_create(arg_cont);
 
-    if (cont->cs->interactive && !g_cmdopts.norc && context_load_rc(cont)) {
+    if (cont->cs->interactive && !g_cmdopts.norc && context_load_all_rc(cont)) {
         *rc = cont->env->code;
         return true;
     }
@@ -61,5 +67,4 @@ void context_destroy(s_context *cont)
 {
     environment_free(cont->env);
     history_destroy(cont);
-    cstream_free(cont->cs);
 }

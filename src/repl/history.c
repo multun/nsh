@@ -30,6 +30,8 @@ void history_init(s_context *ctx)
 {
     if (!ctx->cs->interactive) {
         ctx->history = NULL;
+        // TODO: make this configurable
+        evect_init(&ctx->line_buffer, 100);
         return;
     }
     ctx->history = history_open();
@@ -40,27 +42,27 @@ void history_update(s_context *ctx)
     if (!ctx->cs->interactive)
         return;
 
-    s_evect *cmd_vect = &ctx->cs->linebuf;
-    if (cmd_vect->data[ctx->cs->linebuf.size - 1] == '\n')
-        cmd_vect->data[--ctx->cs->linebuf.size] = '\0';
+    s_evect *cmd_vect = &ctx->line_buffer;
+    if (cmd_vect->data[ctx->line_buffer.size - 1] == '\n')
+        cmd_vect->data[--ctx->line_buffer.size] = '\0';
     else
         evect_push(cmd_vect, '\0');
 
     add_history(cmd_vect->data);
 
     if (!ctx->history) {
-        ctx->cs->linebuf.size = 0;
+        ctx->line_buffer.size = 0;
         return;
     }
 
-    cmd_vect->data[ctx->cs->linebuf.size - 1] = '\n';
+    cmd_vect->data[ctx->line_buffer.size - 1] = '\n';
     evect_push(cmd_vect, '\0');
 
     if (fputs(cmd_vect->data, ctx->history) == EOF) {
         warnx("couldn't update history, closing history file");
         history_destroy(ctx);
     } else
-        ctx->cs->linebuf.size = 0;
+        ctx->line_buffer.size = 0;
 }
 
 void history_destroy(s_context *ctx)
@@ -68,6 +70,7 @@ void history_destroy(s_context *ctx)
     if (!ctx->history)
         return;
 
+    evect_destroy(&ctx->line_buffer);
     fclose(ctx->history);
     ctx->history = NULL;
 }

@@ -3,6 +3,7 @@
 #include "shexec/clean_exit.h"
 #include "utils/alloc.h"
 
+
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -10,30 +11,25 @@
 
 static int source_file(s_errcont *cont, s_env *env, char *path)
 {
-    s_context ctx;
+    struct context ctx;
     memset(&ctx, 0, sizeof(ctx));
     ctx.env = env;
+
     FILE *file;
-    if (!(file = fopen(path, "r+"))) {
-        int res = errno;
-        // TODO: check the return code is right
-        warn("cannot open input script");
+    int res;
+    if ((res = cstream_file_setup(&file, path, false)))
         return res;
-    }
 
-    if (fcntl(fileno(file), F_SETFD, FD_CLOEXEC) < 0) {
-        int res = errno;
-        warn("couldn't set CLOEXEC on input file %d", fileno(file));
-        return res;
-    }
-
-    ctx.cs = cstream_from_file(file, path, true);
+    struct cstream_file cs;
+    cstream_file_init(&cs, file, true);
+    ctx.cs = &cs.base;
     if (repl(&ctx))
         clean_exit(cont, ctx.env->code);
 
     int rc = ctx.env->code;
     ctx.env = NULL; // avoid double free
     context_destroy(&ctx);
+    cstream_destroy(&cs.base);
     return rc;
 }
 

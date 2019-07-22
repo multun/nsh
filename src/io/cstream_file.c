@@ -3,29 +3,26 @@
 
 #include <stdio.h>
 
-static int file_io_reader(s_cstream *cs)
+static int file_io_reader(struct cstream *cs)
 {
-    return getc(cs->data);
+    return getc(((struct cstream_file *)cs)->file);
 }
 
-s_cstream *cstream_from_file(FILE *stream, const char *source, bool exit_close)
+static void file_io_dest(struct cstream *base_cs)
 {
-    s_cstream *cs = cstream_create_base();
-    cs->exit_close = exit_close;
-    cs->line_info = LINEINFO(source, NULL);
-    cs->interactive = false;
-    cs->backend = &g_io_file_backend;
-    cs->data = stream;
-    return cs;
+    struct cstream_file *cs = (struct cstream_file *)base_cs;
+    if (cs->close_on_exit)
+        fclose(cs->file);
 }
 
-static void file_io_dest(s_cstream *cs)
-{
-    if (cs->exit_close)
-        fclose(cs->data);
-}
-
-s_io_backend g_io_file_backend = {
+struct io_backend io_file_backend = {
     .reader = file_io_reader,
     .dest = file_io_dest,
 };
+
+void cstream_file_init(struct cstream_file *cs, FILE *stream, bool close_on_exit)
+{
+    cstream_init(&cs->base, &io_file_backend, false);
+    cs->close_on_exit = close_on_exit;
+    cs->file = stream;
+}

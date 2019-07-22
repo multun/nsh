@@ -349,19 +349,21 @@ static void expand_guarded(struct expansion_state *exp_state,
 
 char *expand(struct lineinfo *line_info, char *str, s_env *env, s_errcont *errcont)
 {
-    struct cstream cs = { 0 };
-    cstream_string_init(&cs, str, "<in expansion>", line_info);
+    struct cstream_string cs = { 0 };
+    cstream_string_init(&cs, str);
+    cs.base.line_info = LINEINFO("<expansion>", line_info);
 
     struct expansion_state exp_state = {
-        .line_info = &cs.line_info,
+        .line_info = &cs.base.line_info,
         .env = env,
     };
+
 
     evect_init(&exp_state.vec, strlen(str) + 1);
     struct keeper keeper = KEEPER(errcont->keeper);
 
     struct wlexer wlexer;
-    wlexer_init(&wlexer, &cs);
+    wlexer_init(&wlexer, &cs.base);
 
     if (setjmp(keeper.env)) {
         free(exp_state.vec.data);

@@ -1,7 +1,9 @@
 #pragma once
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "utils/attr.h"
 #include "utils/evect.h"
 #include "utils/lineinfo.h"
 
@@ -24,11 +26,11 @@ typedef void (*f_io_destructor)(struct cstream *cs);
 /**
 ** \brief io backends are structures holding stream type specific routines
 */
-typedef struct io_backend
+struct io_backend
 {
     f_io_reader reader;
     f_io_destructor dest;
-} s_io_backend;
+};
 
 /**
 ** \brief a cstream is a character stream, similar to FILE*
@@ -36,6 +38,8 @@ typedef struct io_backend
 */
 typedef struct cstream
 {
+    struct io_backend *backend;
+
     // whether the stream is interactive
     bool interactive;
 
@@ -43,7 +47,6 @@ typedef struct cstream
     // as well as the aliasing context
     struct context *context;
 
-    s_io_backend *backend;
     // the line-related informations, updated on each read
     s_lineinfo line_info;
 
@@ -55,26 +58,16 @@ typedef struct cstream
 
     // whether the stream reached EOF
     bool eof;
-
-    /*
-    ** Backend-specific data
-    ** TODO: move to separate structs
-    */
-
-    // contains each poped character since the beginning of the line.
-    // it might seem useless or awkward to have this here, but the current
-    // readline backend needs it
-    s_evect linebuf;
-
-    // should the stream be closed on exit ? only meaningful for the file backend
-    bool exit_close;
-
-    // a backend-dependant cursor
-    size_t back_pos;
-
-    // a backend specific data pointer
-    void *data;
 } s_cstream;
+
+
+__unused static void cstream_check(struct cstream *cs) {
+    assert(cs->backend != NULL);
+    assert(cs->context != NULL);
+    assert(cs->line_info.source != NULL);
+}
+
+int cstream_file_setup(FILE **file, const char *path, bool missing_ok);
 
 /**
 ** \brief constructs a base stream, initialized with sane default values
@@ -82,36 +75,13 @@ typedef struct cstream
 **    undefined behavior
 ** \return a partialy uninitialized stream
 */
-s_cstream *cstream_create_base(void);
-
-/**
-** \brief initializes a stream from a file
-** \param source the source to display on error
-** \param exit_close whether to close the stream on error
-** \return a file stream
-*/
-s_cstream *cstream_from_file(FILE *stream, const char *source, bool exit_close);
-
-/**
-** \brief initializes a readline stream
-** \return a readline stream
-*/
-s_cstream *cstream_readline(void);
-
-/**
-** \brief initializes a stream from a string
-** \param source the source to display on error
-** \return a string stream
-*/
-s_cstream *cstream_from_string(char *string, const char *source, struct lineinfo *parent);
-
-void cstream_string_init(struct cstream *cstream, char *string, const char *source, struct lineinfo *parent);
+void cstream_init(struct cstream *cs, struct io_backend *backend, bool interactive);
 
 /**
 ** \brief destructs a stream and all the underlying resources
 ** \param cs the stream to destroy
 */
-void cstream_free(s_cstream *cs);
+void cstream_destroy(struct cstream *cs);
 
 /**
 ** \brief peek a character from a stream
@@ -120,7 +90,7 @@ void cstream_free(s_cstream *cs);
 ** \param cs the stream to peek from
 ** \return the next character on the stream
 */
-int cstream_peek(s_cstream *cs);
+int cstream_peek(struct cstream *cs);
 
 /**
 ** \brief pop a character from a stream
@@ -128,14 +98,15 @@ int cstream_peek(s_cstream *cs);
 ** \param cs the stream to peek from
 ** \return the next character on the stream
 */
-int cstream_pop(s_cstream *cs);
+int cstream_pop(struct cstream *cs);
 
 /**
 ** \param cs the stream involved
 ** \return has the stream reached eof?
 */
-bool cstream_eof(s_cstream *cs);
+bool cstream_eof(struct cstream *cs);
 
-extern s_io_backend g_io_file_backend;
-extern s_io_backend g_io_readline_backend;
-extern s_io_backend g_io_string_backend;
+
+#include "io/cstream_readline.h"
+#include "io/cstream_file.h"
+#include "io/cstream_string.h"

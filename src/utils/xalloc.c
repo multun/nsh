@@ -2,8 +2,10 @@
 
 #include <err.h>
 #include <stdlib.h>
+#include <string.h>
 
-void *xmalloc(size_t size)
+
+__malloc void *xmalloc(size_t size)
 {
     void *ret = malloc(size);
     if (size && !ret)
@@ -19,10 +21,17 @@ void *xrealloc(void *ptr, size_t size)
     return ret;
 }
 
-void *xcalloc(size_t nmemb, size_t size)
+__malloc void *xcalloc(size_t nmemb, size_t size)
 {
     void *ret = calloc(nmemb, size);
     if (size && nmemb && !ret)
         err(1, "calloc failed");
     return ret;
+}
+
+__malloc void *zalloc(size_t size)
+{
+    void *res = malloc(size);
+    memset(res, 0, size);
+    return res;
 }

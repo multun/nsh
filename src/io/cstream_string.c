@@ -3,33 +3,26 @@
 
 #include <stdio.h>
 
-static int string_io_reader(s_cstream *cs)
+static int string_io_reader(struct cstream *cs)
 {
-    char *str = cs->data;
+    struct cstream_string *css = (struct cstream_string *)cs;
+
+    char *str = css->string;
     if (!*str)
         return EOF;
 
     int res = *(str++);
-    cs->data = str;
+    css->string = str;
     return res;
 }
 
-void cstream_string_init(struct cstream *cs, char *string, const char *source, struct lineinfo *parent) {
-    cs->line_info = LINEINFO(source, parent);
-    cs->backend = &g_io_string_backend;
-    cs->interactive = false;
-    cs->data = string;
-}
-
-// TODO: deprecate
-s_cstream *cstream_from_string(char *string, const char *source, struct lineinfo *parent)
-{
-    s_cstream *cs = cstream_create_base();
-    cstream_string_init(cs, string, source, parent);
-    return cs;
-}
-
-s_io_backend g_io_string_backend = {
+static struct io_backend io_string_backend = {
     .reader = string_io_reader,
     .dest = NULL,
 };
+
+void cstream_string_init(struct cstream_string *cs, char *string) {
+    cs->base.backend = &io_string_backend;
+    cs->base.interactive = false;
+    cs->string = string;
+}

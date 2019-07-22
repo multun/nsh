@@ -2,12 +2,22 @@
 
 #include <stddef.h>
 
+#include "utils/attr.h"
+
 /**
 ** \brief safe malloc wrapper
 ** \param size the size to allocate
 ** \return a pointer to the allocated memory
 */
-void *xmalloc(size_t size);
+__malloc void *xmalloc(size_t size);
+
+/**
+** \brief allocates and zeroes out, hard failing on error
+** \param size the size to allocate
+** \return a pointer to the allocated memory
+*/
+__malloc void *zalloc(size_t size);
+
 /**
 ** \brief a safe realloc wrapper
 ** \param ptr the pointer to reallocate
@@ -21,4 +31,4 @@ void *xrealloc(void *ptr, size_t size);
 ** \param size the size of one element to allocate
 ** \return a pointer to the allocated memory
 */
-void *xcalloc(size_t nmemb, size_t size);
+__malloc void *xcalloc(size_t nmemb, size_t size);

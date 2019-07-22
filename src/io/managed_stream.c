@@ -11,37 +11,66 @@
 #include <string.h>
 #include <unistd.h>
 
-static int init_command(s_cstream **cs)
+int cstream_file_setup(FILE **file, const char *path, bool missing_ok)
 {
-    *cs = cstream_from_string(g_cmdopts.command, "<command line>", NULL);
-    (*cs)->interactive = false;
-    (*cs)->context = NULL;
-    return 0;
-}
-
-static int init_file(s_cstream **cs, char *path)
-{
-    FILE *file;
-    if (!(file = fopen(path, "r"))) {
+    if (!(*file = fopen(path, "r"))) {
         int res = errno;
+        if (missing_ok && res == ENOENT)
+            return res;
         // TODO: check the return code is right
         warn("cannot open input script");
         return res;
     }
 
-    if (fcntl(fileno(file), F_SETFD, FD_CLOEXEC) < 0) {
+    if (fcntl(fileno(*file), F_SETFD, FD_CLOEXEC) < 0) {
         int res = errno;
-        warn("couldn't set CLOEXEC on input file %d", fileno(file));
+        warn("couldn't set CLOEXEC on input file %d", fileno(*file));
         return res;
     }
 
-    *cs = cstream_from_file(file, path, true);
-    (*cs)->interactive = false;
-    (*cs)->context = NULL;
     return 0;
 }
 
-int cstream_dispatch_init(s_context *context, s_cstream **cs, s_arg_context *arg_cont)
+int cstream_dispatch_init_unwrapped(struct cstream **cs, struct arg_context *arg_cont, int remaining_argc)
+{
+    if (g_cmdopts.src == SHSRC_COMMAND) {
+        struct cstream_string *res = zalloc(sizeof(*res));
+        cstream_string_init(res, g_cmdopts.command);
+        res->base.line_info = LINEINFO("<command line>", NULL);
+        *cs = &res->base;
+        return 0;
+    }
+
+    if (remaining_argc) {
+        char *program_name = arg_cont->argv[arg_cont->progname_ind];
+        FILE *file;
+        int errcode;
+        if ((errcode = cstream_file_setup(&file, program_name, false)))
+            return errcode;
+
+        struct cstream_file *res = zalloc(sizeof(*res));
+        cstream_file_init(res, file, true);
+        res->base.line_info = LINEINFO(program_name, NULL);
+        *cs = &res->base;
+        return 0;
+    }
+
+    if (isatty(STDIN_FILENO)) {
+        struct cstream_readline *res = zalloc(sizeof(*res));
+        cstream_readline_init(res);
+        res->base.line_info = LINEINFO("<interactive input>", NULL);
+        *cs = &res->base;
+        return 0;
+    }
+
+    struct cstream_file *res = zalloc(sizeof(*res));
+    cstream_file_init(res, stdin, false);
+    res->base.line_info = LINEINFO("<stdin>", NULL);
+    *cs = &res->base;
+    return 0;
+}
+
+int cstream_dispatch_init(s_context *context, struct cstream **cs, s_arg_context *arg_cont)
 {
     int remaining_argc = arg_cont->argc - arg_cont->argc_base;
 
@@ -52,22 +81,11 @@ int cstream_dispatch_init(s_context *context, s_cstream **cs, s_arg_context *arg
         arg_cont->argc_base++;
     }
 
-    if (g_cmdopts.src == SHSRC_COMMAND)
-        return init_command(cs);
+    int errcode = cstream_dispatch_init_unwrapped(cs, arg_cont, remaining_argc);
+    if (errcode != 0)
+        return errcode;
 
-    if (remaining_argc) {
-        char *program_name = arg_cont->argv[arg_cont->progname_ind];
-        return init_file(cs, program_name);
-    }
-
-    if (isatty(STDIN_FILENO)) {
-        *cs = cstream_readline();
-        (*cs)->interactive = true;
-        (*cs)->context = context;
-    } else {
-        *cs = cstream_from_file(stdin, "<stdin>", false);
-        (*cs)->interactive = false;
-        (*cs)->context = NULL;
-    }
+    (*cs)->context = context;
+    cstream_check(*cs);
     return 0;
 }

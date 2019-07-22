@@ -15,11 +15,17 @@ static int subshell_child(struct environment *env, char *str)
     s_context ctx;
     memset(&ctx, 0, sizeof(ctx));
     ctx.env = env;
-    ctx.cs = cstream_from_string(str, "<subshell>", NULL);
+
+    struct cstream_string cs = { 0 };
+    cstream_string_init(&cs, str);
+    cs.base.line_info = LINEINFO("<subshell>", NULL);
+
+    ctx.cs = &cs.base;
     repl(&ctx);
     int rc = ctx.env->code;
     ctx.env = NULL; // avoid double free
     context_destroy(&ctx);
+    cstream_destroy(&cs.base);
     return rc;
 }
 
