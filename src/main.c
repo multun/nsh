@@ -39,20 +39,29 @@
 **
 */
 
-static int run(s_arg_context *arg_cont)
+static int run(struct arg_context *arg_cont)
 {
-    s_context cont;
+    struct context cont;
     int res = 0;
-    bool should_exit = context_init(&res, &cont, arg_cont);
 
-    if (!should_exit) {
-        // the return value represents whether
-        // the repl exited using an exception
-        repl(&cont);
-        res = cont.env->code;
-    }
+    struct cstream *cs;
+    if ((res = cstream_dispatch_init(&cont, &cs, arg_cont)))
+        goto err_cstream;
+
+
+    if (context_init(&res, &cont, cs, arg_cont))
+        goto err_context;
+
+    // the return value represents whether
+    // the repl exited using an exception
+    repl(&cont);
+    res = cont.env->code;
 
     context_destroy(&cont);
+err_context:
+    cstream_destroy(cs);
+    free(cs);
+err_cstream:
     return res;
 }
 

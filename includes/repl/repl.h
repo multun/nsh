@@ -71,10 +71,11 @@ bool repl(s_context *ctx);
 **   explaining why this function may require the program to exit
 ** \param rc the expected return code
 ** \param cont the context to initialize
+** \param cs the cstream to read from during dotfiles evaluation
 ** \param arg_cont the arguments to read from
 ** \returns whether the program should exit
 */
-bool context_init(int *rc, s_context *cont, s_arg_context *arg_cont);
+bool context_init(int *rc, s_context *cont, struct cstream *cs, struct arg_context *arg_cont);
 
 /**
 ** \brief destroys an exiting context and all the ressources allocated

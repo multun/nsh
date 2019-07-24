@@ -45,13 +45,9 @@ static bool context_load_all_rc(s_context *cont)
     return should_exit;
 }
 
-bool context_init(int *rc, s_context *cont, s_arg_context *arg_cont)
+bool context_init(int *rc, s_context *cont, struct cstream *cs, struct arg_context *arg_cont)
 {
-    memset(cont, 0, sizeof(*cont));
-
-    if ((*rc = cstream_dispatch_init(cont, &cont->cs, arg_cont)))
-        return true;
-
+    cont->cs = cs;
     cont->env = environment_create(arg_cont);
 
     if (cont->cs->interactive && !g_cmdopts.norc && context_load_all_rc(cont)) {
@@ -60,7 +56,7 @@ bool context_init(int *rc, s_context *cont, s_arg_context *arg_cont)
     }
 
     history_init(cont);
-    return 0;
+    return false;
 }
 
 void context_destroy(s_context *cont)
