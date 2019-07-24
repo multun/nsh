@@ -30,10 +30,11 @@ void history_init(s_context *ctx)
 {
     if (!ctx->cs->interactive) {
         ctx->history = NULL;
-        // TODO: make this configurable
-        evect_init(&ctx->line_buffer, 100);
         return;
     }
+
+    // TODO: make this configurable
+    evect_init(&ctx->line_buffer, 100);
     ctx->history = history_open();
 }
 

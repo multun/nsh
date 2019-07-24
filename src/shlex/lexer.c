@@ -251,7 +251,7 @@ static void lexer_lex(s_token **tres, s_lexer *lexer, s_errcont *errcont)
         int ch = next_tok.ch[0];
         if (ch == '>' || ch == '<')
             res->type = TOK_IO_NUMBER;
-        return;
+        goto typing_done;
     }
 
 typing_done:

@@ -83,7 +83,8 @@ static char *expand_name(s_env *env, char *var)
         return NULL;
 
     s_var *nvar = var_pair->value;
-    return nvar->value;
+    // TODO: find a way to avoid that strdup
+    return strdup(nvar->value);
 }
 
 struct variable_name {
@@ -176,9 +177,10 @@ static enum wlexer_op expand_dollar(struct expansion_state *exp_state,
     } while (true);
 
     variable_name_finalize(&var_name);
-    const char *var_content = expand_name(exp_state->env, var_name.name_buf.data);
+    char *var_content = expand_name(exp_state->env, var_name.name_buf.data);
     if (var_content != NULL)
         evect_push_string(&exp_state->vec, var_content);
+    free(var_content);
     variable_name_destroy(&var_name);
     return LEXER_OP_CONTINUE;
 }
@@ -218,9 +220,10 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
     variable_name_finalize(&var_name);
 
     // look for the variable value
-    const char *var_content = expand_name(exp_state->env, var_name.name_buf.data);
+    char *var_content = expand_name(exp_state->env, var_name.name_buf.data);
     if (var_content != NULL)
         evect_push_string(&exp_state->vec, var_content);
+    free(var_content);
 
     variable_name_destroy(&var_name);
     return LEXER_OP_CONTINUE;
@@ -274,6 +277,7 @@ static enum wlexer_op expand_btick(struct expansion_state *exp_state,
         evect_push_string(&btick_content, wtoken->ch);
     }
 
+    evect_push(&btick_content, '\0');
     expand_subshell(exp_state->errcont, btick_content.data, exp_state->env, &exp_state->vec);
     btick_content.data = NULL; // the ownership was transfered to expand_subshell
     return LEXER_OP_CONTINUE;
@@ -357,7 +361,6 @@ char *expand(struct lineinfo *line_info, char *str, s_env *env, s_errcont *errco
         .line_info = &cs.base.line_info,
         .env = env,
     };
-
 
     evect_init(&exp_state.vec, strlen(str) + 1);
     struct keeper keeper = KEEPER(errcont->keeper);
