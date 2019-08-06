@@ -85,3 +85,5 @@ int arith_parse(struct arith_value *res, struct arith_lexer *alexer, int parent_
 int arith_lexer_peek(struct arith_token *res, struct arith_lexer *alexer);
 int arith_value_to_int(struct expansion_state *exp_state, struct arith_value *value);
 extern struct arith_token_type arith_type_eof;
+extern struct arith_token_type arith_type_identifier;
+extern struct arith_token_type arith_type_integer;
