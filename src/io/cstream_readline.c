@@ -1,15 +1,12 @@
 #include "io/cstream.h"
+#include "io/readline_wrapped.h"
 #include "repl/repl.h"
 #include "shexec/variable.h"
 #include "utils/alloc.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <stdio.h>
-// readline's header requires including stdio beforehand
-#include <readline/history.h>
-#include <readline/readline.h>
 
 static const char *cont_get_var(s_context *cont, const char *vname, const char *def)
 {
@@ -47,7 +44,7 @@ static int readline_io_reader_unwrapped(struct cstream_readline *cs)
 
     if (!str) {
         const char *prompt = prompt_get(&cs->base);
-        str = cs->current_line = readline(prompt);
+        str = cs->current_line = readline_wrapped(prompt);
         cs->line_position = 0;
     }
 
@@ -89,5 +86,5 @@ void cstream_readline_init(struct cstream_readline *cs)
 {
     cstream_init(&cs->base, &io_readline_backend, true);
     cs->base.line_info = LINEINFO("<tty>", NULL);
-    using_history();
+    readline_wrapped_setup();
 }
