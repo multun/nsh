@@ -8,7 +8,7 @@
 #include "utils/alloc.h"
 #include "ast/assignment.h"
 #include "utils/hash_table.h"
-#include "shexp/variable.h"
+#include "shexec/variable.h"
 #include "shexec/builtin_cd.h"
 
 void update_pwd(bool oldpwd, s_env *env)
@@ -21,7 +21,7 @@ void update_pwd(bool oldpwd, s_env *env)
         return;
     }
     char *pwd = strdup(oldpwd ? "OLDPWD" : "PWD");
-    assign_var(env, pwd, buf, true);
+    environment_var_assign(env, pwd, buf, true);
 }
 
 static int cd_from_env(const char *env_var, s_env *env, bool save)

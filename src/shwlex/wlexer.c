@@ -68,9 +68,25 @@ static bool is_significant(struct wlexer *lex, int ch)
 {
     switch (ch) {
     case '(':
-        return wlexer_in_subshell(lex);
+        switch (lex->mode) {
+        case MODE_EXP_SUBSHELL:
+        case MODE_SUBSHELL:
+        case MODE_ARITH:
+        case MODE_ARITH_GROUP:
+        case MODE_UNQUOTED:
+            return true;
+        default:
+            return false;
+        }
     case '"':
-        return lex->mode != MODE_SINGLE_QUOTED;
+        switch (lex->mode) {
+        case MODE_SINGLE_QUOTED:
+        case MODE_ARITH:
+        case MODE_ARITH_GROUP:
+            return false;
+        default:
+            return true;
+        }
     case '\'':
         return lex->mode != MODE_DOUBLE_QUOTED;
     case '`':
@@ -80,8 +96,11 @@ static bool is_significant(struct wlexer *lex, int ch)
         switch (lex->mode) {
         case MODE_SINGLE_QUOTED:
             return false;
-        case MODE_DOUBLE_QUOTED:
         case MODE_ARITH:
+            if (cstream_peek(lex->cs) == '"')
+                return false;
+            /* fall through */
+        case MODE_DOUBLE_QUOTED:
             return is_dquoted_escape_special(cstream_peek(lex->cs));
         default:
             return true;
@@ -95,10 +114,12 @@ static bool is_significant(struct wlexer *lex, int ch)
     }
 }
 
-static int wtok_single_type(int ch)
+static int wtok_single_type(struct wlexer *lex, int ch)
 {
     switch (ch) {
     case '(':
+        if (wlexer_in_arith(lex))
+            return WTOK_ARITH_GROUP_OPEN;
         return WTOK_SUBSH_OPEN;
     case '"':
         return WTOK_DQUOTE;
@@ -152,7 +173,9 @@ static void wlexer_lex_closing_paren(struct wtoken *res, struct wlexer *lex)
     // if we're not in a subshell or we're in arith mode
     // and there's only a single paren, it's just a regular
     // token.
-    if (lex->mode == MODE_EXP_SUBSHELL)
+    if (lex->mode == MODE_ARITH_GROUP)
+        res->type = WTOK_ARITH_GROUP_CLOSE;
+    else if (lex->mode == MODE_EXP_SUBSHELL)
         res->type = WTOK_EXP_SUBSH_CLOSE;
     else if (lex->mode == MODE_SUBSHELL)
         res->type = WTOK_SUBSH_CLOSE;
@@ -187,7 +210,7 @@ static void wlexer_lex(struct wtoken *res, struct wlexer *lex)
     res->ch[0] = ch;
 
     if (is_significant(lex, ch)) {
-        res->type = wtok_single_type(ch);
+        res->type = wtok_single_type(lex, ch);
         if (res->type != WTOK_UNKNOWN)
             return;
     }

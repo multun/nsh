@@ -4,7 +4,7 @@
 #include "ast/assignment.h"
 #include "shexec/builtins.h"
 #include "shexp/expansion.h"
-#include "shexp/variable.h"
+#include "shexec/variable.h"
 #include "utils/alloc.h"
 
 static void unexport_var(s_env *env, char *name)
@@ -37,10 +37,10 @@ static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
     } else if (remove)
         unexport_var(env, name);
     else if (*word == '\0' && *(word - 1) != '=')
-        assign_var(env, name, NULL, true);
+        environment_var_assign(env, name, NULL, true);
     else
         // TODO: wtf is there an expand here
-        assign_var(env, name, expand(NULL, word, env, cont), true);
+        environment_var_assign(env, name, expand(NULL, word, env, cont), true);
     free(var);
     return res;
 }

@@ -1,6 +1,6 @@
 #include "io/cstream.h"
 #include "repl/repl.h"
-#include "shexp/variable.h"
+#include "shexec/variable.h"
 #include "utils/alloc.h"
 
 #include <stdlib.h>

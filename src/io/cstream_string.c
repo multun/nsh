@@ -22,7 +22,6 @@ static struct io_backend io_string_backend = {
 };
 
 void cstream_string_init(struct cstream_string *cs, char *string) {
-    cs->base.backend = &io_string_backend;
-    cs->base.interactive = false;
+    cstream_init(&cs->base, &io_string_backend, false);
     cs->string = string;
 }

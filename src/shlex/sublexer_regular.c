@@ -56,8 +56,8 @@ static enum wlexer_op word_breaker_space(struct lexer *lexer __unused,
 }
 
 static enum wlexer_op word_breaker_operator(struct lexer *lexer __unused,
-                                           struct wlexer *wlexer, struct token *token,
-                                           struct wtoken *wtoken)
+                                            struct wlexer *wlexer, struct token *token,
+                                            struct wtoken *wtoken)
 {
     const struct sh_operator *cur_operator= find_simple_operator(wtoken->ch[0]);
     if (cur_operator== NULL)

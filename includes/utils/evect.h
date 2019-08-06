@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stddef.h>
+#include "utils/attr.h"
 
 /**
 ** \brief a dynamicaly allocated bytes vector
@@ -22,6 +23,16 @@ typedef struct evect
 } s_evect;
 
 #define EVECT_INITIALIZED(Vect) (!!(Vect)->data)
+
+__unused static size_t evect_size(struct evect *vect)
+{
+    return vect->size;
+}
+
+__unused static char *evect_data(struct evect *vect)
+{
+    return vect->data;
+}
 
 /**
 ** \brief initialize the vector to given size

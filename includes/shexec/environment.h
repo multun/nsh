@@ -55,3 +55,6 @@ void environment_free(s_env *env);
 ** \brief convert the environment to a raw environment variable strings array
 */
 char **environment_array(s_env *env);
+
+
+void environment_var_assign(s_env *env, char *name, char *value, bool export);

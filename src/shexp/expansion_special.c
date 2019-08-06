@@ -6,7 +6,7 @@
 
 #include "shexec/environment.h"
 #include "shexp/expansion.h"
-#include "shexp/variable.h"
+#include "shexec/variable.h"
 #include "utils/alloc.h"
 #include "utils/evect.h"
 #include "utils/mprintf.h"

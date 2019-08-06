@@ -9,7 +9,7 @@
 #include "shexec/builtin_cd.h"
 #include "shexec/builtins.h"
 #include "shexec/environment.h"
-#include "shexp/variable.h"
+#include "shexec/variable.h"
 #include "utils/alloc.h"
 #include "utils/hash_table.h"
 
@@ -92,7 +92,7 @@ void environment_load(s_env *env)
             value = xcalloc(1, sizeof(char));
         else
             value = strdup(value);
-        assign_var(env, name, value, true);
+        environment_var_assign(env, name, value, true);
         struct pair *p = htable_access(env->vars, name);
         s_var *node = p->value;
         node->to_export = true;
@@ -100,7 +100,7 @@ void environment_load(s_env *env)
     if (!htable_access(env->vars, "PWD"))
         update_pwd(false, env);
     if (!htable_access(env->vars, "IFS"))
-        assign_var(env, strdup("IFS"), strdup("\t\n "), true);
+        environment_var_assign(env, strdup("IFS"), strdup("\t\n "), true);
 }
 
 static void var_free(struct pair *p)
@@ -123,4 +123,22 @@ void environment_free(s_env *env)
     htable_free(env->vars);
     htable_free(env->functions);
     free(env);
+}
+
+void environment_var_assign(s_env *env, char *name, char *value, bool export)
+{
+    struct pair *prev = htable_access(env->vars, name);
+    if (prev) {
+        s_var *var = prev->value;
+        free(var->value);
+        free(name);
+        var->value = value;
+        if (export)
+            var->to_export = true;
+        return;
+    }
+    s_var *nvar = xmalloc(sizeof(s_var));
+    *nvar = VARIABLE(value);
+    nvar->to_export = export;
+    htable_add(env->vars, name, nvar);
 }

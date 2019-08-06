@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 
+
 typedef struct variable
 {
     bool to_export;

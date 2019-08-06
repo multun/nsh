@@ -28,6 +28,8 @@ struct wtoken
         WTOK_SUBSH_CLOSE, // single char
         WTOK_ARITH_OPEN,
         WTOK_ARITH_CLOSE,
+        WTOK_ARITH_GROUP_OPEN,
+        WTOK_ARITH_GROUP_CLOSE,
         WTOK_EXP_OPEN,
         WTOK_EXP_CLOSE, // single char
         WTOK_REGULAR, // single char
@@ -39,13 +41,14 @@ struct wlexer
     struct cstream *cs;
     enum wlexer_mode
     {
-        MODE_UNQUOTED,
+        MODE_UNQUOTED = 0,
         MODE_SINGLE_QUOTED,
         MODE_DOUBLE_QUOTED,
-        MODE_EXP_SUBSHELL,
-        MODE_SUBSHELL,
-        MODE_ARITH,
-        MODE_EXPANSION,
+        MODE_EXP_SUBSHELL, // $()
+        MODE_SUBSHELL, // ()
+        MODE_ARITH,// $(( ))
+        MODE_ARITH_GROUP, // $(( .. () .. ))
+        MODE_EXPANSION, // ${}
     } mode;
 
     // lookahead buffer
@@ -57,26 +60,27 @@ static inline __unused struct lineinfo *wlexer_line_info(struct wlexer *wlexer)
     return &wlexer->cs->line_info;
 }
 
-
-static inline bool wlexer_in_subshell(const struct wlexer *wlex)
+static inline __unused bool wlexer_in_arith(struct wlexer *wlexer)
 {
-    return wlex->mode == MODE_EXP_SUBSHELL || wlex->mode == MODE_SUBSHELL;
+    return wlexer->mode == MODE_ARITH || wlexer->mode == MODE_ARITH_GROUP;
 }
 
-static inline bool wlexer_has_lookahead(const struct wlexer *wlex)
+static inline __unused bool wlexer_has_lookahead(const struct wlexer *wlex)
 {
     return wlex->lookahead.type != WTOK_UNKNOWN;
 }
 
-static inline void wlexer_clear_lookahead(struct wlexer *wlex)
+static inline __unused void wlexer_clear_lookahead(struct wlexer *wlex)
 {
+    assert(wlexer_has_lookahead(wlex));
     wlex->lookahead.type = WTOK_UNKNOWN;
 }
 
-static inline void wlexer_init(struct wlexer *lexer, struct cstream *cs)
+static inline __unused void wlexer_init(struct wlexer *lexer, struct cstream *cs)
 {
-    memset(lexer, 0, sizeof(*lexer));
     lexer->cs = cs;
+    lexer->mode = MODE_UNQUOTED;
+    memset(&lexer->lookahead, 0, sizeof(lexer->lookahead));
 }
 
 

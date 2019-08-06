@@ -185,6 +185,30 @@ static enum wlexer_op sublexer_exp_close(struct lexer *lexer __unused,
     return LEXER_OP_RETURN;
 }
 
+static enum wlexer_op sublexer_arith_group_open(struct lexer *lexer,
+                                                struct wlexer *wlexer,
+                                                struct token *token,
+                                                struct wtoken *wtoken)
+{
+    wtoken_push(token, wtoken);
+    lexer_lex_untyped(token, &WLEXER_FORK(wlexer, MODE_ARITH_GROUP), lexer);
+    struct wtoken end_wtoken = {
+        .ch = {')'},
+        .type = WTOK_ARITH_GROUP_CLOSE,
+    };
+    wtoken_push(token, &end_wtoken);
+    return LEXER_OP_CONTINUE;
+}
+
+static enum wlexer_op sublexer_arith_group_close(struct lexer *lexer __unused,
+                                                 struct wlexer *wlexer,
+                                                 struct token *token __unused,
+                                                 struct wtoken *wtoken __unused)
+{
+    assert(wlexer->mode == MODE_ARITH_GROUP);
+    return LEXER_OP_RETURN;
+}
+
 static sublexer sublexers[] = {
     [WTOK_EOF] = sublexer_eof,
     [WTOK_REGULAR] = sublexer_regular,
@@ -200,6 +224,8 @@ static sublexer sublexers[] = {
     [WTOK_ARITH_CLOSE] = sublexer_arith_close,
     [WTOK_EXP_OPEN] = sublexer_exp_open,
     [WTOK_EXP_CLOSE] = sublexer_exp_close,
+    [WTOK_ARITH_GROUP_OPEN] = sublexer_arith_group_open,
+    [WTOK_ARITH_GROUP_CLOSE] = sublexer_arith_group_close,
 };
 
 static int lexer_lex_untyped(struct token *token, struct wlexer *wlexer,

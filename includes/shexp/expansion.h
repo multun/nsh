@@ -1,6 +1,7 @@
 #pragma once
 
 #include "shexec/environment.h"
+#include "utils/attr.h"
 #include "utils/error.h"
 #include "utils/evect.h"
 
@@ -15,11 +16,12 @@ char *expand(struct lineinfo *line_info, char *str, s_env *env, s_errcont *errco
 /**
 ** \brief the expansion context
 */
-typedef struct exp_ctx
-{
-    char **str;
-    bool *quoted;
-} s_exp_ctx;
+struct expansion_state {
+    struct lineinfo *line_info;
+    struct errcont *errcont;
+    struct evect vec;
+    struct environment *env;
+};
 
 #define EXPCTX(Str, Quoted)                                                              \
     ((s_exp_ctx){                                                                        \
@@ -75,7 +77,7 @@ char *expand_random(void);
 */
 char *expand_uid(void);
 
-/**
-** \brief tests whether a character should be protected from further expansion
-*/
-bool expansion_protected_char(char c);
+char *expand_name(s_env *env, char *var);
+
+void __noreturn expansion_error(struct expansion_state *exp_state, const char *fmt, ...);
+void expansion_warning(struct expansion_state *exp_state, const char *fmt, ...);

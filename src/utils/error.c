@@ -15,18 +15,22 @@ void ATTR(noreturn) shraise(s_errcont *cont, const s_ex_class *class)
     longjmp(cont->keeper->env, 1);
 }
 
-void ATTR(noreturn) vsherror(const s_lineinfo *li, s_errcont *cont,
-                             const s_ex_class *ex_class, const char *format, va_list ap)
+void vshwarn(const s_lineinfo *li, const char *format, va_list ap)
 {
-    assert(cont);
-    cont->errman->class = ex_class;
 
     fprintf(stderr, "%s: ", program_name);
     lineinfo_print(li, stderr);
     fprintf(stderr, ": ");
     vfprintf(stderr, format, ap);
     fputc('\n', stderr);
+}
 
+void ATTR(noreturn) vsherror(const s_lineinfo *li, s_errcont *cont,
+                             const s_ex_class *ex_class, const char *format, va_list ap)
+{
+    assert(cont);
+    cont->errman->class = ex_class;
+    vshwarn(li, format, ap);
     shraise(cont, NULL);
 }
 

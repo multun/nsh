@@ -48,7 +48,6 @@ static int run(struct arg_context *arg_cont)
     if ((res = cstream_dispatch_init(&cont, &cs, arg_cont)))
         goto err_cstream;
 
-
     if (context_init(&res, &cont, cs, arg_cont))
         goto err_context;
 

@@ -2,31 +2,39 @@
 #include "shexec/builtins.h"
 #include "shexec/environment.h"
 #include "shexp/expansion.h"
-#include "shexp/variable.h"
+#include "shlex/variable.h"
 #include "utils/evect.h"
+#include "utils/mprintf.h"
 #include "shwlex/wlexer.h"
 #include "shlex/lexer.h"
+#include "shlex/variable.h"
+#include "shexp/arithmetic_expansion.h"
 
 #include <assert.h>
-#include <ctype.h>
 #include <err.h>
-#include <string.h>
+#include <errno.h>
 #include <stdarg.h>
+#include <string.h>
 
+static void expand_guarded(struct expansion_state *exp_state,
+                           struct wlexer *wlexer);
 
-struct expansion_state {
-    struct lineinfo *line_info;
-    struct errcont *errcont;
-    struct evect vec;
-    struct environment *env;
-};
-
-static void ATTR(noreturn) expansion_error(struct expansion_state *exp_state, const char *fmt, ...)
+void __noreturn expansion_error(struct expansion_state *exp_state, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
 
     vsherror(exp_state->line_info, exp_state->errcont, &g_lexer_error, fmt, ap);
+
+    va_end(ap);
+}
+
+void expansion_warning(struct expansion_state *exp_state, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+
+    vshwarn(exp_state->line_info, fmt, ap);
 
     va_end(ap);
 }
@@ -70,7 +78,7 @@ static char *builtin_var_lookup(char *var)
     return NULL;
 }
 
-static char *expand_name(s_env *env, char *var)
+char *expand_name(s_env *env, char *var)
 {
     char *res;
     if ((res = special_var_lookup(env, var)))
@@ -85,65 +93,6 @@ static char *expand_name(s_env *env, char *var)
     s_var *nvar = var_pair->value;
     // TODO: find a way to avoid that strdup
     return strdup(nvar->value);
-}
-
-struct variable_name {
-    struct evect name_buf;
-    bool is_special;
-};
-
-static bool is_basic(char c) {
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
-}
-
-static bool is_exp_special(char c)
-{
-    switch (c) {
-    case '?':
-    case '@':
-    case '*':
-    case '$':
-    case '#':
-        return true;
-    default:
-        return false;
-    }
-}
-
-static bool variable_name_check(struct variable_name *var, char c) {
-    if (var->is_special)
-        // ${#foo} isn't valid
-        return false;
-
-    if (var->name_buf.size == 0)
-        return is_basic(c) || isdigit(c) || is_exp_special(c);
-
-    return is_basic(c) || isdigit(c);
-}
-
-static void variable_name_push(struct variable_name *var, char c)
-{
-    assert(variable_name_check(var, c));
-    if (var->name_buf.size == 0 && (isdigit(c) || is_exp_special(c)))
-        var->is_special = true;
-
-    evect_push(&var->name_buf, c);
-}
-
-static void variable_name_destroy(struct variable_name *var)
-{
-    evect_destroy(&var->name_buf);
-}
-
-static void variable_name_init(struct variable_name *var, size_t size)
-{
-    var->is_special = false;
-    evect_init(&var->name_buf, size);
-}
-
-static void variable_name_finalize(struct variable_name *var)
-{
-    evect_push(&var->name_buf, '\0');
 }
 
 static void expand_guarded(struct expansion_state *exp_state,
@@ -177,7 +126,7 @@ static enum wlexer_op expand_dollar(struct expansion_state *exp_state,
     } while (true);
 
     variable_name_finalize(&var_name);
-    char *var_content = expand_name(exp_state->env, var_name.name_buf.data);
+    char *var_content = expand_name(exp_state->env, var_name.simple_var.data);
     if (var_content != NULL)
         evect_push_string(&exp_state->vec, var_content);
     free(var_content);
@@ -198,19 +147,18 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
     struct variable_name var_name;
     variable_name_init(&var_name, 16); // reasonable variable name size
     do {
-        struct wtoken next_tok = { 0 };
+        struct wtoken next_tok;
         wlexer_peek(&next_tok, wlexer);
         if (next_tok.type != WTOK_REGULAR)
             break;
         if (!variable_name_check(&var_name, next_tok.ch[0]))
             break;
         variable_name_push(&var_name, next_tok.ch[0]);
-        assert(wlexer_has_lookahead(wlexer));
         wlexer_clear_lookahead(wlexer);
     } while (true);
 
     // push lonely dollars as is
-    if (var_name.name_buf.size == 0) {
+    if (var_name.simple_var.size == 0) {
         variable_name_destroy(&var_name);
         evect_push(&exp_state->vec, wtoken->ch[0]);
         return LEXER_OP_CONTINUE;
@@ -220,7 +168,7 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
     variable_name_finalize(&var_name);
 
     // look for the variable value
-    char *var_content = expand_name(exp_state->env, var_name.name_buf.data);
+    char *var_content = expand_name(exp_state->env, var_name.simple_var.data);
     if (var_content != NULL)
         evect_push_string(&exp_state->vec, var_content);
     free(var_content);
@@ -234,6 +182,7 @@ static enum wlexer_op expand_eof(struct expansion_state *exp_state,
                                  struct wtoken *wtoken __unused)
 {
     if (wlexer->mode != MODE_UNQUOTED)
+        // TODO: display the current mode
         expansion_error(exp_state, "EOF while expecting quote during expansion");
     return LEXER_OP_RETURN;
 }
@@ -308,11 +257,87 @@ static enum wlexer_op expand_exp_subshell_open(struct expansion_state *exp_state
     return LEXER_OP_CONTINUE;
 }
 
+static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
+                                        struct wlexer *wlexer,
+                                        struct wtoken *wtoken __unused)
+{
+    int rc;
+
+    // expand the content of the arithmetic expansion
+    int initial_size = evect_size(&exp_state->vec);
+    expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_ARITH));
+
+    // find the arithmetic expression
+    evect_push(&exp_state->vec, '\0');
+    char *arith_content = evect_data(&exp_state->vec) + initial_size;
+
+    // prepare the arithmetic wlexer and stream
+    struct cstream_string cs;
+    cstream_string_init(&cs, arith_content);
+    cs.base.line_info = LINEINFO("<expansion>", exp_state->line_info);
+
+    struct arith_lexer alexer = {
+        .exp_state = exp_state,
+        .cs = &cs.base,
+    };
+
+    struct arith_value res_val;
+    if ((rc = arith_parse(&res_val, &alexer, 0)))
+        // FIXME: exception
+        errx(1, "error in arith_open parsing");
+
+    struct arith_token next_tok;
+    if ((rc = arith_lexer_peek(&next_tok, &alexer)))
+        // FIXME: exception
+        errx(1, "error in arith_open peek");
+
+    if (next_tok.type != &arith_type_eof)
+        expansion_error(exp_state, "unexpected token: %s", next_tok.type->name);
+
+    int res = arith_value_to_int(exp_state, &res_val);
+    int res_size = snprintf(NULL, 0, "%d", res);
+    char print_buf[res_size];
+    sprintf(print_buf, "%d", res);
+    exp_state->vec.size = initial_size;
+    for (int i = 0; i < res_size; i++)
+        evect_push(&exp_state->vec, print_buf[i]);
+    return LEXER_OP_CONTINUE;
+}
+
+static enum wlexer_op expand_arith_close(struct expansion_state *exp_state __unused,
+                                         struct wlexer *wlexer,
+                                         struct wtoken *wtoken __unused)
+{
+    assert(wlexer->mode == MODE_ARITH);
+    return LEXER_OP_RETURN;
+}
+
 static enum wlexer_op expand_invalid_state(struct expansion_state *exp_state,
                                            struct wlexer *wlexer __unused,
                                            struct wtoken *wtoken __unused)
 {
     expansion_error(exp_state, "reached an invalid state during expansion");
+}
+
+static enum wlexer_op expand_arith_group_open(struct expansion_state *exp_state,
+                                              struct wlexer *wlexer,
+                                              struct wtoken *wtoken __unused)
+{
+    assert(wlexer->mode == MODE_ARITH_GROUP || wlexer->mode == MODE_ARITH);
+    // expand to the litteral value, so that the arithmetic interpreter can
+    // re-parse it after parameter substitution
+    evect_push(&exp_state->vec, '(');
+    expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_ARITH_GROUP));
+    evect_push(&exp_state->vec, ')');
+    return LEXER_OP_CONTINUE;
+}
+
+static enum wlexer_op expand_arith_group_close(struct expansion_state *exp_state __unused,
+                                              struct wlexer *wlexer,
+                                              struct wtoken *wtoken __unused)
+{
+    assert(wlexer->mode == MODE_ARITH_GROUP);
+    return LEXER_OP_RETURN;
 }
 
 static f_expander expanders[] = {
@@ -326,12 +351,13 @@ static f_expander expanders[] = {
     [WTOK_EXP_SUBSH_CLOSE] = expand_invalid_state,
     [WTOK_SUBSH_OPEN] = expand_invalid_state,
     [WTOK_SUBSH_CLOSE] = expand_invalid_state,
-
-    // TODO
-    [WTOK_ARITH_OPEN] = expand_invalid_state,
-    [WTOK_ARITH_CLOSE] = expand_invalid_state,
+    [WTOK_ARITH_OPEN] = expand_arith_open,
+    [WTOK_ARITH_CLOSE] = expand_arith_close,
     [WTOK_EXP_OPEN] = expand_dollar,
     [WTOK_EXP_CLOSE] = expand_invalid_state,
+    // these tokens should be pulled in from the arithmetic lexer
+    [WTOK_ARITH_GROUP_OPEN] = expand_arith_group_open,
+    [WTOK_ARITH_GROUP_CLOSE] = expand_arith_group_close,
 };
 
 static void expand_guarded(struct expansion_state *exp_state,
@@ -339,8 +365,6 @@ static void expand_guarded(struct expansion_state *exp_state,
 {
     while (true) {
         struct wtoken wtoken;
-        memset(&wtoken, 0, sizeof(wtoken));
-
         wlexer_pop(&wtoken, wlexer);
         enum wlexer_op op = expanders[wtoken.type](exp_state, wlexer, &wtoken);
         assert(op != LEXER_OP_FALLTHROUGH && op != LEXER_OP_PUSH);
@@ -353,7 +377,7 @@ static void expand_guarded(struct expansion_state *exp_state,
 
 char *expand(struct lineinfo *line_info, char *str, s_env *env, s_errcont *errcont)
 {
-    struct cstream_string cs = { 0 };
+    struct cstream_string cs;
     cstream_string_init(&cs, str);
     cs.base.line_info = LINEINFO("<expansion>", line_info);
 
