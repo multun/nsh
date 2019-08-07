@@ -35,6 +35,7 @@ static void process_line(char *line)
 {
     readline_called_back = true;
     readline_result = line;
+    rl_callback_handler_remove();
 }
 
 static bool check_reset_prompt(const char *prompt)
@@ -81,7 +82,6 @@ char *readline_wrapped(const char *prompt)
         rl_callback_read_char();
         if (readline_called_back) {
             readline_called_back = false;
-            rl_callback_handler_remove();
             return readline_result;
         }
         check_reset_prompt(prompt);
