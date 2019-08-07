@@ -8,21 +8,17 @@ void cstream_init(struct cstream *cs, struct io_backend *backend, bool interacti
     cs->interactive = interactive;
     cs->backend = backend;
     cs->has_buf = false;
-    cs->eof = false;
+    cs->errcont = NULL;
 }
 
 bool cstream_eof(struct cstream *cs)
 {
-    return !(cs->has_buf && cs->buf != EOF) && cs->eof;
+    return cstream_peek(cs) == EOF;
 }
 
 static inline int cstream_get(struct cstream *cs)
 {
-    int res = cs->backend->reader(cs);
-    if (res == EOF)
-        cs->eof = true;
-
-    return res;
+    return cs->backend->reader(cs);
 }
 
 int cstream_peek(struct cstream *cs)

@@ -56,10 +56,17 @@ typedef struct cstream
     // a buffer enabling the user to peek data from the stream
     int buf;
 
-    // whether the stream reached EOF
-    bool eof;
+    // an error context, which is only needed in a very specific case:
+    // when a readline stream gets a keyboard interupt.
+    // in all other cases, this can be NULL.
+    struct errcont *errcont;
 } s_cstream;
 
+
+__unused static void cstream_set_errcont(struct cstream *cs, struct errcont *errcont)
+{
+    cs->errcont = errcont;
+}
 
 __unused static void cstream_check(struct cstream *cs) {
     assert(cs->backend != NULL);

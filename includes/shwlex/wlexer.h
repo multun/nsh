@@ -55,6 +55,11 @@ struct wlexer
     struct wtoken lookahead;
 };
 
+static inline __unused void wlexer_set_errcont(struct wlexer *wlex, struct errcont *errcont)
+{
+    cstream_set_errcont(wlex->cs, errcont);
+}
+
 static inline __unused struct lineinfo *wlexer_line_info(struct wlexer *wlexer)
 {
     return &wlexer->cs->line_info;

@@ -7,8 +7,29 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+
+__noreturn void lexer_err(struct lexer *lexer, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+
+    vsherror(lexer_line_info(lexer), lexer->errcont, &g_lexer_error, fmt, ap);
+
+    va_end(ap);
+}
+
+void lexer_warn(struct lexer *lexer, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+
+    vshwarn(lexer_line_info(lexer), fmt, ap);
+
+    va_end(ap);
+}
 
 static int lexer_lex_untyped(struct token *token, struct wlexer *wlexer,
                              struct lexer *lexer);
@@ -35,7 +56,7 @@ static enum wlexer_op sublexer_eof(struct lexer *lexer, struct wlexer *wlexer,
                                   struct token *token, struct wtoken *wtoken __unused)
 {
     if (wlexer->mode != MODE_UNQUOTED)
-        clean_errx(lexer->errcont, 1, "EOF while expecting quote");
+        lexer_err(lexer, "EOF while expecting quote");
     if (token->str.size == 0)
         token->type = TOK_EOF;
     return LEXER_OP_RETURN;
@@ -73,7 +94,7 @@ static enum wlexer_op sublexer_btick(struct lexer *lexer __unused, struct wlexer
         memset(wtok, 0, sizeof(*wtok));
         wlexer_pop(wtok, wlexer);
         if (wtok->type == WTOK_EOF)
-            clean_errx(lexer->errcont, 1, "unexpected EOF in ` section");
+            lexer_err(lexer, "unexpected EOF in ` section");
         evect_push(&token->str, wtok->ch[0]);
     }
     return LEXER_OP_CONTINUE;
@@ -87,7 +108,7 @@ static enum wlexer_op sublexer_escape(struct lexer *lexer __unused, struct wlexe
     assert(!wlexer_has_lookahead(wlexer));
     int ch = cstream_pop(wlexer->cs);
     if (ch == EOF)
-        clean_errx(lexer->errcont, 1, "unexpected EOF in escape");
+        lexer_err(lexer, "unexpected EOF in escape");
 
     // don't push carriage returns
     if (ch != '\n') {
@@ -259,7 +280,9 @@ static bool is_only_digits(s_token *tok)
 
 static void lexer_lex(s_token **tres, s_lexer *lexer, s_errcont *errcont)
 {
+    // the lexer and the IO stream both have their own global error contexts
     lexer->errcont = errcont;
+    wlexer_set_errcont(&lexer->wlexer, errcont);
 
     s_token *res = *tres = tok_alloc(lexer);
     lexer_lex_untyped(res, &lexer->wlexer, lexer);
@@ -269,7 +292,7 @@ static void lexer_lex(s_token **tres, s_lexer *lexer, s_errcont *errcont)
 
     for (size_t i = 0; i < tok_size(res); i++)
         if (res->str.data[i] == '\0')
-            clean_errx(errcont, 1, "no input NUL bytes are allowed");
+            lexer_err(lexer, "no input NUL bytes are allowed");
 
     if (is_only_digits(res)) {
         struct wtoken next_tok;

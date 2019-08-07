@@ -7,6 +7,8 @@
 #include "shparse/parse.h"
 #include "utils/error.h"
 
+#include <err.h>
+
 static void try_read_eval(s_lexer *lex, s_errcont *errcont, s_context *cont)
 {
     parse(&cont->ast, lex, errcont);
@@ -31,6 +33,8 @@ static bool handle_repl_exception(s_errman *eman, s_context *cont)
         return true;
     }
 
+    if (eman->class != &g_parser_error && eman->class != &g_lexer_error)
+        errx(2, "received an unknown exception");
     // syntax errors don't have the same return code inside and outside
     // of the REPL
 
@@ -43,13 +47,12 @@ static bool handle_repl_exception(s_errman *eman, s_context *cont)
     // $ echo $?
 
     cont->env->code = g_cmdopts.src == SHSRC_COMMAND ? 1 : 2;
-    // don't stop the repl if interactive
+    // stop if the repl isn't interactive
     return !cont->cs->interactive;
 }
 
 static bool ast_exec_consumer(s_lexer *lex, s_context *cont)
 {
-    cont->line_start = true;
     cont->ast = NULL;
 
     s_errman eman = ERRMAN;
@@ -69,7 +72,10 @@ static bool ast_exec_consumer(s_lexer *lex, s_context *cont)
 bool repl(s_context *ctx)
 {
     bool stopping = false;
-    while (!stopping && !cstream_eof(ctx->cs)) {
+    while (!stopping) {
+        ctx->line_start = true;
+        if (cstream_eof(ctx->cs))
+            break;
         s_lexer *lex = lexer_create(ctx->cs);
         stopping = ast_exec_consumer(lex, ctx);
         lexer_free(lex);

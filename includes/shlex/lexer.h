@@ -130,7 +130,7 @@ typedef struct lexer
     /* the toplevel word lexer */
     struct wlexer wlexer;
     /* using a global per lexer errcont avoids passing it around all functions
-     * inside the lexer, why doesn't create new contexts anyway */
+     * inside the lexer, which doesn't create new contexts anyway */
     s_errcont *errcont;
 } s_lexer;
 

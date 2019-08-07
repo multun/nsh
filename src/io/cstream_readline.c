@@ -48,14 +48,17 @@ static int readline_io_reader_unwrapped(struct cstream_readline *cs)
         cs->line_position = 0;
     }
 
-    int res;
-    if (str && !str[cs->line_position]) {
+    if (str && str[cs->line_position] == '\0') {
         free(str);
         cs->current_line = NULL;
         return '\n';
     }
 
-    if (!str || !(res = str[cs->line_position]))
+    if (str == NULL)
+        return EOF;
+
+    int res = str[cs->line_position];
+    if (res == '\0')
         return EOF;
 
     cs->line_position++;
