@@ -72,7 +72,7 @@ static bool arith_starts_name(char c)
 
 typedef int arith_t;
 
-arith_t arith_parse_string(const char *str)
+static arith_t arith_parse_string(const char *str)
 {
     return atoi(str);
 }
@@ -120,7 +120,11 @@ static int arith_lex_name(struct expansion_state *exp_state,
 
 // this override is perfectly intentionnal :)
 #pragma GCC diagnostic push
+#ifdef __clang__
+#pragma GCC diagnostic ignored "-Winitializer-overrides"
+#else
 #pragma GCC diagnostic ignored "-Woverride-init"
+#endif
 static char operator_start_map[] =
 {
 #define X(NulPrio, LeftPrio, Name, TokenType, Op, FirstChar, ...) [FirstChar] = 1,
@@ -129,7 +133,7 @@ static char operator_start_map[] =
 };
 #pragma GCC diagnostic pop
 
-bool arith_starts_operator(int c)
+static bool arith_starts_operator(int c)
 {
     int op_map_size = sizeof(operator_start_map);
     if (c <= 0 || c >= op_map_size)

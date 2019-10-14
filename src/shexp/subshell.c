@@ -16,7 +16,7 @@ static int subshell_child(struct environment *env, char *str)
     memset(&ctx, 0, sizeof(ctx));
     ctx.env = env;
 
-    struct cstream_string cs = { 0 };
+    struct cstream_string cs;
     cstream_string_init(&cs, str);
     cs.base.line_info = LINEINFO("<subshell>", NULL);
 

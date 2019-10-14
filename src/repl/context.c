@@ -20,7 +20,7 @@ static bool context_load_rc(s_env *env, const char *path, const char *source)
     if ((res = cstream_file_setup(&file, path, true)))
         return 0; // not being able to load an rc file is ok
 
-    struct cstream_file cs = { 0 };
+    struct cstream_file cs;
     cstream_file_init(&cs, file, true);
     cont.cs = &cs.base;
     cont.env = env;

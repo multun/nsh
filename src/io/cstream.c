@@ -5,10 +5,11 @@
 
 void cstream_init(struct cstream *cs, struct io_backend *backend, bool interactive)
 {
-    cs->interactive = interactive;
-    cs->backend = backend;
-    cs->has_buf = false;
-    cs->errcont = NULL;
+    *cs = (struct cstream){
+        .backend = backend,
+        .interactive = interactive,
+        .has_buf = false,
+    };
 }
 
 bool cstream_eof(struct cstream *cs)

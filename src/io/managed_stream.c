@@ -31,7 +31,7 @@ int cstream_file_setup(FILE **file, const char *path, bool missing_ok)
     return 0;
 }
 
-int cstream_dispatch_init_unwrapped(struct cstream **cs, struct arg_context *arg_cont, int remaining_argc)
+static int cstream_dispatch_init_unwrapped(struct cstream **cs, struct arg_context *arg_cont, int remaining_argc)
 {
     if (g_cmdopts.src == SHSRC_COMMAND) {
         struct cstream_string *res = zalloc(sizeof(*res));

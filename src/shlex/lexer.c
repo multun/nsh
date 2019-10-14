@@ -11,22 +11,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-__noreturn void lexer_err(struct lexer *lexer, const char *fmt, ...)
+__noreturn static void lexer_err(struct lexer *lexer, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
 
     vsherror(lexer_line_info(lexer), lexer->errcont, &g_lexer_error, fmt, ap);
-
-    va_end(ap);
-}
-
-void lexer_warn(struct lexer *lexer, const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-
-    vshwarn(lexer_line_info(lexer), fmt, ap);
 
     va_end(ap);
 }
