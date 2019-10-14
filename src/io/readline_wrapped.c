@@ -1,4 +1,5 @@
 #include "io/readline_wrapped.h"
+#include "io/keyboard_interrupt.h"
 #include "utils/attr.h"
 
 #include <err.h>
@@ -22,7 +23,7 @@
 **  - periodically check for the flag. When present, reset readline, print ^C and redraw the prompt.
 */
 
-static bool ctrl_c;
+static volatile bool ctrl_c;
 static void handler_sigint(int signal __unused)
 {
     ctrl_c = true;
@@ -38,7 +39,7 @@ static void process_line(char *line)
     rl_callback_handler_remove();
 }
 
-static bool check_reset_prompt(const char *prompt)
+static bool check_interrupt(struct errcont *errcont)
 {
     if (!ctrl_c)
         return false;
@@ -51,11 +52,13 @@ static bool check_reset_prompt(const char *prompt)
     rl_done = 1;
     rl_callback_handler_remove();
     fprintf(stderr, "^C\n");
-    rl_callback_handler_install(prompt, process_line);
+    errcont->errman->retcode = 128 + SIGINT;
+    shraise(errcont, &g_keyboard_interrupt);
+    /* rl_callback_handler_install(prompt, process_line); */
     return true;
 }
 
-char *readline_wrapped(const char *prompt)
+char *readline_wrapped(struct errcont *errcont, const char *prompt)
 {
     int rc;
 
@@ -72,7 +75,7 @@ char *readline_wrapped(const char *prompt)
                 continue;
 
             if (errno == EINTR) {
-                check_reset_prompt(prompt);
+                check_interrupt(errcont);
                 continue;
             }
 
@@ -84,7 +87,7 @@ char *readline_wrapped(const char *prompt)
             readline_called_back = false;
             return readline_result;
         }
-        check_reset_prompt(prompt);
+        check_interrupt(errcont);
     }
 }
 

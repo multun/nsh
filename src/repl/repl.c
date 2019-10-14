@@ -1,3 +1,4 @@
+#include "io/keyboard_interrupt.h"
 #include "cli/cmdopts.h"
 #include "cli/shopt.h"
 #include "repl/history.h"
@@ -33,6 +34,11 @@ static bool handle_repl_exception(s_errman *eman, s_context *cont)
         return true;
     }
 
+    if (eman->class == &g_keyboard_interrupt) {
+        cont->env->code = eman->retcode;
+        return false;
+    }
+
     if (eman->class != &g_parser_error && eman->class != &g_lexer_error)
         errx(2, "received an unknown exception");
     // syntax errors don't have the same return code inside and outside
@@ -51,35 +57,47 @@ static bool handle_repl_exception(s_errman *eman, s_context *cont)
     return !cont->cs->interactive;
 }
 
-static bool ast_exec_consumer(s_lexer *lex, s_context *cont)
-{
-    cont->ast = NULL;
-
-    s_errman eman = ERRMAN;
-    s_keeper keeper = KEEPER(NULL);
-
-    volatile bool stopping = false;
-    if (setjmp(keeper.env)) {
-        if (handle_repl_exception(&eman, cont))
-            stopping = true;
-    } else
-        try_read_eval(lex, &ERRCONT(&eman, &keeper), cont);
-
-    cont->env->ast_list = ast_list_append(cont->env->ast_list, cont->ast);
-    return stopping;
-}
-
 bool repl(s_context *ctx)
 {
-    bool stopping = false;
-    while (!stopping) {
-        ctx->line_start = true;
-        if (cstream_eof(ctx->cs))
-            break;
-        s_lexer *lex = lexer_create(ctx->cs);
-        stopping = ast_exec_consumer(lex, ctx);
-        lexer_free(lex);
-    }
+    s_errman eman = ERRMAN;
+    s_keeper keeper = KEEPER(NULL);
+    struct errcont errcont = ERRCONT(&eman, &keeper);
 
-    return stopping;
+    volatile bool running = true;
+    do {
+        ctx->line_start = true;
+        /* handle keyboard interupts in initial EOF check */
+        if (setjmp(keeper.env)) {
+            if (eman.class == &g_keyboard_interrupt) {
+                ctx->env->code = eman.retcode;
+                continue;
+            }
+            errx(2, "received an unknown exception in EOF check");
+        } else {
+            cstream_set_errcont(ctx->cs, &errcont);
+            if (cstream_eof(ctx->cs))
+                return false;
+        }
+        /* reset the error handler */
+        cstream_set_errcont(ctx->cs, NULL);
+
+        /* create a lexer */
+        s_lexer *lex = lexer_create(ctx->cs);
+
+        ctx->ast = NULL;
+        /* parse and execute */
+        if (setjmp(keeper.env)) {
+            if (handle_repl_exception(&eman, ctx))
+                running = false;
+        } else
+            try_read_eval(lex, &errcont, ctx);
+
+        /* reset the error handler */
+        cstream_set_errcont(ctx->cs, NULL);
+
+        /* append the ast, destroy the lexer */
+        ctx->env->ast_list = ast_list_append(ctx->env->ast_list, ctx->ast);
+        lexer_free(lex);
+    } while (running);
+    return true;
 }

@@ -8,6 +8,8 @@ libio_la_SOURCES = cstream.c \
                    cstream_string.c \
                    managed_stream.c \
                    readline_wrapped.c \
+                   keyboard_interrupt.c \
+                   $(TOP_INCL)/io/keyboard_interrupt.h \
                    $(TOP_INCL)/io/cstream.h \
                    $(TOP_INCL)/io/cstream_file.h \
                    $(TOP_INCL)/io/cstream_readline.h \
