@@ -66,7 +66,6 @@ __unused static bool variable_name_check(struct variable_name *var, char c) {
 
 __unused static void simple_variable_name_push(struct evect *var, char c)
 {
-    assert(simple_variable_name_check(var, c));
     evect_push(var, c);
 }
 
