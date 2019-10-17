@@ -26,8 +26,7 @@ static bool compound_list_loop(s_lexer *lexer, s_alist **tail, s_errcont *errcon
 void parse_compound_list(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
     parse_newlines(lexer, errcont);
-    *res = xcalloc(sizeof(s_ast), 1);
-    (*res)->type = SHNODE_LIST;
+    *res = ast_create(SHNODE_LIST, lexer);
     parse_and_or(&(*res)->data.ast_list.action, lexer, errcont);
     // TODO: check for exception leaks
     s_alist *tmp = &(*res)->data.ast_list;

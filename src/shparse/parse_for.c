@@ -2,7 +2,6 @@
 
 #include "shparse/parse.h"
 #include "shlex/print.h"
-#include "utils/alloc.h"
 #include "utils/error.h"
 
 static void for_word_loop(s_wordlist **res, s_lexer *lexer, s_errcont *errcont)
@@ -57,8 +56,7 @@ static bool parse_collection(s_lexer *lexer, s_errcont *errcont, s_ast *res)
 void parse_rule_for(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
     tok_free(lexer_pop(lexer, errcont), true);
-    *res = xcalloc(sizeof(s_ast), 1);
-    (*res)->type = SHNODE_FOR;
+    *res = ast_create(SHNODE_FOR, lexer);
     parse_word(&(*res)->data.ast_for.var, lexer, errcont);
 
     if (!parse_collection(lexer, errcont, *res))

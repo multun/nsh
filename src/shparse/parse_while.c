@@ -5,8 +5,7 @@
 void parse_rule_while(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
     tok_free(lexer_pop(lexer, errcont), true);
-    *res = xcalloc(sizeof(s_ast), 1);
-    (*res)->type = SHNODE_WHILE;
+    *res = ast_create(SHNODE_WHILE, lexer);
     parse_compound_list(&(*res)->data.ast_while.condition, lexer, errcont);
     parse_do_group(&(*res)->data.ast_while.actions, lexer, errcont);
 }
@@ -14,8 +13,7 @@ void parse_rule_while(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 void parse_rule_until(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
     tok_free(lexer_pop(lexer, errcont), true);
-    *res = xcalloc(sizeof(s_ast), 1);
-    (*res)->type = SHNODE_UNTIL;
+    *res = ast_create(SHNODE_UNTIL, lexer);
     parse_compound_list(&(*res)->data.ast_until.condition, lexer, errcont);
     parse_do_group(&(*res)->data.ast_until.actions, lexer, errcont);
 }

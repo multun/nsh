@@ -46,8 +46,7 @@ static void list_loop(s_lexer *lexer, s_errcont *errcont, s_ast *res, const s_to
 
 void parse_list(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
-    *res = xcalloc(sizeof(s_ast), 1);
-    (*res)->type = SHNODE_LIST;
+    *res = ast_create(SHNODE_LIST, lexer);
     parse_and_or(&(*res)->data.ast_list.action, lexer, errcont);
     const s_token *tok = lexer_peek(lexer, errcont);
     list_loop(lexer, errcont, *res, tok); // TODO: fix list_loop API
@@ -62,8 +61,7 @@ void parse_and_or(s_ast **res, s_lexer *lexer, s_errcont *errcont)
         bool or = tok_is(tok, TOK_OR_IF);
         tok_free(lexer_pop(lexer, errcont), true);
         parse_newlines(lexer, errcont);
-        s_ast *new_tree = xcalloc(sizeof(s_ast), 1);
-        new_tree->type = SHNODE_BOOL_OP;
+        struct ast *new_tree = ast_create(SHNODE_BOOL_OP, lexer);
         new_tree->data.ast_bool_op = ABOOL_OP(or ? BOOL_OR : BOOL_AND, *res, NULL);
         *res = new_tree;
         parse_pipeline(&(*res)->data.ast_bool_op.right, lexer, errcont);

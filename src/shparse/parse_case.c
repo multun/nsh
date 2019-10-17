@@ -21,8 +21,7 @@ void parse_rule_case(s_ast **res, s_lexer *lexer, s_errcont *errcont)
     if (!tok_is(tok, TOK_WORD))
         PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s, expected WORD",
                      TOKT_STR(tok));
-    *res = xcalloc(sizeof(s_ast), 1);
-    (*res)->type = SHNODE_CASE;
+    *res = ast_create(SHNODE_CASE, lexer);
     parse_word(&(*res)->data.ast_case.var, lexer, errcont);
 
     parse_newlines(lexer, errcont);

@@ -28,8 +28,7 @@ static s_ast *redirection_loop_sec(s_lexer *lexer, s_errcont *errcont, s_ast *re
 
 static s_ast *redirection_loop(s_lexer *lexer, s_ast *cmd, s_errcont *errcont)
 {
-    s_ast *res = xcalloc(sizeof(s_ast), 1);
-    res->type = SHNODE_BLOCK;
+    s_ast *res = ast_create(SHNODE_BLOCK, lexer);
     res->data.ast_block = ABLOCK(NULL, NULL, cmd);
     res = redirection_loop_sec(lexer, errcont, res);
     if (cmd->type == SHNODE_FUNCTION) {
@@ -96,8 +95,7 @@ static void parse_shell_command_sub(s_ast **res, s_lexer *lexer, s_errcont *errc
 {
     const s_token *tok = lexer_peek(lexer, errcont);
     if (!par && tok_is(tok, TOK_LPAR)) {
-        *res = xcalloc(sizeof(s_ast), 1);
-        (*res)->type = SHNODE_SUBSHELL;
+        *res = ast_create(SHNODE_SUBSHELL, lexer);
         parse_shell_command_sub(&(*res)->data.ast_subshell.action, lexer, errcont, true);
     } else if (tok_is(tok, TOK_LBRACE) || par) {
         tok_free(lexer_pop(lexer, errcont), true);

@@ -1,5 +1,4 @@
 #include "shparse/parse.h"
-#include "utils/alloc.h"
 #include "shlex/print.h"
 
 static bool parse_func_remove_par(s_lexer *lexer, s_errcont *errcont)
@@ -18,8 +17,7 @@ static bool parse_func_remove_par(s_lexer *lexer, s_errcont *errcont)
 
 void parse_funcdec(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
-    *res = xcalloc(sizeof(s_ast), 1);
-    (*res)->type = SHNODE_FUNCTION;
+    *res = ast_create(SHNODE_FUNCTION, lexer);
 
     s_token *word = lexer_pop(lexer, errcont);
     s_wordlist *name = xcalloc(sizeof(s_wordlist), 1);

@@ -3,16 +3,14 @@
 #include <stdlib.h>
 
 #include "shparse/parse.h"
-#include "utils/alloc.h"
 
 // this operation is atomic, no need to pass the target as argument
-static void negate_ast(s_ast **ast, bool neg)
+static void negate_ast(s_ast **ast, s_lexer *lexer, bool neg)
 {
     if (!neg)
         return;
 
-    s_ast *negation = xcalloc(sizeof(s_ast), 1);
-    negation->type = SHNODE_BOOL_OP;
+    s_ast *negation = ast_create(SHNODE_BOOL_OP, lexer);
     negation->data.ast_bool_op = ABOOL_OP(BOOL_NOT, *ast, NULL);
     *ast = negation;
 }
@@ -24,8 +22,7 @@ static void pipeline_loop(s_ast **res, s_lexer *lexer, s_errcont *errcont)
         tok_free(lexer_pop(lexer, errcont), true);
         parse_newlines(lexer, errcont);
         tok = lexer_peek(lexer, errcont);
-        s_ast *pipe = xcalloc(sizeof(s_ast), 1);
-        pipe->type = SHNODE_PIPE;
+        s_ast *pipe = ast_create(SHNODE_PIPE, lexer);
         pipe->data.ast_pipe = APIPE(*res, NULL);
         *res = pipe;
         parse_command(&pipe->data.ast_pipe.right, lexer, errcont);
@@ -43,7 +40,7 @@ void parse_pipeline(s_ast **res, s_lexer *lexer, s_errcont *errcont)
     parse_command(res, lexer, errcont);
     tok = lexer_peek(lexer, errcont);
     pipeline_loop(res, lexer, errcont);
-    negate_ast(res, negation);
+    negate_ast(res, lexer, negation);
 }
 
 static enum redir_type parse_redir_type(const s_token *tok)
@@ -74,8 +71,7 @@ void parse_redirection(s_ast **res, s_lexer *lexer, s_errcont *errcont)
     s_token *tok = lexer_pop(lexer, errcont);
 
     // TODO: alloc later to avoid potential leak on exception
-    *res = xcalloc(sizeof(s_ast), 1);
-    (*res)->type = SHNODE_REDIRECTION;
+    *res = ast_create(SHNODE_REDIRECTION, lexer);
     int left = -1;
     if (tok_is(tok, TOK_IO_NUMBER)) {
         left = atoi(tok_buf(tok));

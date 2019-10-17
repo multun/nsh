@@ -78,8 +78,7 @@ static bool element_loop(s_lexer *lexer, s_errcont *errcont, s_bbuilder *build)
             if (build->elm)
                 target = &build->elm->next;
             else {
-                build->block->cmd = xcalloc(sizeof(s_ast), 1);
-                build->block->cmd->type = SHNODE_CMD;
+                build->block->cmd = ast_create(SHNODE_CMD, lexer);
                 target = &build->block->cmd->data.ast_cmd.wordlist;
             }
             parse_word(target, lexer, errcont);
@@ -93,8 +92,7 @@ static bool element_loop(s_lexer *lexer, s_errcont *errcont, s_bbuilder *build)
 
 void parse_simple_command(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
-    *res = xcalloc(sizeof(s_ast), 1);
-    (*res)->type = SHNODE_BLOCK;
+    *res = ast_create(SHNODE_BLOCK, lexer);
     (*res)->data.ast_block = ABLOCK(NULL, NULL, NULL);
     s_bbuilder builder = {
         .block = &(*res)->data.ast_block,

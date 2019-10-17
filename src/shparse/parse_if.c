@@ -2,7 +2,6 @@
 
 #include "shparse/parse.h"
 #include "shlex/print.h"
-#include "utils/alloc.h"
 #include "utils/error.h"
 
 static bool start_else_clause(const s_token *tok)
@@ -32,8 +31,7 @@ static void parse_rule_if_end(s_lexer *lexer, s_errcont *errcont, s_ast *res)
 void parse_rule_if(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
     tok_free(lexer_pop(lexer, errcont), true);
-    *res = xcalloc(sizeof(s_ast), 1);
-    (*res)->type = SHNODE_IF;
+    *res = ast_create(SHNODE_IF, lexer);
     parse_compound_list(&(*res)->data.ast_if.condition, lexer, errcont);
 
     const s_token *tok = lexer_peek(lexer, errcont);
@@ -68,8 +66,7 @@ void parse_else_clause(s_ast **res, s_lexer *lexer, s_errcont *errcont)
         parse_compound_list(res, lexer, errcont);
         return;
     }
-    *res = xcalloc(sizeof(s_ast), 1);
-    (*res)->type = SHNODE_IF;
+    *res = ast_create(SHNODE_IF, lexer);
     parse_compound_list(&(*res)->data.ast_if.condition, lexer, errcont);
     parse_else_clause_end(lexer, errcont, *res);
 }
