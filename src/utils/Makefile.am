@@ -3,7 +3,9 @@ include $(top_srcdir)/Makefile.common
 noinst_LTLIBRARIES = libutils.la
 
 libutils_la_SOURCES = xalloc.c \
+                      gvect.defs \
                       evect.c \
+                      pvect.c \
                       error.c \
                       hash_table.c \
                       hash_table_map.c \
