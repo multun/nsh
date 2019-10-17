@@ -1,7 +1,7 @@
 {
   "desc": "A mix of arithmetic expansion",
-  "stdin": "echo $((4^3**3))",
-  "stdout": "31\n",
+  "stdin": "echo $((4^3*3))",
+  "stdout": "13\n",
   "stderr": "",
   "retcode": 0
 }

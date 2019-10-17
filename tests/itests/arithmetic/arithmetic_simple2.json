@@ -1,6 +1,6 @@
 {
   "desc": "A simple arithmetic expansion",
-  "stdin": "echo $((1+++1*3--5- -1))",
+  "stdin": "echo $((1+1*3- -5 - -1))",
   "stdout": "10\n",
   "stderr": "",
   "retcode": 0
