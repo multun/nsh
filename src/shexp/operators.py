@@ -111,29 +111,31 @@ PRIO_POST_TAG = "-post"
 PRIO_PRE_TAG = "-pre"
 
 _PRIORITIES = '''
-0   rparen colon
-10  plus_plus-post minus_minus-post lparen
-20  plus_plus-pre minus_minus-pre plus-pre minus-pre exclam tilde
-30  times div mod
-40  plus-post minus-post
-50  lshift rshift
-60  inferior inferior_equal superior superior_equal
-70  equal_equal different
-80  and
-90  xor
-100 or
-110 and_and
-120 or_or
-130 question
-140 equal plus_equal minus_equal times_equal div_equal mod_equal lshift_equal rshift_equal and_equal xor_equal or_equal
+rparen colon
+plus_plus-post minus_minus-post lparen
+plus_plus-pre minus_minus-pre plus-pre minus-pre exclam tilde
+times div mod
+plus-post minus-post
+lshift rshift
+inferior inferior_equal superior superior_equal
+equal_equal different
+and
+xor
+or
+and_and
+or_or
+question
+equal plus_equal minus_equal times_equal div_equal mod_equal lshift_equal rshift_equal and_equal xor_equal or_equal
 '''
 
-
-for line in _PRIORITIES.splitlines():
+priority_lines = _PRIORITIES.splitlines()
+for line_i, line in enumerate(priority_lines):
     if not line:
         continue
 
-    prio, *line_tokens = line.split()
+    prio = str((len(priority_lines) - line_i) * 10)
+
+    line_tokens = line.split()
     for token_name in line_tokens:
         if token_name.endswith(PRIO_POST_TAG):
             token_name = token_name[:-len(PRIO_POST_TAG)]
@@ -152,5 +154,7 @@ tokens_list = list(tokens.values())
 tokens_list.sort(key=lambda token: token.raw_value)
 
 print("/* Don't modify this file directly ! run operators.py */")
+print(f"/* X({', '.join(X_ATTRIBUTES)}) */")
+
 for token in tokens_list:
     print(f'X({", ".join(getattr(token, attr) for attr in X_ATTRIBUTES)})')
