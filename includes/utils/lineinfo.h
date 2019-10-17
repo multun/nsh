@@ -7,7 +7,7 @@
 ** \brief information about the current context
 ** \desc used for error messages
 */
-typedef struct lineinfo
+struct lineinfo
 {
     /**
     ** the current line number
@@ -25,12 +25,12 @@ typedef struct lineinfo
     ** A parent line info context
     */
     struct lineinfo *parent;
-} s_lineinfo;
+};
 
 void lineinfo_print(const struct lineinfo *li, FILE *stream);
 
-#define LINEINFO(Source, Parent)                                                         \
-    (s_lineinfo)                                                                         \
-    {                                                                                    \
-        .line = 1, .column = 1, .source = (Source), .parent = (Parent)                   \
+#define LINEINFO(Source, Parent)                                        \
+    (struct lineinfo)                                                   \
+    {                                                                   \
+        .line = 1, .column = 1, .source = (Source), .parent = (Parent)  \
     }

@@ -24,18 +24,18 @@ __noreturn static void lexer_err(struct lexer *lexer, const char *fmt, ...)
 static int lexer_lex_untyped(struct token *token, struct wlexer *wlexer,
                              struct lexer *lexer);
 
-s_lexer *lexer_create(s_cstream *stream)
+struct lexer *lexer_create(struct cstream *stream)
 {
-    s_lexer *res = xmalloc(sizeof(*res));
+    struct lexer *res = xmalloc(sizeof(*res));
     wlexer_init(&res->wlexer, stream);
     res->head = NULL;
     return res;
 }
 
-void lexer_free(s_lexer *lexer)
+void lexer_free(struct lexer *lexer)
 {
     while (lexer->head) {
-        s_token *tok = lexer->head;
+        struct token *tok = lexer->head;
         lexer->head = tok->next;
         tok_free(tok, true);
     }
@@ -280,7 +280,7 @@ static int lexer_lex_untyped(struct token *token, struct wlexer *wlexer,
     }
 }
 
-static bool is_only_digits(s_token *tok)
+static bool is_only_digits(struct token *tok)
 {
     for (size_t i = 0; i < tok_size(tok); i++)
         if (!isdigit(tok_buf(tok)[i]))
@@ -288,13 +288,13 @@ static bool is_only_digits(s_token *tok)
     return true;
 }
 
-static void lexer_lex(s_token **tres, s_lexer *lexer, s_errcont *errcont)
+static void lexer_lex(struct token **tres, struct lexer *lexer, struct errcont *errcont)
 {
     // the lexer and the IO stream both have their own global error contexts
     lexer->errcont = errcont;
     wlexer_set_errcont(&lexer->wlexer, errcont);
 
-    s_token *res = *tres = tok_alloc(lexer);
+    struct token *res = *tres = tok_alloc(lexer);
     lexer_lex_untyped(res, &lexer->wlexer, lexer);
 
     if (res->type != TOK_WORD)
@@ -318,7 +318,7 @@ typing_done:
     return;
 }
 
-char *lexer_lex_string(s_errcont *errcont, struct wlexer *wlexer)
+char *lexer_lex_string(struct errcont *errcont, struct wlexer *wlexer)
 {
     struct lexer lexer = {
         .wlexer = *wlexer,
@@ -333,26 +333,26 @@ char *lexer_lex_string(s_errcont *errcont, struct wlexer *wlexer)
     return buf;
 }
 
-s_token *lexer_peek_at(s_lexer *lexer, s_token *tok, s_errcont *errcont)
+struct token *lexer_peek_at(struct lexer *lexer, struct token *tok, struct errcont *errcont)
 {
     if (!tok->next)
         lexer_lex(&tok->next, lexer, errcont);
     return tok->next;
 }
 
-s_token *lexer_peek(s_lexer *lexer, s_errcont *errcont)
+struct token *lexer_peek(struct lexer *lexer, struct errcont *errcont)
 {
     if (!lexer->head)
         lexer_lex(&lexer->head, lexer, errcont);
     return lexer->head;
 }
 
-s_token *lexer_pop(s_lexer *lexer, s_errcont *errcont)
+struct token *lexer_pop(struct lexer *lexer, struct errcont *errcont)
 {
     if (!lexer->head)
         lexer_lex(&lexer->head, lexer, errcont);
 
-    s_token *ret = lexer->head;
+    struct token *ret = lexer->head;
     lexer->head = ret->next;
     return ret;
 }

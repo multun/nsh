@@ -8,4 +8,4 @@
 ** \param oldpwd whether oldpwd should be set instead of pwd
 ** \param env the environment to work with
 */
-void update_pwd(bool oldpwd, s_env *env);
+void update_pwd(bool oldpwd, struct environment*env);

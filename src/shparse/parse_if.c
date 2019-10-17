@@ -4,14 +4,14 @@
 #include "shlex/print.h"
 #include "utils/error.h"
 
-static bool start_else_clause(const s_token *tok)
+static bool start_else_clause(const struct token *tok)
 {
     return tok_is(tok, TOK_ELSE) || tok_is(tok, TOK_ELIF);
 }
 
-static void parse_rule_if_end(s_lexer *lexer, s_errcont *errcont, s_ast *res)
+static void parse_rule_if_end(struct lexer *lexer, struct errcont *errcont, struct ast *res)
 {
-    const s_token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, errcont);
     if (tok_is(tok, TOK_FI)) {
         tok_free(lexer_pop(lexer, errcont), true);
         return;
@@ -28,13 +28,13 @@ static void parse_rule_if_end(s_lexer *lexer, s_errcont *errcont, s_ast *res)
     tok_free(lexer_pop(lexer, errcont), true);
 }
 
-void parse_rule_if(s_ast **res, s_lexer *lexer, s_errcont *errcont)
+void parse_rule_if(struct ast **res, struct lexer *lexer, struct errcont *errcont)
 {
     tok_free(lexer_pop(lexer, errcont), true);
     *res = ast_create(SHNODE_IF, lexer);
     parse_compound_list(&(*res)->data.ast_if.condition, lexer, errcont);
 
-    const s_token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, errcont);
     if (!tok_is(tok, TOK_THEN))
         PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s, expected 'then'",
                      TOKT_STR(tok));
@@ -44,9 +44,9 @@ void parse_rule_if(s_ast **res, s_lexer *lexer, s_errcont *errcont)
     parse_rule_if_end(lexer, errcont, *res);
 }
 
-static void parse_else_clause_end(s_lexer *lexer, s_errcont *errcont, s_ast *res)
+static void parse_else_clause_end(struct lexer *lexer, struct errcont *errcont, struct ast *res)
 {
-    const s_token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, errcont);
     if (!tok_is(tok, TOK_THEN))
         PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s, expected 'then'",
                      TOKT_STR(tok));
@@ -57,9 +57,9 @@ static void parse_else_clause_end(s_lexer *lexer, s_errcont *errcont, s_ast *res
         parse_else_clause(&res->data.ast_if.failure, lexer, errcont);
 }
 
-void parse_else_clause(s_ast **res, s_lexer *lexer, s_errcont *errcont)
+void parse_else_clause(struct ast **res, struct lexer *lexer, struct errcont *errcont)
 {
-    const s_token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, errcont);
     bool elif = tok_is(tok, TOK_ELIF);
     tok_free(lexer_pop(lexer, errcont), true);
     if (!elif) {

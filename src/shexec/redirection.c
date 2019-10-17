@@ -12,10 +12,10 @@
 
 struct redir_params
 {
-    s_env *env;
-    s_aredirection *aredir;
-    s_ast *cmd;
-    s_errcont *cont;
+    struct environment *env;
+    struct aredirection *aredir;
+    struct ast *cmd;
+    struct errcont *cont;
 };
 
 static int redirection_local_exec(struct redir_params *params);
@@ -33,7 +33,7 @@ static int redir_great(struct redir_params *params)
 {
     int stdout_copy = fd_move_away(STDOUT_FILENO);
 
-    s_aredirection *aredir = params->aredir;
+    struct aredirection *aredir = params->aredir;
     int fd_file = open(aredir->right->str, O_CREAT | O_WRONLY | O_TRUNC, 0664);
     if (fd_file < 0) {
         warnx("%s: Permission denied\n", aredir->right->str);
@@ -52,7 +52,7 @@ static int redir_great(struct redir_params *params)
 
 static int redir_dgreat(struct redir_params *params)
 {
-    s_aredirection *aredir = params->aredir;
+    struct aredirection *aredir = params->aredir;
     int stdout_copy = fd_move_away(STDOUT_FILENO);
 
     int fd_file = open(aredir->right->str, O_CREAT | O_WRONLY | O_APPEND, 0664);
@@ -73,7 +73,7 @@ static int redir_dgreat(struct redir_params *params)
 
 static int redir_less(struct redir_params *params)
 {
-    s_aredirection *aredir = params->aredir;
+    struct aredirection *aredir = params->aredir;
     int copy = fd_move_away(STDIN_FILENO);
 
     int fd_file = open(aredir->right->str, O_RDONLY, 0664);
@@ -94,7 +94,7 @@ static int redir_less(struct redir_params *params)
 
 static int redir_lessand(struct redir_params *params)
 {
-    s_aredirection *aredir = params->aredir;
+    struct aredirection *aredir = params->aredir;
     if (aredir->left == -1)
         aredir->left = 0;
 
@@ -117,7 +117,7 @@ static int redir_lessand(struct redir_params *params)
 
 static int redir_greatand(struct redir_params *params)
 {
-    s_aredirection *aredir = params->aredir;
+    struct aredirection *aredir = params->aredir;
     if (aredir->left == -1)
         aredir->left = 1;
     if (!strcmp("-", aredir->right->str))
@@ -142,7 +142,7 @@ static int redir_greatand(struct redir_params *params)
 
 static int redir_lessgreat(struct redir_params *params)
 {
-    s_aredirection *aredir = params->aredir;
+    struct aredirection *aredir = params->aredir;
     if (aredir->left == -1)
         aredir->left = 0;
     int fd = open(aredir->right->str, O_CREAT | O_RDWR | O_TRUNC, 0664);
@@ -183,9 +183,9 @@ static int redirection_local_exec(struct redir_params *params)
     return exec_redir_base(params);
 }
 
-void redirection_print(FILE *f, s_ast *ast)
+void redirection_print(FILE *f, struct ast *ast)
 {
-    s_aredirection *aredirection = &ast->data.ast_redirection;
+    struct aredirection *aredirection = &ast->data.ast_redirection;
     void *id = ast;
 
     if (aredirection->type >= ARR_SIZE(g_redir_list))
@@ -203,7 +203,7 @@ void redirection_print(FILE *f, s_ast *ast)
     }
 }
 
-int redirection_exec(s_env *env, s_ast *ast, s_ast *cmd, s_errcont *cont)
+int redirection_exec(struct environment *env, struct ast *ast, struct ast *cmd, struct errcont *cont)
 {
     struct redir_params params = {env, &ast->data.ast_redirection, cmd, cont};
     return redirection_local_exec(&params);

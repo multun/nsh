@@ -15,6 +15,5 @@ libshexec_la_SOURCES = ast_print.c assignment.c case.c function.c \
                        builtins/break.c break.c builtins/export.c \
                        $(TOP_INCL)/shexec/redirection_utils.h \
                        $(TOP_INCL)/shexec/break.h \
-                       $(TOP_INCL)/shexec/variable.h \
                        builtins/source.c builtins/history.c \
                        subshell.c

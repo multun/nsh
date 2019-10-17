@@ -14,5 +14,5 @@ struct arg_context;
 ** \return the status code of the operation.
 **    if non zero, the program shall exit
 */
-int cstream_dispatch_init(struct context *context, s_cstream **cs,
+int cstream_dispatch_init(struct context *context, struct cstream **cs,
                           struct arg_context *arg_cont);

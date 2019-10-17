@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-s_token *tok_alloc(s_lexer *lexer)
+struct token *tok_alloc(struct lexer *lexer)
 {
-    s_token *res = xmalloc(sizeof(*res));
+    struct token *res = xmalloc(sizeof(*res));
     res->lineinfo = lexer->wlexer.cs->line_info;
     res->type = TOK_WORD;
     res->next = NULL;
@@ -14,7 +14,7 @@ s_token *tok_alloc(s_lexer *lexer)
     return res;
 }
 
-void tok_free(s_token *tok, bool free_buf)
+void tok_free(struct token *tok, bool free_buf)
 {
     if (free_buf)
         evect_destroy(&tok->str);
@@ -36,7 +36,7 @@ static bool tok_is_ass(const char *str, bool first)
         && tok_is_ass(str + 1, false);
 }
 
-bool tok_is(const s_token *tok, enum token_type type)
+bool tok_is(const struct token *tok, enum token_type type)
 {
     if (TOK_IS_DET(tok->type) || TOK_IS_DET(type))
         return tok->type == type;

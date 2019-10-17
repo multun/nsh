@@ -3,9 +3,9 @@
 #include "ast/ast.h"
 #include "shexec/environment.h"
 
-void if_print(FILE *f, s_ast *node)
+void if_print(FILE *f, struct ast *node)
 {
-    s_aif *aif = &node->data.ast_if;
+    struct aif *aif = &node->data.ast_if;
     void *id = node;
     fprintf(f, "\"%p\" [label=\"IF\"];\n", id);
     ast_print_rec(f, aif->condition);
@@ -21,9 +21,9 @@ void if_print(FILE *f, s_ast *node)
     }
 }
 
-int if_exec(s_env *env, s_ast *ast, s_errcont *cont)
+int if_exec(struct environment *env, struct ast *ast, struct errcont *cont)
 {
-    s_aif *aif = &ast->data.ast_if;
+    struct aif *aif = &ast->data.ast_if;
     int cond = ast_exec(env, aif->condition, cont);
     if (!cond)
         return ast_exec(env, aif->success, cont);

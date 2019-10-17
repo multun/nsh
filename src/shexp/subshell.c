@@ -12,7 +12,7 @@
 
 static int subshell_child(struct environment *env, char *str)
 {
-    s_context ctx;
+    struct context ctx;
     memset(&ctx, 0, sizeof(ctx));
     ctx.env = env;
 

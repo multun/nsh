@@ -61,7 +61,7 @@ static void print_shopt(t_shopt_options opts, int argc, char **argv, int index)
                 printf("%s\t%s\n", string_from_shopt(i), g_shopts[i] ? "on" : "off");
 }
 
-int builtin_shopt(s_env *env, s_errcont *cont, int argc, char **argv)
+int builtin_shopt(struct environment *env, struct errcont *cont, int argc, char **argv)
 {
     if (!env || !cont)
         warnx("cd: missing context elements");

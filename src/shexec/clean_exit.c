@@ -4,9 +4,9 @@
 #include <errno.h>
 #include <stdarg.h>
 
-s_ex_class g_clean_exit;
+struct ex_class g_clean_exit;
 
-void ATTR(noreturn) clean_err(s_errcont *cont, int retcode, const char *fmt, ...)
+void ATTR(noreturn) clean_err(struct errcont *cont, int retcode, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -17,7 +17,7 @@ void ATTR(noreturn) clean_err(s_errcont *cont, int retcode, const char *fmt, ...
     va_end(ap);
 }
 
-void ATTR(noreturn) clean_errx(s_errcont *cont, int retcode, const char *fmt, ...)
+void ATTR(noreturn) clean_errx(struct errcont *cont, int retcode, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -28,7 +28,7 @@ void ATTR(noreturn) clean_errx(s_errcont *cont, int retcode, const char *fmt, ..
     va_end(ap);
 }
 
-void ATTR(noreturn) clean_exit(s_errcont *cont, int retcode)
+void ATTR(noreturn) clean_exit(struct errcont *cont, int retcode)
 {
     cont->errman->retcode = retcode;
     shraise(cont, &g_clean_exit);

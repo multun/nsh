@@ -139,7 +139,7 @@ static void echo_print(char *c, int opt, struct evect *vec)
         evect_push(vec, '\\');
 }
 
-int builtin_echo(s_env *env, s_errcont *cont, int argc, char **argv)
+int builtin_echo(struct environment *env, struct errcont *cont, int argc, char **argv)
 {
     if (!env || !cont)
         warnx("cd: missing context elements");

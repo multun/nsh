@@ -9,11 +9,11 @@
 #include "shexec/builtin_cd.h"
 #include "shexec/builtins.h"
 #include "shexec/environment.h"
-#include "shexec/variable.h"
+#include "shlex/variable.h"
 #include "utils/alloc.h"
 #include "utils/hash_table.h"
 
-static char **arg_context_extract(int *target_argc, s_arg_context *args)
+static char **arg_context_extract(int *target_argc, struct arg_context *args)
 {
     int arguments_count = args->argc - args->argc_base;
     // don't forget $0 in the total argument count
@@ -29,9 +29,9 @@ static char **arg_context_extract(int *target_argc, s_arg_context *args)
     return ret;
 }
 
-s_env *environment_create(s_arg_context *arg_cont)
+struct environment*environment_create(struct arg_context *arg_cont)
 {
-    s_env *env = xmalloc(sizeof(s_env));
+    struct environment *env = xmalloc(sizeof(*env));
     env->argv = arg_context_extract(&env->argc, arg_cont);
     env->progname = strdup(arg_cont->argv[arg_cont->progname_ind]);
     env->vars = htable_create(10);
@@ -47,7 +47,7 @@ s_env *environment_create(s_arg_context *arg_cont)
 
 static bool vartoenv(struct pair *node, char **pos)
 {
-    s_var *var = node->value;
+    struct variable *var = node->value;
     if (!var->to_export)
         return false;
     size_t size = strlen(node->key) + 1;
@@ -62,9 +62,9 @@ static bool vartoenv(struct pair *node, char **pos)
     return true;
 }
 
-char **environment_array(s_env *env)
+char **environment_array(struct environment *env)
 {
-    char **res = xmalloc((env->vars->size + 1) * sizeof(char *));
+    char **res = xmalloc((env->vars->size + 1) * sizeof(*res));
     size_t pos = 0;
     for (size_t i = 0; i < env->vars->capacity; i++) {
         struct pair *pp = NULL;
@@ -81,7 +81,7 @@ char **environment_array(s_env *env)
     return res;
 }
 
-void environment_load(s_env *env)
+void environment_load(struct environment *env)
 {
     for (char **it = environ; *it; it++) {
         char *var = strdup(*it);
@@ -94,7 +94,7 @@ void environment_load(s_env *env)
             value = strdup(value);
         environment_var_assign(env, name, value, true);
         struct pair *p = htable_access(env->vars, name);
-        s_var *node = p->value;
+        struct variable *node = p->value;
         node->to_export = true;
     }
     if (!htable_access(env->vars, "PWD"))
@@ -106,12 +106,12 @@ void environment_load(s_env *env)
 static void var_free(struct pair *p)
 {
     free(p->key);
-    s_var *var = p->value;
+    struct variable *var = p->value;
     free(var->value);
     free(var);
 }
 
-void environment_free(s_env *env)
+void environment_free(struct environment *env)
 {
     if (!env)
         return;
@@ -125,11 +125,11 @@ void environment_free(s_env *env)
     free(env);
 }
 
-void environment_var_assign(s_env *env, char *name, char *value, bool export)
+void environment_var_assign(struct environment *env, char *name, char *value, bool export)
 {
     struct pair *prev = htable_access(env->vars, name);
     if (prev) {
-        s_var *var = prev->value;
+        struct variable *var = prev->value;
         free(var->value);
         free(name);
         var->value = value;
@@ -137,7 +137,7 @@ void environment_var_assign(s_env *env, char *name, char *value, bool export)
             var->to_export = true;
         return;
     }
-    s_var *nvar = xmalloc(sizeof(s_var));
+    struct variable *nvar = xmalloc(sizeof(*nvar));
     *nvar = VARIABLE(value);
     nvar->to_export = export;
     htable_add(env->vars, name, nvar);

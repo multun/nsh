@@ -51,7 +51,7 @@
 /**
 ** \brief represent an Abstract Syntax Tree (AST).
 **/
-typedef struct ast
+struct ast
 {
     enum shnode_type
     {
@@ -62,25 +62,25 @@ typedef struct ast
 
     union
     {
-        s_acmd ast_cmd; /**< command field */
-        s_aif ast_if; /**< if field */
-        s_afor ast_for; /**< for field */
-        s_awhile ast_while; /**< while field */
-        s_auntil ast_until; /**< until field */
-        s_aredirection ast_redirection; /**< redirection field */
-        s_apipe ast_pipe; /**< pipe field */
-        s_acase ast_case; /**< case field */
-        s_abool_op ast_bool_op; /**< bool operator field */
-        s_alist ast_list; /**< command field */
-        s_aassignment ast_assignment; /**< assignment field */
-        s_afunction ast_function; /**< function field */
-        s_ablock ast_block; /**< block field */
-        s_asubshell ast_subshell; /**< subshell field */
+        struct acmd ast_cmd; /**< command field */
+        struct aif ast_if; /**< if field */
+        struct afor ast_for; /**< for field */
+        struct awhile ast_while; /**< while field */
+        struct auntil ast_until; /**< until field */
+        struct aredirection ast_redirection; /**< redirection field */
+        struct apipe ast_pipe; /**< pipe field */
+        struct acase ast_case; /**< case field */
+        struct abool_op ast_bool_op; /**< bool operator field */
+        struct alist ast_list; /**< command field */
+        struct aassignment ast_assignment; /**< assignment field */
+        struct afunction ast_function; /**< function field */
+        struct ablock ast_block; /**< block field */
+        struct asubshell ast_subshell; /**< subshell field */
     } data; /**< content of the node */ /**< command field */
-} s_ast;
+};
 
 #define AST(Type, Field, Data)                                                           \
-    ((s_ast){                                                                            \
+    ((struct ast){                                                                            \
         .type = (Type),                                                                  \
         .data.ast_##Field = (Data),                                                      \
     })
@@ -98,24 +98,24 @@ static inline struct ast *ast_create(enum shnode_type type, struct lexer *lexer)
 ** \param f the file where to write
 ** \param ast the tree
 **/
-void ast_print_rec(FILE *f, s_ast *ast);
+void ast_print_rec(FILE *f, struct ast *ast);
 
 /**
 ** \brief print then whole tree in dot fromat
 ** \param f the file where to write
 ** \param ast the tree
 **/
-void ast_print(FILE *f, s_ast *ast);
+void ast_print(FILE *f, struct ast *ast);
 
 /**
 ** \brief execute the tree
 ** \param env the current environment
 ** \param ast the tree
 **/
-int ast_exec(s_env *env, s_ast *ast, s_errcont *cont);
+int ast_exec(struct environment*env, struct ast *ast, struct errcont *cont);
 
 /**
 ** \brief free ast recursively
 ** \param ast the tree
 **/
-void ast_free(s_ast *ast);
+void ast_free(struct ast *ast);

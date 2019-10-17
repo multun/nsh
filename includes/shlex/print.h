@@ -14,4 +14,4 @@ const char *token_type_to_string(enum token_type);
 ** \param errcont the error context to fail into
 ** \return the resulting status code
 */
-int print_tokens(FILE *f, s_cstream *cs, s_errcont *errcont);
+int print_tokens(FILE *f, struct cstream *cs, struct errcont *errcont);

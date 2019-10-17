@@ -2,9 +2,9 @@
 
 #include "ast/ast.h"
 
-void list_print(FILE *f, s_ast *ast)
+void list_print(FILE *f, struct ast *ast)
 {
-    s_alist *alist = &ast->data.ast_list;
+    struct alist *alist = &ast->data.ast_list;
 
     void *id = ast;
     fprintf(f, "\"%p\" [label=\"LIST\"];\n", id);
@@ -17,9 +17,9 @@ void list_print(FILE *f, s_ast *ast)
     }
 }
 
-int list_exec(s_env *env, s_ast *ast, s_errcont *cont)
+int list_exec(struct environment *env, struct ast *ast, struct errcont *cont)
 {
-    s_alist *alist = &ast->data.ast_list;
+    struct alist *alist = &ast->data.ast_list;
     while (alist->next) {
         ast_exec(env, alist->action, cont);
         alist = alist->next;
@@ -27,7 +27,7 @@ int list_exec(s_env *env, s_ast *ast, s_errcont *cont)
     return ast_exec(env, alist->action, cont);
 }
 
-static void list_free_rec(s_alist *list, bool free_buf)
+static void list_free_rec(struct alist *list, bool free_buf)
 {
     if (!list)
         return;

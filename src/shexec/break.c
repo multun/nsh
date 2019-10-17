@@ -4,4 +4,4 @@
 #include <errno.h>
 #include <stdarg.h>
 
-s_ex_class g_lbreak;
+struct ex_class g_lbreak;

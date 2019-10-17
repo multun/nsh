@@ -10,7 +10,7 @@
 
 #include <err.h>
 
-static void try_read_eval(s_lexer *lex, s_errcont *errcont, s_context *cont)
+static void try_read_eval(struct lexer *lex, struct errcont *errcont, struct context *cont)
 {
     parse(&cont->ast, lex, errcont);
     if (!cont->ast)
@@ -27,7 +27,7 @@ static void try_read_eval(s_lexer *lex, s_errcont *errcont, s_context *cont)
 }
 
 // returns whether to stop the loop
-static bool handle_repl_exception(s_errman *eman, s_context *cont)
+static bool handle_repl_exception(struct errman *eman, struct context *cont)
 {
     if (eman->class == &g_clean_exit) {
         cont->env->code = eman->retcode;
@@ -57,10 +57,10 @@ static bool handle_repl_exception(s_errman *eman, s_context *cont)
     return !cont->cs->interactive;
 }
 
-bool repl(s_context *ctx)
+bool repl(struct context *ctx)
 {
-    s_errman eman = ERRMAN;
-    s_keeper keeper = KEEPER(NULL);
+    struct errman eman = ERRMAN;
+    struct keeper keeper = KEEPER(NULL);
     struct errcont errcont = ERRCONT(&eman, &keeper);
 
     volatile bool running = true;
@@ -82,7 +82,7 @@ bool repl(s_context *ctx)
         cstream_set_errcont(ctx->cs, NULL);
 
         /* create a lexer */
-        s_lexer *lex = lexer_create(ctx->cs);
+        struct lexer *lex = lexer_create(ctx->cs);
 
         ctx->ast = NULL;
         /* parse and execute */

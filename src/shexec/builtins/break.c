@@ -6,7 +6,7 @@
 #include "utils/alloc.h"
 
 #define BREAK_BASE(Name, Continue)                                                       \
-    int builtin_##Name(s_env *env, s_errcont *cont, int argc, char **argv)               \
+    int builtin_##Name(struct environment *env, struct errcont *cont, int argc, char **argv)               \
     {                                                                                    \
         if (argc > 2) {                                                                  \
             warnx(#Name ": too many arguments");                                         \

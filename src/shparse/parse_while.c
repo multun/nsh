@@ -2,7 +2,7 @@
 #include "shlex/print.h"
 #include "utils/alloc.h"
 
-void parse_rule_while(s_ast **res, s_lexer *lexer, s_errcont *errcont)
+void parse_rule_while(struct ast **res, struct lexer *lexer, struct errcont *errcont)
 {
     tok_free(lexer_pop(lexer, errcont), true);
     *res = ast_create(SHNODE_WHILE, lexer);
@@ -10,7 +10,7 @@ void parse_rule_while(s_ast **res, s_lexer *lexer, s_errcont *errcont)
     parse_do_group(&(*res)->data.ast_while.actions, lexer, errcont);
 }
 
-void parse_rule_until(s_ast **res, s_lexer *lexer, s_errcont *errcont)
+void parse_rule_until(struct ast **res, struct lexer *lexer, struct errcont *errcont)
 {
     tok_free(lexer_pop(lexer, errcont), true);
     *res = ast_create(SHNODE_UNTIL, lexer);
@@ -18,9 +18,9 @@ void parse_rule_until(s_ast **res, s_lexer *lexer, s_errcont *errcont)
     parse_do_group(&(*res)->data.ast_until.actions, lexer, errcont);
 }
 
-void parse_do_group(s_ast **res, s_lexer *lexer, s_errcont *errcont)
+void parse_do_group(struct ast **res, struct lexer *lexer, struct errcont *errcont)
 {
-    const s_token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, errcont);
     if (!tok_is(tok, TOK_DO))
         PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s, expected 'do'",
                      TOKT_STR(tok));

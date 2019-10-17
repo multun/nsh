@@ -5,13 +5,13 @@
 /**
 ** \brief represents a pipe node
 */
-typedef struct apipe
+struct apipe
 {
     struct ast *left; /**< the left operand */
     struct ast *right; /**< the right operand */
-} s_apipe;
+};
 
-#define APIPE(Left, Right) ((s_apipe){(Left), (Right)})
+#define APIPE(Left, Right) ((struct apipe){(Left), (Right)})
 
 #define AST_PIPE(Left, Right) AST(SHNODE_PIPE, pipe, APIPE(Left, Right))
 
@@ -28,4 +28,4 @@ void pipe_free(struct ast *ast);
 /**
 ** \brief free a pipe node
 */
-int pipe_exec(s_env *env, struct ast *ast, s_errcont *cont);
+int pipe_exec(struct environment*env, struct ast *ast, struct errcont *cont);

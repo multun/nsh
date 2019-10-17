@@ -6,13 +6,13 @@
 /**
 ** \brief represents a subshell
 */
-typedef struct asubshell
+struct asubshell
 {
     struct ast *action; /**< the subshell command */
-} s_asubshell;
+};
 
 #define ASUBSHELL(Name, Value, Action)                                                   \
-    ((s_aassignment){                                                                    \
+    ((struct aassignment){                                                                    \
         .action = Action,                                                                \
     })
 
@@ -27,7 +27,7 @@ void subshell_print(FILE *f, struct ast *ast);
 /**
 ** \brief exec a subshell node
 */
-int subshell_exec(s_env *env, struct ast *ast, s_errcont *cont);
+int subshell_exec(struct environment *env, struct ast *ast, struct errcont *cont);
 
 /**
 ** \brief free a subshell node

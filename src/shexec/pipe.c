@@ -7,9 +7,9 @@
 #include "ast/ast.h"
 #include "shexec/clean_exit.h"
 
-void pipe_print(FILE *f, s_ast *ast)
+void pipe_print(FILE *f, struct ast *ast)
 {
-    s_apipe *apipe = &ast->data.ast_pipe;
+    struct apipe *apipe = &ast->data.ast_pipe;
     void *id = ast;
     fprintf(f, "\"%p\" [label=\"|\"];\n", id);
 
@@ -92,9 +92,9 @@ static bool pipe_init(struct pipe_context *pc)
     return false;
 }
 
-int pipe_exec(s_env *env, s_ast *ast, s_errcont *cont)
+int pipe_exec(struct environment *env, struct ast *ast, struct errcont *cont)
 {
-    s_apipe *apipe = &ast->data.ast_pipe;
+    struct apipe *apipe = &ast->data.ast_pipe;
     struct pipe_context pc;
     if (pipe_init(&pc))
         return 1;

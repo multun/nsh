@@ -4,20 +4,20 @@
 #include "ast/assignment.h"
 #include "shexec/builtins.h"
 #include "shexp/expansion.h"
-#include "shexec/variable.h"
+#include "shlex/variable.h"
 #include "utils/alloc.h"
 
-static void unexport_var(s_env *env, char *name)
+static void unexport_var(struct environment *env, char *name)
 {
     struct pair *prev = htable_access(env->vars, name);
     if (prev) {
-        s_var *var = prev->value;
+        struct variable *var = prev->value;
         var->to_export = false;
     }
     free(name);
 }
 
-static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
+static int export_var(struct environment *env, char *entry, bool remove, struct errcont *cont)
 {
     int res = 0;
     char *var = expand(NULL, entry, env, cont);
@@ -45,13 +45,13 @@ static int export_var(s_env *env, char *entry, bool remove, s_errcont *cont)
     return res;
 }
 
-static void export_print(s_env *env)
+static void export_print(struct environment *env)
 {
-    s_htable *vars = env->vars;
+    struct htable *vars = env->vars;
     for (size_t i = 0; i < vars->capacity; i++) {
         struct pair *pair = vars->tab[i];
         while (pair) {
-            s_var *var = pair->value;
+            struct variable *var = pair->value;
             if (var->to_export && var->value)
                 printf("export %s=\"%s\"\n", pair->key, var->value);
             else if (var->to_export)
@@ -61,7 +61,7 @@ static void export_print(s_env *env)
     }
 }
 
-int builtin_export(s_env *env, s_errcont *cont, int argc, char **argv)
+int builtin_export(struct environment *env, struct errcont *cont, int argc, char **argv)
 {
     if (!env || !cont)
         warnx("export: missing context elements");

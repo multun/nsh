@@ -6,13 +6,13 @@
 /**
 ** \brief represents a function node
 */
-typedef struct afunction
+struct afunction
 {
-    s_wordlist *name; /**< the function name */
+    struct wordlist *name; /**< the function name */
     struct ast *value; /**< the function body */
-} s_afunction;
+};
 
-#define AFUNCTION(Name, Value) ((s_afunction){(Name), (Value)})
+#define AFUNCTION(Name, Value) ((struct afunction){(Name), (Value)})
 
 #define AST_AFUNCTION(Name, Value)                                                       \
   AST(SHNODE_FUNCTION, function, AFUNCTION(Name, Value)
@@ -30,4 +30,4 @@ void function_free(struct ast *ast);
 /**
 ** \brief free a function node
 */
-int function_exec(s_env *env, struct ast *ast, s_errcont *cont);
+int function_exec(struct environment*env, struct ast *ast, struct errcont *cont);

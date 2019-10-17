@@ -8,14 +8,14 @@
 #include <stdbool.h>
 
 
-typedef struct variable
+struct variable
 {
     bool to_export;
     char *value;
-} s_var;
+};
 
 #define VARIABLE(Value)                                                                  \
-    ((s_var){                                                                            \
+    ((struct variable){                                                                            \
         .to_export = false,                                                              \
         .value = Value,                                                                  \
     })

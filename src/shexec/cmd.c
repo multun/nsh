@@ -13,10 +13,10 @@
 #include "shexec/environment.h"
 #include "utils/hash_table.h"
 
-void cmd_print(FILE *f, s_ast *node)
+void cmd_print(FILE *f, struct ast *node)
 {
     void *id = node;
-    s_wordlist *wl = node->data.ast_cmd.wordlist;
+    struct wordlist *wl = node->data.ast_cmd.wordlist;
     fprintf(f, "\"%p\" [label=\"CMD\\n%s", id, wl->str);
     wl = wl->next;
     while (wl) {
@@ -26,14 +26,14 @@ void cmd_print(FILE *f, s_ast *node)
     fprintf(f, "\"];\n");
 }
 
-static int builtin_exec(s_env *env, s_errcont *cont, f_builtin builtin)
+static int builtin_exec(struct environment *env, struct errcont *cont, f_builtin builtin)
 {
     int res = builtin(env, cont, argv_count(env->argv), env->argv);
     fflush(stdout);
     return res;
 }
 
-static int cmd_exec_argv(s_env *env, s_errcont *cont)
+static int cmd_exec_argv(struct environment *env, struct errcont *cont)
 {
     struct pair *p = htable_access(env->functions, env->argv[0]);
     if (p)
@@ -58,12 +58,12 @@ static int cmd_exec_argv(s_env *env, s_errcont *cont)
     return WEXITSTATUS(status);
 }
 
-int cmd_exec(s_env *env, s_ast *node, s_errcont *cont)
+int cmd_exec(struct environment *env, struct ast *node, struct errcont *cont)
 {
-    s_wordlist *wl = node->data.ast_cmd.wordlist;
+    struct wordlist *wl = node->data.ast_cmd.wordlist;
     int volatile prev_argc = env->argc;
     char **volatile prev_argv = env->argv;
-    s_keeper keeper = KEEPER(cont->keeper);
+    struct keeper keeper = KEEPER(cont->keeper);
 
     int res = 0;
     if (setjmp(keeper.env)) {
@@ -74,7 +74,7 @@ int cmd_exec(s_env *env, s_ast *node, s_errcont *cont)
         }
         shraise(cont, NULL);
     } else {
-        s_errcont ncont = ERRCONT(cont->errman, &keeper);
+        struct errcont ncont = ERRCONT(cont->errman, &keeper);
         wordlist_to_argv(&env->argv, wl, env, &ncont);
         res = cmd_exec_argv(env, &ncont);
     }

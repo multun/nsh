@@ -6,7 +6,7 @@
 
 #include "shexec/environment.h"
 #include "shexp/expansion.h"
-#include "shexec/variable.h"
+#include "shlex/variable.h"
 #include "utils/alloc.h"
 #include "utils/evect.h"
 #include "utils/mprintf.h"
@@ -17,7 +17,7 @@ static char *expand_pid(void)
     return mprintf("%u", id);
 }
 
-static char *expand_args(s_env *env)
+static char *expand_args(struct environment *env)
 {
     struct evect vec;
     evect_init(&vec, 10);
@@ -33,7 +33,7 @@ static char *expand_args(s_env *env)
     return vec.data;
 }
 
-static char *expand_sharp(s_env *env)
+static char *expand_sharp(struct environment *env)
 {
     // the shell argc always is one step behind the C argc
     int argc = env->argc;
@@ -49,12 +49,12 @@ static char *expand_sharp(s_env *env)
     return mprintf("%d", argc);
 }
 
-static char *expand_return(s_env *env)
+static char *expand_return(struct environment *env)
 {
     return mprintf("%u", (256 + env->code) % 256);
 }
 
-char *special_char_lookup(s_env *env, char var)
+char *special_char_lookup(struct environment *env, char var)
 {
     switch (var) {
     case '@':

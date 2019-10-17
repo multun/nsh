@@ -4,9 +4,9 @@
 #include "shexec/break.h"
 #include "shexec/environment.h"
 
-void while_print(FILE *f, s_ast *ast)
+void while_print(FILE *f, struct ast *ast)
 {
-    s_awhile *awhile = &ast->data.ast_while;
+    struct awhile *awhile = &ast->data.ast_while;
     void *id = ast;
     fprintf(f, "\"%p\" [label=\"WHILE\"];\n", id);
 
@@ -19,12 +19,12 @@ void while_print(FILE *f, s_ast *ast)
     fprintf(f, "\"%p\" -> \"%p\" [label=\"DO\"];\n", id, id_do);
 }
 
-int while_exec(s_env *env, s_ast *ast, s_errcont *cont)
+int while_exec(struct environment *env, struct ast *ast, struct errcont *cont)
 {
-    s_awhile *awhile = &ast->data.ast_while;
+    struct awhile *awhile = &ast->data.ast_while;
     volatile int res = 0;
-    s_keeper keeper = KEEPER(cont->keeper);
-    s_errcont ncont = ERRCONT(cont->errman, &keeper);
+    struct keeper keeper = KEEPER(cont->keeper);
+    struct errcont ncont = ERRCONT(cont->errman, &keeper);
     env->depth++;
 
     volatile bool local_continue = true;

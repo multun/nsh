@@ -5,7 +5,7 @@
 #include "utils/alloc.h"
 #include "shlex/print.h"
 
-bool start_redir(const s_token *tok)
+bool start_redir(const struct token *tok)
 {
     return tok_is(tok, TOK_IO_NUMBER) || tok_is(tok, TOK_DLESS) || tok_is(tok, TOK_DGREAT)
         || tok_is(tok, TOK_LESSAND) || tok_is(tok, TOK_GREATAND)
@@ -13,34 +13,34 @@ bool start_redir(const s_token *tok)
         || tok_is(tok, TOK_CLOBBER) || tok_is(tok, TOK_LESS) || tok_is(tok, TOK_GREAT);
 }
 
-static void parse_assignment(s_ast **res, s_lexer *lexer, s_errcont *errcont)
+static void parse_assignment(struct ast **res, struct lexer *lexer, struct errcont *errcont)
 {
     *res = ast_create(SHNODE_ASSIGNMENT, lexer);
-    s_token *tok = lexer_pop(lexer, errcont);
+    struct token *tok = lexer_pop(lexer, errcont);
     char *val = strchr(tok_buf(tok), '=');
 
     *val = '\0';
     val++;
-    s_wordlist *name = xcalloc(sizeof(s_wordlist), 1);
+    struct wordlist *name = xcalloc(sizeof(struct wordlist), 1);
     *name = WORDLIST(tok_buf(tok), false, false, NULL);
-    s_wordlist *value = xcalloc(sizeof(s_wordlist), 1);
+    struct wordlist *value = xcalloc(sizeof(struct wordlist), 1);
     *value = WORDLIST(val, true, true, NULL);
     tok_free(tok, false);
     (*res)->data.ast_assignment = AASSIGNMENT(name, value, NULL);
 }
 
 // TODO: fix obsolete architecture
-typedef struct block_builder
+struct block_builder
 {
-    s_ablock *block;
-    s_ast *assign;
-    s_ast *redir;
-    s_wordlist *elm;
-} s_bbuilder;
+    struct ablock *block;
+    struct ast *assign;
+    struct ast *redir;
+    struct wordlist *elm;
+};
 
-static bool loop_redir(s_lexer *lexer, s_errcont *errcont, s_bbuilder *build)
+static bool loop_redir(struct lexer *lexer, struct errcont *errcont, struct block_builder *build)
 {
-    s_ast **target;
+    struct ast **target;
     if (build->redir)
         target = &build->redir->data.ast_redirection.action;
     else
@@ -50,12 +50,12 @@ static bool loop_redir(s_lexer *lexer, s_errcont *errcont, s_bbuilder *build)
     return true;
 }
 
-static bool prefix_loop(s_lexer *lexer, s_errcont *errcont, s_bbuilder *build)
+static bool prefix_loop(struct lexer *lexer, struct errcont *errcont, struct block_builder *build)
 {
-    const s_token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, errcont);
     while (tok_is(tok, TOK_ASSIGNMENT_WORD) || start_redir(tok)) {
         if (tok_is(tok, TOK_ASSIGNMENT_WORD)) {
-            s_ast **target;
+            struct ast **target;
             if (build->assign)
                 target = &build->assign->data.ast_assignment.action;
             else
@@ -69,12 +69,12 @@ static bool prefix_loop(s_lexer *lexer, s_errcont *errcont, s_bbuilder *build)
     return true;
 }
 
-static bool element_loop(s_lexer *lexer, s_errcont *errcont, s_bbuilder *build)
+static bool element_loop(struct lexer *lexer, struct errcont *errcont, struct block_builder *build)
 {
-    const s_token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, errcont);
     while (tok_is(tok, TOK_WORD) || start_redir(tok)) {
         if (tok_is(tok, TOK_WORD)) {
-            s_wordlist **target;
+            struct wordlist **target;
             if (build->elm)
                 target = &build->elm->next;
             else {
@@ -90,11 +90,11 @@ static bool element_loop(s_lexer *lexer, s_errcont *errcont, s_bbuilder *build)
     return true;
 }
 
-void parse_simple_command(s_ast **res, s_lexer *lexer, s_errcont *errcont)
+void parse_simple_command(struct ast **res, struct lexer *lexer, struct errcont *errcont)
 {
     *res = ast_create(SHNODE_BLOCK, lexer);
     (*res)->data.ast_block = ABLOCK(NULL, NULL, NULL);
-    s_bbuilder builder = {
+    struct block_builder builder = {
         .block = &(*res)->data.ast_block,
         .assign = NULL,
         .redir = NULL,
@@ -106,7 +106,7 @@ void parse_simple_command(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 
     if (!(*res)->data.ast_block.redir && !(*res)->data.ast_block.def
         && !(*res)->data.ast_block.cmd) {
-        const s_token *tok = lexer_peek(lexer, errcont);
+        const struct token *tok = lexer_peek(lexer, errcont);
         PARSER_ERROR(&tok->lineinfo, errcont, "parsing error %s", TOKT_STR(tok));
     }
 }

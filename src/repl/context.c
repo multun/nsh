@@ -11,9 +11,9 @@
 #include <string.h>
 #include <unistd.h>
 
-static bool context_load_rc(s_env *env, const char *path, const char *source)
+static bool context_load_rc(struct environment *env, const char *path, const char *source)
 {
-    s_context cont;
+    struct context cont;
     memset(&cont, 0, sizeof(cont));
     FILE *file = fopen(path, "r");
     int res;
@@ -33,7 +33,7 @@ static bool context_load_rc(s_env *env, const char *path, const char *source)
     return should_exit;
 }
 
-static bool context_load_all_rc(s_context *cont)
+static bool context_load_all_rc(struct context *cont)
 {
     const char global_rc[] = "/etc/42shrc";
     if (context_load_rc(cont->env, global_rc, global_rc))
@@ -45,7 +45,7 @@ static bool context_load_all_rc(s_context *cont)
     return should_exit;
 }
 
-bool context_init(int *rc, s_context *cont, struct cstream *cs, struct arg_context *arg_cont)
+bool context_init(int *rc, struct context *cont, struct cstream *cs, struct arg_context *arg_cont)
 {
     cont->cs = cs;
     cont->env = environment_create(arg_cont);
@@ -59,7 +59,7 @@ bool context_init(int *rc, s_context *cont, struct cstream *cs, struct arg_conte
     return false;
 }
 
-void context_destroy(s_context *cont)
+void context_destroy(struct context *cont)
 {
     environment_free(cont->env);
     history_destroy(cont);

@@ -26,7 +26,7 @@ FILE *history_open(void)
     return ret;
 }
 
-void history_init(s_context *ctx)
+void history_init(struct context *ctx)
 {
     if (!ctx->cs->interactive) {
         ctx->history = NULL;
@@ -38,7 +38,7 @@ void history_init(s_context *ctx)
     ctx->history = history_open();
 }
 
-void history_update(s_context *ctx)
+void history_update(struct context *ctx)
 {
     if (!ctx->cs->interactive)
         return;
@@ -66,7 +66,7 @@ void history_update(s_context *ctx)
         ctx->line_buffer.size = 0;
 }
 
-void history_destroy(s_context *ctx)
+void history_destroy(struct context *ctx)
 {
     if (!ctx->history)
         return;

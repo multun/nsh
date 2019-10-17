@@ -3,17 +3,17 @@
 #include <stdio.h>
 #include <string.h>
 
-void case_print(FILE *f, s_ast *ast)
+void case_print(FILE *f, struct ast *ast)
 {
-    s_acase *acase = &ast->data.ast_case;
+    struct acase *acase = &ast->data.ast_case;
     void *id = ast;
     fprintf(f, "\"%p\" [label=\"CASE\"];\n", id);
-    s_acase_node *node = acase->nodes;
+    struct acase_node *node = acase->nodes;
 
     while (node) {
         ast_print_rec(f, node->action);
         void *id_next = node->action;
-        s_wordlist *pattern = node->pattern;
+        struct wordlist *pattern = node->pattern;
         fprintf(f, "\"%p\" -> \"%p\" [label=\"%s", id, id_next, pattern->str);
         pattern = pattern->next;
         while (pattern) {
@@ -25,13 +25,13 @@ void case_print(FILE *f, s_ast *ast)
     }
 }
 
-int case_exec(s_env *env, s_ast *ast, s_errcont *cont)
+int case_exec(struct environment *env, struct ast *ast, struct errcont *cont)
 {
-    s_acase *acase = &ast->data.ast_case;
-    s_acase_node *node = acase->nodes;
+    struct acase *acase = &ast->data.ast_case;
+    struct acase_node *node = acase->nodes;
 
     while (node) {
-        s_wordlist *pattern = node->pattern;
+        struct wordlist *pattern = node->pattern;
         while (pattern) {
             if (!strcmp(pattern->str, pattern->str))
                 return ast_exec(env, node->action, cont);
@@ -42,7 +42,7 @@ int case_exec(s_env *env, s_ast *ast, s_errcont *cont)
     return 0;
 }
 
-static void case_node_free(s_acase_node *casen)
+static void case_node_free(struct acase_node *casen)
 {
     if (!casen)
         return;

@@ -14,13 +14,13 @@
 
 #define SHOPT_ENUMIZE(EName, Repr) SHOPT_##EName,
 
-typedef enum shopt
+enum shopt
 {
     SHOPTS_APPLY(SHOPT_ENUMIZE)
     // this guard counts the number
     // of elements in the enum
     SHOPT_COUNT,
-} e_shopt;
+};
 
 extern int g_shopts[SHOPT_COUNT];
 
@@ -28,7 +28,7 @@ extern int g_shopts[SHOPT_COUNT];
 ** \brief returns the shopt enum value from its string representation
 ** \return SHOPT_COUNT on fail, the corresponding enum value otherwise
 */
-e_shopt shopt_from_string(const char *str);
+enum shopt shopt_from_string(const char *str);
 
 /**
 ** \brief returns the string representation of a shopt

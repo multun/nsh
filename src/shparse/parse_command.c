@@ -3,18 +3,18 @@
 #include "utils/alloc.h"
 #include "utils/error.h"
 
-static bool is_first_keyword(const s_token *tok)
+static bool is_first_keyword(const struct token *tok)
 {
     return tok_is(tok, TOK_IF) || tok_is(tok, TOK_FOR) || tok_is(tok, TOK_WHILE)
         || tok_is(tok, TOK_UNTIL) || tok_is(tok, TOK_CASE);
 }
 
-static s_ast *redirection_loop_sec(s_lexer *lexer, s_errcont *errcont, s_ast *res)
+static struct ast *redirection_loop_sec(struct lexer *lexer, struct errcont *errcont, struct ast *res)
 {
-    const s_token *tok = lexer_peek(lexer, errcont);
-    s_ast *redir = NULL;
+    const struct token *tok = lexer_peek(lexer, errcont);
+    struct ast *redir = NULL;
     while (start_redir(tok)) { // TODO: HEREDOC
-        s_ast **target;
+        struct ast **target;
         if (redir)
             target = &redir->data.ast_redirection.action;
         else
@@ -26,9 +26,9 @@ static s_ast *redirection_loop_sec(s_lexer *lexer, s_errcont *errcont, s_ast *re
     return res;
 }
 
-static s_ast *redirection_loop(s_lexer *lexer, s_ast *cmd, s_errcont *errcont)
+static struct ast *redirection_loop(struct lexer *lexer, struct ast *cmd, struct errcont *errcont)
 {
-    s_ast *res = ast_create(SHNODE_BLOCK, lexer);
+    struct ast *res = ast_create(SHNODE_BLOCK, lexer);
     res->data.ast_block = ABLOCK(NULL, NULL, cmd);
     res = redirection_loop_sec(lexer, errcont, res);
     if (cmd->type == SHNODE_FUNCTION) {
@@ -39,9 +39,9 @@ static s_ast *redirection_loop(s_lexer *lexer, s_ast *cmd, s_errcont *errcont)
     return res;
 }
 
-static bool chose_shell_func(s_lexer *lexer, s_errcont *errcont, s_ast **res)
+static bool chose_shell_func(struct lexer *lexer, struct errcont *errcont, struct ast **res)
 {
-    const s_token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, errcont);
     bool shell =
         is_first_keyword(tok) || tok_is(tok, TOK_LBRACE) || tok_is(tok, TOK_LPAR);
     if (shell)
@@ -55,12 +55,12 @@ static bool chose_shell_func(s_lexer *lexer, s_errcont *errcont, s_ast **res)
     return true;
 }
 
-void parse_command(s_ast **res, s_lexer *lexer, s_errcont *errcont)
+void parse_command(struct ast **res, struct lexer *lexer, struct errcont *errcont)
 {
     // TODO: change chose_shell_func api
     if (!chose_shell_func(lexer, errcont, res)) {
-        s_token *word = lexer_peek(lexer, errcont);
-        const s_token *tok = lexer_peek_at(lexer, word, errcont);
+        struct token *word = lexer_peek(lexer, errcont);
+        const struct token *tok = lexer_peek_at(lexer, word, errcont);
         bool is_par = tok_is(tok, TOK_LPAR);
         if (is_par)
             parse_funcdec(res, lexer, errcont);
@@ -73,9 +73,9 @@ void parse_command(s_ast **res, s_lexer *lexer, s_errcont *errcont)
     *res = redirection_loop(lexer, *res, errcont);
 }
 
-static void switch_first_keyword(s_ast **res, s_lexer *lexer, s_errcont *errcont)
+static void switch_first_keyword(struct ast **res, struct lexer *lexer, struct errcont *errcont)
 {
-    const s_token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, errcont);
     if (tok_is(tok, TOK_IF))
         parse_rule_if(res, lexer, errcont);
     else if (tok_is(tok, TOK_FOR))
@@ -90,10 +90,10 @@ static void switch_first_keyword(s_ast **res, s_lexer *lexer, s_errcont *errcont
         PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s", TOKT_STR(tok));
 }
 
-static void parse_shell_command_sub(s_ast **res, s_lexer *lexer, s_errcont *errcont,
+static void parse_shell_command_sub(struct ast **res, struct lexer *lexer, struct errcont *errcont,
                                     bool par)
 {
-    const s_token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, errcont);
     if (!par && tok_is(tok, TOK_LPAR)) {
         *res = ast_create(SHNODE_SUBSHELL, lexer);
         parse_shell_command_sub(&(*res)->data.ast_subshell.action, lexer, errcont, true);
@@ -109,7 +109,7 @@ static void parse_shell_command_sub(s_ast **res, s_lexer *lexer, s_errcont *errc
         switch_first_keyword(res, lexer, errcont);
 }
 
-void parse_shell_command(s_ast **res, s_lexer *lexer, s_errcont *errcont)
+void parse_shell_command(struct ast **res, struct lexer *lexer, struct errcont *errcont)
 {
     parse_shell_command_sub(res, lexer, errcont, false);
 }

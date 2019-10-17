@@ -1,9 +1,9 @@
 #include "shparse/parse.h"
 #include "shlex/print.h"
 
-static bool parse_func_remove_par(s_lexer *lexer, s_errcont *errcont)
+static bool parse_func_remove_par(struct lexer *lexer, struct errcont *errcont)
 {
-    const s_token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, errcont);
     if (!tok_is(tok, TOK_LPAR))
         PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s, expected '('",
                      TOKT_STR(tok));
@@ -15,12 +15,12 @@ static bool parse_func_remove_par(s_lexer *lexer, s_errcont *errcont)
     return true;
 }
 
-void parse_funcdec(s_ast **res, s_lexer *lexer, s_errcont *errcont)
+void parse_funcdec(struct ast **res, struct lexer *lexer, struct errcont *errcont)
 {
     *res = ast_create(SHNODE_FUNCTION, lexer);
 
-    s_token *word = lexer_pop(lexer, errcont);
-    s_wordlist *name = xcalloc(sizeof(s_wordlist), 1);
+    struct token *word = lexer_pop(lexer, errcont);
+    struct wordlist *name = xcalloc(sizeof(struct wordlist), 1);
     *name = WORDLIST(tok_buf(word), true, true, NULL);
     (*res)->data.ast_function.name = name;
     tok_free(word, false);

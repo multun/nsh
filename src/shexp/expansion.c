@@ -39,7 +39,7 @@ void expansion_warning(struct expansion_state *exp_state, const char *fmt, ...)
     va_end(ap);
 }
 
-static char *arguments_var_lookup(s_env *env, char c)
+static char *arguments_var_lookup(struct environment *env, char c)
 {
     if (c < '0' || c > '9')
         return NULL;
@@ -53,7 +53,7 @@ static char *arguments_var_lookup(s_env *env, char c)
     return strdup(env->argv[arg_index]);
 }
 
-static char *special_var_lookup(s_env *env, char *var)
+static char *special_var_lookup(struct environment *env, char *var)
 {
     assert(var[0]);
     if (var[1] != '\0')
@@ -78,7 +78,7 @@ static char *builtin_var_lookup(char *var)
     return NULL;
 }
 
-char *expand_name(s_env *env, char *var)
+char *expand_name(struct environment *env, char *var)
 {
     char *res;
     if ((res = special_var_lookup(env, var)))
@@ -90,7 +90,7 @@ char *expand_name(s_env *env, char *var)
     if (!var_pair)
         return NULL;
 
-    s_var *nvar = var_pair->value;
+    struct variable *nvar = var_pair->value;
     // TODO: find a way to avoid that strdup
     return strdup(nvar->value);
 }
@@ -375,7 +375,7 @@ static void expand_guarded(struct expansion_state *exp_state,
     }
 }
 
-char *expand(struct lineinfo *line_info, char *str, s_env *env, s_errcont *errcont)
+char *expand(struct lineinfo *line_info, char *str, struct environment *env, struct errcont *errcont)
 {
     struct cstream_string cs;
     cstream_string_init(&cs, str);

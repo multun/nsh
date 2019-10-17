@@ -4,10 +4,10 @@
 #include "shlex/print.h"
 #include "utils/error.h"
 
-static void for_word_loop(s_wordlist **target, s_lexer *lexer, s_errcont *errcont)
+static void for_word_loop(struct wordlist **target, struct lexer *lexer, struct errcont *errcont)
 {
-    const s_token *tok = lexer_peek(lexer, errcont);
-    s_wordlist *tail = NULL;
+    const struct token *tok = lexer_peek(lexer, errcont);
+    struct wordlist *tail = NULL;
     while (!tok_is(tok, TOK_SEMI) && !tok_is(tok, TOK_NEWLINE)) {
         parse_word(target, lexer, errcont);
         tail = *target;
@@ -17,9 +17,9 @@ static void for_word_loop(s_wordlist **target, s_lexer *lexer, s_errcont *errcon
     tok_free(lexer_pop(lexer, errcont), true);
 }
 
-static void parse_in(s_wordlist **words, s_lexer *lexer, s_errcont *errcont)
+static void parse_in(struct wordlist **words, struct lexer *lexer, struct errcont *errcont)
 {
-    const s_token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, errcont);
     if (tok_is(tok, TOK_NEWLINE) || tok_is(tok, TOK_IN)) {
         parse_newlines(lexer, errcont);
         tok = lexer_peek(lexer, errcont);
@@ -33,9 +33,9 @@ static void parse_in(s_wordlist **words, s_lexer *lexer, s_errcont *errcont)
         tok_free(lexer_pop(lexer, errcont), true);
 }
 
-static bool parse_collection(s_lexer *lexer, s_errcont *errcont, s_ast *res)
+static bool parse_collection(struct lexer *lexer, struct errcont *errcont, struct ast *res)
 {
-    const s_token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, errcont);
     if (!tok_is(tok, TOK_DO)) {
         if (!tok_is(tok, TOK_NEWLINE) && !tok_is(tok, TOK_SEMI) && !tok_is(tok, TOK_IN))
             PARSER_ERROR(&tok->lineinfo, errcont,
@@ -48,7 +48,7 @@ static bool parse_collection(s_lexer *lexer, s_errcont *errcont, s_ast *res)
     return true;
 }
 
-void parse_rule_for(s_ast **res, s_lexer *lexer, s_errcont *errcont)
+void parse_rule_for(struct ast **res, struct lexer *lexer, struct errcont *errcont)
 {
     tok_free(lexer_pop(lexer, errcont), true);
     *res = ast_create(SHNODE_FOR, lexer);
@@ -57,7 +57,7 @@ void parse_rule_for(s_ast **res, s_lexer *lexer, s_errcont *errcont)
     if (!parse_collection(lexer, errcont, *res))
         return;
 
-    const s_token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, errcont);
     if (!tok_is(tok, TOK_DO))
         PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s, expected 'do'",
                      TOKT_STR(tok));

@@ -18,9 +18,9 @@
     F(export)
 
 #define BUILTINS_DECLARE(Name)                                                           \
-    int builtin_##Name(s_env *env, s_errcont *cont, int argc, char **argv);
+    int builtin_##Name(struct environment*env, struct errcont *cont, int argc, char **argv);
 
-typedef int (*f_builtin)(s_env *env, s_errcont *cont, int argc, char **argv);
+typedef int (*f_builtin)(struct environment*env, struct errcont *cont, int argc, char **argv);
 
 BUILTINS_APPLY(BUILTINS_DECLARE)
 

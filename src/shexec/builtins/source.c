@@ -9,7 +9,7 @@
 #include <fcntl.h>
 #include <string.h>
 
-static int source_file(s_errcont *cont, s_env *env, char *path)
+static int source_file(struct errcont *cont, struct environment *env, char *path)
 {
     struct context ctx;
     memset(&ctx, 0, sizeof(ctx));
@@ -33,7 +33,7 @@ static int source_file(s_errcont *cont, s_env *env, char *path)
     return rc;
 }
 
-int builtin_source(s_env *env, s_errcont *cont, int argc, char **argv)
+int builtin_source(struct environment *env, struct errcont *cont, int argc, char **argv)
 {
     if (argc > 2) {
         warnx("source: missing source");

@@ -7,12 +7,12 @@
 #include "shexp/expansion.h"
 #include "utils/alloc.h"
 
-void for_print(FILE *f, s_ast *ast)
+void for_print(FILE *f, struct ast *ast)
 {
-    s_afor *afor = &ast->data.ast_for;
+    struct afor *afor = &ast->data.ast_for;
     void *id = ast;
     fprintf(f, "\"%p\" [label=\"FOR %s in", id, afor->var->str);
-    s_wordlist *wl = afor->collection;
+    struct wordlist *wl = afor->collection;
     while (wl) {
         fprintf(f, " %s", wl->str);
         wl = wl->next;
@@ -23,8 +23,8 @@ void for_print(FILE *f, s_ast *ast)
     fprintf(f, "\"%p\" -> \"%p\" [label=\"DO\"];\n", id, id_do);
 }
 
-static void for_exception_handler(volatile bool *local_continue, s_errcont *cont,
-                                  s_env *env, s_wordlist *volatile *wl)
+static void for_exception_handler(volatile bool *local_continue, struct errcont *cont,
+                                  struct environment *env, struct wordlist *volatile *wl)
 {
     // the break builtin ensures no impossible break is emitted
     if (cont->errman->class != &g_lbreak || --env->break_count) {
@@ -36,17 +36,17 @@ static void for_exception_handler(volatile bool *local_continue, s_errcont *cont
         (*wl) = (*wl)->next;
 }
 
-int for_exec(s_env *env, s_ast *ast, s_errcont *cont)
+int for_exec(struct environment *env, struct ast *ast, struct errcont *cont)
 {
-    s_afor *afor = &ast->data.ast_for;
+    struct afor *afor = &ast->data.ast_for;
 
     volatile int ret = 0;
     volatile bool local_continue = true;
-    s_wordlist *volatile wl = afor->collection;
+    struct wordlist *volatile wl = afor->collection;
 
     env->depth++;
-    s_keeper keeper = KEEPER(cont->keeper);
-    s_errcont ncont = ERRCONT(cont->errman, &keeper);
+    struct keeper keeper = KEEPER(cont->keeper);
+    struct errcont ncont = ERRCONT(cont->errman, &keeper);
     if (setjmp(keeper.env))
         for_exception_handler(&local_continue, cont, env, &wl);
 

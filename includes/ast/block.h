@@ -6,15 +6,15 @@
 /**
 ** \brief represents a block node
 */
-typedef struct ablock
+struct ablock
 {
     struct ast *redir; /**< the redirection node */
     struct ast *def; /**< the assignment node */
     struct ast *cmd; /**< the command node */
-} s_ablock;
+};
 
 #define ABLOCK(Redir, Def, Cmd)                                                          \
-    ((s_ablock){                                                                         \
+    ((struct ablock){                                                                         \
         .redir = Redir,                                                                  \
         .def = Def,                                                                      \
         .cmd = Cmd,                                                                      \
@@ -28,7 +28,7 @@ void block_print(FILE *f, struct ast *node);
 /**
 ** \brief exec a block node
 */
-int block_exec(s_env *env, struct ast *ast, s_errcont *cont);
+int block_exec(struct environment*env, struct ast *ast, struct errcont *cont);
 
 /**
 ** \brief free a block node

@@ -7,13 +7,13 @@
 /**
 ** \brief represents an unitl node
 */
-typedef struct auntil
+struct auntil
 {
     struct ast *condition; /**< the loop condition */
     struct ast *actions; /**< the actions to execute into the loop */
-} s_auntil;
+};
 
-#define AUNTIL(Condition, Actions) ((s_auntil){(Condition), (Actions)})
+#define AUNTIL(Condition, Actions) ((struct auntil){(Condition), (Actions)})
 
 #define AST_AUNTIL(Condition, Actions)                                                   \
     AST(SHNODE_UNTIL, until, AUNTIL(Condition, Actions))
@@ -26,7 +26,7 @@ void until_print(FILE *f, struct ast *ast);
 /**
 ** \brief exec an until node
 */
-int until_exec(s_env *env, struct ast *ast, s_errcont *cont);
+int until_exec(struct environment*env, struct ast *ast, struct errcont *cont);
 
 /**
 ** \brief free an until node

@@ -3,9 +3,9 @@
 #include "ast/ast.h"
 #include "utils/hash_table.h"
 
-void function_print(FILE *f, s_ast *ast)
+void function_print(FILE *f, struct ast *ast)
 {
-    s_afunction *function = &ast->data.ast_function;
+    struct afunction *function = &ast->data.ast_function;
     void *id = ast;
     fprintf(f, "\"%p\" [label=\"FUNC\n%s\"];\n", id, function->name->str);
     void *id_next = function->value;
@@ -22,11 +22,11 @@ void function_free(struct ast *ast)
     free(ast);
 }
 
-int function_exec(s_env *env, s_ast *ast, s_errcont *cont)
+int function_exec(struct environment *env, struct ast *ast, struct errcont *cont)
 {
     if (!cont)
         abort();
-    s_afunction *function = &ast->data.ast_function;
+    struct afunction *function = &ast->data.ast_function;
     char *name = function->name->str;
     struct pair *prev = htable_access(env->functions, name);
     if (prev)

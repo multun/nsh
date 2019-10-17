@@ -8,19 +8,19 @@
 **   cleanly exit the program. Very little magic is done here, this
 **   exception assumes a handler will take it into account.
 */
-extern s_ex_class g_clean_exit;
+extern struct ex_class g_clean_exit;
 
 /**
 ** \brief prints a formated error message and exits using clean_exit, just like err
 ** \param fmt a format string
 */
-void ATTR(noreturn) clean_err(s_errcont *cont, int retcode, const char *fmt, ...);
+void ATTR(noreturn) clean_err(struct errcont *cont, int retcode, const char *fmt, ...);
 
 /**
 ** \brief prints a formated error message and exits using clean_exit, just like errx
 ** \param fmt a format string
 */
-void ATTR(noreturn) clean_errx(s_errcont *cont, int retcode, const char *fmt, ...);
+void ATTR(noreturn) clean_errx(struct errcont *cont, int retcode, const char *fmt, ...);
 
 
 /**
@@ -40,4 +40,4 @@ void ATTR(noreturn) clean_errx(s_errcont *cont, int retcode, const char *fmt, ..
 ** \param cont the error context to raise into
 ** \param retcode the status code to return with
 */
-void ATTR(noreturn) clean_exit(s_errcont *cont, int retcode);
+void ATTR(noreturn) clean_exit(struct errcont *cont, int retcode);

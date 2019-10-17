@@ -8,10 +8,10 @@
 #include "utils/alloc.h"
 #include "ast/assignment.h"
 #include "utils/hash_table.h"
-#include "shexec/variable.h"
+#include "shlex/variable.h"
 #include "shexec/builtin_cd.h"
 
-void update_pwd(bool oldpwd, s_env *env)
+void update_pwd(bool oldpwd, struct environment *env)
 {
     const size_t size = PATH_MAX;
     char *buf = xcalloc(size, sizeof(char));
@@ -24,12 +24,12 @@ void update_pwd(bool oldpwd, s_env *env)
     environment_var_assign(env, pwd, buf, true);
 }
 
-static int cd_from_env(const char *env_var, s_env *env, bool save)
+static int cd_from_env(const char *env_var, struct environment *env, bool save)
 {
     struct pair *p = htable_access(env->vars, env_var);
     char *path = NULL;
     if (p && p->value) {
-        s_var *var = p->value;
+        struct variable *var = p->value;
         path = var->value;
     }
 
@@ -53,7 +53,7 @@ static int cd_from_env(const char *env_var, s_env *env, bool save)
     return 0;
 }
 
-static int cd_with_minus(s_env *env)
+static int cd_with_minus(struct environment *env)
 {
     int res = cd_from_env("OLDPWD", env, true);
 
@@ -70,7 +70,7 @@ static int cd_with_minus(s_env *env)
     return res;
 }
 
-int builtin_cd(s_env *env, s_errcont *cont, int argc, char **argv)
+int builtin_cd(struct environment *env, struct errcont *cont, int argc, char **argv)
 {
     if (!env || !cont)
         warnx("cd: missing context elements");

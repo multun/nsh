@@ -7,7 +7,7 @@
 #include <err.h>
 #include <string.h>
 
-static int history_format(s_env *env)
+static int history_format(struct environment *env)
 {
     HISTORY_STATE *hstate = history_get_history_state();
     for (int i = 0; i < hstate->length; i++)
@@ -41,7 +41,7 @@ static int history_reload(void)
     return 0;
 }
 
-int builtin_history(s_env *env, s_errcont *cont, int argc, char **argv)
+int builtin_history(struct environment *env, struct errcont *cont, int argc, char **argv)
 {
     if (argc == 1 && cont)
         return history_format(env);

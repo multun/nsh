@@ -83,7 +83,7 @@
 ** \brief represents a token. it features a type, a delimiter, a
 **   string representation and a pointer to the next token in the stream.
 */
-typedef struct token
+struct token
 {
     enum token_type
     {
@@ -91,11 +91,11 @@ typedef struct token
             LEX_GEN_TOKS(LEX_GEN_TOKS_ENUM)
     } type;
 
-    s_lineinfo lineinfo;
+    struct lineinfo lineinfo;
     int delim;
     struct evect str;
     struct token *next;
-} s_token;
+};
 
 static inline char *tok_buf(const struct token *token)
 {
@@ -123,16 +123,16 @@ static inline void tok_push(struct token *token, char c)
 /**
 ** \brief represents a fully featured lexer
 */
-typedef struct lexer
+struct lexer
 {
     /* the head of the token stack */
-    s_token *head;
+    struct token *head;
     /* the toplevel word lexer */
     struct wlexer wlexer;
     /* using a global per lexer errcont avoids passing it around all functions
      * inside the lexer, which doesn't create new contexts anyway */
-    s_errcont *errcont;
-} s_lexer;
+    struct errcont *errcont;
+};
 
 static inline struct lineinfo *lexer_line_info(struct lexer *lexer)
 {
@@ -148,29 +148,29 @@ enum wlexer_op sublexer_regular(struct lexer *lexer, struct wlexer *wlexer,
 /**
 ** \brief allocates a new token
 */
-s_token *tok_alloc(s_lexer *lexer);
+struct token *tok_alloc(struct lexer *lexer);
 
 /**
 ** \brief frees an allocated token
 ** \arg free_buf whether to free the underlying buffer
 */
-void tok_free(s_token *free, bool free_buf);
+void tok_free(struct token *free, bool free_buf);
 
 /**
 ** \brief tests whether a token can be of the requested type
 */
-bool tok_is(const s_token *tok, enum token_type type);
+bool tok_is(const struct token *tok, enum token_type type);
 
 /**
 ** \brief allocates a new lexer
 ** \param stream the character stream to bind the lexer to
 */
-s_lexer *lexer_create(s_cstream *stream);
+struct lexer *lexer_create(struct cstream *stream);
 
 /**
 ** \brief frees a lexer
 */
-void lexer_free(s_lexer *lexer);
+void lexer_free(struct lexer *lexer);
 
 /**
 ** \brief peeks a token without removing it from the stack
@@ -178,7 +178,7 @@ void lexer_free(s_lexer *lexer);
 ** \param errcont the error context
 ** \return the next token to be read
 */
-s_token *lexer_peek(s_lexer *lexer, s_errcont *errcont);
+struct token *lexer_peek(struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief peeks a token and removes it from the stack
@@ -186,7 +186,7 @@ s_token *lexer_peek(s_lexer *lexer, s_errcont *errcont);
 ** \param errcont the error context
 ** \return the next token
 */
-s_token *lexer_pop(s_lexer *lexer, s_errcont *errcont);
+struct token *lexer_pop(struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief peeks after an unpoped token
@@ -194,7 +194,7 @@ s_token *lexer_pop(s_lexer *lexer, s_errcont *errcont);
 ** \param lexer the lexer to peek at
 ** \param tok the token to peek after
 */
-s_token *lexer_peek_at(s_lexer *lexer, s_token *tok, s_errcont *errcont);
+struct token *lexer_peek_at(struct lexer *lexer, struct token *tok, struct errcont *errcont);
 
 /**
 ** \brief read a word lexer stream and shove it into a string
@@ -202,4 +202,4 @@ s_token *lexer_peek_at(s_lexer *lexer, s_token *tok, s_errcont *errcont);
 ** \param errcont the error context
 ** \param wlexer word lexer to pull words from
 */
-char *lexer_lex_string(s_errcont *errcont, struct wlexer *wlexer);
+char *lexer_lex_string(struct errcont *errcont, struct wlexer *wlexer);

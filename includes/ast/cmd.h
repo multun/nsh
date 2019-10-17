@@ -4,17 +4,15 @@
 #include "wordlist.h"
 #include "utils/error.h"
 
+struct ast;
+
 /**
 ** \brief represents a command node
 */
-typedef struct acmd
+struct acmd
 {
-    s_wordlist *wordlist; /**< the command to execute */
-} s_acmd;
-
-#define ACMD(Wordlist) ((s_acmd){(Wordlist)})
-
-#define AST_ACMD(Wordlist) AST(SHNODE_CMD, cmd, ACMD(Wordlist))
+    struct wordlist *wordlist; /**< the command to execute */
+};
 
 /**
 ** \brief print in dot format the representation of a command node
@@ -24,7 +22,7 @@ void cmd_print(FILE *f, struct ast *node);
 /**
 ** \brief exec a command node
 */
-int cmd_exec(s_env *env, struct ast *node, s_errcont *cont);
+int cmd_exec(struct environment*env, struct ast *node, struct errcont *cont);
 
 /**
 ** \brief free a command node

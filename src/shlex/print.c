@@ -17,12 +17,12 @@ const char *token_type_to_string(enum token_type type)
     return g_token_type_tab[type];
 }
 
-int print_tokens(FILE *f, s_cstream *cs, s_errcont *errcont)
+int print_tokens(FILE *f, struct cstream *cs, struct errcont *errcont)
 {
     int res = 0;
-    s_lexer *lex = lexer_create(cs);
+    struct lexer *lex = lexer_create(cs);
     while (!cstream_eof(cs)) {
-        s_token *tok = lexer_pop(lex, errcont);
+        struct token *tok = lexer_pop(lex, errcont);
         if (!tok) {
             res = 1;
             break;

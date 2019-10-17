@@ -19,7 +19,7 @@
 /**
 ** \brief represents a redirection node
 */
-typedef struct aredirection
+struct aredirection
 {
     enum redir_type
     {
@@ -28,10 +28,10 @@ typedef struct aredirection
     int left; /**< the io number */
     struct wordlist *right; /**< the command */
     struct ast *action; /**< the next redirection */
-} s_aredirection;
+};
 
 #define AREDIRECTION(Type, Left, Right, Action)                                          \
-    ((s_aredirection){(Type), (Left), (Right), (Action)})
+    ((struct aredirection){(Type), (Left), (Right), (Action)})
 
 #define AST_AREDIRECTION(Type, Left, Right, Action)                                      \
     AST(SHNODE_REDIRECTION, redirection, AREDIRECTION(Type, Left, Right, Action))
@@ -44,7 +44,7 @@ void redirection_print(FILE *f, struct ast *ast);
 /**
 ** \brief exec a redirection node
 */
-int redirection_exec(s_env *env, struct ast *ast, struct ast *cmd, s_errcont *cont);
+int redirection_exec(struct environment*env, struct ast *ast, struct ast *cmd, struct errcont *cont);
 
 /**
 ** \brief free a redirection node

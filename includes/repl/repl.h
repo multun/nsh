@@ -12,7 +12,7 @@
 /**
 ** \brief detailsribes the interpreted command line of the program
 */
-typedef struct arg_context
+struct arg_context
 {
     // the index of the program name inside the array.
     // may not be 0 in case -c is used
@@ -23,10 +23,10 @@ typedef struct arg_context
 
     int argc;
     char **argv;
-} s_arg_context;
+};
 
 #define ARG_CONTEXT(Argc, ArgcBase, Argv)                                                \
-    (s_arg_context)                                                                      \
+    (struct arg_context)                                                                      \
     {                                                                                    \
         .progname_ind = 0, .argc = (Argc), .argc_base = (ArgcBase), .argv = (Argv)       \
     }
@@ -34,10 +34,10 @@ typedef struct arg_context
 /**
 ** \brief detailsribes the current context of the read eval loop
 */
-typedef struct context
+struct context
 {
     // the runtime environment, such as functions and variables
-    s_env *env;
+    struct environment*env;
 
     // whether we should display the ps1 instead of the ps2
     // it may feel awkward to store this here, but it wouldn't
@@ -47,23 +47,23 @@ typedef struct context
     struct evect line_buffer;
 
     // the currently processed ast
-    s_ast *ast;
+    struct ast *ast;
 
     // the stream the context works on
-    s_cstream *cs;
+    struct cstream *cs;
 
     // the lexer the loops pulls data from
-    s_lexer *lexer;
+    struct lexer *lexer;
 
     // the history file, which may be NULL in case none should be opened
     FILE *history;
-} s_context;
+};
 
 /**
 ** \brief runs shell command from an already setup context
 ** \param ctx a runtime context
 */
-bool repl(s_context *ctx);
+bool repl(struct context *ctx);
 
 /**
 ** \brief initializes a context from command line arguments
@@ -75,10 +75,10 @@ bool repl(s_context *ctx);
 ** \param arg_cont the arguments to read from
 ** \returns whether the program should exit
 */
-bool context_init(int *rc, s_context *cont, struct cstream *cs, struct arg_context *arg_cont);
+bool context_init(int *rc, struct context *cont, struct cstream *cs, struct arg_context *arg_cont);
 
 /**
 ** \brief destroys an exiting context and all the ressources allocated
 **   by its init twin
 */
-void context_destroy(s_context *cont);
+void context_destroy(struct context *cont);

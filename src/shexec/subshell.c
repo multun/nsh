@@ -6,9 +6,9 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-void subshell_print(FILE *f, s_ast *ast)
+void subshell_print(FILE *f, struct ast *ast)
 {
-    s_asubshell *subshell = &ast->data.ast_subshell;
+    struct asubshell *subshell = &ast->data.ast_subshell;
     void *id = ast;
     fprintf(f, "\"%p\" [label=\"SUBSHELL\"];\n", id);
     void *id_next = subshell->action;
@@ -24,10 +24,10 @@ void subshell_free(struct ast *ast)
     free(ast);
 }
 
-int subshell_exec(s_env *env, s_ast *ast, s_errcont *cont)
+int subshell_exec(struct environment *env, struct ast *ast, struct errcont *cont)
 {
     // TODO: error handling
-    s_asubshell *asub = &ast->data.ast_subshell;
+    struct asubshell *asub = &ast->data.ast_subshell;
 
     int cpid = fork();
     if (cpid == 0)

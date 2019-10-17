@@ -11,7 +11,7 @@
 ** \param cont the error context to work with
 ** \return a malloc allocated expanded string
 */
-char *expand(struct lineinfo *line_info, char *str, s_env *env, s_errcont *errcont);
+char *expand(struct lineinfo *line_info, char *str, struct environment*env, struct errcont *errcont);
 
 /**
 ** \brief the expansion context
@@ -36,7 +36,7 @@ struct expansion_state {
 ** \param env the environment to expand from
 ** \param vec the vector to store the result in
 */
-void expand_subshell(s_errcont *cont, char *buf, s_env *env, struct evect *vec);
+void expand_subshell(struct errcont *cont, char *buf, struct environment*env, struct evect *vec);
 
 /**
 ** \brief expands an arithmetic expression into a character vector
@@ -45,7 +45,7 @@ void expand_subshell(s_errcont *cont, char *buf, s_env *env, struct evect *vec);
 ** \param vec the vector to store the result in
 ** \param errcont the error context to work with
 */
-void expand_arth(char **str, s_env *env, struct evect *vec, s_errcont *cont);
+void expand_arth(char **str, struct environment*env, struct evect *vec, struct errcont *cont);
 
 /**
 ** \brief prepare a arithmetic word to be expanded
@@ -54,7 +54,7 @@ void expand_arth(char **str, s_env *env, struct evect *vec, s_errcont *cont);
 ** \param cont the error context to work with
 ** \return the allocated buffer to give to expand
 */
-char *expand_arth_word(char *word, s_env *env, s_errcont *cont);
+char *expand_arth_word(char *word, struct environment*env, struct errcont *cont);
 
 /**
 ** \brief expands special single character variables,
@@ -63,7 +63,7 @@ char *expand_arth_word(char *word, s_env *env, s_errcont *cont);
 ** \param env the environment to expand from
 ** \param var the character being considered
 */
-char *special_char_lookup(s_env *env, char var);
+char *special_char_lookup(struct environment*env, char var);
 
 /**
 ** \brief expands to a random integer
@@ -77,7 +77,7 @@ char *expand_random(void);
 */
 char *expand_uid(void);
 
-char *expand_name(s_env *env, char *var);
+char *expand_name(struct environment*env, char *var);
 
 void __noreturn expansion_error(struct expansion_state *exp_state, const char *fmt, ...);
 void expansion_warning(struct expansion_state *exp_state, const char *fmt, ...);

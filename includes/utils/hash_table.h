@@ -18,19 +18,19 @@ struct pair
 /**
 ** \brief htable structure
 */
-typedef struct htable
+struct htable
 {
     size_t size;
     size_t capacity;
     struct pair **tab;
-} s_htable;
+};
 
 /**
 ** \brief build a new hash table with initial capacity.
 ** \param capacity the initial size of the htable
 ** \return the allocated htable
 */
-s_htable *htable_create(size_t capacity);
+struct htable *htable_create(size_t capacity);
 
 /**
 ** \brief find the node corresponding t oa given key
@@ -38,7 +38,7 @@ s_htable *htable_create(size_t capacity);
 ** \param key the key to match
 ** \return pointer to node
 */
-struct pair *htable_access(s_htable *htable, const char *key);
+struct pair *htable_access(struct htable *htable, const char *key);
 
 /**
 ** \brief add the pair (key,value) to the hash table
@@ -47,24 +47,24 @@ struct pair *htable_access(s_htable *htable, const char *key);
 ** \param value the value of the node
 ** \return true on success
 */
-bool htable_add(s_htable *htable, char *key, void *value);
+bool htable_add(struct htable *htable, char *key, void *value);
 
 /**
 ** \brief removes the pair containing the given key from the hash table
 ** \param htable the hatable to remove from
 ** \param key the key of the node to remove.
 */
-void htable_remove(s_htable *htable, char *key);
+void htable_remove(struct htable *htable, char *key);
 
 /**
 ** \brief delete all pairs in the table
 ** \param htable the htable to remove from
 */
-void htable_free(s_htable *htable);
+void htable_free(struct htable *htable);
 
 /**
 ** \brief map a function on every node of the htable
 ** \param htable the htable to apply func on
 ** \param func the function to apply on each node
 */
-void htable_map(s_htable *htable, void (*func)(struct pair *ptr));
+void htable_map(struct htable *htable, void (*func)(struct pair *ptr));

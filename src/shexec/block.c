@@ -5,7 +5,7 @@
 
 void block_print(FILE *f, struct ast *node)
 {
-    s_ablock *ablock = &node->data.ast_block;
+    struct ablock *ablock = &node->data.ast_block;
     void *id = node;
     fprintf(f, "\"%p\" [label=\"BLOCK\"];\n", id);
     if (ablock->redir) {
@@ -25,12 +25,12 @@ void block_print(FILE *f, struct ast *node)
     }
 }
 
-int block_exec(s_env *env, s_ast *ast, s_errcont *cont)
+int block_exec(struct environment *env, struct ast *ast, struct errcont *cont)
 {
-    s_ablock *ablock = &ast->data.ast_block;
+    struct ablock *ablock = &ast->data.ast_block;
 
     if (ablock->redir) {
-        s_ast *redir = ablock->redir;
+        struct ast *redir = ablock->redir;
         ablock->redir = NULL;
         int res = redirection_exec(env, redir, ast, cont);
         ablock->redir = redir;

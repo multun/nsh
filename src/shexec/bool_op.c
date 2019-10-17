@@ -3,9 +3,9 @@
 #include "ast/ast.h"
 #include "shexec/environment.h"
 
-void bool_op_print(FILE *f, s_ast *ast)
+void bool_op_print(FILE *f, struct ast *ast)
 {
-    s_abool_op *abool = &ast->data.ast_bool_op;
+    struct abool_op *abool = &ast->data.ast_bool_op;
     void *id = ast;
     if (abool->type == BOOL_OR)
         fprintf(f, "\"%p\" [label=\"OR\"];\n", id);
@@ -25,9 +25,9 @@ void bool_op_print(FILE *f, s_ast *ast)
     }
 }
 
-int bool_op_exec(s_env *env, s_ast *ast, s_errcont *cont)
+int bool_op_exec(struct environment *env, struct ast *ast, struct errcont *cont)
 {
-    s_abool_op *abool = &ast->data.ast_bool_op;
+    struct abool_op *abool = &ast->data.ast_bool_op;
     if (abool->type == BOOL_AND) {
         int left = ast_exec(env, abool->left, cont);
         if (left)

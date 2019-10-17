@@ -38,7 +38,7 @@ static void preprocess_cmdline(int argc, char *argv[])
 
 static bool handle_shopt(bool val, const char *str)
 {
-    e_shopt cur_shopt = shopt_from_string(str);
+    enum shopt cur_shopt = shopt_from_string(str);
     if (cur_shopt == SHOPT_COUNT) {
         warnx("cannot find shopt %s", str);
         return true;

@@ -5,12 +5,12 @@
 
 #include "ast/ast.h"
 #include "shexp/expansion.h"
-#include "shexec/variable.h"
+#include "shlex/variable.h"
 #include "utils/alloc.h"
 
-void assignment_print(FILE *f, s_ast *ast)
+void assignment_print(FILE *f, struct ast *ast)
 {
-    s_aassignment *aassignment = &ast->data.ast_assignment;
+    struct aassignment *aassignment = &ast->data.ast_assignment;
     void *id = ast;
     fprintf(f, "\"%p\" [label=\"%s = %s\"];\n", id, aassignment->name->str,
             aassignment->value->str);
@@ -19,7 +19,7 @@ void assignment_print(FILE *f, s_ast *ast)
     fprintf(f, "\"%p\" -> \"%p\";\n", id, id_next);
 }
 
-int assignment_exec(s_env *env, s_ast *ast, s_ast *cmd, s_errcont *cont)
+int assignment_exec(struct environment *env, struct ast *ast, struct ast *cmd, struct errcont *cont)
 {
     if (!ast)
         return ast_exec(env, cmd, cont);

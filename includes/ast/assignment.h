@@ -6,15 +6,15 @@
 /**
 ** \brief represents an assignment node
 */
-typedef struct aassignment
+struct aassignment
 {
-    s_wordlist *name; /**< the variable name */
-    s_wordlist *value; /**< the value of the variable */
+    struct wordlist *name; /**< the variable name */
+    struct wordlist *value; /**< the value of the variable */
     struct ast *action; /**< the following command */
-} s_aassignment;
+};
 
 #define AASSIGNMENT(Name, Value, Action)                                                 \
-    ((s_aassignment){                                                                    \
+    ((struct aassignment){                                                                    \
         .name = Name,                                                                    \
         .value = Value,                                                                  \
         .action = Action,                                                                \
@@ -31,12 +31,12 @@ void assignment_print(FILE *f, struct ast *ast);
 /**
 ** \brief make an assignment
 */
-void assign_var(s_env *env, char *name, char *value, bool rm_var);
+void assign_var(struct environment*env, char *name, char *value, bool rm_var);
 
 /**
 ** \brief exec an assignment node
 */
-int assignment_exec(s_env *env, struct ast *ast, struct ast *cmd, s_errcont *cont);
+int assignment_exec(struct environment*env, struct ast *ast, struct ast *cmd, struct errcont *cont);
 
 /**
 ** \brief free an assignment node

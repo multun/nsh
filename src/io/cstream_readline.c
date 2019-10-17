@@ -1,32 +1,32 @@
 #include "io/cstream.h"
 #include "io/readline_wrapped.h"
 #include "repl/repl.h"
-#include "shexec/variable.h"
+#include "shlex/variable.h"
 #include "utils/alloc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-static const char *cont_get_var(s_context *cont, const char *vname, const char *def)
+static const char *cont_get_var(struct context *cont, const char *vname, const char *def)
 {
     struct pair *hpair = htable_access(cont->env->vars, vname);
     if (!hpair)
         return def;
 
     // TODO: check weird sequence var->value ... if var
-    s_var *var = hpair->value;
+    struct variable *var = hpair->value;
     if (!var->value)
         return def;
     return var ? var->value : "";
 }
 
-static const char *get_ps1(s_context *context)
+static const char *get_ps1(struct context *context)
 {
     return cont_get_var(context, "PS1", "42sh> ");
 }
 
-static const char *get_ps2(s_context *context)
+static const char *get_ps2(struct context *context)
 {
     return cont_get_var(context, "PS2", "> ");
 }

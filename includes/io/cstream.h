@@ -36,7 +36,7 @@ struct io_backend
 ** \brief a cstream is a character stream, similar to FILE*
 ** \details it can also read from a readline or string input
 */
-typedef struct cstream
+struct cstream
 {
     struct io_backend *backend;
 
@@ -48,7 +48,7 @@ typedef struct cstream
     struct context *context;
 
     // the line-related informations, updated on each read
-    s_lineinfo line_info;
+    struct lineinfo line_info;
 
     // whether buf contains some data
     bool has_buf;
@@ -60,7 +60,7 @@ typedef struct cstream
     // when a readline stream gets a keyboard interupt.
     // in all other cases, this can be NULL.
     struct errcont *errcont;
-} s_cstream;
+};
 
 
 static inline void cstream_set_errcont(struct cstream *cs, struct errcont *errcont)
