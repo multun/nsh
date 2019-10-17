@@ -21,12 +21,8 @@ static void parse_assignment(struct ast **res, struct lexer *lexer, struct errco
 
     *val = '\0';
     val++;
-    struct wordlist *name = xcalloc(sizeof(struct wordlist), 1);
-    *name = WORDLIST(tok_buf(tok), false, false, NULL);
-    struct wordlist *value = xcalloc(sizeof(struct wordlist), 1);
-    *value = WORDLIST(val, true, true, NULL);
+    (*res)->data.ast_assignment = AASSIGNMENT(tok_buf(tok), val, NULL);
     tok_free(tok, false);
-    (*res)->data.ast_assignment = AASSIGNMENT(name, value, NULL);
 }
 
 // TODO: fix obsolete architecture

@@ -11,6 +11,6 @@ void parse_word(struct wordlist **res, struct lexer *lexer, struct errcont *errc
 
     *res = xcalloc(sizeof(struct wordlist), 1);
     struct token *wrd = lexer_pop(lexer, errcont);
-    **res = WORDLIST(tok_buf(wrd), true, true, NULL);
+    **res = WORDLIST(tok_buf(wrd), NULL);
     tok_free(wrd, false);
 }

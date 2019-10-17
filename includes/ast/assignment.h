@@ -8,8 +8,8 @@
 */
 struct aassignment
 {
-    struct wordlist *name; /**< the variable name */
-    struct wordlist *value; /**< the value of the variable */
+    char *name; /**< the variable name */
+    char *value; /**< the value of the variable */
     struct ast *action; /**< the following command */
 };
 

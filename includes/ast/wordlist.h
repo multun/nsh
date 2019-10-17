@@ -12,15 +12,11 @@
 struct wordlist
 {
     char *str; /**< the current word string */
-    bool split; /**< if the word has to be split */
-    bool expand; /**< if the word has to be expand */
     struct wordlist *next; /**< the next word */
 };
 
-#define WORDLIST(Str, Split, Expand, Next)                                               \
-    ((struct wordlist){ .str = (Str), .split = (Split), .expand = (Expand), .next = (Next)})
-
-#define WL(Str) WORDLIST(Str, false, false, NULL)
+#define WORDLIST(Str, Next)                                               \
+    ((struct wordlist){ .str = (Str), .next = (Next)})
 
 /**
 ** \brief generate from a wordlist a table of arguments
