@@ -39,10 +39,10 @@ static void process_line(char *line)
     rl_callback_handler_remove();
 }
 
-static bool check_interrupt(struct errcont *errcont)
+static void check_interrupt(struct errcont *errcont)
 {
     if (!ctrl_c)
-        return false;
+        return;
 
     ctrl_c = false;
     rl_free_line_state();
@@ -51,11 +51,9 @@ static bool check_interrupt(struct errcont *errcont)
                   | RL_STATE_NUMERICARG | RL_STATE_MULTIKEY);
     rl_done = 1;
     rl_callback_handler_remove();
-    fprintf(stderr, "^C\n");
+    fputs("^C\n", stderr);
     errcont->errman->retcode = 128 + SIGINT;
     shraise(errcont, &g_keyboard_interrupt);
-    /* rl_callback_handler_install(prompt, process_line); */
-    return true;
 }
 
 char *readline_wrapped(struct errcont *errcont, const char *prompt)
