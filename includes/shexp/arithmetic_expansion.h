@@ -18,7 +18,7 @@ struct arith_value {
     } data;
 };
 
-__unused static void arith_value_destroy(struct arith_value *val)
+static inline void arith_value_destroy(struct arith_value *val)
 {
     if (val->type == ARITH_VALUE_STRING)
         free(val->data.string);
@@ -30,7 +30,7 @@ struct arith_token {
     struct arith_value value;
 };
 
-__unused static void arith_token_destroy(struct arith_token *tok)
+static inline void arith_token_destroy(struct arith_token *tok)
 {
     arith_value_destroy(&tok->value);
 }

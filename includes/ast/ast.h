@@ -85,7 +85,7 @@ typedef struct ast
         .data.ast_##Field = (Data),                                                      \
     })
 
-static inline __unused struct ast *ast_create(enum shnode_type type, struct lexer *lexer)
+static inline struct ast *ast_create(enum shnode_type type, struct lexer *lexer)
 {
     struct ast *res = xcalloc(sizeof(*res), 1);
     res->type = type;

@@ -97,17 +97,17 @@ typedef struct token
     struct token *next;
 } s_token;
 
-static __unused char *tok_buf(const struct token *token)
+static inline char *tok_buf(const struct token *token)
 {
     return token->str.data;
 }
 
-static __unused size_t tok_size(const struct token *token)
+static inline size_t tok_size(const struct token *token)
 {
     return token->str.size;
 }
 
-static __unused void wtoken_push(struct token *token, struct wtoken *wtok)
+static inline void wtoken_push(struct token *token, struct wtoken *wtok)
 {
     for (char *cur = wtok->ch; *cur; cur++) {
         assert(cur < wtok->ch + sizeof(wtok->ch));
@@ -115,7 +115,7 @@ static __unused void wtoken_push(struct token *token, struct wtoken *wtok)
     }
 }
 
-static __unused void tok_push(struct token *token, char c)
+static inline void tok_push(struct token *token, char c)
 {
     evect_push(&token->str, c);
 }
@@ -134,7 +134,7 @@ typedef struct lexer
     s_errcont *errcont;
 } s_lexer;
 
-static inline __unused struct lineinfo *lexer_line_info(struct lexer *lexer)
+static inline struct lineinfo *lexer_line_info(struct lexer *lexer)
 {
     return wlexer_line_info(&lexer->wlexer);
 }

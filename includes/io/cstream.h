@@ -63,12 +63,12 @@ typedef struct cstream
 } s_cstream;
 
 
-__unused static void cstream_set_errcont(struct cstream *cs, struct errcont *errcont)
+static inline void cstream_set_errcont(struct cstream *cs, struct errcont *errcont)
 {
     cs->errcont = errcont;
 }
 
-__unused static void cstream_check(struct cstream *cs) {
+static inline void cstream_check(struct cstream *cs) {
     assert(cs->backend != NULL);
     assert(cs->context != NULL);
     assert(cs->line_info.source != NULL);

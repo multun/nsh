@@ -55,33 +55,33 @@ struct wlexer
     struct wtoken lookahead;
 };
 
-static inline __unused void wlexer_set_errcont(struct wlexer *wlex, struct errcont *errcont)
+static inline void wlexer_set_errcont(struct wlexer *wlex, struct errcont *errcont)
 {
     cstream_set_errcont(wlex->cs, errcont);
 }
 
-static inline __unused struct lineinfo *wlexer_line_info(struct wlexer *wlexer)
+static inline struct lineinfo *wlexer_line_info(struct wlexer *wlexer)
 {
     return &wlexer->cs->line_info;
 }
 
-static inline __unused bool wlexer_in_arith(struct wlexer *wlexer)
+static inline bool wlexer_in_arith(struct wlexer *wlexer)
 {
     return wlexer->mode == MODE_ARITH || wlexer->mode == MODE_ARITH_GROUP;
 }
 
-static inline __unused bool wlexer_has_lookahead(const struct wlexer *wlex)
+static inline bool wlexer_has_lookahead(const struct wlexer *wlex)
 {
     return wlex->lookahead.type != WTOK_UNKNOWN;
 }
 
-static inline __unused void wlexer_clear_lookahead(struct wlexer *wlex)
+static inline void wlexer_clear_lookahead(struct wlexer *wlex)
 {
     assert(wlexer_has_lookahead(wlex));
     wlex->lookahead.type = WTOK_UNKNOWN;
 }
 
-static inline __unused void wlexer_init(struct wlexer *lexer, struct cstream *cs)
+static inline void wlexer_init(struct wlexer *lexer, struct cstream *cs)
 {
     lexer->cs = cs;
     lexer->mode = MODE_UNQUOTED;
@@ -118,7 +118,7 @@ struct wlexer_btick_state {
 
 #define WLEXER_BTICK_INIT { .ran = false, .escape = false }
 
-__unused static bool wlexer_btick_cond(struct wlexer_btick_state *state, struct wtoken *wtok)
+static inline bool wlexer_btick_cond(struct wlexer_btick_state *state, struct wtoken *wtok)
 {
     if (!state->ran)
         return true;
@@ -133,7 +133,7 @@ __unused static bool wlexer_btick_cond(struct wlexer_btick_state *state, struct 
 }
 
 
-__unused static bool wlexer_btick_escaped(struct wlexer_btick_state *state)
+static inline bool wlexer_btick_escaped(struct wlexer_btick_state *state)
 {
     return state->escape;
 }
