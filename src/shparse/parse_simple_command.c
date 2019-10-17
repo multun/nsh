@@ -15,9 +15,10 @@ bool start_redir(const s_token *tok)
 
 static void parse_assignment(s_ast **res, s_lexer *lexer, s_errcont *errcont)
 {
-    *res = ast_node_create(SHNODE_ASSIGNMENT, lexer);
+    *res = ast_create(SHNODE_ASSIGNMENT, lexer);
     s_token *tok = lexer_pop(lexer, errcont);
     char *val = strchr(tok_buf(tok), '=');
+
     *val = '\0';
     val++;
     s_wordlist *name = xcalloc(sizeof(s_wordlist), 1);
