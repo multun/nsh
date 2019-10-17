@@ -47,7 +47,7 @@ static enum wlexer_op sublexer_eof(struct lexer *lexer, struct wlexer *wlexer,
 {
     if (wlexer->mode != MODE_UNQUOTED)
         lexer_err(lexer, "EOF while expecting quote");
-    if (token->str.size == 0)
+    if (tok_size(token) == 0)
         token->type = TOK_EOF;
     return LEXER_OP_RETURN;
 }
@@ -133,6 +133,16 @@ static enum wlexer_op sublexer_exp_subsh_close(struct lexer *lexer __unused,
 static enum wlexer_op sublexer_subsh_open(struct lexer *lexer, struct wlexer *wlexer,
                                          struct token *token __unused, struct wtoken *wtoken)
 {
+    if (tok_size(token) != 0)
+        return LEXER_OP_CANCEL;
+
+    if (wlexer->mode == MODE_UNQUOTED)
+    {
+        wtoken_push(token, wtoken);
+        token->type = TOK_LPAR;
+        return LEXER_OP_RETURN;
+    }
+
     wtoken_push(token, wtoken);
     lexer_lex_untyped(token, &WLEXER_FORK(wlexer, MODE_SUBSHELL), lexer);
     struct wtoken end_wtoken = {
@@ -148,7 +158,17 @@ static enum wlexer_op sublexer_subsh_close(struct lexer *lexer __unused,
                                            struct token *token __unused,
                                            struct wtoken *wtoken __unused)
 {
-    assert(wlexer->mode == MODE_SUBSHELL);
+    if (tok_size(token) != 0)
+        return LEXER_OP_CANCEL;
+
+    if (wlexer->mode == MODE_UNQUOTED)
+    {
+        wtoken_push(token, wtoken);
+        token->type = TOK_RPAR;
+        return LEXER_OP_RETURN;
+    }
+
+    assert(wlexer->mode == MODE_SUBSHELL || wlexer->mode == MODE_UNQUOTED);
     return LEXER_OP_RETURN;
 }
 
