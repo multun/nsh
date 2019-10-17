@@ -5,7 +5,7 @@
 
 struct cstream_string {
     struct cstream base;
-    char *string;
+    const char *string;
 };
 
-void cstream_string_init(struct cstream_string *cstream, char *string);
+void cstream_string_init(struct cstream_string *cstream, const char *string);

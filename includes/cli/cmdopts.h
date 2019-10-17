@@ -23,9 +23,8 @@ struct cmdopts
     // int to comply with getopt
     int src;
 
-    // if -c was used, the command
-    // TODO: switch to const
-    char *command;
+    // the command, as passed to -c, or NULL
+    const char *command;
 };
 
 extern struct cmdopts g_cmdopts;
