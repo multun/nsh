@@ -12,12 +12,11 @@
 #define GVECT_U_CONCAT_(A, B) A ## _ ## B
 #define GVECT_U_CONCAT(A, B) GVECT_U_CONCAT_(A, B)
 #define GVECT_FNAME(Suffix) GVECT_U_CONCAT(GVECT_NAME, Suffix)
-#define GVECT_TNAME(Prefix) GVECT_U_CONCAT(Prefix, GVECT_NAME)
 
 /**
 ** \brief a dynamicaly allocated vector
 */
-typedef struct GVECT_NAME
+struct GVECT_NAME
 {
     /**
     ** the current size of the vector
@@ -31,21 +30,21 @@ typedef struct GVECT_NAME
     ** the data stored in the vector
     */
     GVECT_TYPE *data;
-} GVECT_TNAME(s);
+};
 
 #define EVECT_INITIALIZED(Vect) (!!(Vect)->data)
 
-__unused static size_t GVECT_FNAME(size)(struct GVECT_NAME *vect)
+static inline size_t GVECT_FNAME(size)(struct GVECT_NAME *vect)
 {
     return vect->size;
 }
 
-__unused static GVECT_TYPE *GVECT_FNAME(data)(struct GVECT_NAME *vect)
+static inline GVECT_TYPE *GVECT_FNAME(data)(struct GVECT_NAME *vect)
 {
     return vect->data;
 }
 
-__unused static GVECT_TYPE GVECT_FNAME(get)(struct GVECT_NAME *vect, size_t i)
+static inline GVECT_TYPE GVECT_FNAME(get)(struct GVECT_NAME *vect, size_t i)
 {
     return vect->data[i];
 }

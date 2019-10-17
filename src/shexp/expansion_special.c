@@ -19,7 +19,7 @@ static char *expand_pid(void)
 
 static char *expand_args(s_env *env)
 {
-    s_evect vec;
+    struct evect vec;
     evect_init(&vec, 10);
     if (*env->argv && env->argv[1])
         for (char *tmp = env->argv[1]; *tmp; tmp++)

@@ -43,7 +43,7 @@ void history_update(s_context *ctx)
     if (!ctx->cs->interactive)
         return;
 
-    s_evect *cmd_vect = &ctx->line_buffer;
+    struct evect *cmd_vect = &ctx->line_buffer;
     if (cmd_vect->data[ctx->line_buffer.size - 1] == '\n')
         cmd_vect->data[--ctx->line_buffer.size] = '\0';
     else

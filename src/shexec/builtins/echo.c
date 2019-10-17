@@ -40,7 +40,7 @@ static int builtin_echo_parse_opt(int *opt, char **argv)
     return pos;
 }
 
-static void echo_parse_base(char **c, int base, s_evect *vec)
+static void echo_parse_base(char **c, int base, struct evect *vec)
 {
     char res = 0;
     size_t index = 0;
@@ -63,7 +63,7 @@ static void echo_parse_base(char **c, int base, s_evect *vec)
         evect_push(vec, res);
 }
 
-static void echo_print_num(char **c, s_evect *vec)
+static void echo_print_num(char **c, struct evect *vec)
 {
     switch (**c) {
     case 'r':
@@ -91,7 +91,7 @@ static void echo_print_num(char **c, s_evect *vec)
     }
 }
 
-static void echo_print_esc(char **c, s_evect *vec)
+static void echo_print_esc(char **c, struct evect *vec)
 {
     switch (**c) {
     case 'a':
@@ -119,7 +119,7 @@ static void echo_print_esc(char **c, s_evect *vec)
     }
 }
 
-static void echo_print(char *c, int opt, s_evect *vec)
+static void echo_print(char *c, int opt, struct evect *vec)
 {
     bool esc = false;
     for (; *c && !(opt & SHECHO_RET); c++) {
@@ -146,7 +146,7 @@ int builtin_echo(s_env *env, s_errcont *cont, int argc, char **argv)
 
     int opt = SHECHO_ESC * g_shopts[SHOPT_XPG_ECHO];
     int pos = builtin_echo_parse_opt(&opt, argv);
-    s_evect vec;
+    struct evect vec;
     if (argv[pos])
         evect_init(&vec, strlen(argv[pos]));
     else

@@ -90,7 +90,7 @@ int builtin_shopt(s_env *env, s_errcont *cont, int argc, char **argv)
 
 char *expand_shopt(void)
 {
-    s_evect vec;
+    struct evect vec;
     evect_init(&vec, 50);
     bool first = true;
     for (size_t i = 0; i < SHOPT_COUNT; i++)

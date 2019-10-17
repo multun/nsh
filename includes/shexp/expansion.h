@@ -36,7 +36,7 @@ struct expansion_state {
 ** \param env the environment to expand from
 ** \param vec the vector to store the result in
 */
-void expand_subshell(s_errcont *cont, char *buf, s_env *env, s_evect *vec);
+void expand_subshell(s_errcont *cont, char *buf, s_env *env, struct evect *vec);
 
 /**
 ** \brief expands an arithmetic expression into a character vector
@@ -45,7 +45,7 @@ void expand_subshell(s_errcont *cont, char *buf, s_env *env, s_evect *vec);
 ** \param vec the vector to store the result in
 ** \param errcont the error context to work with
 */
-void expand_arth(char **str, s_env *env, s_evect *vec, s_errcont *cont);
+void expand_arth(char **str, s_env *env, struct evect *vec, s_errcont *cont);
 
 /**
 ** \brief prepare a arithmetic word to be expanded
