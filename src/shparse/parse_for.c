@@ -4,20 +4,15 @@
 #include "shlex/print.h"
 #include "utils/error.h"
 
-static void for_word_loop(s_wordlist **res, s_lexer *lexer, s_errcont *errcont)
+static void for_word_loop(s_wordlist **target, s_lexer *lexer, s_errcont *errcont)
 {
     const s_token *tok = lexer_peek(lexer, errcont);
     s_wordlist *tail = NULL;
     while (!tok_is(tok, TOK_SEMI) && !tok_is(tok, TOK_NEWLINE)) {
-        s_wordlist **target;
-        // TODO: simplify insertion, no need to differentiate cases
-        if (!*res)
-            target = res;
-        else
-            target = &tail->next;
         parse_word(target, lexer, errcont);
         tail = *target;
         tok = lexer_peek(lexer, errcont);
+        target = &tail->next;
     }
     tok_free(lexer_pop(lexer, errcont), true);
 }
