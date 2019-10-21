@@ -16,12 +16,13 @@
 void cmd_print(FILE *f, struct ast *node)
 {
     void *id = node;
-    struct wordlist *wl = node->data.ast_cmd.wordlist;
-    fprintf(f, "\"%p\" [label=\"CMD\\n%s", id, wl->str);
-    wl = wl->next;
-    while (wl) {
-        fprintf(f, " %s", wl->str);
-        wl = wl->next;
+    struct wordlist *wl = &node->data.ast_cmd.commands;
+    fprintf(f, "\"%p\" [label=\"CMD\\n", id);
+    for (size_t i = 0; i < wordlist_size(wl); i++)
+    {
+        if (i > 0)
+            fputc(' ', f);
+        fprintf(f, "%s", wordlist_get(wl, i));
     }
     fprintf(f, "\"];\n");
 }
@@ -60,7 +61,7 @@ static int cmd_exec_argv(struct environment *env, struct errcont *cont)
 
 int cmd_exec(struct environment *env, struct ast *node, struct errcont *cont)
 {
-    struct wordlist *wl = node->data.ast_cmd.wordlist;
+    struct wordlist *wl = &node->data.ast_cmd.commands;
     int volatile prev_argc = env->argc;
     char **volatile prev_argv = env->argv;
     struct keeper keeper = KEEPER(cont->keeper);
@@ -89,6 +90,7 @@ void cmd_free(struct ast *ast)
 {
     if (!ast)
         return;
-    wordlist_free(ast->data.ast_cmd.wordlist, true);
+
+    wordlist_destroy(&ast->data.ast_cmd.commands);
     free(ast);
 }

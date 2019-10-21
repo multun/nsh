@@ -20,9 +20,7 @@ void parse_funcdec(struct ast **res, struct lexer *lexer, struct errcont *errcon
     *res = ast_create(SHNODE_FUNCTION, lexer);
 
     struct token *word = lexer_pop(lexer, errcont);
-    struct wordlist *name = xcalloc(sizeof(struct wordlist), 1);
-    *name = WORDLIST(tok_buf(word), NULL);
-    (*res)->data.ast_function.name = name;
+    (*res)->data.ast_function.name = tok_buf(word);
     tok_free(word, false);
     if (!parse_func_remove_par(lexer, errcont))
         return;

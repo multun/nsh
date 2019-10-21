@@ -22,8 +22,7 @@ void parse_rule_case(struct ast **res, struct lexer *lexer, struct errcont *errc
         PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s, expected WORD",
                      TOKT_STR(tok));
     *res = ast_create(SHNODE_CASE, lexer);
-    parse_word(&(*res)->data.ast_case.var, lexer, errcont);
-
+    (*res)->data.ast_case.var = parse_word(lexer, errcont);
     parse_newlines(lexer, errcont);
     rule_case(lexer, errcont, *res);
 }
@@ -49,20 +48,22 @@ void parse_case_clause(struct acase_node **res, struct lexer *lexer, struct errc
     case_clause_loop(lexer, errcont, *res);
 }
 
-static void parse_pattern(struct wordlist **res, struct lexer *lexer, struct errcont *errcont)
+static void parse_pattern(struct wordlist *res, struct lexer *lexer, struct errcont *errcont)
 {
-    parse_word(res, lexer, errcont);
-    const struct token *tok = lexer_peek(lexer, errcont);
-    for (; tok_is(tok, TOK_PIPE); res = &(*res)->next) {
+    wordlist_push(res, parse_word(lexer, errcont));
+    while (true) {
+        const struct token *tok = lexer_peek(lexer, errcont);
+        if (!tok_is(tok, TOK_PIPE))
+            break;
         tok_free(lexer_pop(lexer, errcont), true);
-        parse_word(&(*res)->next, lexer, errcont);
-        tok = lexer_peek(lexer, errcont);
+        wordlist_push(res, parse_word(lexer, errcont));
     }
 }
 
 void parse_case_item(struct acase_node **res, struct lexer *lexer, struct errcont *errcont)
 {
-    *res = xcalloc(sizeof(struct acase_node), 1);
+    *res = zalloc(sizeof(struct acase_node));
+    acase_node_init(*res);
     const struct token *tok = lexer_peek(lexer, errcont);
     if (tok_is(tok, TOK_LPAR))
         tok_free(lexer_pop(lexer, errcont), true);

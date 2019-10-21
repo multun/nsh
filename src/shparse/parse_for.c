@@ -4,20 +4,17 @@
 #include "shlex/print.h"
 #include "utils/error.h"
 
-static void for_word_loop(struct wordlist **target, struct lexer *lexer, struct errcont *errcont)
+static void for_word_loop(struct wordlist *target, struct lexer *lexer, struct errcont *errcont)
 {
     const struct token *tok = lexer_peek(lexer, errcont);
-    struct wordlist *tail = NULL;
     while (!tok_is(tok, TOK_SEMI) && !tok_is(tok, TOK_NEWLINE)) {
-        parse_word(target, lexer, errcont);
-        tail = *target;
+        wordlist_push(target, parse_word(lexer, errcont));
         tok = lexer_peek(lexer, errcont);
-        target = &tail->next;
     }
     tok_free(lexer_pop(lexer, errcont), true);
 }
 
-static void parse_in(struct wordlist **words, struct lexer *lexer, struct errcont *errcont)
+static void parse_in(struct wordlist *words, struct lexer *lexer, struct errcont *errcont)
 {
     const struct token *tok = lexer_peek(lexer, errcont);
     if (tok_is(tok, TOK_NEWLINE) || tok_is(tok, TOK_IN)) {
@@ -52,7 +49,8 @@ void parse_rule_for(struct ast **res, struct lexer *lexer, struct errcont *errco
 {
     tok_free(lexer_pop(lexer, errcont), true);
     *res = ast_create(SHNODE_FOR, lexer);
-    parse_word(&(*res)->data.ast_for.var, lexer, errcont);
+    afor_init(&(*res)->data.ast_for);
+    (*res)->data.ast_for.var = parse_word(lexer, errcont);
 
     if (!parse_collection(lexer, errcont, *res))
         return;

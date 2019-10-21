@@ -26,7 +26,7 @@ struct aredirection
         REDIRECTIONS_APPLY(REDIRECTIONS_ENUM)
     } type; /**< the type of redirection */
     int left; /**< the io number */
-    struct wordlist *right; /**< the command */
+    char *right; /**< the redirection destination */
     struct ast *action; /**< the next redirection */
 };
 

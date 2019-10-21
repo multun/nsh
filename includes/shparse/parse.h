@@ -190,7 +190,7 @@ void parse_case_item(struct acase_node **res, struct lexer *lexer, struct errcon
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_word(struct wordlist **res, struct lexer *lexer, struct errcont *errcont);
+char *parse_word(struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse every following newline.

@@ -8,7 +8,7 @@
 */
 struct afunction
 {
-    struct wordlist *name; /**< the function name */
+    char *name; /**< the function name */
     struct ast *value; /**< the function body */
 };
 

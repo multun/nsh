@@ -31,10 +31,9 @@ struct block_builder
     struct ablock *block;
     struct ast *assign;
     struct ast *redir;
-    struct wordlist *elm;
 };
 
-static bool loop_redir(struct lexer *lexer, struct errcont *errcont, struct block_builder *build)
+static void loop_redir(struct lexer *lexer, struct errcont *errcont, struct block_builder *build)
 {
     struct ast **target;
     if (build->redir)
@@ -43,13 +42,12 @@ static bool loop_redir(struct lexer *lexer, struct errcont *errcont, struct bloc
         target = &build->block->redir;
     parse_redirection(target, lexer, errcont);
     build->redir = *target;
-    return true;
 }
 
 static bool prefix_loop(struct lexer *lexer, struct errcont *errcont, struct block_builder *build)
 {
-    const struct token *tok = lexer_peek(lexer, errcont);
-    while (tok_is(tok, TOK_ASSIGNMENT_WORD) || start_redir(tok)) {
+    while (true) {
+        const struct token *tok = lexer_peek(lexer, errcont);
         if (tok_is(tok, TOK_ASSIGNMENT_WORD)) {
             struct ast **target;
             if (build->assign)
@@ -58,30 +56,41 @@ static bool prefix_loop(struct lexer *lexer, struct errcont *errcont, struct blo
                 target = &build->block->def;
             parse_assignment(target, lexer, errcont);
             build->assign = *target;
-        } else if (!loop_redir(lexer, errcont, build))
-            return false;
-        tok = lexer_peek(lexer, errcont);
+            continue;
+        }
+
+        if (start_redir(tok))
+        {
+            loop_redir(lexer, errcont, build);
+            continue;
+        }
+        break;
     }
     return true;
 }
 
 static bool element_loop(struct lexer *lexer, struct errcont *errcont, struct block_builder *build)
 {
-    const struct token *tok = lexer_peek(lexer, errcont);
-    while (tok_is(tok, TOK_WORD) || start_redir(tok)) {
+    while (true) {
+        const struct token *tok = lexer_peek(lexer, errcont);
         if (tok_is(tok, TOK_WORD)) {
-            struct wordlist **target;
-            if (build->elm)
-                target = &build->elm->next;
-            else {
+            // initialize the command node if missing
+            // TODO: change the ast architecture so that this oops isn't necessary
+            if (build->block->cmd == NULL)
+            {
                 build->block->cmd = ast_create(SHNODE_CMD, lexer);
-                target = &build->block->cmd->data.ast_cmd.wordlist;
+                acmd_init(&build->block->cmd->data.ast_cmd);
             }
-            parse_word(target, lexer, errcont);
-            build->elm = *target;
-        } else if (!loop_redir(lexer, errcont, build))
-            return false;
-        tok = lexer_peek(lexer, errcont);
+
+            wordlist_push(&build->block->cmd->data.ast_cmd.commands, parse_word(lexer, errcont));
+            continue;
+        }
+        if (start_redir(tok))
+        {
+            loop_redir(lexer, errcont, build);
+            continue;
+        }
+        break;
     }
     return true;
 }
@@ -94,7 +103,6 @@ void parse_simple_command(struct ast **res, struct lexer *lexer, struct errcont 
         .block = &(*res)->data.ast_block,
         .assign = NULL,
         .redir = NULL,
-        .elm = NULL,
     };
 
     if (!prefix_loop(lexer, errcont, &builder) || !element_loop(lexer, errcont, &builder))

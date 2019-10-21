@@ -34,16 +34,16 @@ static int redir_great(struct redir_params *params)
     int stdout_copy = fd_move_away(STDOUT_FILENO);
 
     struct aredirection *aredir = params->aredir;
-    int fd_file = open(aredir->right->str, O_CREAT | O_WRONLY | O_TRUNC, 0664);
+    int fd_file = open(aredir->right, O_CREAT | O_WRONLY | O_TRUNC, 0664);
     if (fd_file < 0) {
-        warnx("%s: Permission denied\n", aredir->right->str);
+        warnx("%s: Permission denied\n", aredir->right);
         return 1;
     }
 
     int res = exec_redir_base(params);
 
     if (close(fd_file) < 0)
-        errx(1, "redir_great: Failed closing %s", aredir->right->str);
+        errx(1, "redir_great: Failed closing %s", aredir->right);
 
     fd_move(stdout_copy, STDOUT_FILENO);
 
@@ -55,16 +55,16 @@ static int redir_dgreat(struct redir_params *params)
     struct aredirection *aredir = params->aredir;
     int stdout_copy = fd_move_away(STDOUT_FILENO);
 
-    int fd_file = open(aredir->right->str, O_CREAT | O_WRONLY | O_APPEND, 0664);
+    int fd_file = open(aredir->right, O_CREAT | O_WRONLY | O_APPEND, 0664);
     if (fd_file < 0) {
-        warnx("%s: Permission denied\n", aredir->right->str);
+        warnx("%s: Permission denied\n", aredir->right);
         return 1;
     }
 
     int res = exec_redir_base(params);
 
     if (close(fd_file) < 0)
-        errx(1, "redir_dgreat: Failed closing %s", aredir->right->str);
+        errx(1, "redir_dgreat: Failed closing %s", aredir->right);
 
     fd_move(stdout_copy, STDOUT_FILENO);
 
@@ -76,16 +76,16 @@ static int redir_less(struct redir_params *params)
     struct aredirection *aredir = params->aredir;
     int copy = fd_move_away(STDIN_FILENO);
 
-    int fd_file = open(aredir->right->str, O_RDONLY, 0664);
+    int fd_file = open(aredir->right, O_RDONLY, 0664);
     if (fd_file < 0) {
-        warn("cannot open \"%s\"", aredir->right->str);
+        warn("cannot open \"%s\"", aredir->right);
         return 1;
     }
 
     int res = exec_redir_base(params);
 
     if (close(fd_file) < 0)
-        errx(1, "redir_less: Failed closing %s", aredir->right->str);
+        errx(1, "redir_less: Failed closing %s", aredir->right);
 
     fd_move(copy, STDIN_FILENO);
 
@@ -98,13 +98,13 @@ static int redir_lessand(struct redir_params *params)
     if (aredir->left == -1)
         aredir->left = 0;
 
-    if (!strcmp("-", aredir->right->str))
+    if (!strcmp("-", aredir->right))
         if (close(aredir->left) < 0)
             errx(1, "redir_lessand: Failed closing %d", aredir->left);
 
-    int digit = atoi(aredir->right->str);
+    int digit = atoi(aredir->right);
     if (dup2(digit, aredir->left) < 0) {
-        warnx("%s: Bad file descriptor", aredir->right->str);
+        warnx("%s: Bad file descriptor", aredir->right);
         return 1;
     }
 
@@ -120,14 +120,14 @@ static int redir_greatand(struct redir_params *params)
     struct aredirection *aredir = params->aredir;
     if (aredir->left == -1)
         aredir->left = 1;
-    if (!strcmp("-", aredir->right->str))
+    if (!strcmp("-", aredir->right))
         if (close(aredir->left) < 0)
             errx(1, "redir_greatand: Failed closing %d", aredir->left);
 
     int save = fd_copy(aredir->left);
-    int digit = atoi(aredir->right->str);
+    int digit = atoi(aredir->right);
     if (dup2(digit, aredir->left) < 0) {
-        warnx("%s: Bad file descriptor", aredir->right->str);
+        warnx("%s: Bad file descriptor", aredir->right);
         return 1;
     }
 
@@ -145,9 +145,9 @@ static int redir_lessgreat(struct redir_params *params)
     struct aredirection *aredir = params->aredir;
     if (aredir->left == -1)
         aredir->left = 0;
-    int fd = open(aredir->right->str, O_CREAT | O_RDWR | O_TRUNC, 0664);
+    int fd = open(aredir->right, O_CREAT | O_RDWR | O_TRUNC, 0664);
     if (fd < 0) {
-        warnx("%s: Permission denied\n", aredir->right->str);
+        warnx("%s: Permission denied\n", aredir->right);
         return 1;
     }
     if (dup2(fd, aredir->left) < 0)
@@ -194,7 +194,7 @@ void redirection_print(FILE *f, struct ast *ast)
     const char *redir = g_redir_list[aredirection->type].repr;
 
     fprintf(f, "\"%p\" [label=\"%d %s %s\"];\n", id, aredirection->left, redir,
-            aredirection->right->str);
+            aredirection->right);
 
     if (aredirection->action) {
         ast_print_rec(f, aredirection->action);
@@ -207,4 +207,13 @@ int redirection_exec(struct environment *env, struct ast *ast, struct ast *cmd, 
 {
     struct redir_params params = {env, &ast->data.ast_redirection, cmd, cont};
     return redirection_local_exec(&params);
+}
+
+void redirection_free(struct ast *ast)
+{
+    if (!ast)
+        return;
+    free(ast->data.ast_redirection.right);
+    ast_free(ast->data.ast_redirection.action);
+    free(ast);
 }

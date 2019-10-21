@@ -6,21 +6,14 @@
 #include "shexp/expansion.h"
 #include "utils/alloc.h"
 
-static size_t wordlist_argc_count(struct wordlist *wl)
-{
-    size_t argc = 0;
-    for (struct wordlist *tmp = wl; tmp; tmp = tmp->next)
-        argc++;
-    return argc;
-}
 
 static int wordlist_to_argv_sub(char **volatile *res, struct wordlist *volatile wl, struct environment *env,
                                 struct errcont *cont)
 {
-    size_t argc = wordlist_argc_count(wl);
-    char **argv = *res = calloc(sizeof(char *), (argc + 1));
-    for (size_t i = 0; i < argc; (wl = wl->next), i++)
-        argv[i] = expand(NULL, wl->str, env, cont);
+    size_t argc = wordlist_size(wl);
+    char **argv = *res = xcalloc(sizeof(char *), (argc + 1));
+    for (size_t i = 0; i < argc; i++)
+        argv[i] = expand(NULL, wordlist_get(wl, i), env, cont);
     return argc;
 }
 
@@ -38,14 +31,4 @@ int wordlist_to_argv(char ***res, struct wordlist *wl, struct environment *env, 
         *res = new_argv;
         return argc;
     }
-}
-
-void wordlist_free(struct wordlist *wl, bool free_buf)
-{
-    if (!wl)
-        return;
-    if (free_buf && wl->str)
-        free(wl->str);
-    wordlist_free(wl->next, free_buf);
-    free(wl);
 }

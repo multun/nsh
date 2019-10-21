@@ -3,6 +3,8 @@
 #include "shexec/environment.h"
 #include "wordlist.h"
 #include "utils/error.h"
+#include "utils/pvect.h"
+#include "utils/alloc.h"
 
 struct ast;
 
@@ -11,8 +13,14 @@ struct ast;
 */
 struct acmd
 {
-    struct wordlist *wordlist; /**< the command to execute */
+    struct wordlist commands;
 };
+
+static inline void acmd_init(struct acmd *node)
+{
+    // commands get a 4 arguments vector per default
+    wordlist_init(&node->commands);
+}
 
 /**
 ** \brief print in dot format the representation of a command node

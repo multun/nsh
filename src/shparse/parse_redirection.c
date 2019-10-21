@@ -82,5 +82,5 @@ void parse_redirection(struct ast **res, struct lexer *lexer, struct errcont *er
     enum redir_type type = parse_redir_type(tok);
     tok_free(tok, true);
     (*res)->data.ast_redirection = AREDIRECTION(type, left, NULL, NULL);
-    parse_word(&(*res)->data.ast_redirection.right, lexer, errcont);
+    (*res)->data.ast_redirection.right = parse_word(lexer, errcont);
 }

@@ -10,16 +10,19 @@ struct ast;
 */
 struct acase_node
 {
-    struct wordlist *pattern; /**< the current tested value */
+    struct wordlist pattern; /**< the current tested value */
     struct ast *action; /**< the command to execute in case of match */
     struct acase_node *next; /**< the next case */
 };
 
-#define ACASE_NODE(Pattern, Action, Next) ((struct acase_node){(Pattern), (Action), (Next)})
+static inline void acase_node_init(struct acase_node *node)
+{
+    wordlist_init(&node->pattern);
+}
 
 struct acase
 {
-    struct wordlist *var; /**< the tested variable */
+    char *var; /**< the tested variable */
     struct acase_node *nodes; /**< the linked list of cases */
 };
 

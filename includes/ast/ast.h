@@ -80,7 +80,7 @@ struct ast
 };
 
 #define AST(Type, Field, Data)                                                           \
-    ((struct ast){                                                                            \
+    ((struct ast){                                                                       \
         .type = (Type),                                                                  \
         .data.ast_##Field = (Data),                                                      \
     })
