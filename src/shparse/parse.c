@@ -47,12 +47,16 @@ void parse_and_or(struct shast **res, struct lexer *lexer, struct errcont *errco
     while (true) {
         parse_pipeline(res, lexer, errcont);
         const struct token *tok = lexer_peek(lexer, errcont);
-        if (!tok_is(tok, TOK_OR_IF) || tok_is(tok, TOK_AND_IF))
+        if (!tok_is(tok, TOK_OR_IF) && !tok_is(tok, TOK_AND_IF))
             break;
         bool is_or = tok_is(tok, TOK_OR_IF);
         tok_free(lexer_pop(lexer, errcont), true);
         parse_newlines(lexer, errcont);
+
+        struct shast *left = *res;
         struct shast_bool_op *op = shast_bool_op_attach(res, lexer);
         op->type = is_or ? BOOL_OR : BOOL_AND;
+        op->left = left;
+        res = &op->right;
     }
 }
