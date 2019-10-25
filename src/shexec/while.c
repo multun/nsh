@@ -39,7 +39,7 @@ int while_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 
     if (local_continue)
         while ((ast_exec(env, while_node->condition, &ncont) == 0)
-               == while_node->is_until)
+               != while_node->is_until)
             res = ast_exec(env, while_node->body, &ncont);
 
     env->depth--;

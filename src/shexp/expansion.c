@@ -86,13 +86,10 @@ char *expand_name(struct environment *env, char *var)
     if ((res = builtin_var_lookup(var)))
         return res;
 
-    struct pair *var_pair = htable_access(env->vars, var);
-    if (!var_pair)
-        return NULL;
-
-    struct variable *nvar = var_pair->value;
-    // TODO: find a way to avoid that strdup
-    return strdup(nvar->value);
+    const char *env_var;
+    if ((env_var = environment_var_get(env, var)))
+        return strdup(env_var);
+    return NULL;
 }
 
 static void expand_guarded(struct expansion_state *exp_state,

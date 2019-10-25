@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include "shparse/ast.h"
 #include "repl/repl.h"
 #include "shexec/args.h"
 #include "shexec/builtin_cd.h"
@@ -10,6 +11,8 @@
 #include "shlex/variable.h"
 #include "utils/alloc.h"
 #include "utils/hash_table.h"
+#include "utils/macros.h"
+#include "utils/mprintf.h"
 
 static char **arg_context_extract(int *target_argc, struct arg_context *args)
 {
@@ -27,13 +30,13 @@ static char **arg_context_extract(int *target_argc, struct arg_context *args)
     return ret;
 }
 
-struct environment*environment_create(struct arg_context *arg_cont)
+struct environment *environment_create(struct arg_context *arg_cont)
 {
     struct environment *env = xmalloc(sizeof(*env));
     env->argv = arg_context_extract(&env->argc, arg_cont);
     env->progname = strdup(arg_cont->argv[arg_cont->progname_ind]);
-    env->vars = htable_create(10);
-    env->functions = htable_create(10);
+    hash_table_init(&env->variables, 10);
+    hash_table_init(&env->functions, 10);
     env->code = 0;
 
     env->break_count = 0;
@@ -42,68 +45,42 @@ struct environment*environment_create(struct arg_context *arg_cont)
     return env;
 }
 
-static bool vartoenv(struct pair *node, char **pos)
-{
-    struct variable *var = node->value;
-    if (!var->to_export)
-        return false;
-    size_t size = strlen(node->key) + 1;
-    if (var->value && *var->value) {
-        size += strlen(var->value) + 1;
-        *pos = xmalloc(size * sizeof(char));
-        sprintf(*pos, "%s=%s", node->key, var->value);
-    } else {
-        *pos = xmalloc(size * sizeof(char));
-        sprintf(*pos, "%s", node->key);
-    }
-    return true;
-}
-
 char **environment_array(struct environment *env)
 {
-    char **res = xmalloc((env->vars->size + 1) * sizeof(*res));
-    size_t pos = 0;
-    for (size_t i = 0; i < env->vars->capacity; i++) {
-        struct pair *pp = NULL;
-        struct pair *fp = env->vars->tab[i];
-        while (fp || pp) {
-            if (pp)
-                pos += vartoenv(pp, res + pos);
-            pp = fp;
-            if (fp)
-                fp = fp->next;
-        }
+    char **res = xmalloc((env->variables.size + 1) * sizeof(*res));
+    res[env->variables.size] = NULL;
+    size_t i = 0;
+    struct hash_table_it it;
+    for_each_hash(it, &env->variables)
+    {
+        struct shexec_variable *var = container_of(it.cur, struct shexec_variable, hash);
+        res[i] = mprintf("%s=%s", hash_head_key(it.cur), var->value);
+        i++;
     }
-    res[pos] = NULL;
+    assert(i == env->variables.size);
     return res;
 }
 
 void environment_load(struct environment *env)
 {
-    for (char **it = environ; *it; it++) {
-        char *var = strdup(*it);
-        char *save = NULL;
-        char *name = strtok_r(var, "=", &save);
-        char *value = strtok_r(NULL, "\0", &save);
-        if (!value)
-            value = xcalloc(1, sizeof(char));
-        else
-            value = strdup(value);
+    for (size_t i = 0; environ[i]; i++) {
+        char *var = environ[i];
+        char *eq = strchr(var, '=');
+        char *name = strndup(var, eq - var);
+        char *value = strdup(eq + 1);
         environment_var_assign(env, name, value, true);
-        struct pair *p = htable_access(env->vars, name);
-        struct variable *node = p->value;
-        node->to_export = true;
     }
-    if (!htable_access(env->vars, "PWD"))
-        update_pwd(false, env);
-    if (!htable_access(env->vars, "IFS"))
+
+    if (hash_table_find(&env->variables, NULL, "PWD") == NULL)
+        update_pwd("PWD", env);
+    if (hash_table_find(&env->variables, NULL, "IFS") == NULL)
         environment_var_assign(env, strdup("IFS"), strdup("\t\n "), true);
 }
 
-static void var_free(struct pair *p)
+static void var_free(struct hash_head *head)
 {
-    free(p->key);
-    struct variable *var = p->value;
+    struct shexec_variable *var = container_of(head, struct shexec_variable, hash);
+    free(hash_head_key(head));
     free(var->value);
     free(var);
 }
@@ -114,18 +91,30 @@ void environment_free(struct environment *env)
         return;
 
     free(env->progname);
-    htable_map(env->vars, var_free);
     argv_free(env->argv);
-    htable_free(env->vars);
-    htable_free(env->functions);
+    hash_table_map(&env->variables, var_free);
+    hash_table_map(&env->functions, shast_function_hash_put);
+    hash_table_destroy(&env->variables);
+    hash_table_destroy(&env->functions);
     free(env);
+}
+
+const char *environment_var_get(struct environment *env, const char *name)
+{
+    struct hash_head *prev = hash_table_find(&env->variables, NULL, name);
+    if (prev == NULL)
+        return NULL;
+
+    struct shexec_variable *var = container_of(prev, struct shexec_variable, hash);
+    return var->value;
 }
 
 void environment_var_assign(struct environment *env, char *name, char *value, bool export)
 {
-    struct pair *prev = htable_access(env->vars, name);
+    struct hash_head **insertion_pos;
+    struct hash_head *prev = hash_table_find(&env->variables, &insertion_pos, name);
     if (prev) {
-        struct variable *var = prev->value;
+        struct shexec_variable *var = container_of(prev, struct shexec_variable, hash);
         free(var->value);
         free(name);
         var->value = value;
@@ -133,8 +122,10 @@ void environment_var_assign(struct environment *env, char *name, char *value, bo
             var->to_export = true;
         return;
     }
-    struct variable *nvar = xmalloc(sizeof(*nvar));
-    *nvar = VARIABLE(value);
+
+    struct shexec_variable *nvar = xmalloc(sizeof(*nvar));
+    hash_head_init(&nvar->hash, name);
+    nvar->value = value;
     nvar->to_export = export;
-    htable_add(env->vars, name, nvar);
+    hash_table_insert(&env->variables, insertion_pos, &nvar->hash);
 }

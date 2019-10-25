@@ -8,18 +8,6 @@
 #include <stdbool.h>
 
 
-struct variable
-{
-    bool to_export;
-    char *value;
-};
-
-#define VARIABLE(Value)                                                                  \
-    ((struct variable){                                                                            \
-        .to_export = false,                                                              \
-        .value = Value,                                                                  \
-    })
-
 
 struct variable_name {
     struct evect simple_var;
@@ -45,11 +33,28 @@ static inline bool is_exp_special(char c)
     }
 }
 
+static inline bool simple_variable_name_check_first(char c)
+{
+    return is_basic(c);
+}
+
+static inline bool simple_variable_name_check_body(char c)
+{
+    return is_basic(c) || isdigit(c);
+}
+
+static inline bool simple_variable_name_check_at(size_t i, char c)
+{
+    return (i == 0
+            ? simple_variable_name_check_first
+            : simple_variable_name_check_body)(c);
+}
+
 static inline bool simple_variable_name_check(struct evect *var, char c) {
     if (var == NULL || var->size == 0)
-        return is_basic(c);
+        return simple_variable_name_check_first(c);
 
-    return is_basic(c) || isdigit(c);
+    return simple_variable_name_check_body(c);
 }
 
 

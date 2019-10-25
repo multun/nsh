@@ -57,7 +57,8 @@ void case_free(struct shast *ast)
     struct shast_case *case_node = (struct shast_case *)ast;
 
     free(case_node->var);
-    for (size_t case_i = 0; case_item_vect_size(&case_node->cases); case_i++)
+    for (size_t case_i = 0; case_i < case_item_vect_size(&case_node->cases); case_i++)
         case_item_free(case_item_vect_get(&case_node->cases, case_i));
+    case_item_vect_destroy(&case_node->cases);
     free(ast);
 }

@@ -8,7 +8,6 @@ libutils_la_SOURCES = xalloc.c \
                       pvect.c \
                       error.c \
                       hash_table.c \
-                      hash_table_map.c \
                       refcnt.c \
                       mprintf.c \
                       lineinfo.c \

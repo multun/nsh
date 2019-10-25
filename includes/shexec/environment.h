@@ -5,13 +5,20 @@
 struct shast_list;
 struct arg_context;
 
+struct shexec_variable
+{
+    struct hash_head hash;
+    bool to_export;
+    char *value;
+};
+
 /**
 ** \brief the runtime shell environment
 */
 struct environment
 {
-    struct htable *vars;
-    struct htable *functions;
+    struct hash_table variables;
+    struct hash_table functions;
 
     // the progname is distinct from the arguments, for example
     // when running functions
@@ -55,5 +62,7 @@ void environment_free(struct environment *env);
 */
 char **environment_array(struct environment *env);
 
+
+const char *environment_var_get(struct environment *env, const char *name);
 
 void environment_var_assign(struct environment *env, char *name, char *value, bool export);

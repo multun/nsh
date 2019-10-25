@@ -5,66 +5,137 @@
 #include <stdlib.h>
 
 /**
-** \brief node of the htable
+** \brief an intrusive hash table
 */
-struct pair
+struct hash_head
 {
-    uint32_t hkey;
+    uint32_t hash_key;
     char *key;
-    void *value;
-    struct pair *next;
+    struct hash_head **prev;
+    struct hash_head *next;
 };
+
+static inline struct hash_head **hash_head_insertion_point(struct hash_head *head)
+{
+    return head->prev;
+}
+
+static inline char *hash_head_key(struct hash_head *head)
+{
+    return head->key;
+}
+
+uint32_t hash_table_hash(const char *data);
+
+static inline void hash_head_init(struct hash_head *head, char *key)
+{
+    head->key = key;
+    head->hash_key = hash_table_hash(key);
+    head->prev = NULL;
+    head->next = NULL;
+}
 
 /**
 ** \brief htable structure
 */
-struct htable
+struct hash_table
 {
     size_t size;
     size_t capacity;
-    struct pair **tab;
+    struct hash_head **tab;
 };
+
+#include <assert.h>
+
+static inline void hash_table_check(struct hash_table *table)
+{
+    for (size_t i = 0; i < table->size; i++)
+    {
+        struct hash_head **prev = &table->tab[i];
+        for (struct hash_head *cur = *prev; cur; prev = &cur->next, cur = cur->next)
+        {
+            assert(cur->prev = prev);
+            assert(cur->hash_key == hash_table_hash(cur->key));
+        }
+    }
+}
+
+struct hash_table_it
+{
+    size_t i;
+    struct hash_head *cur;
+};
+
+#define HASH_TABLE_IT_INIT (struct hash_table_it) { .i = 0 }
+
+#define for_each_hash(It, Hash)                  \
+    for ((It) = HASH_TABLE_IT_INIT;              \
+         (It).i < (Hash)->capacity;              \
+         (It).i++)                               \
+        for ((It).cur = (Hash)->tab[(It).i];     \
+             (It).cur;                           \
+             (It).cur = (It).cur->next)
+
+struct hash_table_safe_it
+{
+    size_t i;
+    struct hash_head *cur;
+    struct hash_head *tmp;
+};
+
+#define HASH_TABLE_SAFE_IT_INIT  (struct hash_table_safe_it) { .i = 0 }
+
+#define for_each_hash_safe(It, Hash)                    \
+    for ((It) = HASH_TABLE_SAFE_IT_INIT;                \
+         (It).i < (Hash)->capacity;                     \
+         (It).i++)                                      \
+        for ((It).cur = (Hash)->tab[(It).i];            \
+             (It).cur;                                  \
+             (It).cur = (It).tmp)                       \
+            if (((It).tmp = (It).cur->next) || 1)
+
 
 /**
 ** \brief build a new hash table with initial capacity.
+** \param htab the table to initialize
 ** \param capacity the initial size of the htable
 ** \return the allocated htable
 */
-struct htable *htable_create(size_t capacity);
+void hash_table_init(struct hash_table *htab, size_t capacity);
 
 /**
-** \brief find the node corresponding t oa given key
-** \param htable the hatable to look into
-** \param key the key to match
+** \brief find the node corresponding to a given key
+** \param htab the hash table to look into
+** \param insertion_point the place to insert if find fails
+** \param key the key to look for
 ** \return pointer to node
 */
-struct pair *htable_access(struct htable *htable, const char *key);
+struct hash_head *hash_table_find(struct hash_table *htab,
+                                  struct hash_head ***insertion_point,
+                                  const char *key);
 
 /**
-** \brief add the pair (key,value) to the hash table
-** \param htable the hatable to insert into
-** \param key the key of the node
-** \param value the value of the node
-** \return true on success
+** \brief add an entry at the given location
+** \param insertion_point where to insert
+** \param head the element to insert
 */
-bool htable_add(struct htable *htable, char *key, void *value);
+void hash_table_insert(struct hash_table *htab, struct hash_head **insertion_point, struct hash_head *head);
 
 /**
-** \brief removes the pair containing the given key from the hash table
-** \param htable the hatable to remove from
-** \param key the key of the node to remove.
+** \brief remove the given item from the hash table
+** \param head the element to remove
 */
-void htable_remove(struct htable *htable, char *key);
+void hash_table_remove(struct hash_table *htab, struct hash_head *head);
 
 /**
-** \brief delete all pairs in the table
-** \param htable the htable to remove from
+** \brief delete the table, but don't free hash_heads ! (it's an intrusive collection)
+** \param hash_table the hash table to destroy
 */
-void htable_free(struct htable *htable);
+void hash_table_destroy(struct hash_table *hash_table);
 
 /**
-** \brief map a function on every node of the htable
-** \param htable the htable to apply func on
+** \brief map a function on every node of the hash_table
+** \param hash_table the hash_table to apply func on
 ** \param func the function to apply on each node
 */
-void htable_map(struct htable *htable, void (*func)(struct pair *ptr));
+void hash_table_map(struct hash_table *hash_table, void (*mapper)(struct hash_head *ptr));

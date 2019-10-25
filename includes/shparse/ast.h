@@ -7,6 +7,7 @@
 #include "utils/lineinfo.h"
 #include "wordlist.h"
 #include "utils/refcnt.h"
+#include "utils/macros.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -206,7 +207,7 @@ struct shast_bool_op
 static inline void shast_bool_op_init(struct lexer *lexer,
                                       struct shast_bool_op *node)
 {
-    shast_init(&node->base, SHNODE_CMD, lexer);
+    shast_init(&node->base, SHNODE_BOOL_OP, lexer);
 }
 
 DEFINE_AST_TYPE(shast_bool_op, SHNODE_BOOL_OP)
@@ -216,6 +217,11 @@ struct shast_case_item
     struct wordlist pattern; /**< the current tested value */
     struct shast *action; /**< the command to execute in case of match */
 };
+
+static inline void shast_case_item_init(struct shast_case_item *node)
+{
+    wordlist_init(&node->pattern);
+}
 
 #define GVECT_NAME case_item_vect
 #define GVECT_TYPE struct shast_case_item *
@@ -229,11 +235,6 @@ struct shast_case
     char *var; /**< the tested variable */
     struct case_item_vect cases; /**< the case items */
 };
-
-static inline void shast_case_item_init(struct shast_case_item *node)
-{
-    wordlist_init(&node->pattern);
-}
 
 static inline void shast_case_init(struct lexer *lexer, struct shast_case *node)
 {
@@ -278,11 +279,17 @@ struct shast_function
 {
     struct shast base;
     struct refcnt refcnt;
-    char *name; /**< the function name */
+    struct hash_head hash;
     struct shast *body; /**< the function body */
 };
 
 void shast_function_ref_free(struct refcnt *refcnt);
+
+static inline void shast_function_hash_put(struct hash_head *head)
+{
+    struct shast_function *func = container_of(head, struct shast_function, hash);
+    ref_put(&func->refcnt);
+}
 
 static inline void shast_function_init(struct lexer *lexer, struct shast_function *node)
 {

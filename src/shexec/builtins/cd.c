@@ -10,7 +10,7 @@
 #include "shlex/variable.h"
 #include "shexec/builtin_cd.h"
 
-void update_pwd(bool oldpwd, struct environment *env)
+void update_pwd(const char *var, struct environment *env)
 {
     const size_t size = PATH_MAX;
     char *buf = xcalloc(size, sizeof(char));
@@ -19,54 +19,48 @@ void update_pwd(bool oldpwd, struct environment *env)
         buf = NULL;
         return;
     }
-    char *pwd = strdup(oldpwd ? "OLDPWD" : "PWD");
-    environment_var_assign(env, pwd, buf, true);
+    environment_var_assign(env, strdup(var), buf, true);
 }
 
-static int cd_from_env(const char *env_var, struct environment *env, bool save)
+static int cd(struct environment *env, const char *path)
 {
-    struct pair *p = htable_access(env->vars, env_var);
-    char *path = NULL;
-    if (p && p->value) {
-        struct variable *var = p->value;
-        path = var->value;
-    }
-
-    if (!path) {
-        warnx("cd: no %s set", env_var);
-        return 1;
-    }
-
-    if (save)
-        path = strdup(path);
-
-    update_pwd(true, env);
+    update_pwd("OLDPWD", env);
     if (chdir(path) != 0) {
         warn("cd: chdir failed");
         return 1;
     }
-    if (save)
-        free(path);
+    update_pwd("PWD", env);
+    return 0;
+}
 
-    update_pwd(false, env);
+static int cd_from_env(const char *env_var, struct environment *env)
+{
+    const char *env_val = environment_var_get(env, env_var);
+    if (env_val == NULL) {
+        warnx("cd: '%s' not set", env_var);
+        return 1;
+    }
+
+    cd(env, env_val);
     return 0;
 }
 
 static int cd_with_minus(struct environment *env)
 {
-    int res = cd_from_env("OLDPWD", env, true);
+    int res = cd_from_env("OLDPWD", env);
 
-    if (!res) {
-        char *buf = xcalloc(PATH_MAX, sizeof(char));
-        size_t size = PATH_MAX;
-        if (!getcwd(buf, size)) {
-            free(buf);
-            return 1;
-        }
-        printf("%s\n", buf);
+    if (res)
+        return res;
+
+    char *buf = xcalloc(PATH_MAX, sizeof(char));
+    size_t size = PATH_MAX;
+    if (!getcwd(buf, size)) {
         free(buf);
+        return 1;
     }
-    return res;
+    printf("%s\n", buf);
+    free(buf);
+    return 0;
 }
 
 int builtin_cd(struct environment *env, struct errcont *cont, int argc, char **argv)
@@ -80,16 +74,10 @@ int builtin_cd(struct environment *env, struct errcont *cont, int argc, char **a
     }
 
     if (argc == 1)
-        return cd_from_env("HOME", env, false);
+        return cd_from_env("HOME", env);
     else if (!strcmp(argv[1], "-"))
         return cd_with_minus(env);
-    else {
-        update_pwd(true, env);
-        if (chdir(argv[1]) != 0) {
-            warn("cd: chdir failed");
-            return 1;
-        }
-        update_pwd(false, env);
-    }
+    else
+        return cd(env, argv[1]);
     return 0;
 }

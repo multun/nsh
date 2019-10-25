@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "utils/alloc.h"
 #include "utils/hash_table.h"
@@ -9,7 +10,7 @@
 #define RESIZE_GROWTH 2
 #define RESIZE_TRIGGER 0.75
 
-static uint32_t hash(const char *data)
+uint32_t hash_table_hash(const char *data)
 {
     const void *vdata = data;
     const uint8_t *cur = vdata;
@@ -24,118 +25,93 @@ static uint32_t hash(const char *data)
     return h + h * 32768;
 }
 
-static struct pair **pair_insertpos(struct htable *table, const char *key)
+static struct hash_head **head_tab_insertpos(struct hash_table *table, const char *key)
 {
-    return &table->tab[hash(key) % table->capacity];
+    return &table->tab[hash_table_hash(key) % table->capacity];
 }
 
-static void expand_table(struct htable *htable)
+static void hash_table_insert_noincr(struct hash_head **insertion_point, struct hash_head *head)
+{
+    head->next = *insertion_point;
+    head->prev = insertion_point;
+    *insertion_point = head;
+}
+
+static void expand_table(struct hash_table *htable)
 {
     size_t former_cap = htable->capacity;
-    htable->capacity *= RESIZE_GROWTH;
+    struct hash_head **former_tab = htable->tab;
 
-    struct pair **ftab = htable->tab;
-    htable->tab = xcalloc(htable->capacity, sizeof(struct pair *));
+    htable->capacity *= RESIZE_GROWTH;
+    htable->tab = xcalloc(htable->capacity, sizeof(struct hash_head *));
 
     for (size_t i = 0; i < former_cap; i++)
-        for (struct pair *fp = ftab[i]; fp;) {
-            struct pair **ipos = pair_insertpos(htable, fp->key);
-            struct pair *tmp = fp->next;
-            fp->next = *ipos;
-            *ipos = fp;
-            fp = tmp;
+        for (struct hash_head *cur = former_tab[i]; cur;) {
+            struct hash_head **ipos = head_tab_insertpos(htable, cur->key);
+            struct hash_head *tmp = cur->next;
+            hash_table_insert_noincr(ipos, cur);
+            cur = tmp;
         }
-    free(ftab);
+    free(former_tab);
+    hash_table_check(htable);
 }
 
-struct htable *htable_create(size_t capacity)
+void hash_table_init(struct hash_table *htab, size_t capacity)
 {
-    struct htable *ret = xmalloc(sizeof(struct htable));
-    ret->size = 0;
-    ret->capacity = capacity;
-    ret->tab = xcalloc(capacity, sizeof(struct pair *));
-    return ret;
+    htab->size = 0;
+    htab->capacity = capacity;
+    htab->tab = xcalloc(capacity, sizeof(struct hash_head *));
 }
 
-struct pair *htable_access(struct htable *htable, const char *key)
+struct hash_head *hash_table_find(struct hash_table *htab, struct hash_head ***insertion_point, const char *key)
 {
-    struct pair *ret = *pair_insertpos(htable, key);
+    if (htab->size + 1 > htab->capacity * RESIZE_TRIGGER)
+        expand_table(htab);
 
-    for (; ret; ret = ret->next)
-        if (!strcmp(key, ret->key))
-            return ret;
+    struct hash_head **ipos = head_tab_insertpos(htab, key);
 
+    if (insertion_point)
+        *insertion_point = ipos;
+
+    for (struct hash_head *cur = *ipos; cur; cur = cur->next)
+        if (strcmp(cur->key, key) == 0)
+            return cur;
+
+    hash_table_check(htab);
     return NULL;
 }
 
-static struct pair *alloc_pair(char *key, void *value)
+void hash_table_insert(struct hash_table *htab, struct hash_head **insertion_point, struct hash_head *head)
 {
-    struct pair *ret = xmalloc(sizeof(struct pair));
-    ret->key = key;
-    ret->value = value;
-    ret->next = NULL;
-    return ret;
+    htab->size++;
+    hash_table_insert_noincr(insertion_point, head);
+    hash_table_check(htab);
 }
 
-bool htable_add(struct htable *htable, char *key, void *value)
+void hash_table_remove(struct hash_table *htab, struct hash_head *head)
 {
-    if (htable->size + 1 > htable->capacity * RESIZE_TRIGGER)
-        expand_table(htable);
-
-    struct pair **ipos = pair_insertpos(htable, key);
-    for (struct pair *p = *ipos; p; p = p->next)
-        if (!strcmp(p->key, key))
-            return false;
-
-    htable->size++;
-
-    struct pair *nelem = alloc_pair(key, value);
-    nelem->next = *ipos;
-    *ipos = nelem;
-    return true;
+    assert(htab->size > 0);
+    htab->size--;
+    *head->prev = head->next;
+    head->prev = NULL;
+    head->next = NULL;
+    hash_table_check(htab);
 }
 
-void htable_remove(struct htable *htable, char *key)
+void hash_table_destroy(struct hash_table *htab)
 {
-    struct pair **ipos = pair_insertpos(htable, key);
-    for (; *ipos; ipos = &(*ipos)->next)
-        if (!strcmp((*ipos)->key, key)) {
-            struct pair *rpair = *ipos;
-            *ipos = (*ipos)->next;
-            free(rpair);
-            htable->size--;
-            break;
-        }
+    free(htab->tab);
 }
 
-void htable_free(struct htable *htable)
+void hash_table_map(struct hash_table *htab, void (*mapper)(struct hash_head *ptr))
 {
-    for (size_t i = 0; i < htable->capacity; i++) {
-        struct pair *pp = NULL;
-        struct pair *fp = htable->tab[i];
-        while (fp) {
-            free(pp);
-            pp = fp;
-            fp = fp->next;
-        }
-        free(pp);
-    }
-
-    free(htable->tab);
-    free(htable);
-}
-
-void htable_map(struct htable *htable, void (*func)(struct pair *ptr))
-{
-    for (size_t i = 0; i < htable->capacity; i++) {
-        struct pair *pp = NULL;
-        struct pair *fp = htable->tab[i];
-        while (fp || pp) {
-            if (pp)
-                func(pp);
-            pp = fp;
-            if (fp)
-                fp = fp->next;
+    for (size_t i = 0; i < htab->capacity; i++) {
+        struct hash_head *next;
+        for (struct hash_head *cur = htab->tab[i]; cur; cur = next)
+        {
+            next = cur->next;
+            if (cur)
+                mapper(cur);
         }
     }
 }

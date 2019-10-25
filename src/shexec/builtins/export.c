@@ -5,74 +5,85 @@
 #include "shexp/expansion.h"
 #include "shlex/variable.h"
 #include "utils/alloc.h"
+#include "utils/macros.h"
 
-static void unexport_var(struct environment *env, char *name)
+static int export_var(struct environment *env, char *raw_export_expr, bool to_export, struct errcont *cont)
 {
-    struct pair *prev = htable_access(env->vars, name);
-    if (prev) {
-        struct variable *var = prev->value;
-        var->to_export = false;
+    // expand the variable name
+    char *export_expr = expand(NULL, raw_export_expr, env, cont);
+    char *var_sep = strchr(export_expr, '=');
+    char *var_name_end = var_sep;
+    if (var_name_end == NULL)
+        var_name_end = export_expr + strlen(export_expr);
+
+    // validate the variable name
+    size_t var_name_len = var_name_end - export_expr;
+    for (size_t i = 0; i < var_name_len; i++)
+    {
+        if (simple_variable_name_check_at(i, export_expr[i]))
+            continue;
+        warnx("export: '%.*s': not a valid identifier",
+              (int)var_name_len, export_expr);
+        free(export_expr);
+        return 1;
     }
-    free(name);
-}
 
-static int export_var(struct environment *env, char *entry, bool remove, struct errcont *cont)
-{
-    int res = 0;
-    char *var = expand(NULL, entry, env, cont);
-    char *word = NULL;
-    char *name = strdup(strtok_r(var, "=", &word));
-    bool valid =
-        *name == '_' || (*name >= 'a' && *name <= 'z') || (*name >= 'A' && *name <= 'Z');
+    // allocate new values
+    char *var_value = NULL;
+    if (var_sep)
+        var_value = strdup(var_sep + 1);
+    char *var_name = strndup(export_expr, var_name_len);
 
-    for (char *c = name + 1; valid && *c; c++)
-        valid = *c == '_' || (*c >= 'a' && *c <= 'z') || (*c >= 'A' && *c <= 'Z')
-            || (*c >= '0' && *c <= '9');
-
-    if (entry[0] == '=' || !valid) {
-        warnx("export: '%s': not a valid identifier", entry);
-        free(name);
-        res = 1;
-    } else if (remove)
-        unexport_var(env, name);
-    else if (*word == '\0' && *(word - 1) != '=')
-        environment_var_assign(env, name, NULL, true);
+    struct shexec_variable *var;
+    struct hash_head **insertion_pos;
+    struct hash_head *hash = hash_table_find(&env->variables, &insertion_pos, var_name);
+    if (hash == NULL)
+    {
+        var = zalloc(sizeof(*var));
+        hash_head_init(&var->hash, var_name);
+        var->to_export = to_export;
+        var->value = var_value;
+    }
     else
-        // TODO: wtf is there an expand here
-        environment_var_assign(env, name, expand(NULL, word, env, cont), true);
-    free(var);
-    return res;
+    {
+        free(var_name);
+        var = container_of(hash, struct shexec_variable, hash);
+        var->to_export = to_export;
+        free(var->value);
+        var->value = var_value;
+    }
+    return 0;
 }
+
 
 static void export_print(struct environment *env)
 {
-    struct htable *vars = env->vars;
-    for (size_t i = 0; i < vars->capacity; i++) {
-        struct pair *pair = vars->tab[i];
-        while (pair) {
-            struct variable *var = pair->value;
-            if (var->to_export && var->value)
-                printf("export %s=\"%s\"\n", pair->key, var->value);
-            else if (var->to_export)
-                printf("export %s\n", pair->key);
-            pair = pair->next;
-        }
+    struct hash_table_it it;
+    for_each_hash(it, &env->variables)
+    {
+        struct shexec_variable *var = container_of(it.cur, struct shexec_variable, hash);
+        if (!var->to_export)
+            continue;
+
+        const char *var_name = hash_head_key(&var->hash);
+        if (var->value)
+            printf("export %s=\"%s\"\n", var_name, var->value);
+        else
+            printf("export %s\n", var_name);
     }
 }
 
 int builtin_export(struct environment *env, struct errcont *cont, int argc, char **argv)
 {
-    if (!env || !cont)
-        warnx("export: missing context elements");
     int res = 0;
     bool print = true;
-    bool remove = false;
+    bool to_export = true;
     for (int i = 1; i < argc; i++) {
-        if (!strcmp("-n", argv[i]))
-            remove = true;
+        if (strcmp("-n", argv[i]) == 0)
+            to_export = false;
         else if (strcmp("-p", argv[i])) {
             print = false;
-            res |= export_var(env, argv[i], remove, cont);
+            res |= export_var(env, argv[i], to_export, cont);
         }
     }
     if (print)

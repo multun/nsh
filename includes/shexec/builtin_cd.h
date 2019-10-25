@@ -5,7 +5,7 @@
 
 /**
 ** \brief sets either PWD or OLDPWD to the current working directory
-** \param oldpwd whether oldpwd should be set instead of pwd
+** \param var the variable to set
 ** \param env the environment to work with
 */
-void update_pwd(bool oldpwd, struct environment*env);
+void update_pwd(const char *var, struct environment *env);

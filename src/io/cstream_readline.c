@@ -3,22 +3,22 @@
 #include "repl/repl.h"
 #include "shlex/variable.h"
 #include "utils/alloc.h"
+#include "utils/macros.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-static const char *cont_get_var(struct context *cont, const char *vname, const char *def)
+static const char *cont_get_var(struct context *cont, const char *name, const char *default_value)
 {
-    struct pair *hpair = htable_access(cont->env->vars, vname);
-    if (!hpair)
-        return def;
+    struct hash_head *var_hash = hash_table_find(&cont->env->variables, NULL, name);
+    if (var_hash == NULL)
+        return default_value;
 
-    // TODO: check weird sequence var->value ... if var
-    struct variable *var = hpair->value;
-    if (!var->value)
-        return def;
-    return var ? var->value : "";
+    struct shexec_variable *var = container_of(var_hash, struct shexec_variable, hash);
+    if (var->value == NULL)
+        return default_value;
+    return var->value;
 }
 
 static const char *get_ps1(struct context *context)

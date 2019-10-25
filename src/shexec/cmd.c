@@ -12,6 +12,7 @@
 #include "shexec/clean_exit.h"
 #include "shexec/environment.h"
 #include "utils/hash_table.h"
+#include "utils/macros.h"
 
 void cmd_print(FILE *f, struct shast *ast)
 {
@@ -36,9 +37,12 @@ static int builtin_exec(struct environment *env, struct errcont *cont, f_builtin
 
 static int cmd_exec_argv(struct environment *env, struct errcont *cont)
 {
-    struct pair *p = htable_access(env->functions, env->argv[0]);
-    if (p)
-        return ast_exec(env, p->value, cont);
+    struct hash_head *func_hash = hash_table_find(&env->functions, NULL, env->argv[0]);
+    if (func_hash)
+    {
+        struct shast_function *func = container_of(func_hash, struct shast_function, hash);
+        return ast_exec(env, func->body, cont);
+    }
 
     f_builtin builtin = builtin_search(env->argv[0]);
     if (builtin)
