@@ -13,7 +13,6 @@ libutils_la_SOURCES = xalloc.c \
                       mprintf.c \
                       lineinfo.c \
                       pathutils.c \
-                      $(TOP_INCL)/utils/strsplit.h strsplit.c \
                       $(TOP_INCL)/utils/alloc.h \
                       $(TOP_INCL)/utils/mprintf.h \
                       $(TOP_INCL)/utils/error.h \
