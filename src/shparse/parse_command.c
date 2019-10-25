@@ -83,5 +83,18 @@ void parse_command(struct shast **res, struct lexer *lexer, struct errcont *errc
         struct shast_function *func = (struct shast_function *)old_root;
         block->command = func->body;
         func->body = &block->base;
+        *res = &func->base;
     }
+}
+
+void parse_funcdec(struct shast **res, struct lexer *lexer, struct errcont *errcont)
+{
+    struct shast_function *func = shast_function_attach(res, lexer);
+    struct token *word = lexer_pop(lexer, errcont);
+    hash_head_init(&func->hash, tok_buf(word));
+    tok_free(word, false);
+    parser_consume(lexer, TOK_LPAR, errcont);
+    parser_consume(lexer, TOK_RPAR, errcont);
+    parse_newlines(lexer, errcont);
+    parse_compound_command(&func->body, lexer, errcont);
 }
