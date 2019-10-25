@@ -4,13 +4,40 @@
 ** \file shparse/parse.h
 */
 
-#include "ast/ast.h"
+#include "shparse/ast.h"
 #include "shlex/lexer.h"
+#include "shlex/print.h"
 #include "shparse/parser_error.h"
 #include "utils/error.h"
 
-#define PARSER_ERROR(LineInfo, Errcont, ...)                                             \
-    sherror((LineInfo), (Errcont), &g_lexer_error, __VA_ARGS__)
+#include <stdarg.h>
+
+__noreturn static inline void parser_err(const struct lineinfo *lineinfo, struct errcont *errcont, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+
+    vsherror(lineinfo, errcont, &g_parser_error, fmt, ap);
+
+    va_end(ap);
+}
+
+static inline void parser_consume(struct lexer *lexer, enum token_type type, struct errcont *errcont)
+{
+    const struct token *tok = lexer_peek(lexer, errcont);
+    if (!tok_is(tok, type))
+        parser_err(&tok->lineinfo, errcont, "unexpected token %s, expected %s",
+                     tok_buf(tok), token_type_to_string(type));
+
+    lexer_discard(lexer, errcont);
+}
+
+static inline void parser_consume_optional(struct lexer *lexer, enum token_type type, struct errcont *errcont)
+{
+    const struct token *tok = lexer_peek(lexer, errcont);
+    if (tok_is(tok, type))
+        lexer_discard(lexer, errcont);
+}
 
 /**
 ** \brief parse the input of 42sh.
@@ -19,7 +46,7 @@
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+void parse(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the list rule.
@@ -28,7 +55,7 @@ void parse(struct ast **res, struct lexer *lexer, struct errcont *errcont);
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_list(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+void parse_list(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the and_or rule.
@@ -37,7 +64,7 @@ void parse_list(struct ast **res, struct lexer *lexer, struct errcont *errcont);
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_and_or(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+void parse_and_or(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the pipeline rule.
@@ -46,7 +73,7 @@ void parse_and_or(struct ast **res, struct lexer *lexer, struct errcont *errcont
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_pipeline(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+void parse_pipeline(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the command rule.
@@ -55,7 +82,7 @@ void parse_pipeline(struct ast **res, struct lexer *lexer, struct errcont *errco
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_command(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+void parse_command(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the simple_command rule.
@@ -64,16 +91,7 @@ void parse_command(struct ast **res, struct lexer *lexer, struct errcont *errcon
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_simple_command(struct ast **res, struct lexer *lexer, struct errcont *errcont);
-
-/**
-** \brief parse the shell_command rule.
-**
-** \param res buffer to store the parsing results.
-** \param lexer lexer to use in parsing.
-** \param errcont error context.
-*/
-void parse_shell_command(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+void parse_simple_command(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the funcdec rule.
@@ -82,7 +100,7 @@ void parse_shell_command(struct ast **res, struct lexer *lexer, struct errcont *
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_funcdec(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+void parse_funcdec(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the redirection rule.
@@ -91,7 +109,7 @@ void parse_funcdec(struct ast **res, struct lexer *lexer, struct errcont *errcon
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_redirection(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+int parse_redirection(struct redir_vect *res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the compound_list rule.
@@ -100,7 +118,7 @@ void parse_redirection(struct ast **res, struct lexer *lexer, struct errcont *er
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_compound_list(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+void parse_compound_list(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the rule_for rule.
@@ -109,7 +127,7 @@ void parse_compound_list(struct ast **res, struct lexer *lexer, struct errcont *
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_rule_for(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+void parse_rule_for(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the rule_while rule.
@@ -118,7 +136,7 @@ void parse_rule_for(struct ast **res, struct lexer *lexer, struct errcont *errco
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_rule_while(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+void parse_rule_while(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the rule_until rule.
@@ -127,7 +145,7 @@ void parse_rule_while(struct ast **res, struct lexer *lexer, struct errcont *err
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_rule_until(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+void parse_rule_until(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the rule_case rule.
@@ -136,7 +154,7 @@ void parse_rule_until(struct ast **res, struct lexer *lexer, struct errcont *err
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_rule_case(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+void parse_rule_case(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the rule_if rule.
@@ -145,7 +163,7 @@ void parse_rule_case(struct ast **res, struct lexer *lexer, struct errcont *errc
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_rule_if(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+void parse_rule_if(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the else_clause rule.
@@ -154,7 +172,7 @@ void parse_rule_if(struct ast **res, struct lexer *lexer, struct errcont *errcon
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_else_clause(struct ast **res, struct lexer *lexer, struct errcont *errcont);
+void parse_else_clause(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse the do_group rule.
@@ -163,25 +181,7 @@ void parse_else_clause(struct ast **res, struct lexer *lexer, struct errcont *er
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-void parse_do_group(struct ast **res, struct lexer *lexer, struct errcont *errcont);
-
-/**
-** \brief parse the case_clause rule.
-**
-** \param res buffer to store the parsing results.
-** \param lexer lexer to use in parsing.
-** \param errcont error context.
-*/
-void parse_case_clause(struct acase_node **res, struct lexer *lexer, struct errcont *errcont);
-
-/**
-** \brief parse the case_item rule.
-**
-** \param res buffer to store the parsing results.
-** \param lexer lexer to use in parsing.
-** \param errcont error context.
-*/
-void parse_case_item(struct acase_node **res, struct lexer *lexer, struct errcont *errcont);
+void parse_do_group(struct shast **res, struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse a word.
@@ -199,10 +199,3 @@ char *parse_word(struct lexer *lexer, struct errcont *errcont);
 ** \param errcont error context.
 */
 void parse_newlines(struct lexer *lexer, struct errcont *errcont);
-
-/**
-** \brief tell if given token starts a redirection.
-**
-** \param tok token that may start a redirection.
-*/
-bool start_redir(const struct token *tok);

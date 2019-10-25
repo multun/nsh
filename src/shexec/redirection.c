@@ -6,214 +6,194 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "ast/ast.h"
+#include "shparse/ast.h"
 #include "utils/macros.h"
 #include "shexec/redirection_utils.h"
+#include "shexec/execution.h"
 
-struct redir_params
+
+static struct redir_undo_op *redir_undo_reserve(struct redir_undo *undo)
 {
-    struct environment *env;
-    struct aredirection *aredir;
-    struct ast *cmd;
-    struct errcont *cont;
-};
-
-static int redirection_local_exec(struct redir_params *params);
-
-static int exec_redir_base(struct redir_params *params)
-{
-    if (params->aredir->action) {
-        params->aredir = &params->aredir->action->data.ast_redirection;
-        return redirection_local_exec(params);
-    }
-    return ast_exec(params->env, params->cmd, params->cont);
-}
-
-static int redir_great(struct redir_params *params)
-{
-    int stdout_copy = fd_move_away(STDOUT_FILENO);
-
-    struct aredirection *aredir = params->aredir;
-    int fd_file = open(aredir->right, O_CREAT | O_WRONLY | O_TRUNC, 0664);
-    if (fd_file < 0) {
-        warnx("%s: Permission denied\n", aredir->right);
-        return 1;
-    }
-
-    int res = exec_redir_base(params);
-
-    if (close(fd_file) < 0)
-        errx(1, "redir_great: Failed closing %s", aredir->right);
-
-    fd_move(stdout_copy, STDOUT_FILENO);
-
+    struct redir_undo_op *res = &undo->ops[undo->count++];
+    assert(undo->count <= MAX_REDIR_OPS);
     return res;
 }
 
-static int redir_dgreat(struct redir_params *params)
+static void redir_undo_plan_close(struct redir_undo *undo, int to_close)
 {
-    struct aredirection *aredir = params->aredir;
+    struct redir_undo_op *op = redir_undo_reserve(undo);
+    op->type = REDIR_CLOSE;
+    op->data.to_close = to_close;
+}
+
+static void redir_undo_plan_move(struct redir_undo *undo, int src, int dst)
+{
+    struct redir_undo_op *op = redir_undo_reserve(undo);
+    op->type = REDIR_MOVE;
+    op->data.move.src = src;
+    op->data.move.dst = dst;
+}
+
+static int redir_great(struct shast_redirection *redir,
+                       struct redir_undo *undo)
+{
     int stdout_copy = fd_move_away(STDOUT_FILENO);
 
-    int fd_file = open(aredir->right, O_CREAT | O_WRONLY | O_APPEND, 0664);
+    int fd_file = open(redir->right, O_CREAT | O_WRONLY | O_TRUNC, 0664);
     if (fd_file < 0) {
-        warnx("%s: Permission denied\n", aredir->right);
+        warnx("%s: Permission denied\n", redir->right);
         return 1;
     }
 
-    int res = exec_redir_base(params);
-
-    if (close(fd_file) < 0)
-        errx(1, "redir_dgreat: Failed closing %s", aredir->right);
-
-    fd_move(stdout_copy, STDOUT_FILENO);
-
-    return res;
+    redir_undo_plan_close(undo, fd_file);
+    redir_undo_plan_move(undo, stdout_copy, STDOUT_FILENO);
+    return 0;
 }
 
-static int redir_less(struct redir_params *params)
+static int redir_dgreat(struct shast_redirection *redir,
+                        struct redir_undo *undo)
 {
-    struct aredirection *aredir = params->aredir;
+    int stdout_copy = fd_move_away(STDOUT_FILENO);
+
+    int fd_file = open(redir->right, O_CREAT | O_WRONLY | O_APPEND, 0664);
+    if (fd_file < 0) {
+        warnx("%s: Permission denied\n", redir->right);
+        return 1;
+    }
+
+    redir_undo_plan_close(undo, fd_file);
+    redir_undo_plan_move(undo, stdout_copy, STDOUT_FILENO);
+    return 0;
+}
+
+static int redir_less(struct shast_redirection *redir,
+                      struct redir_undo *undo)
+{
     int copy = fd_move_away(STDIN_FILENO);
 
-    int fd_file = open(aredir->right, O_RDONLY, 0664);
+    int fd_file = open(redir->right, O_RDONLY, 0664);
     if (fd_file < 0) {
-        warn("cannot open \"%s\"", aredir->right);
+        warn("cannot open \"%s\"", redir->right);
         return 1;
     }
 
-    int res = exec_redir_base(params);
-
-    if (close(fd_file) < 0)
-        errx(1, "redir_less: Failed closing %s", aredir->right);
-
-    fd_move(copy, STDIN_FILENO);
-
-    return res;
+    redir_undo_plan_close(undo, fd_file);
+    redir_undo_plan_move(undo, copy, STDIN_FILENO);
+    return 0;
 }
 
-static int redir_lessand(struct redir_params *params)
+static int redir_lessand(struct shast_redirection *redir,
+                         struct redir_undo *undo)
 {
-    struct aredirection *aredir = params->aredir;
-    if (aredir->left == -1)
-        aredir->left = 0;
+    if (redir->left == -1)
+        redir->left = 0;
 
-    if (!strcmp("-", aredir->right))
-        if (close(aredir->left) < 0)
-            errx(1, "redir_lessand: Failed closing %d", aredir->left);
+    if (!strcmp("-", redir->right))
+        if (close(redir->left) < 0)
+            errx(1, "redir_lessand: Failed closing %d", redir->left);
 
-    int digit = atoi(aredir->right);
-    if (dup2(digit, aredir->left) < 0) {
-        warnx("%s: Bad file descriptor", aredir->right);
+    int digit = atoi(redir->right);
+    if (dup2(digit, redir->left) < 0) {
+        warnx("%s: Bad file descriptor", redir->right);
         return 1;
     }
 
-    int res = exec_redir_base(params);
-
-    if (close(aredir->left) < 0)
-        errx(1, "redir_lessand: Failed closing %d", aredir->left);
-    return res;
+    redir_undo_plan_close(undo, redir->left);
+    return 0;
 }
 
-static int redir_greatand(struct redir_params *params)
+static int redir_greatand(struct shast_redirection *redir,
+                          struct redir_undo *undo)
 {
-    struct aredirection *aredir = params->aredir;
-    if (aredir->left == -1)
-        aredir->left = 1;
-    if (!strcmp("-", aredir->right))
-        if (close(aredir->left) < 0)
-            errx(1, "redir_greatand: Failed closing %d", aredir->left);
+    if (redir->left == -1)
+        redir->left = 1;
+    if (!strcmp("-", redir->right))
+        if (close(redir->left) < 0)
+            errx(1, "redir_greatand: Failed closing %d", redir->left);
 
-    int save = fd_copy(aredir->left);
-    int digit = atoi(aredir->right);
-    if (dup2(digit, aredir->left) < 0) {
-        warnx("%s: Bad file descriptor", aredir->right);
+    int save = fd_copy(redir->left);
+    int digit = atoi(redir->right);
+    if (dup2(digit, redir->left) < 0) {
+        warnx("%s: Bad file descriptor", redir->right);
         return 1;
     }
 
-    int res = exec_redir_base(params);
-
-    if (close(aredir->left) < 0)
-        errx(1, "redir_lessand: Failed closing %d", aredir->left);
-    dup2(save, aredir->left);
-    close(save);
-    return res;
+    redir_undo_plan_move(undo, save, redir->left);
+    redir_undo_plan_close(undo, save);
+    return 0;
 }
 
-static int redir_lessgreat(struct redir_params *params)
+static int redir_lessgreat(struct shast_redirection *redir,
+                           struct redir_undo *undo)
 {
-    struct aredirection *aredir = params->aredir;
-    if (aredir->left == -1)
-        aredir->left = 0;
-    int fd = open(aredir->right, O_CREAT | O_RDWR | O_TRUNC, 0664);
+    if (redir->left == -1)
+        redir->left = 0;
+    int fd = open(redir->right, O_CREAT | O_RDWR | O_TRUNC, 0664);
     if (fd < 0) {
-        warnx("%s: Permission denied\n", aredir->right);
+        warnx("%s: Permission denied\n", redir->right);
         return 1;
     }
-    if (dup2(fd, aredir->left) < 0)
-        errx(1, "redir_lessgreat: Failed dup file descriptor");
-    if (close(fd) < 0)
-        errx(1, "redir_lessgreat: Failed closing file descriptor");
 
-    int res = exec_redir_base(params);
-
-    if (close(aredir->left) < 0)
-        errx(1, "redir_lessgreat: Failed closing %d", aredir->left);
-    return res;
+    fd_move(fd, redir->left);
+    redir_undo_plan_close(undo, redir->left);
+    return 0;
 }
 
 static const struct redir_meta
 {
     const char *repr;
-    int (*func)(struct redir_params *params);
-} g_redir_list[] = {
-#define REDIRECIONS_LIST(EName, Repr, Func) {Repr, Func},
-    REDIRECTIONS_APPLY(REDIRECIONS_LIST)};
-
-static int redirection_local_exec(struct redir_params *params)
+    int (*func)(struct shast_redirection *redir, struct redir_undo *undo);
+} g_redir_list[] =
 {
-    if (params->aredir->type >= ARR_SIZE(g_redir_list))
+#define REDIRECTIONS_LIST(EName, Repr, Func) {Repr, Func},
+    REDIRECTIONS_APPLY(REDIRECTIONS_LIST)
+};
+
+static void redirection_print(FILE *f, struct shast_redirection *redir)
+{
+    void *id = redir;
+
+    if (redir->type >= ARR_SIZE(g_redir_list))
         abort();
 
-    const struct redir_meta *rmeta = &g_redir_list[params->aredir->type];
-    if (rmeta->func)
-        return rmeta->func(params);
+    const char *redir_name = g_redir_list[redir->type].repr;
 
-    warnx("ignoring unimplemented redirection \"%s\"", rmeta->repr);
-    return exec_redir_base(params);
+    fprintf(f, "\"%p\" [label=\"%d %s %s\"];\n", id, redir->left, redir_name,
+            redir->right);
 }
 
-void redirection_print(FILE *f, struct ast *ast)
+void redir_vect_print(FILE *f, struct redir_vect *vect, void *id)
 {
-    struct aredirection *aredirection = &ast->data.ast_redirection;
-    void *id = ast;
-
-    if (aredirection->type >= ARR_SIZE(g_redir_list))
-        abort();
-
-    const char *redir = g_redir_list[aredirection->type].repr;
-
-    fprintf(f, "\"%p\" [label=\"%d %s %s\"];\n", id, aredirection->left, redir,
-            aredirection->right);
-
-    if (aredirection->action) {
-        ast_print_rec(f, aredirection->action);
-        void *id_next = aredirection->action;
-        fprintf(f, "\"%p\" -> \"%p\";\n", id, id_next);
+    for (size_t i = 0; i < redir_vect_size(vect); i++)
+    {
+        struct shast_redirection *redir = redir_vect_get(vect, i);
+        redirection_print(f, redir);
+        fprintf(f, "\"%p\" -> \"%p\";\n", id, (void*)redir);
     }
 }
 
-int redirection_exec(struct environment *env, struct ast *ast, struct ast *cmd, struct errcont *cont)
+int redirection_exec(struct shast_redirection *redir, struct redir_undo *undo)
 {
-    struct redir_params params = {env, &ast->data.ast_redirection, cmd, cont};
-    return redirection_local_exec(&params);
+    if (redir->type >= ARR_SIZE(g_redir_list))
+        abort();
+
+    const struct redir_meta *rmeta = &g_redir_list[redir->type];
+    if (rmeta->func == NULL)
+        abort();
+    return rmeta->func(redir, undo);
 }
 
-void redirection_free(struct ast *ast)
+int redirection_op_cancel(struct redir_undo_op *undo_op)
 {
-    if (!ast)
-        return;
-    free(ast->data.ast_redirection.right);
-    ast_free(ast->data.ast_redirection.action);
-    free(ast);
+    switch (undo_op->type)
+    {
+    case REDIR_MOVE:
+        fd_move(undo_op->data.move.src, undo_op->data.move.dst);
+        return 0;
+    case REDIR_CLOSE:
+        if (close(undo_op->data.to_close) < 0)
+            errx(1, "Failed closing file descriptor");
+        return 0;
+    }
+    abort();
 }

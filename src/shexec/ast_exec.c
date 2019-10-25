@@ -1,10 +1,13 @@
+#include "shparse/ast.h"
 #include "shexec/environment.h"
-#include "ast/ast.h"
 
-static int (*ast_exec_utils[])(struct environment *env, struct ast *ast, struct errcont *cont) = {
-    AST_TYPE_APPLY(DECLARE_AST_EXEC_UTILS)};
+#define AST_EXEC_UTILS(EnumName, Name) \
+    [EnumName] = Name ## _exec,
 
-int ast_exec(struct environment *env, struct ast *ast, struct errcont *cont)
+static int (*ast_exec_utils[])(struct environment *env, struct shast *ast, struct errcont *cont) = {
+    AST_TYPE_APPLY(AST_EXEC_UTILS)};
+
+int ast_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 {
     if (ast)
         env->code = ast_exec_utils[ast->type](env, ast, cont);
@@ -13,9 +16,11 @@ int ast_exec(struct environment *env, struct ast *ast, struct errcont *cont)
     return env->code;
 }
 
-static void (*ast_free_utils[])(struct ast *ast) = {AST_TYPE_APPLY(DECLARE_AST_FREE_UTILS)};
+#define AST_FREE_UTILS(EnumName, Name) \
+    [EnumName] = Name ## _free,
+static void (*ast_free_utils[])(struct shast *ast) = {AST_TYPE_APPLY(AST_FREE_UTILS)};
 
-void ast_free(struct ast *ast)
+void ast_free(struct shast *ast)
 {
     if (!ast)
         return;

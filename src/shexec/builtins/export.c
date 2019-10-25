@@ -1,7 +1,6 @@
 #include <err.h>
 #include <string.h>
 
-#include "ast/assignment.h"
 #include "shexec/builtins.h"
 #include "shexp/expansion.h"
 #include "shlex/variable.h"

@@ -1,18 +1,18 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "ast/ast.h"
+#include "shparse/ast.h"
 #include "shexec/break.h"
 #include "shexec/environment.h"
 #include "shexp/expansion.h"
 #include "utils/alloc.h"
 
-void for_print(FILE *f, struct ast *ast)
+void for_print(FILE *f, struct shast *ast)
 {
-    struct afor *afor = &ast->data.ast_for;
+    struct shast_for *for_node = (struct shast_for *)ast;
     void *id = ast;
-    fprintf(f, "\"%p\" [label=\"FOR %s in", id, afor->var);
-    struct wordlist *wl = &afor->collection;
+    fprintf(f, "\"%p\" [label=\"FOR %s in", id, for_node->var);
+    struct wordlist *wl = &for_node->collection;
     for (size_t i = 0; i < wordlist_size(wl); i++)
     {
         if (i > 0)
@@ -20,8 +20,8 @@ void for_print(FILE *f, struct ast *ast)
         fprintf(f, "%s", wordlist_get(wl, i));
     }
     fprintf(f, "\"];\n");
-    ast_print_rec(f, afor->actions);
-    void *id_do = afor->actions;
+    ast_print_rec(f, for_node->body);
+    void *id_do = for_node->body;
     fprintf(f, "\"%p\" -> \"%p\" [label=\"DO\"];\n", id, id_do);
 }
 
@@ -38,9 +38,9 @@ static void for_exception_handler(volatile bool *local_continue, struct errcont 
         (*i)++;
 }
 
-int for_exec(struct environment *env, struct ast *ast, struct errcont *cont)
+int for_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 {
-    struct afor *afor = &ast->data.ast_for;
+    struct shast_for *for_node = (struct shast_for *)ast;
 
     volatile int ret = 0;
     volatile bool local_continue = true;
@@ -52,24 +52,26 @@ int for_exec(struct environment *env, struct ast *ast, struct errcont *cont)
     if (setjmp(keeper.env))
         for_exception_handler(&local_continue, cont, env, &i);
 
-    struct wordlist *wl = &afor->collection;
+    struct wordlist *wl = &for_node->collection;
     if (local_continue)
         for (; i < wordlist_size(wl); i++) {
-            environment_var_assign(env, strdup(afor->var), expand(&ast->line_info, wordlist_get(wl, i), env, cont), false);
-            ret = ast_exec(env, afor->actions, &ncont);
+            char *var_value = expand(&ast->line_info, wordlist_get(wl, i), env, cont);
+            environment_var_assign(env, strdup(for_node->var), var_value, false);
+            ret = ast_exec(env, for_node->body, &ncont);
         }
 
     env->depth--;
     return ret;
 }
 
-void for_free(struct ast *ast)
+void for_free(struct shast *ast)
 {
     if (!ast)
         return;
 
-    free(ast->data.ast_for.var);
-    wordlist_destroy(&ast->data.ast_for.collection);
-    ast_free(ast->data.ast_for.actions);
-    free(ast);
+    struct shast_for *for_node = (struct shast_for *)ast;
+    free(for_node->var);
+    wordlist_destroy(&for_node->collection);
+    ast_free(for_node->body);
+    free(for_node);
 }

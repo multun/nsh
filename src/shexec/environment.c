@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "ast/assignment.h"
-#include "ast/ast_list.h"
 #include "repl/repl.h"
 #include "shexec/args.h"
 #include "shexec/builtin_cd.h"
@@ -36,7 +34,6 @@ struct environment*environment_create(struct arg_context *arg_cont)
     env->progname = strdup(arg_cont->argv[arg_cont->progname_ind]);
     env->vars = htable_create(10);
     env->functions = htable_create(10);
-    env->ast_list = NULL;
     env->code = 0;
 
     env->break_count = 0;
@@ -117,7 +114,6 @@ void environment_free(struct environment *env)
         return;
 
     free(env->progname);
-    ast_list_free(env->ast_list);
     htable_map(env->vars, var_free);
     argv_free(env->argv);
     htable_free(env->vars);

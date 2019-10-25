@@ -6,7 +6,6 @@
 
 #include "shexec/builtins.h"
 #include "utils/alloc.h"
-#include "ast/assignment.h"
 #include "utils/hash_table.h"
 #include "shlex/variable.h"
 #include "shexec/builtin_cd.h"

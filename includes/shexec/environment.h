@@ -2,7 +2,7 @@
 
 #include "utils/hash_table.h"
 
-struct ast_list;
+struct shast_list;
 struct arg_context;
 
 /**
@@ -31,7 +31,6 @@ struct environment
 
     // current last return code
     int code;
-    struct ast_list *ast_list;
 };
 
 /**

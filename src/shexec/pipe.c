@@ -4,30 +4,31 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "ast/ast.h"
+#include "shparse/ast.h"
 #include "shexec/clean_exit.h"
 
-void pipe_print(FILE *f, struct ast *ast)
+void pipe_print(FILE *f, struct shast *ast)
 {
-    struct apipe *apipe = &ast->data.ast_pipe;
+    struct shast_pipe *pipe = (struct shast_pipe *)ast;
     void *id = ast;
     fprintf(f, "\"%p\" [label=\"|\"];\n", id);
 
-    void *id_left = apipe->left;
-    ast_print_rec(f, apipe->left);
+    void *id_left = pipe->left;
+    ast_print_rec(f, pipe->left);
     fprintf(f, "\"%p\" -> \"%p\";\n", id, id_left);
 
-    void *id_right = apipe->right;
-    ast_print_rec(f, apipe->right);
+    void *id_right = pipe->right;
+    ast_print_rec(f, pipe->right);
     fprintf(f, "\"%p\" -> \"%p\";\n", id, id_right);
 }
 
-void pipe_free(struct ast *ast)
+void pipe_free(struct shast *ast)
 {
     if (!ast)
         return;
-    ast_free(ast->data.ast_pipe.left);
-    ast_free(ast->data.ast_pipe.right);
+    struct shast_pipe *pipe = (struct shast_pipe *)ast;
+    ast_free(pipe->left);
+    ast_free(pipe->right);
     free(ast);
 }
 
@@ -92,19 +93,19 @@ static bool pipe_init(struct pipe_context *pc)
     return false;
 }
 
-int pipe_exec(struct environment *env, struct ast *ast, struct errcont *cont)
+int pipe_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 {
-    struct apipe *apipe = &ast->data.ast_pipe;
+    struct shast_pipe *pipe = (struct shast_pipe *)ast;
     struct pipe_context pc;
     if (pipe_init(&pc))
         return 1;
 
     else if (pc.child_pid[0] == 0) {
         int res = child_redir(pc.pd, PIPE_LEFT);
-        clean_exit(cont, res ? res : ast_exec(env, apipe->left, cont));
+        clean_exit(cont, res ? res : ast_exec(env, pipe->left, cont));
     } else if (pc.child_pid[1] == 0) {
         int res = child_redir(pc.pd, PIPE_RIGHT);
-        clean_exit(cont, res ? res : ast_exec(env, apipe->right, cont));
+        clean_exit(cont, res ? res : ast_exec(env, pipe->right, cont));
     } else
         return pipe_father(&pc);
 }

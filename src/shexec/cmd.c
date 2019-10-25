@@ -6,18 +6,18 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "ast/ast.h"
+#include "shparse/ast.h"
 #include "shexec/args.h"
 #include "shexec/builtins.h"
 #include "shexec/clean_exit.h"
 #include "shexec/environment.h"
 #include "utils/hash_table.h"
 
-void cmd_print(FILE *f, struct ast *node)
+void cmd_print(FILE *f, struct shast *ast)
 {
-    void *id = node;
-    struct wordlist *wl = &node->data.ast_cmd.commands;
-    fprintf(f, "\"%p\" [label=\"CMD\\n", id);
+    struct shast_cmd *command = (struct shast_cmd*)ast;
+    struct wordlist *wl = &command->arguments;
+    fprintf(f, "\"%p\" [label=\"CMD\\n", (void*)ast);
     for (size_t i = 0; i < wordlist_size(wl); i++)
     {
         if (i > 0)
@@ -59,9 +59,10 @@ static int cmd_exec_argv(struct environment *env, struct errcont *cont)
     return WEXITSTATUS(status);
 }
 
-int cmd_exec(struct environment *env, struct ast *node, struct errcont *cont)
+int cmd_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 {
-    struct wordlist *wl = &node->data.ast_cmd.commands;
+    struct shast_cmd *command = (struct shast_cmd*)ast;
+    struct wordlist *wl = &command->arguments;
     int volatile prev_argc = env->argc;
     char **volatile prev_argv = env->argv;
     struct keeper keeper = KEEPER(cont->keeper);
@@ -86,11 +87,12 @@ int cmd_exec(struct environment *env, struct ast *node, struct errcont *cont)
     return res;
 }
 
-void cmd_free(struct ast *ast)
+void cmd_free(struct shast *ast)
 {
     if (!ast)
         return;
 
-    wordlist_destroy(&ast->data.ast_cmd.commands);
-    free(ast);
+    struct shast_cmd *command = (struct shast_cmd*)ast;
+    wordlist_destroy(&command->arguments);
+    free(command);
 }

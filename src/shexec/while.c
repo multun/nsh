@@ -1,27 +1,27 @@
 #include <stdio.h>
 
-#include "ast/ast.h"
+#include "shparse/ast.h"
 #include "shexec/break.h"
 #include "shexec/environment.h"
 
-void while_print(FILE *f, struct ast *ast)
+void while_print(FILE *f, struct shast *ast)
 {
-    struct awhile *awhile = &ast->data.ast_while;
-    void *id = ast;
-    fprintf(f, "\"%p\" [label=\"WHILE\"];\n", id);
+    struct shast_while *while_node = (struct shast_while *)ast;
+    const char *struct_name = while_node->is_until ? "UNTIL" : "WHILE";
+    fprintf(f, "\"%p\" [label=\"%s\"];\n", (void*)ast, struct_name);
 
-    ast_print_rec(f, awhile->condition);
-    void *id_cond = awhile->condition;
-    fprintf(f, "\"%p\" -> \"%p\" [label=\"COND\"];\n", id, id_cond);
+    ast_print_rec(f, while_node->condition);
+    fprintf(f, "\"%p\" -> \"%p\" [label=\"COND\"];\n",
+            (void*)ast, (void*)while_node->condition);
 
-    ast_print_rec(f, awhile->actions);
-    void *id_do = awhile->actions;
-    fprintf(f, "\"%p\" -> \"%p\" [label=\"DO\"];\n", id, id_do);
+    ast_print_rec(f, while_node->body);
+    fprintf(f, "\"%p\" -> \"%p\" [label=\"DO\"];\n",
+            (void*)ast, (void*)while_node->body);
 }
 
-int while_exec(struct environment *env, struct ast *ast, struct errcont *cont)
+int while_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 {
-    struct awhile *awhile = &ast->data.ast_while;
+    struct shast_while *while_node = (struct shast_while *)ast;
     volatile int res = 0;
     struct keeper keeper = KEEPER(cont->keeper);
     struct errcont ncont = ERRCONT(cont->errman, &keeper);
@@ -38,18 +38,21 @@ int while_exec(struct environment *env, struct ast *ast, struct errcont *cont)
     }
 
     if (local_continue)
-        while (!ast_exec(env, awhile->condition, &ncont))
-            res = ast_exec(env, awhile->actions, &ncont);
+        while ((ast_exec(env, while_node->condition, &ncont) == 0)
+               == while_node->is_until)
+            res = ast_exec(env, while_node->body, &ncont);
 
     env->depth--;
     return res;
 }
 
-void while_free(struct ast *ast)
+void while_free(struct shast *ast)
 {
     if (!ast)
         return;
-    ast_free(ast->data.ast_while.condition);
-    ast_free(ast->data.ast_while.actions);
-    free(ast);
+
+    struct shast_while *while_node = (struct shast_while *)ast;
+    ast_free(while_node->condition);
+    ast_free(while_node->body);
+    free(while_node);
 }

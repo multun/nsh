@@ -4,38 +4,39 @@
 
 #include "shparse/parse.h"
 
-// this operation is atomic, no need to pass the target as argument
-static void negate_ast(struct ast **ast, struct lexer *lexer, bool neg)
+static void negate_ast(struct shast **ast, struct lexer *lexer, bool neg)
 {
     if (!neg)
         return;
 
-    struct ast *negation = ast_create(SHNODE_BOOL_OP, lexer);
-    negation->data.ast_bool_op = ABOOL_OP(BOOL_NOT, *ast, NULL);
-    *ast = negation;
+    struct shast_bool_op *bool_op = shast_bool_op_create(lexer);
+    bool_op->type = BOOL_NOT;
+    bool_op->left = *ast;
+    *ast = &bool_op->base;
 }
 
-static void pipeline_loop(struct ast **res, struct lexer *lexer, struct errcont *errcont)
+static void pipeline_loop(struct shast **res, struct lexer *lexer, struct errcont *errcont)
 {
-    const struct token *tok = lexer_peek(lexer, errcont);
-    while (tok_is(tok, TOK_PIPE)) {
+    while (true) {
+        const struct token *tok = lexer_peek(lexer, errcont);
+        if (!tok_is(tok, TOK_PIPE))
+            break;
         tok_free(lexer_pop(lexer, errcont), true);
         parse_newlines(lexer, errcont);
         tok = lexer_peek(lexer, errcont);
-        struct ast *pipe = ast_create(SHNODE_PIPE, lexer);
-        pipe->data.ast_pipe = APIPE(*res, NULL);
-        *res = pipe;
-        parse_command(&pipe->data.ast_pipe.right, lexer, errcont);
-        tok = lexer_peek(lexer, errcont);
+        struct shast_pipe *pipe = shast_pipe_create(lexer);
+        pipe->left = *res;
+        *res = &pipe->base;
+        parse_command(&pipe->right, lexer, errcont);
     }
 }
 
-void parse_pipeline(struct ast **res, struct lexer *lexer, struct errcont *errcont)
+void parse_pipeline(struct shast **res, struct lexer *lexer, struct errcont *errcont)
 {
     const struct token *tok = lexer_peek(lexer, errcont);
     bool negation = tok_is(tok, TOK_BANG);
     if (negation)
-        tok_free(lexer_pop(lexer, errcont), true);
+        lexer_discard(lexer, errcont);
 
     parse_command(res, lexer, errcont);
     tok = lexer_peek(lexer, errcont);
@@ -63,24 +64,31 @@ static enum redir_type parse_redir_type(const struct token *tok)
         return REDIR_LESSGREAT;
     if (tok_is(tok, TOK_CLOBBER))
         return REDIR_CLOBBER;
-    abort(); // TODO: raise exception
+    return REDIR_NONE;
 }
 
-void parse_redirection(struct ast **res, struct lexer *lexer, struct errcont *errcont)
+int parse_redirection(struct redir_vect *vect, struct lexer *lexer, struct errcont *errcont)
 {
-    struct token *tok = lexer_pop(lexer, errcont);
-
-    // TODO: alloc later to avoid potential leak on exception
-    *res = ast_create(SHNODE_REDIRECTION, lexer);
+    struct token *tok = lexer_peek(lexer, errcont);
     int left = -1;
     if (tok_is(tok, TOK_IO_NUMBER)) {
         left = atoi(tok_buf(tok));
-        tok_free(tok, true);
-        tok = lexer_pop(lexer, errcont);
+        lexer_discard(lexer, errcont);
+        tok = lexer_peek(lexer, errcont);
     }
 
     enum redir_type type = parse_redir_type(tok);
+    if (type == REDIR_NONE)
+    {
+        assert(left == -1);
+        return 1;
+    }
+
+    struct shast_redirection *redir = zalloc(sizeof(*redir));
+    redir_vect_push(vect, redir);
+    redir->left = left;
+    redir->type = type;
     tok_free(tok, true);
-    (*res)->data.ast_redirection = AREDIRECTION(type, left, NULL, NULL);
-    (*res)->data.ast_redirection.right = parse_word(lexer, errcont);
+    redir->right = parse_word(lexer, errcont);
+    return 0;
 }

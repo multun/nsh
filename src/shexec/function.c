@@ -1,37 +1,42 @@
 #include <stdio.h>
 
-#include "ast/ast.h"
+#include "utils/macros.h"
+#include "shparse/ast.h"
 #include "utils/hash_table.h"
 
-void function_print(FILE *f, struct ast *ast)
+void function_print(FILE *f, struct shast *ast)
 {
-    struct afunction *function = &ast->data.ast_function;
-    void *id = ast;
-    fprintf(f, "\"%p\" [label=\"FUNC\n%s\"];\n", id, function->name);
-    void *id_next = function->value;
-    ast_print_rec(f, function->value);
-    fprintf(f, "\"%p\" -> \"%p\";\n", id, id_next);
+    struct shast_function *function = (struct shast_function *)ast;
+    fprintf(f, "\"%p\" [label=\"FUNC\n%s\"];\n", (void*)ast, function->name);
+    ast_print_rec(f, function->body);
+    fprintf(f, "\"%p\" -> \"%p\";\n", (void*)ast, (void*)function->body);
 }
 
-void function_free(struct ast *ast)
+int function_exec(struct environment *env, struct shast *ast, struct errcont *cont __unused)
 {
-    if (!ast)
-        return;
-
-    free(ast->data.ast_function.name);
-    ast_free(ast->data.ast_function.value);
-    free(ast);
-}
-
-int function_exec(struct environment *env, struct ast *ast, struct errcont *cont)
-{
-    if (!cont)
-        abort();
-    struct afunction *function = &ast->data.ast_function;
+    struct shast_function *function = (struct shast_function *)ast;
     char *name = function->name;
     struct pair *prev = htable_access(env->functions, name);
     if (prev)
         htable_remove(env->functions, name);
-    htable_add(env->functions, name, function->value);
+    htable_add(env->functions, name, function->body);
     return 0;
+}
+
+void function_free(struct shast *ast)
+{
+    if (!ast)
+        return;
+
+    struct shast_function *func = (struct shast_function *)ast;
+    ref_put(&func->refcnt);
+}
+
+void shast_function_ref_free(struct refcnt *refcnt)
+{
+    struct shast_function *func;
+    func = container_of(refcnt, struct shast_function, refcnt);
+    free(func->name);
+    ast_free(func->body);
+    free(func);
 }

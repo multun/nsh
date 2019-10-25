@@ -5,112 +5,70 @@
 #include "utils/alloc.h"
 #include "shlex/print.h"
 
-bool start_redir(const struct token *tok)
+static void parse_assignment(struct assign_vect *vect, struct lexer *lexer, struct errcont *errcont)
 {
-    return tok_is(tok, TOK_IO_NUMBER) || tok_is(tok, TOK_DLESS) || tok_is(tok, TOK_DGREAT)
-        || tok_is(tok, TOK_LESSAND) || tok_is(tok, TOK_GREATAND)
-        || tok_is(tok, TOK_LESSGREAT) || tok_is(tok, TOK_LESSDASH)
-        || tok_is(tok, TOK_CLOBBER) || tok_is(tok, TOK_LESS) || tok_is(tok, TOK_GREAT);
-}
-
-static void parse_assignment(struct ast **res, struct lexer *lexer, struct errcont *errcont)
-{
-    *res = ast_create(SHNODE_ASSIGNMENT, lexer);
+    struct shast_assignment *assign = zalloc(sizeof(*assign));
+    assign->line_info = *lexer_line_info(lexer);
     struct token *tok = lexer_pop(lexer, errcont);
     char *val = strchr(tok_buf(tok), '=');
-
-    *val = '\0';
-    val++;
-    (*res)->data.ast_assignment = AASSIGNMENT(tok_buf(tok), val, NULL);
+    *(val++) = '\0';
+    assign->name = tok_buf(tok);
+    assign->value = val;
     tok_free(tok, false);
+    assign_vect_push(vect, assign);
 }
 
-// TODO: fix obsolete architecture
-struct block_builder
-{
-    struct ablock *block;
-    struct ast *assign;
-    struct ast *redir;
-};
-
-static void loop_redir(struct lexer *lexer, struct errcont *errcont, struct block_builder *build)
-{
-    struct ast **target;
-    if (build->redir)
-        target = &build->redir->data.ast_redirection.action;
-    else
-        target = &build->block->redir;
-    parse_redirection(target, lexer, errcont);
-    build->redir = *target;
-}
-
-static bool prefix_loop(struct lexer *lexer, struct errcont *errcont, struct block_builder *build)
+static bool prefix_loop(struct lexer *lexer, struct errcont *errcont, struct shast_block *block)
 {
     while (true) {
         const struct token *tok = lexer_peek(lexer, errcont);
         if (tok_is(tok, TOK_ASSIGNMENT_WORD)) {
-            struct ast **target;
-            if (build->assign)
-                target = &build->assign->data.ast_assignment.action;
-            else
-                target = &build->block->def;
-            parse_assignment(target, lexer, errcont);
-            build->assign = *target;
+            parse_assignment(&block->assigns, lexer, errcont);
             continue;
         }
 
-        if (start_redir(tok))
-        {
-            loop_redir(lexer, errcont, build);
+        if (parse_redirection(&block->redirs, lexer, errcont) == 0)
             continue;
-        }
         break;
     }
     return true;
 }
 
-static bool element_loop(struct lexer *lexer, struct errcont *errcont, struct block_builder *build)
+static bool element_loop(struct lexer *lexer, struct errcont *errcont,
+                         struct shast_block *block, struct shast_cmd **cmd)
 {
     while (true) {
         const struct token *tok = lexer_peek(lexer, errcont);
         if (tok_is(tok, TOK_WORD)) {
             // initialize the command node if missing
-            // TODO: change the ast architecture so that this oops isn't necessary
-            if (build->block->cmd == NULL)
-            {
-                build->block->cmd = ast_create(SHNODE_CMD, lexer);
-                acmd_init(&build->block->cmd->data.ast_cmd);
-            }
+            if (*cmd == NULL)
+                *cmd = shast_cmd_attach(&block->command, lexer);
 
-            wordlist_push(&build->block->cmd->data.ast_cmd.commands, parse_word(lexer, errcont));
+            wordlist_push(&(*cmd)->arguments, parse_word(lexer, errcont));
             continue;
         }
-        if (start_redir(tok))
-        {
-            loop_redir(lexer, errcont, build);
+        if (parse_redirection(&block->redirs, lexer, errcont) == 0)
             continue;
-        }
         break;
     }
     return true;
 }
 
-void parse_simple_command(struct ast **res, struct lexer *lexer, struct errcont *errcont)
+void parse_simple_command(struct shast **res, struct lexer *lexer, struct errcont *errcont)
 {
-    *res = ast_create(SHNODE_BLOCK, lexer);
-    (*res)->data.ast_block = ABLOCK(NULL, NULL, NULL);
-    struct block_builder builder = {
-        .block = &(*res)->data.ast_block,
-        .assign = NULL,
-        .redir = NULL,
-    };
+    struct shast_block *block = shast_block_attach(res, lexer);
+    struct shast_cmd *cmd = NULL;
 
-    if (!prefix_loop(lexer, errcont, &builder) || !element_loop(lexer, errcont, &builder))
+    if (!prefix_loop(lexer, errcont, block))
         return;
 
-    if (!(*res)->data.ast_block.redir && !(*res)->data.ast_block.def
-        && !(*res)->data.ast_block.cmd) {
+    if (!element_loop(lexer, errcont, block, &cmd))
+        return;
+
+    if (redir_vect_size(&block->redirs) == 0
+        && assign_vect_size(&block->assigns) == 0
+        && cmd == NULL) {
         const struct token *tok = lexer_peek(lexer, errcont);
-        PARSER_ERROR(&tok->lineinfo, errcont, "parsing error %s", TOKT_STR(tok));
+        parser_err(&tok->lineinfo, errcont, "parsing error %s", TOKT_STR(tok));
     }
 }

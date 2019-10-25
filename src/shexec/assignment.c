@@ -3,53 +3,40 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "ast/ast.h"
+#include "shparse/ast.h"
 #include "shexp/expansion.h"
 #include "shlex/variable.h"
 #include "utils/alloc.h"
 
-void assignment_print(FILE *f, struct ast *ast)
+static void assignment_print(FILE *f, struct shast_assignment *assignment)
 {
-    struct aassignment *aassignment = &ast->data.ast_assignment;
-    void *id = ast;
-    fprintf(f, "\"%p\" [label=\"%s = %s\"];\n", id, aassignment->name,
-            aassignment->value);
-    void *id_next = aassignment->action;
-    ast_print_rec(f, aassignment->action);
-    fprintf(f, "\"%p\" -> \"%p\";\n", id, id_next);
+    fprintf(f, "\"%p\" [label=\"%s = %s\"];\n", (void*)assignment, assignment->name,
+            assignment->value);
 }
 
-int assignment_exec(struct environment *env, struct ast *ast, struct ast *cmd, struct errcont *cont)
+void assign_vect_print(FILE *f, struct assign_vect *vect, void *parent)
 {
-    if (!ast)
-        return ast_exec(env, cmd, cont);
-    char *name = strdup(ast->data.ast_assignment.name);
-    char *value = expand(&ast->line_info, ast->data.ast_assignment.value, env, cont);
-    bool valid =
-        *name == '_' || (*name >= 'a' && *name <= 'z') || (*name >= 'A' && *name <= 'Z');
-
-    for (char *c = name + 1; valid && *c; c++)
-        valid = *c == '_' || (*c >= 'a' && *c <= 'z') || (*c >= 'A' && *c <= 'Z')
-            || (*c >= '0' && *c <= '9');
-
-    if (!valid) {
-        warnx("assignment: '%s': not a valid identifier", name);
-        free(value);
-        free(name);
-        return 127;
+    for (size_t i = 0; i < assign_vect_size(vect); i++)
+    {
+        struct shast_assignment *assign = assign_vect_get(vect, i);
+        assignment_print(f, assign);
+        fprintf(f, "\"%p\" -> \"%p\" [label=\"ASSIGN\"];\n", parent, (void*)assign);
     }
-
-    environment_var_assign(env, name, value, cmd != NULL);
-    return assignment_exec(env, ast->data.ast_assignment.action, cmd, cont);
 }
 
-void assignment_free(struct ast *ast)
+void assignment_exec(struct environment *env, struct shast_assignment *assign, struct errcont *cont)
 {
-    if (!ast)
+    char *name = strdup(assign->name);
+    char *value = expand(&assign->line_info, assign->value, env, cont);
+    environment_var_assign(env, name, value, false);
+}
+
+void assignment_free(struct shast_assignment *assign)
+{
+    if (!assign)
         return;
 
-    free(ast->data.ast_assignment.name);
+    free(assign->name);
     // don't free the value, as it's a pointer to the end of the key=value string
-    ast_free(ast->data.ast_assignment.action);
-    free(ast);
+    free(assign);
 }

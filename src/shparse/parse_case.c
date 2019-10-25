@@ -2,80 +2,62 @@
 #include "shlex/print.h"
 #include "utils/alloc.h"
 
-static void rule_case(struct lexer *lexer, struct errcont *errcont, struct ast *res)
-{
-    const struct token *tok = lexer_peek(lexer, errcont);
-    if (!tok_is(tok, TOK_IN))
-        PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s, expected 'in'",
-                     TOKT_STR(tok));
-    tok_free(lexer_pop(lexer, errcont), true);
-    parse_newlines(lexer, errcont);
-    parse_case_clause(&res->data.ast_case.nodes, lexer, errcont);
-    tok_free(lexer_pop(lexer, errcont), true);
-}
-
-void parse_rule_case(struct ast **res, struct lexer *lexer, struct errcont *errcont)
-{
-    tok_free(lexer_pop(lexer, errcont), true);
-    const struct token *tok = lexer_peek(lexer, errcont);
-    if (!tok_is(tok, TOK_WORD))
-        PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s, expected WORD",
-                     TOKT_STR(tok));
-    *res = ast_create(SHNODE_CASE, lexer);
-    (*res)->data.ast_case.var = parse_word(lexer, errcont);
-    parse_newlines(lexer, errcont);
-    rule_case(lexer, errcont, *res);
-}
-
-static void case_clause_loop(struct lexer *lexer, struct errcont *errcont, struct acase_node *tail)
-{
-    const struct token *tok = lexer_peek(lexer, errcont);
-    for (; tok_is(tok, TOK_DSEMI); tail = tail->next) {
-        tok_free(lexer_pop(lexer, errcont), true);
-        parse_newlines(lexer, errcont);
-        tok = lexer_peek(lexer, errcont);
-        if (tok_is(tok, TOK_ESAC))
-            return;
-        parse_case_item(&tail->next, lexer, errcont);
-        tok = lexer_peek(lexer, errcont);
-    }
-}
-
-void parse_case_clause(struct acase_node **res, struct lexer *lexer, struct errcont *errcont)
-{
-    parse_case_item(res, lexer, errcont);
-    parse_newlines(lexer, errcont);
-    case_clause_loop(lexer, errcont, *res);
-}
-
 static void parse_pattern(struct wordlist *res, struct lexer *lexer, struct errcont *errcont)
 {
-    wordlist_push(res, parse_word(lexer, errcont));
     while (true) {
+        wordlist_push(res, parse_word(lexer, errcont));
         const struct token *tok = lexer_peek(lexer, errcont);
         if (!tok_is(tok, TOK_PIPE))
             break;
-        tok_free(lexer_pop(lexer, errcont), true);
-        wordlist_push(res, parse_word(lexer, errcont));
+        lexer_discard(lexer, errcont);
     }
 }
 
-void parse_case_item(struct acase_node **res, struct lexer *lexer, struct errcont *errcont)
+static void parse_case_item(struct case_item_vect *vect, struct lexer *lexer, struct errcont *errcont)
 {
-    *res = zalloc(sizeof(struct acase_node));
-    acase_node_init(*res);
-    const struct token *tok = lexer_peek(lexer, errcont);
-    if (tok_is(tok, TOK_LPAR))
-        tok_free(lexer_pop(lexer, errcont), true);
-    parse_pattern(&(*res)->pattern, lexer, errcont);
+    while (true) {
+        parse_newlines(lexer, errcont);
+        const struct token *tok = lexer_peek(lexer, errcont);
+        // stop if esac
+        if (tok_is(tok, TOK_ESAC))
+            break;
 
-    tok = lexer_peek(lexer, errcont);
-    if (!tok_is(tok, TOK_RPAR))
-        PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s, expected ')'",
-                     TOKT_STR(tok));
-    tok_free(lexer_pop(lexer, errcont), true);
+        // parse a new case item
+        struct shast_case_item *case_item = zalloc(sizeof(*case_item));
+        shast_case_item_init(case_item);
+        case_item_vect_push(vect, case_item);
+        parser_consume_optional(lexer, TOK_LPAR, errcont);
+        parse_pattern(&case_item->pattern, lexer, errcont);
+        parser_consume(lexer, TOK_RPAR, errcont);
+
+        // skip newlines
+        parse_newlines(lexer, errcont);
+        tok = lexer_peek(lexer, errcont);
+        // continue if there's no body
+        if (tok_is(tok, TOK_DSEMI)) {
+            lexer_discard(lexer, errcont);
+            continue;
+        }
+
+        // stop if the case ends here
+        if (tok_is(tok, TOK_ESAC))
+            break;
+
+        // parse the case body
+        parse_compound_list(&case_item->action, lexer, errcont);
+        parser_consume_optional(lexer, TOK_DSEMI, errcont);
+    }
+}
+
+void parse_rule_case(struct shast **res, struct lexer *lexer, struct errcont *errcont)
+{
+    lexer_discard(lexer, errcont);
+    char *case_name = parse_word(lexer, errcont);
+    struct shast_case *case_node = shast_case_attach(res, lexer);
+    case_node->var = case_name;
     parse_newlines(lexer, errcont);
-    tok = lexer_peek(lexer, errcont);
-    if (!tok_is(tok, TOK_ESAC) && !tok_is(tok, TOK_DSEMI))
-        parse_compound_list(&(*res)->action, lexer, errcont);
+    parser_consume(lexer, TOK_IN, errcont);
+    parse_newlines(lexer, errcont);
+    parse_case_item(&case_node->cases, lexer, errcont);
+    lexer_discard(lexer, errcont);
 }

@@ -10,20 +10,20 @@
 
 #include <err.h>
 
-static void try_read_eval(struct lexer *lex, struct errcont *errcont, struct context *cont)
+static void try_read_eval(struct lexer *lex, struct shast **ast, struct errcont *errcont, struct context *cont)
 {
-    parse(&cont->ast, lex, errcont);
-    if (!cont->ast)
+    parse(ast, lex, errcont);
+    if (*ast == NULL)
         return;
 
     if (g_shopts[SHOPT_AST_PRINT]) {
         FILE *f = fopen("42sh_ast.dot", "w+");
-        ast_print(f, cont->ast);
+        ast_print(f, *ast);
         fclose(f);
     }
 
     history_update(cont);
-    cont->env->code = ast_exec(cont->env, cont->ast, errcont);
+    cont->env->code = ast_exec(cont->env, *ast, errcont);
 }
 
 // returns whether to stop the loop
@@ -84,19 +84,22 @@ bool repl(struct context *ctx)
         /* create a lexer */
         struct lexer *lex = lexer_create(ctx->cs);
 
-        ctx->ast = NULL;
-        /* parse and execute */
+        struct shast *ast = NULL;
+         /* parse and execute */
         if (setjmp(keeper.env)) {
             if (handle_repl_exception(&eman, ctx))
                 running = false;
         } else
-            try_read_eval(lex, &errcont, ctx);
+            try_read_eval(lex, &ast, &errcont, ctx);
+
+        ast_free(ast);
 
         /* reset the error handler */
         cstream_set_errcont(ctx->cs, NULL);
 
         /* append the ast, destroy the lexer */
-        ctx->env->ast_list = ast_list_append(ctx->env->ast_list, ctx->ast);
+        // TODO: refcnt stuff
+        // ctx->env->ast_list = ast_list_append(ctx->env->ast_list, ctx->ast);
         lexer_free(lex);
     } while (running);
     return true;

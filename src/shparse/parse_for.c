@@ -6,12 +6,13 @@
 
 static void for_word_loop(struct wordlist *target, struct lexer *lexer, struct errcont *errcont)
 {
-    const struct token *tok = lexer_peek(lexer, errcont);
-    while (!tok_is(tok, TOK_SEMI) && !tok_is(tok, TOK_NEWLINE)) {
+    while (true) {
+        const struct token *tok = lexer_peek(lexer, errcont);
+        if (tok_is(tok, TOK_SEMI) || tok_is(tok, TOK_NEWLINE))
+            break;
         wordlist_push(target, parse_word(lexer, errcont));
-        tok = lexer_peek(lexer, errcont);
     }
-    tok_free(lexer_pop(lexer, errcont), true);
+    lexer_discard(lexer, errcont);
 }
 
 static void parse_in(struct wordlist *words, struct lexer *lexer, struct errcont *errcont)
@@ -21,43 +22,43 @@ static void parse_in(struct wordlist *words, struct lexer *lexer, struct errcont
         parse_newlines(lexer, errcont);
         tok = lexer_peek(lexer, errcont);
         if (tok_is(tok, TOK_IN)) {
-            tok_free(lexer_pop(lexer, errcont), true);
+            lexer_discard(lexer, errcont);
             for_word_loop(words, lexer, errcont);
             tok = lexer_peek(lexer, errcont);
         }
     }
     if (tok_is(tok, TOK_SEMI))
-        tok_free(lexer_pop(lexer, errcont), true);
+        lexer_discard(lexer, errcont);
 }
 
-static bool parse_collection(struct lexer *lexer, struct errcont *errcont, struct ast *res)
+static bool parse_collection(struct lexer *lexer, struct errcont *errcont, struct shast_for *for_node)
 {
     const struct token *tok = lexer_peek(lexer, errcont);
     if (!tok_is(tok, TOK_DO)) {
         if (!tok_is(tok, TOK_NEWLINE) && !tok_is(tok, TOK_SEMI) && !tok_is(tok, TOK_IN))
-            PARSER_ERROR(&tok->lineinfo, errcont,
-                         "unexpected token %s, expected 'do', ';' or '\\n'",
-                         TOKT_STR(tok));
-        parse_in(&res->data.ast_for.collection, lexer, errcont);
+            parser_err(&tok->lineinfo, errcont,
+                       "unexpected token %s, expected 'do', ';' or '\\n'",
+                       TOKT_STR(tok));
+        parse_in(&for_node->collection, lexer, errcont);
         parse_newlines(lexer, errcont);
         tok = lexer_peek(lexer, errcont);
     }
     return true;
 }
 
-void parse_rule_for(struct ast **res, struct lexer *lexer, struct errcont *errcont)
+void parse_rule_for(struct shast **res, struct lexer *lexer, struct errcont *errcont)
 {
-    tok_free(lexer_pop(lexer, errcont), true);
-    *res = ast_create(SHNODE_FOR, lexer);
-    afor_init(&(*res)->data.ast_for);
-    (*res)->data.ast_for.var = parse_word(lexer, errcont);
+    // TODO: safer discard
+    lexer_discard(lexer, errcont);
+    struct shast_for *for_node = shast_for_attach(res, lexer);
+    for_node->var = parse_word(lexer, errcont);
 
-    if (!parse_collection(lexer, errcont, *res))
+    if (!parse_collection(lexer, errcont, for_node))
         return;
 
     const struct token *tok = lexer_peek(lexer, errcont);
     if (!tok_is(tok, TOK_DO))
-        PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s, expected 'do'",
-                     TOKT_STR(tok));
-    parse_do_group(&(*res)->data.ast_for.actions, lexer, errcont);
+        parser_err(&tok->lineinfo, errcont, "unexpected token %s, expected 'do'",
+                   TOKT_STR(tok));
+    parse_do_group(&for_node->body, lexer, errcont);
 }

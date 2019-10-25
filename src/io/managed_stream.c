@@ -3,6 +3,7 @@
 #include "repl/repl.h"
 #include "cli/cmdopts.h"
 #include "repl/repl.h"
+#include "utils/alloc.h"
 
 #include <err.h>
 #include <errno.h>

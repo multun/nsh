@@ -1,6 +1,5 @@
 #pragma once
 
-#include "ast/ast_list.h"
 #include "io/cstream.h"
 #include "io/managed_stream.h"
 #include "shexec/environment.h"
@@ -47,7 +46,7 @@ struct context
     struct evect line_buffer;
 
     // the currently processed ast
-    struct ast *ast;
+    struct shast *ast;
 
     // the stream the context works on
     struct cstream *cs;

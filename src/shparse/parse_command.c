@@ -3,77 +3,7 @@
 #include "utils/alloc.h"
 #include "utils/error.h"
 
-static bool is_first_keyword(const struct token *tok)
-{
-    return tok_is(tok, TOK_IF) || tok_is(tok, TOK_FOR) || tok_is(tok, TOK_WHILE)
-        || tok_is(tok, TOK_UNTIL) || tok_is(tok, TOK_CASE);
-}
-
-static struct ast *redirection_loop_sec(struct lexer *lexer, struct errcont *errcont, struct ast *res)
-{
-    const struct token *tok = lexer_peek(lexer, errcont);
-    struct ast *redir = NULL;
-    while (start_redir(tok)) { // TODO: HEREDOC
-        struct ast **target;
-        if (redir)
-            target = &redir->data.ast_redirection.action;
-        else
-            target = &res->data.ast_block.redir;
-        parse_redirection(target, lexer, errcont);
-        redir = *target;
-        tok = lexer_peek(lexer, errcont);
-    }
-    return res;
-}
-
-static struct ast *redirection_loop(struct lexer *lexer, struct ast *cmd, struct errcont *errcont)
-{
-    struct ast *res = ast_create(SHNODE_BLOCK, lexer);
-    res->data.ast_block = ABLOCK(NULL, NULL, cmd);
-    res = redirection_loop_sec(lexer, errcont, res);
-    if (cmd->type == SHNODE_FUNCTION) {
-        res->data.ast_block.cmd = cmd->data.ast_function.value;
-        cmd->data.ast_function.value = res;
-        return cmd;
-    }
-    return res;
-}
-
-static bool chose_shell_func(struct lexer *lexer, struct errcont *errcont, struct ast **res)
-{
-    const struct token *tok = lexer_peek(lexer, errcont);
-    bool shell =
-        is_first_keyword(tok) || tok_is(tok, TOK_LBRACE) || tok_is(tok, TOK_LPAR);
-    if (shell)
-        parse_shell_command(res, lexer, errcont);
-    else if (tok_is(tok, TOK_FUNC)) { // discard tokken 'function' and create token NAME
-                                      // to match latter use
-        tok_free(lexer_pop(lexer, errcont), true);
-        parse_funcdec(res, lexer, errcont);
-    } else
-        return false;
-    return true;
-}
-
-void parse_command(struct ast **res, struct lexer *lexer, struct errcont *errcont)
-{
-    // TODO: change chose_shell_func api
-    if (!chose_shell_func(lexer, errcont, res)) {
-        struct token *word = lexer_peek(lexer, errcont);
-        const struct token *tok = lexer_peek_at(lexer, word, errcont);
-        bool is_par = tok_is(tok, TOK_LPAR);
-        if (is_par)
-            parse_funcdec(res, lexer, errcont);
-        else {
-            parse_simple_command(res, lexer, errcont);
-            return;
-        }
-    }
-    // TODO: remove obvious garbage
-    *res = redirection_loop(lexer, *res, errcont);
-}
-
-static void switch_first_keyword(struct ast **res, struct lexer *lexer, struct errcont *errcont)
+static int switch_first_keyword(struct shast **res, struct lexer *lexer, struct errcont *errcont)
 {
     const struct token *tok = lexer_peek(lexer, errcont);
     if (tok_is(tok, TOK_IF))
@@ -87,29 +17,71 @@ static void switch_first_keyword(struct ast **res, struct lexer *lexer, struct e
     else if (tok_is(tok, TOK_CASE))
         parse_rule_case(res, lexer, errcont);
     else
-        PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s", TOKT_STR(tok));
+        return 1;
+    return 0;
 }
 
-static void parse_shell_command_sub(struct ast **res, struct lexer *lexer, struct errcont *errcont,
-                                    bool par)
+static int parse_compound_command(struct shast **res, struct lexer *lexer, struct errcont *errcont)
 {
     const struct token *tok = lexer_peek(lexer, errcont);
-    if (!par && tok_is(tok, TOK_LPAR)) {
-        *res = ast_create(SHNODE_SUBSHELL, lexer);
-        parse_shell_command_sub(&(*res)->data.ast_subshell.action, lexer, errcont, true);
-    } else if (tok_is(tok, TOK_LBRACE) || par) {
-        tok_free(lexer_pop(lexer, errcont), true);
+    if (tok_is(tok, TOK_LPAR)) {
+        lexer_discard(lexer, errcont);
+        struct shast_subshell *subshell = shast_subshell_attach(res, lexer);
+        parse_compound_list(&subshell->action, lexer, errcont);
+        parser_consume(lexer, TOK_RPAR, errcont);
+        return 0;
+    }
+
+    if (tok_is(tok, TOK_LBRACE)) {
+        lexer_discard(lexer, errcont);
         parse_compound_list(res, lexer, errcont);
-        tok = lexer_peek(lexer, errcont);
-        if (!((tok_is(tok, TOK_RBRACE) && !par) || (tok_is(tok, TOK_RPAR) && par)))
-            PARSER_ERROR(&tok->lineinfo, errcont,
-                         "unexpected token %s, expected '}' or ')'", TOKT_STR(tok));
-        tok_free(lexer_pop(lexer, errcont), true);
-    } else
-        switch_first_keyword(res, lexer, errcont);
+        parser_consume(lexer, TOK_RBRACE, errcont);
+        return 0;
+    }
+
+    return switch_first_keyword(res, lexer, errcont);
 }
 
-void parse_shell_command(struct ast **res, struct lexer *lexer, struct errcont *errcont)
+static int parse_base_command(struct lexer *lexer, struct errcont *errcont, struct shast **res)
 {
-    parse_shell_command_sub(res, lexer, errcont, false);
+    const struct token *tok = lexer_peek(lexer, errcont);
+    if (parse_compound_command(res, lexer, errcont) == 0)
+        return 0;
+
+    if (tok_is(tok, TOK_FUNC)) {
+        lexer_discard(lexer, errcont);
+        parse_funcdec(res, lexer, errcont);
+        return 0;
+    }
+
+    struct token *word = lexer_peek(lexer, errcont);
+    tok = lexer_peek_at(lexer, word, errcont);
+    if (tok_is(tok, TOK_LPAR)) {
+        parse_funcdec(res, lexer, errcont);
+        return 0;
+    }
+    return 1;
+}
+
+void parse_command(struct shast **res, struct lexer *lexer, struct errcont *errcont)
+{
+    if (parse_base_command(lexer, errcont, res) != 0) {
+        // redirections are aready handled down there, as
+        // they can be in the middle of the command as well
+        parse_simple_command(res, lexer, errcont);
+        return;
+    }
+
+    struct shast *old_root = *res;
+    struct shast_block *block = shast_block_attach(res, lexer);
+    block->command = old_root;
+
+    while (parse_redirection(&block->redirs, lexer, errcont) == 0)
+        continue;
+
+    if (old_root->type == SHNODE_FUNCTION) {
+        struct shast_function *func = (struct shast_function *)old_root;
+        block->command = func->body;
+        func->body = &block->base;
+    }
 }

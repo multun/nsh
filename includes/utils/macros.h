@@ -2,5 +2,6 @@
 
 #define ARR_SIZE(Arr) (sizeof(Arr) / sizeof(*(Arr)))
 
-#define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
-#define MAX(X, Y) ((X) > (Y) ? (X) : (Y))
+// terrible definition here, but at least it doesn't require GNU extensions
+#define container_of(ptr, type, member)			\
+    (void *)((char *)(ptr) - offsetof(type, member))

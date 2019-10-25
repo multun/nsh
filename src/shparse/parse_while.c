@@ -2,33 +2,27 @@
 #include "shlex/print.h"
 #include "utils/alloc.h"
 
-void parse_rule_while(struct ast **res, struct lexer *lexer, struct errcont *errcont)
+void parse_rule_while(struct shast **res, struct lexer *lexer, struct errcont *errcont)
 {
-    tok_free(lexer_pop(lexer, errcont), true);
-    *res = ast_create(SHNODE_WHILE, lexer);
-    parse_compound_list(&(*res)->data.ast_while.condition, lexer, errcont);
-    parse_do_group(&(*res)->data.ast_while.actions, lexer, errcont);
+    lexer_discard(lexer, errcont);
+    struct shast_while *while_node = shast_while_attach(res, lexer);
+    while_node->is_until = false;
+    parse_compound_list(&while_node->condition, lexer, errcont);
+    parse_do_group(&while_node->body, lexer, errcont);
 }
 
-void parse_rule_until(struct ast **res, struct lexer *lexer, struct errcont *errcont)
+void parse_rule_until(struct shast **res, struct lexer *lexer, struct errcont *errcont)
 {
-    tok_free(lexer_pop(lexer, errcont), true);
-    *res = ast_create(SHNODE_UNTIL, lexer);
-    parse_compound_list(&(*res)->data.ast_until.condition, lexer, errcont);
-    parse_do_group(&(*res)->data.ast_until.actions, lexer, errcont);
+    lexer_discard(lexer, errcont);
+    struct shast_while *until_node = shast_while_attach(res, lexer);
+    until_node->is_until = true;
+    parse_compound_list(&until_node->condition, lexer, errcont);
+    parse_do_group(&until_node->body, lexer, errcont);
 }
 
-void parse_do_group(struct ast **res, struct lexer *lexer, struct errcont *errcont)
+void parse_do_group(struct shast **res, struct lexer *lexer, struct errcont *errcont)
 {
-    const struct token *tok = lexer_peek(lexer, errcont);
-    if (!tok_is(tok, TOK_DO))
-        PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s, expected 'do'",
-                     TOKT_STR(tok));
-    tok_free(lexer_pop(lexer, errcont), true);
+    parser_consume(lexer, TOK_DO, errcont);
     parse_compound_list(res, lexer, errcont);
-    tok = lexer_peek(lexer, errcont);
-    if (!tok_is(tok, TOK_DONE))
-        PARSER_ERROR(&tok->lineinfo, errcont, "unexpected token %s, expected 'done'",
-                     TOKT_STR(tok));
-    tok_free(lexer_pop(lexer, errcont), true);
+    parser_consume(lexer, TOK_DONE, errcont);
 }

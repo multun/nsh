@@ -188,6 +188,11 @@ struct token *lexer_peek(struct lexer *lexer, struct errcont *errcont);
 */
 struct token *lexer_pop(struct lexer *lexer, struct errcont *errcont);
 
+static inline void lexer_discard(struct lexer *lexer, struct errcont *errcont)
+{
+    tok_free(lexer_pop(lexer, errcont), true);
+}
+
 /**
 ** \brief peeks after an unpoped token
 ** \details peeking after a poped token is UB

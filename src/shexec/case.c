@@ -1,60 +1,63 @@
-#include "ast/ast.h"
+#include "shexp/expansion.h"
+#include "shparse/ast.h"
 
 #include <stdio.h>
 #include <string.h>
+#include <fnmatch.h>
 
-void case_print(FILE *f, struct ast *ast)
+void case_print(FILE *f, struct shast *ast)
 {
-    struct acase *acase = &ast->data.ast_case;
-    void *id = ast;
-    fprintf(f, "\"%p\" [label=\"CASE\"];\n", id);
-    struct acase_node *node = acase->nodes;
-
-    while (node) {
-        ast_print_rec(f, node->action);
-        void *id_next = node->action;
-        fprintf(f, "\"%p\" -> \"%p\" [label=\"", id, id_next);
-        for (size_t i = 0; i < wordlist_size(&node->pattern); i++)
+    struct shast_case *case_node = (struct shast_case *)ast;
+    fprintf(f, "\"%p\" [label=\"CASE\"];\n", (void*)ast);
+    for (size_t case_i = 0; case_item_vect_size(&case_node->cases); case_i++) {
+        struct shast_case_item *case_item = case_item_vect_get(&case_node->cases, case_i);
+        ast_print_rec(f, case_item->action);
+        fprintf(f, "\"%p\" -> \"%p\" [label=\"", (void*)ast, (void*)case_item->action);
+        for (size_t i = 0; i < wordlist_size(&case_item->pattern); i++)
         {
             if (i > 0)
-                fputc('\n', f);
-            fprintf(f, "%s", wordlist_get(&node->pattern, i));
+                fputc('|', f);
+            fprintf(f, "%s", wordlist_get(&case_item->pattern, i));
         }
         fprintf(f, "\"];\n");
-        node = node->next;
     }
 }
 
-int case_exec(struct environment *env, struct ast *ast, struct errcont *cont)
+int case_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 {
-    struct acase *acase = &ast->data.ast_case;
-    for (struct acase_node *node = acase->nodes; node; node = node->next) {
-        for (size_t i = 0; i < wordlist_size(&node->pattern); i++) {
-            char *pattern = wordlist_get(&node->pattern, i);
-            // XXX: TODO: this is super broken. the case pattern isn't expanded
-            if (strcmp(pattern, pattern) == 0)
-                return ast_exec(env, node->action, cont);
+    struct shast_case *case_node = (struct shast_case *)ast;
+    char *case_var = expand(&case_node->base.line_info, case_node->var, env, cont);
+    for (size_t case_i = 0; case_item_vect_size(&case_node->cases); case_i++) {
+        struct shast_case_item *case_item = case_item_vect_get(&case_node->cases, case_i);
+        for (size_t i = 0; i < wordlist_size(&case_item->pattern); i++)
+        {
+            char *pattern = wordlist_get(&case_item->pattern, i);
+            if (fnmatch(pattern, case_var, 0) != 0)
+                continue;
+
+            free(case_var);
+            return ast_exec(env, case_item->action, cont);
         }
     }
+    free(case_var);
     return 0;
 }
 
-static void case_node_free(struct acase_node *casen)
+static void case_item_free(struct shast_case_item *case_item)
 {
-    if (!casen)
-        return;
-
-    wordlist_destroy(&casen->pattern);
-    ast_free(casen->action);
-    case_node_free(casen->next);
-    free(casen);
+    wordlist_destroy(&case_item->pattern);
+    ast_free(case_item->action);
+    free(case_item);
 }
 
-void case_free(struct ast *ast)
+void case_free(struct shast *ast)
 {
     if (!ast)
         return;
-    free(ast->data.ast_case.var);
-    case_node_free(ast->data.ast_case.nodes);
+    struct shast_case *case_node = (struct shast_case *)ast;
+
+    free(case_node->var);
+    for (size_t case_i = 0; case_item_vect_size(&case_node->cases); case_i++)
+        case_item_free(case_item_vect_get(&case_node->cases, case_i));
     free(ast);
 }
