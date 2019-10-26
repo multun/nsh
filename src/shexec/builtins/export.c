@@ -18,6 +18,12 @@ static int export_var(struct environment *env, char *raw_export_expr, bool to_ex
 
     // validate the variable name
     size_t var_name_len = var_name_end - export_expr;
+    if (var_name_len == 0)
+    {
+        warnx("export: invalid empty identifier");
+        return 1;
+    }
+
     for (size_t i = 0; i < var_name_len; i++)
     {
         if (simple_variable_name_check_at(i, export_expr[i]))
@@ -33,6 +39,7 @@ static int export_var(struct environment *env, char *raw_export_expr, bool to_ex
     if (var_sep)
         var_value = strdup(var_sep + 1);
     char *var_name = strndup(export_expr, var_name_len);
+    free(export_expr);
 
     struct shexec_variable *var;
     struct hash_head **insertion_pos;
@@ -43,6 +50,7 @@ static int export_var(struct environment *env, char *raw_export_expr, bool to_ex
         hash_head_init(&var->hash, var_name);
         var->to_export = to_export;
         var->value = var_value;
+        hash_table_insert(&env->variables, insertion_pos, &var->hash);
     }
     else
     {
