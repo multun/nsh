@@ -111,25 +111,26 @@ int ast_exec(struct environment*env, struct shast *ast, struct errcont *cont);
 void ast_free(struct shast *ast);
 
 
-#define REDIRECTIONS_APPLY(F)                                                            \
-    F(LESS, "<", redir_less)                                                             \
-    F(DLESS, "<<", NULL)                                                                 \
-    F(GREAT, ">", redir_great)                                                           \
-    F(DGREAT, ">>", redir_dgreat)                                                        \
-    F(LESSAND, "<&", redir_lessand)                                                      \
-    F(GREATAND, ">&", redir_greatand)                                                    \
-    F(LESSDASH, "<-", NULL)                                                              \
-    F(LESSGREAT, "<>", redir_lessgreat)                                                  \
-    F(CLOBBER, ">|", NULL)
+#define REDIRECTIONS_APPLY(F)                       \
+    F(REDIR_LESS, "<", redir_less)                  \
+    F(REDIR_DLESS, "<<", NULL)                      \
+    F(REDIR_GREAT, ">", redir_great)                \
+    F(REDIR_DGREAT, ">>", redir_dgreat)             \
+    F(REDIR_LESSAND, "<&", redir_lessand)           \
+    F(REDIR_GREATAND, ">&", redir_greatand)         \
+    F(REDIR_LESSDASH, "<-", NULL)                   \
+    F(REDIR_LESSGREAT, "<>", redir_lessgreat)       \
+    F(REDIR_CLOBBER, ">|", NULL)
 
-#define REDIRECTIONS_ENUM(EName, Repr, Func) REDIR_##EName,
 
 struct shast_redirection
 {
     enum redir_type
     {
         REDIR_NONE = 0,
+#define REDIRECTIONS_ENUM(EName, Repr, Func) EName,
         REDIRECTIONS_APPLY(REDIRECTIONS_ENUM)
+#undef REDIRECTIONS_ENUM
     } type; /**< the type of redirection */
     int left; /**< the io number */
     char *right; /**< the redirection destination */
