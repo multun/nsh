@@ -88,7 +88,7 @@ int parse_redirection(struct redir_vect *vect, struct lexer *lexer, struct errco
     redir_vect_push(vect, redir);
     redir->left = left;
     redir->type = type;
-    tok_free(tok, true);
+    lexer_discard(lexer, errcont);
     redir->right = parse_word(lexer, errcont);
     return 0;
 }
