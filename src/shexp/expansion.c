@@ -4,6 +4,7 @@
 #include "shexp/expansion.h"
 #include "shlex/variable.h"
 #include "utils/evect.h"
+#include "utils/strutils.h"
 #include "utils/mprintf.h"
 #include "shwlex/wlexer.h"
 #include "shlex/lexer.h"
@@ -297,8 +298,7 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
 
     // convert the value to an integer
     int res = arith_value_to_int(exp_state, &res_val);
-    int res_size = snprintf(NULL, 0, "%d", res);
-    char print_buf[res_size + /* \0 */ 1];
+    char print_buf[INT_MAX_CHARS(int) + /* \0 */ 1];
     sprintf(print_buf, "%d", res);
 
     // reset the expansion buffer to its starting point
