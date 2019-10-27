@@ -8,11 +8,15 @@
 #include <stdbool.h>
 
 
-
 struct variable_name {
     struct evect simple_var;
     bool is_special;
 };
+
+static inline char *variable_name_data(struct variable_name *name)
+{
+    return evect_data(&name->simple_var);
+}
 
 static inline bool is_basic(char c)
 {

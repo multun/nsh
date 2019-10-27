@@ -165,7 +165,7 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
     variable_name_finalize(&var_name);
 
     // look for the variable value
-    char *var_content = expand_name(exp_state->env, var_name.simple_var.data);
+    char *var_content = expand_name(exp_state->env, variable_name_data(&var_name));
     if (var_content != NULL)
         evect_push_string(&exp_state->vec, var_content);
     free(var_content);
