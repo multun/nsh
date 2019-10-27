@@ -26,17 +26,17 @@ static void try_read_eval(struct lexer *lex, struct shast **ast, struct errcont 
     cont->env->code = ast_exec(cont->env, *ast, errcont);
 }
 
-// returns whether to stop the loop
+// returns whether to continue
 static bool handle_repl_exception(struct errman *eman, struct context *cont)
 {
     if (eman->class == &g_clean_exit) {
         cont->env->code = eman->retcode;
-        return true;
+        return false;
     }
 
     if (eman->class == &g_keyboard_interrupt) {
         cont->env->code = eman->retcode;
-        return false;
+        return true;
     }
 
     if (eman->class != &g_parser_error && eman->class != &g_lexer_error)
@@ -54,7 +54,7 @@ static bool handle_repl_exception(struct errman *eman, struct context *cont)
 
     cont->env->code = g_cmdopts.src == SHSRC_COMMAND ? 1 : 2;
     // stop if the repl isn't interactive
-    return !cont->cs->interactive;
+    return cont->cs->interactive;
 }
 
 bool repl(struct context *ctx)
@@ -73,12 +73,12 @@ bool repl(struct context *ctx)
                 continue;
             }
             errx(2, "received an unknown exception in EOF check");
-        } else {
-            cstream_set_errcont(ctx->cs, &errcont);
-            if (cstream_eof(ctx->cs))
-                return false;
         }
-        /* reset the error handler */
+
+        /* check for EOF with the above context */
+        cstream_set_errcont(ctx->cs, &errcont);
+        if (cstream_eof(ctx->cs))
+            return false;
         cstream_set_errcont(ctx->cs, NULL);
 
         /* create a lexer */
@@ -86,10 +86,9 @@ bool repl(struct context *ctx)
 
         struct shast *ast = NULL;
          /* parse and execute */
-        if (setjmp(keeper.env)) {
-            if (handle_repl_exception(&eman, ctx))
-                running = false;
-        } else
+        if (setjmp(keeper.env))
+            running = handle_repl_exception(&eman, ctx);
+        else
             try_read_eval(lex, &ast, &errcont, ctx);
 
         ast_free(ast);
@@ -97,9 +96,7 @@ bool repl(struct context *ctx)
         /* reset the error handler */
         cstream_set_errcont(ctx->cs, NULL);
 
-        /* append the ast, destroy the lexer */
-        // TODO: refcnt stuff
-        // ctx->env->ast_list = ast_list_append(ctx->env->ast_list, ctx->ast);
+        /* destroy the lexer */
         lexer_free(lex);
     } while (running);
     return true;
