@@ -69,6 +69,20 @@ static inline bool variable_name_check(struct variable_name *var, char c) {
     return simple_variable_name_check(&var->simple_var, c);
 }
 
+static inline int variable_name_check_string(const char *str, size_t size)
+{
+    if (size == 0)
+        return 1;
+
+    for (size_t i = 0; i < size; i++)
+    {
+        if (!simple_variable_name_check_at(i, str[i]))
+            return 1;
+    }
+    return 0;
+}
+
+
 static inline void simple_variable_name_push(struct evect *var, char c)
 {
     evect_push(var, c);

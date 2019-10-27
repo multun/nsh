@@ -18,18 +18,10 @@ static int export_var(struct environment *env, char *raw_export_expr, bool to_ex
 
     // validate the variable name
     size_t var_name_len = var_name_end - export_expr;
-    if (var_name_len == 0)
-    {
-        warnx("export: invalid empty identifier");
-        return 1;
-    }
 
-    for (size_t i = 0; i < var_name_len; i++)
+    if (variable_name_check_string(export_expr, var_name_len) != 0)
     {
-        if (simple_variable_name_check_at(i, export_expr[i]))
-            continue;
-        warnx("export: '%.*s': not a valid identifier",
-              (int)var_name_len, export_expr);
+        warnx("export: invalid identifier");
         free(export_expr);
         return 1;
     }
