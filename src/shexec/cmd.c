@@ -79,12 +79,11 @@ int cmd_exec(struct environment *env, struct shast *ast, struct errcont *cont)
             env->argv = prev_argv;
         }
         shraise(cont, NULL);
-    } else {
-        struct errcont ncont = ERRCONT(cont->errman, &keeper);
-        wordlist_to_argv(&env->argv, wl, env, &ncont);
-        res = cmd_exec_argv(env, &ncont);
     }
 
+    struct errcont ncont = ERRCONT(cont->errman, &keeper);
+    wordlist_to_argv(&env->argv, wl, env, &ncont);
+    res = cmd_exec_argv(env, &ncont);
     argv_free(env->argv);
     env->argc = prev_argc;
     env->argv = prev_argv;
