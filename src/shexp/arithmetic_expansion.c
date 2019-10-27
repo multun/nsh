@@ -213,7 +213,7 @@ static int arith_lex_number(struct expansion_state *exp_state, struct cstream *c
 
         int new_digit = arith_parse_digit(c);
         if (new_digit == -1 || new_digit >= base) {
-            expansion_warning(exp_state, "%s isn't a valid base %d digit", c, base);
+            expansion_warning(exp_state, "'%c' (0x%x) isn't a valid base %d digit", c, c, base);
             return 1;
         }
 

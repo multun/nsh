@@ -19,6 +19,11 @@
 static void expand_guarded(struct expansion_state *exp_state,
                            struct wlexer *wlexer);
 
+static void __noreturn expansion_raise(struct expansion_state *exp_state)
+{
+    shraise(exp_state->errcont, &g_lexer_error);
+}
+
 void __noreturn expansion_error(struct expansion_state *exp_state, const char *fmt, ...)
 {
     va_list ap;
@@ -264,7 +269,7 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
     int initial_size = evect_size(&exp_state->vec);
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_ARITH));
 
-    // find the arithmetic expression
+    // get the arithmetic expression in a single string
     evect_push(&exp_state->vec, '\0');
     char *arith_content = evect_data(&exp_state->vec) + initial_size;
 
@@ -280,24 +285,27 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
 
     struct arith_value res_val;
     if ((rc = arith_parse(&res_val, &alexer, 0)))
-        // FIXME: exception
-        errx(1, "error in arith_open parsing");
+        expansion_raise(exp_state);
 
     struct arith_token next_tok;
     if ((rc = arith_lexer_peek(&next_tok, &alexer)))
-        // FIXME: exception
-        errx(1, "error in arith_open peek");
+        // this line may never run at all as the parser already peeks the next token
+        expansion_error(exp_state, "arithmetic post-parsing token peek failed");
 
     if (next_tok.type != &arith_type_eof)
         expansion_error(exp_state, "unexpected token: %s", next_tok.type->name);
 
+    // convert the value to an integer
     int res = arith_value_to_int(exp_state, &res_val);
     int res_size = snprintf(NULL, 0, "%d", res);
     char print_buf[res_size + /* \0 */ 1];
     sprintf(print_buf, "%d", res);
+
+    // reset the expansion buffer to its starting point
     exp_state->vec.size = initial_size;
-    for (int i = 0; i < res_size; i++)
-        evect_push(&exp_state->vec, print_buf[i]);
+
+    // push the result of the arithmetic expansion in the expansion buffer
+    evect_push_string(&exp_state->vec, print_buf);
     return LEXER_OP_CONTINUE;
 }
 
