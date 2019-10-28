@@ -37,12 +37,9 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
 
 /**
 ** \brief executes the subshell with buf as input
-** \param errcont the error context to work with
-** \param buf the the buffed to execute in a subshell
-** \param env the environment to expand from
-** \param vec the vector to store the result in
+** \param exp_state the expansion state
 */
-void expand_subshell(struct errcont *cont, char *buf, struct environment*env, struct evect *vec);
+void expand_subshell(struct expansion_state *exp_state, char *buf);
 
 /**
 ** \brief expands special single character variables,

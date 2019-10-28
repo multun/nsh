@@ -230,7 +230,7 @@ static enum wlexer_op expand_btick(struct expansion_state *exp_state,
     }
 
     evect_push(&btick_content, '\0');
-    expand_subshell(exp_state->errcont, btick_content.data, exp_state->env, &exp_state->vec);
+    expand_subshell(exp_state, btick_content.data);
     btick_content.data = NULL; // the ownership was transfered to expand_subshell
     return LEXER_OP_CONTINUE;
 }
@@ -255,7 +255,7 @@ static enum wlexer_op expand_exp_subshell_open(struct expansion_state *exp_state
 {
     struct wlexer sub_wlexer = WLEXER_FORK(wlexer, MODE_SUBSHELL);
     char *subshell_content = lexer_lex_string(exp_state->errcont, &sub_wlexer);
-    expand_subshell(exp_state->errcont, subshell_content, exp_state->env, &exp_state->vec);
+    expand_subshell(exp_state, subshell_content);
     subshell_content = NULL; // the ownership was transfered to expand_subshell
     return LEXER_OP_CONTINUE;
 }
