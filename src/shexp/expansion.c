@@ -382,30 +382,30 @@ static void expand_guarded(struct expansion_state *exp_state,
 
 char *expand(struct lineinfo *line_info, char *str, struct environment *env, struct errcont *errcont)
 {
+    /* initialize the character stream */
     struct cstream_string cs;
     cstream_string_init(&cs, str);
     cs.base.line_info = LINEINFO("<expansion>", line_info);
 
-    struct expansion_state exp_state = {
-        .line_info = &cs.base.line_info,
-        .env = env,
-    };
+    /* initialize the expansion buffer */
+    struct expansion_state exp_state;
+    expansion_state_init(&exp_state, &cs.base.line_info, env);
 
-    evect_init(&exp_state.vec, strlen(str) + 1);
+    /* on exception, free the expansion buffer */
     struct keeper keeper = KEEPER(errcont->keeper);
-
-    struct wlexer wlexer;
-    wlexer_init(&wlexer, &cs.base);
-
+    struct errcont sub_errcont = ERRCONT(errcont->errman, &keeper);
     if (setjmp(keeper.env)) {
         free(exp_state.vec.data);
         shraise(errcont, NULL);
-    } else {
-        struct errcont sub_errcont = ERRCONT(errcont->errman, &keeper);
-        exp_state.errcont = &sub_errcont;
-        expand_guarded(&exp_state, &wlexer);
     }
+    exp_state.errcont = &sub_errcont;
 
+    /* perform the recursive expansion */
+    struct wlexer wlexer;
+    wlexer_init(&wlexer, &cs.base);
+    expand_guarded(&exp_state, &wlexer);
+
+    /* finalize the buffer and return it */
     evect_push(&exp_state.vec, '\0');
-    return exp_state.vec.data;
+    return evect_data(&exp_state.vec);
 }

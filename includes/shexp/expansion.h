@@ -5,6 +5,9 @@
 #include "utils/error.h"
 #include "utils/evect.h"
 
+/* the starting expansion buffer size */
+#define EXPANSION_DEFAULT_SIZE 100
+
 /**
 ** \brief expands a string
 ** \param env the environment used within the expansion
@@ -23,11 +26,14 @@ struct expansion_state {
     struct environment *env;
 };
 
-#define EXPCTX(Str, Quoted)                                                              \
-    ((s_exp_ctx){                                                                        \
-        .str = (Str),                                                                    \
-        .quoted = (Quoted),                                                              \
-    })
+static inline void expansion_state_init(struct expansion_state *exp_state,
+                                        struct lineinfo *line_info,
+                                        struct environment *env)
+{
+    exp_state->line_info = line_info;
+    exp_state->env = env;
+    evect_init(&exp_state->vec, EXPANSION_DEFAULT_SIZE);
+}
 
 /**
 ** \brief executes the subshell with buf as input
@@ -37,24 +43,6 @@ struct expansion_state {
 ** \param vec the vector to store the result in
 */
 void expand_subshell(struct errcont *cont, char *buf, struct environment*env, struct evect *vec);
-
-/**
-** \brief expands an arithmetic expression into a character vector
-** \param str the original string cursor
-** \param env the environment to expand from
-** \param vec the vector to store the result in
-** \param errcont the error context to work with
-*/
-void expand_arth(char **str, struct environment*env, struct evect *vec, struct errcont *cont);
-
-/**
-** \brief prepare a arithmetic word to be expanded
-** \param word the word to prepare for expansion
-** \param env the environment used within the expansion
-** \param cont the error context to work with
-** \return the allocated buffer to give to expand
-*/
-char *expand_arth_word(char *word, struct environment*env, struct errcont *cont);
 
 /**
 ** \brief expands special single character variables,
