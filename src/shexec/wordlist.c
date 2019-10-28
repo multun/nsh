@@ -13,7 +13,10 @@ static int wordlist_to_argv_sub(char **volatile *res, struct wordlist *volatile 
 
     char **argv = *res = xcalloc(sizeof(char *), argc + /* NULL */ 1);
     for (size_t i = 0; i < argc; i++)
-        argv[i] = expand(NULL, wordlist_get(wl, i), env, cont);
+    {
+        struct shword *word = wordlist_get(wl, i);
+        argv[i] = expand(&word->line_info, shword_buf(word), env, cont);
+    }
     return argc;
 }
 

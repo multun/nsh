@@ -133,7 +133,7 @@ struct shast_redirection
 #undef REDIRECTIONS_ENUM
     } type; /**< the type of redirection */
     int left; /**< the io number */
-    char *right; /**< the redirection destination */
+    struct shword *right; /**< the redirection destination */
 };
 
 #define GVECT_NAME redir_vect
@@ -233,7 +233,7 @@ static inline void shast_case_item_init(struct shast_case_item *node)
 struct shast_case
 {
     struct shast base;
-    char *var; /**< the tested variable */
+    struct shword *var; /**< the tested variable */
     struct case_item_vect cases; /**< the case items */
 };
 
@@ -263,7 +263,7 @@ DEFINE_AST_TYPE(shast_cmd, SHNODE_CMD)
 struct shast_for
 {
     struct shast base;
-    char *var; /**< the variable */
+    struct shword *var; /**< the variable */
     struct wordlist collection; /**< the list of value */
     struct shast *body; /**< the action to execute for each value */
 };

@@ -23,7 +23,7 @@ void cmd_print(FILE *f, struct shast *ast)
     {
         if (i > 0)
             fputc(' ', f);
-        fprintf(f, "%s", wordlist_get(wl, i));
+        fprintf(f, "%s", wordlist_get_str(wl, i));
     }
     fprintf(f, "\"];\n");
 }

@@ -1,8 +1,9 @@
 #include "utils/alloc.h"
 #include "shparse/parse.h"
 #include "shlex/print.h"
+#include <string.h>
 
-char *parse_word(struct lexer *lexer, struct errcont *errcont)
+struct shword *parse_word(struct lexer *lexer, struct errcont *errcont)
 {
     const struct token *tok = lexer_peek(lexer, errcont);
     if (!tok_is(tok, TOK_WORD))
@@ -10,7 +11,9 @@ char *parse_word(struct lexer *lexer, struct errcont *errcont)
                    TOKT_STR(tok));
 
     struct token *word = lexer_pop(lexer, errcont);
-    char *res = tok_buf(word);
-    tok_free(word, false);
+    struct shword *res = xmalloc(sizeof(*res) + tok_size(tok) + /* \0 */ 1);
+    res->line_info = tok->lineinfo;
+    strcpy(shword_buf(res), tok_buf(word));
+    tok_free(word, true);
     return res;
 }

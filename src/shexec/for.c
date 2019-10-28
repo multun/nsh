@@ -11,13 +11,13 @@ void for_print(FILE *f, struct shast *ast)
 {
     struct shast_for *for_node = (struct shast_for *)ast;
     void *id = ast;
-    fprintf(f, "\"%p\" [label=\"FOR %s in", id, for_node->var);
+    fprintf(f, "\"%p\" [label=\"FOR %s in", id, shword_buf(for_node->var));
     struct wordlist *wl = &for_node->collection;
     for (size_t i = 0; i < wordlist_size(wl); i++)
     {
         if (i > 0)
             fputc(' ', f);
-        fprintf(f, "%s", wordlist_get(wl, i));
+        fprintf(f, "%s", wordlist_get_str(wl, i));
     }
     fprintf(f, "\"];\n");
     ast_print_rec(f, for_node->body);
@@ -55,8 +55,8 @@ int for_exec(struct environment *env, struct shast *ast, struct errcont *cont)
     struct wordlist *wl = &for_node->collection;
     if (local_continue)
         for (; i < wordlist_size(wl); i++) {
-            char *var_value = expand(&ast->line_info, wordlist_get(wl, i), env, cont);
-            environment_var_assign(env, strdup(for_node->var), var_value, false);
+            char *var_value = expand(&ast->line_info, shword_buf(wordlist_get(wl, i)), env, cont);
+            environment_var_assign(env, strdup(shword_buf(for_node->var)), var_value, false);
             ret = ast_exec(env, for_node->body, &ncont);
         }
 

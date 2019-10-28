@@ -190,7 +190,7 @@ void parse_do_group(struct shast **res, struct lexer *lexer, struct errcont *err
 ** \param lexer lexer to use in parsing.
 ** \param errcont error context.
 */
-char *parse_word(struct lexer *lexer, struct errcont *errcont);
+struct shword *parse_word(struct lexer *lexer, struct errcont *errcont);
 
 /**
 ** \brief parse every following newline.

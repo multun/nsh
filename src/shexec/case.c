@@ -17,7 +17,7 @@ void case_print(FILE *f, struct shast *ast)
         {
             if (i > 0)
                 fputc('|', f);
-            fprintf(f, "%s", wordlist_get(&case_item->pattern, i));
+            fprintf(f, "%s", shword_buf(wordlist_get(&case_item->pattern, i)));
         }
         fprintf(f, "\"];\n");
     }
@@ -26,12 +26,12 @@ void case_print(FILE *f, struct shast *ast)
 int case_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 {
     struct shast_case *case_node = (struct shast_case *)ast;
-    char *case_var = expand(&case_node->base.line_info, case_node->var, env, cont);
+    char *case_var = expand(&case_node->base.line_info, shword_buf(case_node->var), env, cont);
     for (size_t case_i = 0; case_item_vect_size(&case_node->cases); case_i++) {
         struct shast_case_item *case_item = case_item_vect_get(&case_node->cases, case_i);
         for (size_t i = 0; i < wordlist_size(&case_item->pattern); i++)
         {
-            char *pattern = wordlist_get(&case_item->pattern, i);
+            char *pattern = shword_buf(wordlist_get(&case_item->pattern, i));
             if (fnmatch(pattern, case_var, 0) != 0)
                 continue;
 

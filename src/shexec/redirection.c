@@ -110,7 +110,7 @@ static int redir_simple(struct shast_redirection *redir,
     int src_copy = fd_move_away(src);
 
     /* open into the choosen file descriptor */
-    int rc = fd_open_into(src, redir->right, open_flags, 0664);
+    int rc = fd_open_into(src, shword_buf(redir->right), open_flags, 0664);
     if (rc)
         return rc;
 
@@ -170,11 +170,11 @@ static int redir_dup(struct shast_redirection *redir,
     if (left == -1)
         left = default_fd;
 
-    if (strcmp(redir->right, "-") == 0)
+    if (strcmp(shword_buf(redir->right), "-") == 0)
         return redir_close(undo, left);
 
     int right;
-    if (parse_int(redir->right, &right))
+    if (parse_int(shword_buf(redir->right), &right))
     {
         warn("couldn't parse redirection");
         return 1;
@@ -183,7 +183,7 @@ static int redir_dup(struct shast_redirection *redir,
     int left_copy = fd_copy(left);
     if (dup2(right, left) == -1)
     {
-        warnx("%s: Bad file descriptor", redir->right);
+        warnx("%s: Bad file descriptor", shword_buf(redir->right));
         return 1;
     }
 
@@ -224,7 +224,7 @@ static void redirection_print(FILE *f, struct shast_redirection *redir)
     const char *redir_name = g_redir_list[redir->type].repr;
 
     fprintf(f, "\"%p\" [label=\"%d %s %s\"];\n", id, redir->left, redir_name,
-            redir->right);
+            shword_buf(redir->right));
 }
 
 void redir_vect_print(FILE *f, struct redir_vect *vect, void *id)

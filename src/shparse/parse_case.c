@@ -52,7 +52,7 @@ static void parse_case_item(struct case_item_vect *vect, struct lexer *lexer, st
 void parse_rule_case(struct shast **res, struct lexer *lexer, struct errcont *errcont)
 {
     lexer_discard(lexer, errcont);
-    char *case_name = parse_word(lexer, errcont);
+    struct shword *case_name = parse_word(lexer, errcont);
     struct shast_case *case_node = shast_case_attach(res, lexer);
     case_node->var = case_name;
     parse_newlines(lexer, errcont);
