@@ -277,7 +277,7 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
     // prepare the arithmetic wlexer and stream
     struct cstream_string cs;
     cstream_string_init(&cs, arith_content);
-    cs.base.line_info = LINEINFO("<expansion>", exp_state->line_info);
+    cs.base.line_info = LINEINFO("<arithmetics>", exp_state->line_info);
 
     struct arith_lexer alexer = {
         .exp_state = exp_state,
