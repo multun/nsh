@@ -37,10 +37,10 @@ int block_exec(struct environment *env, struct shast *ast, struct errcont *cont)
         // on exceptions, undo redirections and re-raise
         redir_undo_stack_cancel(&undo_stack);
         shraise(cont, NULL);
-    } else {
-        // run the command block and undo redirections
-        rc = ast_exec(env, block->command, &ERRCONT(cont->errman, &keeper));
-        redir_undo_stack_cancel(&undo_stack);
-        return rc;
     }
+
+    // run the command block and undo redirections
+    rc = ast_exec(env, block->command, &ERRCONT(cont->errman, &keeper));
+    redir_undo_stack_cancel(&undo_stack);
+    return rc;
 }

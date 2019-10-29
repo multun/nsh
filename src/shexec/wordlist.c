@@ -25,13 +25,16 @@ static int wordlist_to_argv_sub(char **volatile *res, struct wordlist *volatile 
 int wordlist_to_argv(char ***res, struct wordlist *wl, struct environment *env, struct errcont *cont)
 {
     char **volatile new_argv = NULL;
+
+    /* on exception, free the pending arguments array */
     struct keeper keeper = KEEPER(cont->keeper);
     if (setjmp(keeper.env)) {
         argv_free(new_argv);
         shraise(cont, NULL);
-    } else {
-        int argc = wordlist_to_argv_sub(&new_argv, wl, env, &ERRCONT(cont->errman, &keeper));
-        *res = new_argv;
-        return argc;
     }
+
+    /* expand the argument list */
+    int argc = wordlist_to_argv_sub(&new_argv, wl, env, &ERRCONT(cont->errman, &keeper));
+    *res = new_argv;
+    return argc;
 }
