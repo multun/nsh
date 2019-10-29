@@ -5,20 +5,6 @@
 #include "shexec/environment.h"
 #include "shexec/execution.h"
 
-void block_print(FILE *f, struct shast *node)
-{
-    struct shast_block *block = (struct shast_block *)node;
-    void *id = node;
-    fprintf(f, "\"%p\" [label=\"BLOCK\"];\n", id);
-    redir_vect_print(f, &block->redirs, node);
-    assign_vect_print(f, &block->assigns, node);
-    if (block->command) {
-        ast_print_rec(f, block->command);
-        void *id_next = block->command;
-        fprintf(f, "\"%p\" -> \"%p\" [label=\"CMD\"];\n", id, id_next);
-    }
-}
-
 int block_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 {
     int rc;

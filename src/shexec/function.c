@@ -4,14 +4,6 @@
 #include "shparse/ast.h"
 #include "utils/hash_table.h"
 
-void function_print(FILE *f, struct shast *ast)
-{
-    struct shast_function *function = (struct shast_function *)ast;
-    fprintf(f, "\"%p\" [label=\"FUNC\n%s\"];\n", (void*)ast, hash_head_key(&function->hash));
-    ast_print_rec(f, function->body);
-    fprintf(f, "\"%p\" -> \"%p\";\n", (void*)ast, (void*)function->body);
-}
-
 int function_exec(struct environment *env, struct shast *ast, struct errcont *cont __unused)
 {
     struct shast_function *function = (struct shast_function *)ast;

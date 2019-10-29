@@ -7,21 +7,6 @@
 #include "shparse/ast.h"
 #include "shexec/clean_exit.h"
 
-void pipe_print(FILE *f, struct shast *ast)
-{
-    struct shast_pipe *pipe = (struct shast_pipe *)ast;
-    void *id = ast;
-    fprintf(f, "\"%p\" [label=\"|\"];\n", id);
-
-    void *id_left = pipe->left;
-    ast_print_rec(f, pipe->left);
-    fprintf(f, "\"%p\" -> \"%p\";\n", id, id_left);
-
-    void *id_right = pipe->right;
-    ast_print_rec(f, pipe->right);
-    fprintf(f, "\"%p\" -> \"%p\";\n", id, id_right);
-}
-
 void pipe_free(struct shast *ast)
 {
     if (!ast)

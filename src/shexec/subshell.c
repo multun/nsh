@@ -7,16 +7,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-void subshell_print(FILE *f, struct shast *ast)
-{
-    struct shast_subshell *subshell = (struct shast_subshell *)ast;
-    void *id = ast;
-    fprintf(f, "\"%p\" [label=\"SUBSHELL\"];\n", id);
-    void *id_next = subshell->action;
-    ast_print_rec(f, subshell->action);
-    fprintf(f, "\"%p\" -> \"%p\";\n", id, id_next);
-}
-
 void subshell_free(struct shast *ast)
 {
     if (!ast)

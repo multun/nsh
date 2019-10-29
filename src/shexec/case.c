@@ -5,24 +5,6 @@
 #include <string.h>
 #include <fnmatch.h>
 
-void case_print(FILE *f, struct shast *ast)
-{
-    struct shast_case *case_node = (struct shast_case *)ast;
-    fprintf(f, "\"%p\" [label=\"CASE\"];\n", (void*)ast);
-    for (size_t case_i = 0; case_item_vect_size(&case_node->cases); case_i++) {
-        struct shast_case_item *case_item = case_item_vect_get(&case_node->cases, case_i);
-        ast_print_rec(f, case_item->action);
-        fprintf(f, "\"%p\" -> \"%p\" [label=\"", (void*)ast, (void*)case_item->action);
-        for (size_t i = 0; i < wordlist_size(&case_item->pattern); i++)
-        {
-            if (i > 0)
-                fputc('|', f);
-            fprintf(f, "%s", shword_buf(wordlist_get(&case_item->pattern, i)));
-        }
-        fprintf(f, "\"];\n");
-    }
-}
-
 int case_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 {
     struct shast_case *case_node = (struct shast_case *)ast;

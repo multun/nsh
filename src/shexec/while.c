@@ -4,21 +4,6 @@
 #include "shexec/break.h"
 #include "shexec/environment.h"
 
-void while_print(FILE *f, struct shast *ast)
-{
-    struct shast_while *while_node = (struct shast_while *)ast;
-    const char *struct_name = while_node->is_until ? "UNTIL" : "WHILE";
-    fprintf(f, "\"%p\" [label=\"%s\"];\n", (void*)ast, struct_name);
-
-    ast_print_rec(f, while_node->condition);
-    fprintf(f, "\"%p\" -> \"%p\" [label=\"COND\"];\n",
-            (void*)ast, (void*)while_node->condition);
-
-    ast_print_rec(f, while_node->body);
-    fprintf(f, "\"%p\" -> \"%p\" [label=\"DO\"];\n",
-            (void*)ast, (void*)while_node->body);
-}
-
 int while_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 {
     struct shast_while *while_node = (struct shast_while *)ast;

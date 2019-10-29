@@ -14,20 +14,6 @@
 #include "utils/hash_table.h"
 #include "utils/macros.h"
 
-void cmd_print(FILE *f, struct shast *ast)
-{
-    struct shast_cmd *command = (struct shast_cmd*)ast;
-    struct wordlist *wl = &command->arguments;
-    fprintf(f, "\"%p\" [label=\"CMD\\n", (void*)ast);
-    for (size_t i = 0; i < wordlist_size(wl); i++)
-    {
-        if (i > 0)
-            fputc(' ', f);
-        fprintf(f, "%s", wordlist_get_str(wl, i));
-    }
-    fprintf(f, "\"];\n");
-}
-
 static int builtin_exec(struct environment *env, struct errcont *cont, f_builtin builtin)
 {
     int res = builtin(env, cont, env->argc, env->argv);
