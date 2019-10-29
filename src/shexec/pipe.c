@@ -7,16 +7,6 @@
 #include "shparse/ast.h"
 #include "shexec/clean_exit.h"
 
-void pipe_free(struct shast *ast)
-{
-    if (!ast)
-        return;
-    struct shast_pipe *pipe = (struct shast_pipe *)ast;
-    ast_free(pipe->left);
-    ast_free(pipe->right);
-    free(ast);
-}
-
 enum pipe_pos
 {
     PIPE_LEFT,

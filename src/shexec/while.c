@@ -30,14 +30,3 @@ int while_exec(struct environment *env, struct shast *ast, struct errcont *cont)
     env->depth--;
     return res;
 }
-
-void while_free(struct shast *ast)
-{
-    if (!ast)
-        return;
-
-    struct shast_while *while_node = (struct shast_while *)ast;
-    ast_free(while_node->condition);
-    ast_free(while_node->body);
-    free(while_node);
-}

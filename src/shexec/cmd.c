@@ -89,13 +89,3 @@ int cmd_exec(struct environment *env, struct shast *ast, struct errcont *cont)
     env->argv = prev_argv;
     return res;
 }
-
-void cmd_free(struct shast *ast)
-{
-    if (!ast)
-        return;
-
-    struct shast_cmd *command = (struct shast_cmd*)ast;
-    wordlist_destroy(&command->arguments);
-    free(command);
-}

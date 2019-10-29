@@ -13,14 +13,3 @@ int if_exec(struct environment *env, struct shast *ast, struct errcont *cont)
         return ast_exec(env, if_node->branch_false, cont);
     return 0;
 }
-
-void if_free(struct shast *ast)
-{
-    struct shast_if *if_node = (struct shast_if *)ast;
-    if (!ast)
-        return;
-    ast_free(if_node->condition);
-    ast_free(if_node->branch_true);
-    ast_free(if_node->branch_false);
-    free(ast);
-}

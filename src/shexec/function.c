@@ -27,21 +27,3 @@ int function_exec(struct environment *env, struct shast *ast, struct errcont *co
     ref_get(&function->refcnt);
     return 0;
 }
-
-void function_free(struct shast *ast)
-{
-    if (!ast)
-        return;
-
-    struct shast_function *func = (struct shast_function *)ast;
-    ref_put(&func->refcnt);
-}
-
-void shast_function_ref_free(struct refcnt *refcnt)
-{
-    struct shast_function *func;
-    func = container_of(refcnt, struct shast_function, refcnt);
-    free(hash_head_key(&func->hash));
-    ast_free(func->body);
-    free(func);
-}

@@ -44,21 +44,3 @@ int block_exec(struct environment *env, struct shast *ast, struct errcont *cont)
         return rc;
     }
 }
-
-void block_free(struct shast *ast)
-{
-    if (!ast)
-        return;
-
-    struct shast_block *block = (struct shast_block *)ast;
-    for (size_t i = 0; i < redir_vect_size(&block->redirs); i++)
-        shast_redirection_free(redir_vect_get(&block->redirs, i));
-    redir_vect_destroy(&block->redirs);
-
-    for (size_t i = 0; i < assign_vect_size(&block->assigns); i++)
-        shast_assignment_free(assign_vect_get(&block->assigns, i));
-    assign_vect_destroy(&block->assigns);
-
-    ast_free(block->command);
-    free(ast);
-}

@@ -19,13 +19,3 @@ int bool_op_exec(struct environment *env, struct shast *ast, struct errcont *con
     } else
         return !ast_exec(env, bool_op->left, cont);
 }
-
-void bool_op_free(struct shast *ast)
-{
-    if (!ast)
-        return;
-    struct shast_bool_op *bool_op = (struct shast_bool_op *)ast;
-    ast_free(bool_op->left);
-    ast_free(bool_op->right);
-    free(bool_op);
-}

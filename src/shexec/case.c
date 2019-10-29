@@ -24,23 +24,3 @@ int case_exec(struct environment *env, struct shast *ast, struct errcont *cont)
     free(case_var);
     return 0;
 }
-
-static void case_item_free(struct shast_case_item *case_item)
-{
-    wordlist_destroy(&case_item->pattern);
-    ast_free(case_item->action);
-    free(case_item);
-}
-
-void case_free(struct shast *ast)
-{
-    if (!ast)
-        return;
-    struct shast_case *case_node = (struct shast_case *)ast;
-
-    free(case_node->var);
-    for (size_t case_i = 0; case_i < case_item_vect_size(&case_node->cases); case_i++)
-        case_item_free(case_item_vect_get(&case_node->cases, case_i));
-    case_item_vect_destroy(&case_node->cases);
-    free(ast);
-}

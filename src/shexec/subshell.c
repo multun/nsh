@@ -7,15 +7,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-void subshell_free(struct shast *ast)
-{
-    if (!ast)
-        return;
-    struct shast_subshell *subshell = (struct shast_subshell *)ast;
-    ast_free(subshell->action);
-    free(ast);
-}
-
 int subshell_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 {
     // TODO: error handling

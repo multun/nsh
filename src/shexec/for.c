@@ -45,15 +45,3 @@ int for_exec(struct environment *env, struct shast *ast, struct errcont *cont)
     env->depth--;
     return ret;
 }
-
-void for_free(struct shast *ast)
-{
-    if (!ast)
-        return;
-
-    struct shast_for *for_node = (struct shast_for *)ast;
-    free(for_node->var);
-    wordlist_destroy(&for_node->collection);
-    ast_free(for_node->body);
-    free(for_node);
-}

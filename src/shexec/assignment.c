@@ -14,13 +14,3 @@ void assignment_exec(struct environment *env, struct shast_assignment *assign, s
     char *value = expand(&assign->line_info, assign->value, env, cont);
     environment_var_assign(env, name, value, false);
 }
-
-void assignment_free(struct shast_assignment *assign)
-{
-    if (!assign)
-        return;
-
-    free(assign->name);
-    // don't free the value, as it's a pointer to the end of the key=value string
-    free(assign);
-}
