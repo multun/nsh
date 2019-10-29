@@ -1,0 +1,7 @@
+{
+  "desc": "A function that prints its parameters",
+  "stdin": "testf () { echo \"-$1-$2-\"; }; testf a; testf a b",
+  "stdout": "-a--\n-a-b-\n",
+  "stderr": "",
+  "retcode": 0
+}
