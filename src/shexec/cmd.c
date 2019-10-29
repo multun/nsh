@@ -30,13 +30,34 @@ void cmd_print(FILE *f, struct shast *ast)
 
 static int builtin_exec(struct environment *env, struct errcont *cont, f_builtin builtin)
 {
-    int res = builtin(env, cont, argv_count(env->argv), env->argv);
+    int res = builtin(env, cont, env->argc, env->argv);
     fflush(stdout);
     return res;
 }
 
-static int cmd_exec_argv(struct environment *env, struct errcont *cont)
+static int cmd_fork_exec(struct environment *env, struct errcont *cont)
 {
+    int status;
+    pid_t pid = fork();
+    if (pid < 0)
+        clean_err(cont, errno, "cmd_exec: error while forking");
+
+    /* parent branch */
+    if (pid != 0) {
+        waitpid(pid, &status, 0);
+        return WEXITSTATUS(status);
+    }
+
+    /* child branch */
+    char **penv = environment_array(env);
+    execvpe(env->argv[0], env->argv, penv);
+    argv_free(penv);
+    clean_err(cont, 125 + errno, "couldn't exec \"%s\"", env->argv[0]);
+}
+
+static int cmd_run_command(struct environment *env, struct errcont *cont)
+{
+    /* look for functions */
     struct hash_head *func_hash = hash_table_find(&env->functions, NULL, env->argv[0]);
     if (func_hash)
     {
@@ -44,23 +65,13 @@ static int cmd_exec_argv(struct environment *env, struct errcont *cont)
         return ast_exec(env, func->body, cont);
     }
 
+    /* look for builtins */
     f_builtin builtin = builtin_search(env->argv[0]);
     if (builtin)
         return builtin_exec(env, cont, builtin);
 
-    int status;
-    pid_t pid = fork();
-
-    if (pid < 0)
-        clean_err(cont, errno, "cmd_exec: error while forking");
-    else if (pid == 0) {
-        char **penv = environment_array(env);
-        execvpe(env->argv[0], env->argv, penv);
-        argv_free(penv);
-        clean_err(cont, 125 + errno, "couldn't exec \"%s\"", env->argv[0]);
-    }
-    waitpid(pid, &status, 0);
-    return WEXITSTATUS(status);
+    /* no function or builtin found, fork and exec */
+    return cmd_fork_exec(env, cont);
 }
 
 int cmd_exec(struct environment *env, struct shast *ast, struct errcont *cont)
@@ -71,19 +82,22 @@ int cmd_exec(struct environment *env, struct shast *ast, struct errcont *cont)
     char **volatile prev_argv = env->argv;
     struct keeper keeper = KEEPER(cont->keeper);
 
+    /* expand the arguments array */
+    env->argc = wordlist_to_argv(&env->argv, wl, env, cont);
+
+    /* on exception, free the argument array */
     int res = 0;
     if (setjmp(keeper.env)) {
-        if (prev_argv != env->argv) {
-            argv_free(env->argv);
-            env->argc = prev_argc;
-            env->argv = prev_argv;
-        }
+        argv_free(env->argv);
+        env->argc = prev_argc;
+        env->argv = prev_argv;
         shraise(cont, NULL);
     }
 
-    struct errcont ncont = ERRCONT(cont->errman, &keeper);
-    wordlist_to_argv(&env->argv, wl, env, &ncont);
-    res = cmd_exec_argv(env, &ncont);
+    /* run the command */
+    res = cmd_run_command(env, &ERRCONT(cont->errman, &keeper));
+
+    /* cleanup */
     argv_free(env->argv);
     env->argc = prev_argc;
     env->argv = prev_argv;
