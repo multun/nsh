@@ -37,7 +37,7 @@ int for_exec(struct environment *env, struct shast *ast, struct errcont *cont)
     struct wordlist *wl = &for_node->collection;
     if (local_continue)
         for (; i < wordlist_size(wl); i++) {
-            char *var_value = expand(&ast->line_info, shword_buf(wordlist_get(wl, i)), env, cont);
+            char *var_value = expand_nosplit(&ast->line_info, shword_buf(wordlist_get(wl, i)), env, cont);
             environment_var_assign(env, strdup(shword_buf(for_node->var)), var_value, false);
             ret = ast_exec(env, for_node->body, &ncont);
         }

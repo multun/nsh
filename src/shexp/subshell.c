@@ -33,16 +33,26 @@ static void subshell_parent(struct expansion_state *exp_state, int cfd)
 {
     FILE *creader = fdopen(cfd, "r");
 
-    int cur_char;
-    while ((cur_char = fgetc(creader)) != EOF)
-        evect_push(&exp_state->vec, cur_char);
+    // newlines are counted on the fly: a counter is increased when a newline is
+    // found. on the next non-newline character, the same number of newlines
+    // will be injected.
 
-    // remove trailing newlines
-    size_t size;
-    while ((size = evect_size(&exp_state->vec))) {
-        if (evect_data(&exp_state->vec)[size - 1] != '\n')
-            break;
-        exp_state->vec.size--;
+    // the accumulated newlines are ignored if there are no more non-newline
+    // characters.
+
+    size_t newline_count = 0;
+    int cur_char;
+    while ((cur_char = fgetc(creader)) != EOF) {
+        if (cur_char == '\n') {
+            newline_count++;
+            continue;
+        }
+
+        while (newline_count) {
+            expansion_push(exp_state, '\n');
+            newline_count--;
+        }
+        expansion_push(exp_state, cur_char);
     }
 
     fclose(creader);

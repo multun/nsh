@@ -45,6 +45,33 @@ void expansion_warning(struct expansion_state *exp_state, const char *fmt, ...)
     va_end(ap);
 }
 
+static bool expansion_separator(struct expansion_state *exp_state, char c)
+{
+    if (exp_state->IFS == NULL)
+        return false;
+
+    for (const char *sep = exp_state->IFS; *sep; sep++)
+        if (*sep == c)
+            return true;
+    return false;
+}
+
+void expansion_push(struct expansion_state *exp_state, char c)
+{
+    // callback on IFS separator
+    if (exp_state->unquoted && expansion_separator(exp_state, c)) {
+        // ignore empty words
+        if (evect_size(&exp_state->result) == 0)
+            return;
+
+        exp_state->callback(exp_state, exp_state->callback_data);
+        return;
+    }
+
+    evect_push(&exp_state->result, c);
+    evect_push(&exp_state->result_unquoted, exp_state->unquoted);
+}
+
 static char *arguments_var_lookup(struct environment *env, char c)
 {
     if (c < '0' || c > '9')
@@ -131,7 +158,7 @@ static enum wlexer_op expand_dollar(struct expansion_state *exp_state,
     variable_name_finalize(&var_name);
     char *var_content = expand_name(exp_state->env, var_name.simple_var.data);
     if (var_content != NULL)
-        evect_push_string(&exp_state->vec, var_content);
+        expansion_push_string(exp_state, var_content);
     free(var_content);
     variable_name_destroy(&var_name);
     return LEXER_OP_CONTINUE;
@@ -142,7 +169,7 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
                                      struct wtoken *wtoken)
 {
     if (wlexer->mode == MODE_SINGLE_QUOTED || wtoken->ch[0] != '$') {
-        evect_push(&exp_state->vec, wtoken->ch[0]);
+        expansion_push(exp_state, wtoken->ch[0]);
         return LEXER_OP_CONTINUE;
     }
 
@@ -163,7 +190,7 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
     // push lonely dollars as is
     if (var_name.simple_var.size == 0) {
         variable_name_destroy(&var_name);
-        evect_push(&exp_state->vec, wtoken->ch[0]);
+        expansion_push(exp_state, wtoken->ch[0]);
         return LEXER_OP_CONTINUE;
     }
 
@@ -173,7 +200,7 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
     // look for the variable value
     char *var_content = expand_name(exp_state->env, variable_name_data(&var_name));
     if (var_content != NULL)
-        evect_push_string(&exp_state->vec, var_content);
+        expansion_push_string(exp_state, var_content);
     free(var_content);
 
     variable_name_destroy(&var_name);
@@ -190,13 +217,16 @@ static enum wlexer_op expand_eof(struct expansion_state *exp_state,
     return LEXER_OP_RETURN;
 }
 
-static enum wlexer_op expand_squote(struct expansion_state *exp_state __unused,
+static enum wlexer_op expand_squote(struct expansion_state *exp_state,
                                     struct wlexer *wlexer, struct wtoken *wtoken __unused)
 {
     if (wlexer->mode == MODE_SINGLE_QUOTED)
         return LEXER_OP_RETURN;
 
+    assert(exp_state->unquoted);
+    exp_state->unquoted = false;
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_SINGLE_QUOTED));
+    exp_state->unquoted = true;
     return LEXER_OP_CONTINUE;
 }
 
@@ -206,7 +236,10 @@ static enum wlexer_op expand_dquote(struct expansion_state *exp_state __unused,
     if (wlexer->mode == MODE_DOUBLE_QUOTED)
         return LEXER_OP_RETURN;
 
+    assert(exp_state->unquoted);
+    exp_state->unquoted = false;
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_DOUBLE_QUOTED));
+    exp_state->unquoted = true;
     return LEXER_OP_CONTINUE;
 }
 
@@ -245,7 +278,7 @@ static enum wlexer_op expand_escape(struct expansion_state *exp_state,
     if (ch == EOF)
         expansion_error(exp_state, "unexpected EOF in escape, during expansion");
 
-    evect_push(&exp_state->vec, ch);
+    expansion_push(exp_state, ch);
     return LEXER_OP_CONTINUE;
 }
 
@@ -267,12 +300,12 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
     int rc;
 
     // expand the content of the arithmetic expansion
-    int initial_size = evect_size(&exp_state->vec);
+    int initial_size = evect_size(&exp_state->result);
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_ARITH));
 
     // get the arithmetic expression in a single string
-    evect_push(&exp_state->vec, '\0');
-    char *arith_content = evect_data(&exp_state->vec) + initial_size;
+    expansion_push(exp_state, '\0');
+    char *arith_content = evect_data(&exp_state->result) + initial_size;
 
     // prepare the arithmetic wlexer and stream
     struct cstream_string cs;
@@ -302,10 +335,10 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
     sprintf(print_buf, "%d", res);
 
     // reset the expansion buffer to its starting point
-    exp_state->vec.size = initial_size;
+    exp_state->result.size = initial_size;
 
     // push the result of the arithmetic expansion in the expansion buffer
-    evect_push_string(&exp_state->vec, print_buf);
+    expansion_push_string(exp_state, print_buf);
     return LEXER_OP_CONTINUE;
 }
 
@@ -331,9 +364,9 @@ static enum wlexer_op expand_arith_group_open(struct expansion_state *exp_state,
     assert(wlexer->mode == MODE_ARITH_GROUP || wlexer->mode == MODE_ARITH);
     // expand to the litteral value, so that the arithmetic interpreter can
     // re-parse it after parameter substitution
-    evect_push(&exp_state->vec, '(');
+    expansion_push(exp_state, '(');
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_ARITH_GROUP));
-    evect_push(&exp_state->vec, ')');
+    expansion_push(exp_state, ')');
     return LEXER_OP_CONTINUE;
 }
 
@@ -380,32 +413,41 @@ static void expand_guarded(struct expansion_state *exp_state,
     }
 }
 
-char *expand(struct lineinfo *line_info, char *str, struct environment *env, struct errcont *errcont)
+void expand(struct expansion_state *exp_state,
+            struct wlexer *wlexer,
+            struct errcont *errcont)
+{
+    /* on exception, free the expansion buffer */
+    struct keeper keeper = KEEPER(errcont->keeper);
+    struct errcont sub_errcont = ERRCONT(errcont->errman, &keeper);
+    if (setjmp(keeper.env)) {
+        evect_destroy(&exp_state->result_unquoted);
+        evect_destroy(&exp_state->result);
+        shraise(errcont, NULL);
+    }
+    exp_state->errcont = &sub_errcont;
+    expand_guarded(exp_state, wlexer);
+}
+
+char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *env, struct errcont *errcont)
 {
     /* initialize the character stream */
     struct cstream_string cs;
     cstream_string_init(&cs, str);
     cs.base.line_info = LINEINFO("<expansion>", line_info);
 
+    /* perform the recursive expansion */
+    struct wlexer wlexer;
+    wlexer_init(&wlexer, &cs.base);
+
     /* initialize the expansion buffer */
     struct expansion_state exp_state;
     expansion_state_init(&exp_state, &cs.base.line_info, env);
 
-    /* on exception, free the expansion buffer */
-    struct keeper keeper = KEEPER(errcont->keeper);
-    struct errcont sub_errcont = ERRCONT(errcont->errman, &keeper);
-    if (setjmp(keeper.env)) {
-        free(exp_state.vec.data);
-        shraise(errcont, NULL);
-    }
-    exp_state.errcont = &sub_errcont;
-
-    /* perform the recursive expansion */
-    struct wlexer wlexer;
-    wlexer_init(&wlexer, &cs.base);
-    expand_guarded(&exp_state, &wlexer);
+    expand(&exp_state, &wlexer, errcont);
 
     /* finalize the buffer and return it */
-    evect_push(&exp_state.vec, '\0');
-    return evect_data(&exp_state.vec);
+    evect_push(&exp_state.result, '\0');
+    evect_destroy(&exp_state.result_unquoted);
+    return evect_data(&exp_state.result);
 }

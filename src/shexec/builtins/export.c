@@ -10,7 +10,7 @@
 static int export_var(struct environment *env, char *raw_export_expr, bool to_export, struct errcont *cont)
 {
     // expand the variable name
-    char *export_expr = expand(NULL, raw_export_expr, env, cont);
+    char *export_expr = expand_nosplit(NULL, raw_export_expr, env, cont);
     char *var_sep = strchr(export_expr, '=');
     char *var_name_end = var_sep;
     if (var_name_end == NULL)

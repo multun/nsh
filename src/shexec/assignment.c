@@ -11,6 +11,6 @@
 void assignment_exec(struct environment *env, struct shast_assignment *assign, struct errcont *cont)
 {
     char *name = strdup(assign->name);
-    char *value = expand(&assign->line_info, assign->value, env, cont);
+    char *value = expand_nosplit(&assign->line_info, assign->value, env, cont);
     environment_var_assign(env, name, value, false);
 }
