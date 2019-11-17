@@ -25,6 +25,15 @@ void expand(struct expansion_state *exp_state,
 
 typedef void (*expansion_callback_f)(struct expansion_state *exp_state, void *data);
 
+// each output byte has a combination of these two flags:
+// it can start an unquoted section, and / or stop one.
+// beware, a char can stop a section even though no section
+// was opened.
+enum expansion_meta {
+    EXPANSION_UNQUOTED = 1,
+    EXPANSION_END_UNQUOTED = 2,
+};
+
 /**
 ** \brief the expansion context
 */
@@ -33,12 +42,42 @@ struct expansion_state {
     struct lineinfo *line_info;
     struct errcont *errcont;
     struct evect result;
-    struct evect result_unquoted;
+
+    /* each output byte has a corresponding metadata byte */
+    struct evect result_meta;
+
+    /* are we in an unquoted section */
     bool unquoted;
+
+    /**
+    ** quoting causes empty word to be allowed:
+    ** $doesnotexist has no word, but '' has a word
+    */
+    bool allow_empty_word;
+
     struct environment *env;
+
+    /* a callback to call on each segmented IFS word */
     expansion_callback_f callback;
     void *callback_data;
 };
+
+static inline void expansion_end_section(struct expansion_state *exp_state)
+{
+    struct evect *meta = &exp_state->result_meta;
+    // if there's no section to end, give up
+    if (evect_size(meta) == 0)
+        return;
+
+    char *last_char = &evect_data(meta)[evect_size(meta) - 1];
+    // if the last char isn't unquoted, it can't end an unquoted section
+    if (!(*last_char & EXPANSION_UNQUOTED))
+        return;
+
+    *last_char |= EXPANSION_END_UNQUOTED;
+}
+
+void expansion_push(struct expansion_state *exp_state, char c);
 
 static inline void expansion_state_init(struct expansion_state *exp_state,
                                         struct lineinfo *line_info,
@@ -48,17 +87,10 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
     exp_state->line_info = line_info;
     exp_state->env = env;
     exp_state->unquoted = true;
+    exp_state->allow_empty_word = false;
     exp_state->callback = NULL;
     evect_init(&exp_state->result, EXPANSION_DEFAULT_SIZE);
-    evect_init(&exp_state->result_unquoted, EXPANSION_DEFAULT_SIZE);
-}
-
-void expansion_push(struct expansion_state *exp_state, char c);
-
-static inline void expansion_push_string(struct expansion_state *exp_state, char *str)
-{
-    for (; *str; str++)
-        expansion_push(exp_state, *str);
+    evect_init(&exp_state->result_meta, EXPANSION_DEFAULT_SIZE);
 }
 
 /**

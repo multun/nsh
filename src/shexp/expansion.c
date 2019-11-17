@@ -69,7 +69,25 @@ void expansion_push(struct expansion_state *exp_state, char c)
     }
 
     evect_push(&exp_state->result, c);
-    evect_push(&exp_state->result_unquoted, exp_state->unquoted);
+    evect_push(&exp_state->result_meta, exp_state->unquoted);
+}
+
+static void expansion_push_string(struct expansion_state *exp_state, char *str)
+{
+    for (; *str; str++)
+        expansion_push(exp_state, *str);
+}
+
+static void expansion_finalize(struct expansion_state *exp_state)
+{
+    if (exp_state->callback == NULL)
+        return;
+
+    // ignore empty words
+    if (evect_size(&exp_state->result) == 0 && !exp_state->allow_empty_word)
+        return;
+
+    exp_state->callback(exp_state, exp_state->callback_data);
 }
 
 static char *arguments_var_lookup(struct environment *env, char c)
@@ -223,6 +241,8 @@ static enum wlexer_op expand_squote(struct expansion_state *exp_state,
     if (wlexer->mode == MODE_SINGLE_QUOTED)
         return LEXER_OP_RETURN;
 
+    exp_state->allow_empty_word = true;
+    expansion_end_section(exp_state);
     assert(exp_state->unquoted);
     exp_state->unquoted = false;
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_SINGLE_QUOTED));
@@ -236,7 +256,9 @@ static enum wlexer_op expand_dquote(struct expansion_state *exp_state __unused,
     if (wlexer->mode == MODE_DOUBLE_QUOTED)
         return LEXER_OP_RETURN;
 
+    exp_state->allow_empty_word = true;
     assert(exp_state->unquoted);
+    expansion_end_section(exp_state);
     exp_state->unquoted = false;
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_DOUBLE_QUOTED));
     exp_state->unquoted = true;
@@ -246,6 +268,8 @@ static enum wlexer_op expand_dquote(struct expansion_state *exp_state __unused,
 static enum wlexer_op expand_btick(struct expansion_state *exp_state,
                                    struct wlexer *wlexer, struct wtoken *wtoken __unused)
 {
+    expansion_end_section(exp_state);
+
     struct evect btick_content;
     evect_init(&btick_content, 32); // hopefuly sane default :(
     struct wlexer_btick_state btick_state = WLEXER_BTICK_INIT;
@@ -271,6 +295,8 @@ static enum wlexer_op expand_btick(struct expansion_state *exp_state,
 static enum wlexer_op expand_escape(struct expansion_state *exp_state,
                                     struct wlexer *wlexer, struct wtoken *wtoken __unused)
 {
+    expansion_end_section(exp_state);
+
     // clearing characters isn't safe if
     // the wlexer has some cached tokens
     assert(!wlexer_has_lookahead(wlexer));
@@ -286,6 +312,8 @@ static enum wlexer_op expand_exp_subshell_open(struct expansion_state *exp_state
                                                struct wlexer *wlexer,
                                                struct wtoken *wtoken __unused)
 {
+    expansion_end_section(exp_state);
+
     struct wlexer sub_wlexer = WLEXER_FORK(wlexer, MODE_SUBSHELL);
     char *subshell_content = lexer_lex_string(exp_state->errcont, &sub_wlexer);
     expand_subshell(exp_state, subshell_content);
@@ -297,6 +325,8 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
                                         struct wlexer *wlexer,
                                         struct wtoken *wtoken __unused)
 {
+    expansion_end_section(exp_state);
+
     int rc;
 
     // expand the content of the arithmetic expansion
@@ -417,16 +447,23 @@ void expand(struct expansion_state *exp_state,
             struct wlexer *wlexer,
             struct errcont *errcont)
 {
+    // when IFS is NULL, callback is NULL too.
+    // when isn't not NULL, there must be a callback
+    assert((exp_state->callback == NULL) == (exp_state->IFS == NULL));
+
     /* on exception, free the expansion buffer */
     struct keeper keeper = KEEPER(errcont->keeper);
     struct errcont sub_errcont = ERRCONT(errcont->errman, &keeper);
     if (setjmp(keeper.env)) {
-        evect_destroy(&exp_state->result_unquoted);
+        evect_destroy(&exp_state->result_meta);
         evect_destroy(&exp_state->result);
         shraise(errcont, NULL);
     }
     exp_state->errcont = &sub_errcont;
     expand_guarded(exp_state, wlexer);
+
+    /* push the last section when using IFS splitting */
+    expansion_finalize(exp_state);
 }
 
 char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *env, struct errcont *errcont)
@@ -444,10 +481,11 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *
     struct expansion_state exp_state;
     expansion_state_init(&exp_state, &cs.base.line_info, env);
 
+    /* perform the expansion */
     expand(&exp_state, &wlexer, errcont);
 
     /* finalize the buffer and return it */
     evect_push(&exp_state.result, '\0');
-    evect_destroy(&exp_state.result_unquoted);
+    evect_destroy(&exp_state.result_meta);
     return evect_data(&exp_state.result);
 }
