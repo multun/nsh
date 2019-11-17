@@ -6,6 +6,7 @@
 #include "shexec/environment.h"
 #include "utils/error.h"
 #include "utils/pvect.h"
+#include "utils/cpvect.h"
 
 struct shword
 {
@@ -64,7 +65,8 @@ static inline void wordlist_destroy(struct wordlist *wl)
 ** \param env the current environment
 ** \return argc
 **/
-int wordlist_to_argv(char ***res, struct wordlist *wl, struct environment*env, struct errcont *cont);
+void wordlist_expand(struct cpvect *res, struct wordlist *wl,
+                     struct environment *env, struct errcont *cont);
 
 /**
 ** \brief free a wordlist

@@ -69,7 +69,13 @@ int cmd_exec(struct environment *env, struct shast *ast, struct errcont *cont)
     struct keeper keeper = KEEPER(cont->keeper);
 
     /* expand the arguments array */
-    env->argc = wordlist_to_argv(&env->argv, wl, env, cont);
+    struct cpvect new_argv;
+    wordlist_expand(&new_argv, wl, env, cont);
+
+    /* setup argc / argv using the expanded array */
+    env->argc = cpvect_size(&new_argv);
+    cpvect_push(&new_argv, NULL);
+    env->argv = cpvect_data(&new_argv);
 
     /* on exception, free the argument array */
     int res = 0;
