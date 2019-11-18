@@ -1,10 +1,13 @@
 #pragma once
 
 #include "shexec/environment.h"
+#include "shparse/wordlist.h"
 #include "shwlex/wlexer.h"
 #include "utils/attr.h"
+#include "utils/cpvect.h"
 #include "utils/error.h"
 #include "utils/evect.h"
+
 
 /* the starting expansion buffer size */
 #define EXPANSION_DEFAULT_SIZE 100
@@ -15,7 +18,10 @@
 ** \param cont the error context to work with
 ** \return a malloc allocated expanded string
 */
-char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment*env, struct errcont *errcont);
+char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *env, struct errcont *errcont);
+
+void expand_word(struct cpvect *res, struct shword *wl, struct environment *env, struct errcont *errcont);
+void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont);
 
 struct expansion_state;
 
@@ -79,18 +85,28 @@ static inline void expansion_end_section(struct expansion_state *exp_state)
 
 void expansion_push(struct expansion_state *exp_state, char c);
 
+static inline void expansion_state_reset(struct expansion_state *exp_state)
+{
+    exp_state->unquoted = true;
+    exp_state->allow_empty_word = false;
+}
+
+static inline void expansion_state_reset_data(struct expansion_state *exp_state)
+{
+    evect_reset(&exp_state->result);
+    evect_reset(&exp_state->result_meta);
+}
+
 static inline void expansion_state_init(struct expansion_state *exp_state,
-                                        struct lineinfo *line_info,
                                         struct environment *env)
 {
     exp_state->IFS = NULL;
-    exp_state->line_info = line_info;
+    exp_state->line_info = NULL;
     exp_state->env = env;
-    exp_state->unquoted = true;
-    exp_state->allow_empty_word = false;
     exp_state->callback = NULL;
     evect_init(&exp_state->result, EXPANSION_DEFAULT_SIZE);
     evect_init(&exp_state->result_meta, EXPANSION_DEFAULT_SIZE);
+    expansion_state_reset(exp_state);
 }
 
 /**

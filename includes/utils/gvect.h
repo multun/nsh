@@ -68,3 +68,8 @@ static inline GVECT_TYPE *GVECT_FNAME(last)(struct GVECT_NAME *vect)
 {
     return &vect->data[vect->size - 1];
 }
+
+static inline void GVECT_FNAME(reset)(struct GVECT_NAME *vect)
+{
+    vect->size = 0;
+}

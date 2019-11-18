@@ -47,6 +47,10 @@ static inline void GVECT_FNAME(init)(struct GVECT_NAME *vect)
 
 static inline void GVECT_FNAME(destroy)(struct GVECT_NAME *vect)
 {
+#ifdef GVECT_DESTROY_ITEM
+    for (size_t i = 0; i < GVECT_FNAME(size)(vect); i++)
+        GVECT_DESTROY_ITEM (GVECT_FNAME(get)(vect, i));
+#endif
     pvect_destroy(&vect->base);
 }
 

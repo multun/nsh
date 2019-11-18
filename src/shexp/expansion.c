@@ -65,6 +65,7 @@ void expansion_push(struct expansion_state *exp_state, char c)
             return;
 
         exp_state->callback(exp_state, exp_state->callback_data);
+        expansion_state_reset_data(exp_state);
         return;
     }
 
@@ -83,11 +84,12 @@ static void expansion_finalize(struct expansion_state *exp_state)
     if (exp_state->callback == NULL)
         return;
 
-    // ignore empty words
+    /* ignore empty words */
     if (evect_size(&exp_state->result) == 0 && !exp_state->allow_empty_word)
         return;
 
     exp_state->callback(exp_state, exp_state->callback_data);
+    expansion_state_reset_data(exp_state);
 }
 
 static char *arguments_var_lookup(struct environment *env, char c)
@@ -327,6 +329,10 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
 {
     expansion_end_section(exp_state);
 
+    // switch to unquoted mode to avoid buffer flushes
+    bool old_unquoted = exp_state->unquoted;
+    exp_state->unquoted = false;
+
     int rc;
 
     // expand the content of the arithmetic expansion
@@ -369,6 +375,7 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
 
     // push the result of the arithmetic expansion in the expansion buffer
     expansion_push_string(exp_state, print_buf);
+    exp_state->unquoted = old_unquoted;
     return LEXER_OP_CONTINUE;
 }
 
@@ -479,7 +486,8 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *
 
     /* initialize the expansion buffer */
     struct expansion_state exp_state;
-    expansion_state_init(&exp_state, &cs.base.line_info, env);
+    expansion_state_init(&exp_state, env);
+    exp_state.line_info = &cs.base.line_info;
 
     /* perform the expansion */
     expand(&exp_state, &wlexer, errcont);
@@ -488,4 +496,45 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *
     evect_push(&exp_state.result, '\0');
     evect_destroy(&exp_state.result_meta);
     return evect_data(&exp_state.result);
+}
+
+static void expansion_word_callback(struct expansion_state *exp_state, void *callback_data)
+{
+    struct cpvect *res = callback_data;
+    char *data = evect_data(&exp_state->result);
+    size_t size = evect_size(&exp_state->result);
+    cpvect_push(res, strndup(data, size));
+}
+
+
+void expand_word(struct cpvect *res, struct shword *word, struct environment *env, struct errcont *errcont)
+{
+    /* initialize the character stream */
+    struct cstream_string cs;
+    cstream_string_init(&cs, shword_buf(word));
+    cs.base.line_info = LINEINFO("<expansion>", shword_line_info(word));
+
+    /* perform the recursive expansion */
+    struct wlexer wlexer;
+    wlexer_init(&wlexer, &cs.base);
+
+    /* initialize the expansion buffer */
+    struct expansion_state exp_state;
+    expansion_state_init(&exp_state, env);
+    exp_state.line_info = &cs.base.line_info;
+    exp_state.callback = expansion_word_callback;
+    exp_state.callback_data = res;
+    exp_state.IFS = environment_var_get(env, "IFS");
+
+    /* perform the expansion */
+    expand(&exp_state, &wlexer, errcont);
+
+    evect_destroy(&exp_state.result);
+    evect_destroy(&exp_state.result_meta);
+}
+
+void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont)
+{
+    for (size_t i = 0; i < wordlist_size(wl); i++)
+        expand_word(res, wordlist_get(wl, i), env, errcont);
 }
