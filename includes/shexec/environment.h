@@ -27,11 +27,8 @@ struct environment
     int argc;
 
     // the number of loops we need to break out of
-    // this is needed during lbreak exception handling
+    // this is needed during break / continue exception handling
     size_t break_count;
-
-    // whether the current exception is a continue
-    bool break_continue;
 
     // the loop nesting depth
     size_t depth;

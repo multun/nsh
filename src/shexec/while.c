@@ -15,11 +15,12 @@ int while_exec(struct environment *env, struct shast *ast, struct errcont *cont)
     volatile bool local_continue = true;
     if (setjmp(keeper.env)) {
         // the break builtin ensures no impossible break is emitted
-        if (cont->errman->class != &g_lbreak || --env->break_count) {
+        if ((cont->errman->class != &g_ex_break && cont->errman->class != &g_ex_continue)
+            || --env->break_count) {
             env->depth--;
             shraise(cont, NULL);
         }
-        local_continue = env->break_continue;
+        local_continue = (cont->errman->class == &g_ex_continue);
     }
 
     if (local_continue)

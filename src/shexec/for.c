@@ -20,13 +20,14 @@ int for_exec(struct environment *env, struct shast *ast, struct errcont *cont)
         struct keeper keeper = KEEPER(cont->keeper);
         struct errcont ncont = ERRCONT(cont->errman, &keeper);
         if (setjmp(keeper.env)) {
-            if (cont->errman->class != &g_lbreak || --env->break_count) {
+            if ((cont->errman->class != &g_ex_break
+                 && cont->errman->class != &g_ex_continue)
+                || --env->break_count) {
                 env->depth--;
                 shraise(cont, NULL);
             }
 
-            // exit immediatly if this is a break
-            if (env->break_continue)
+            if (cont->errman->class == &g_ex_continue)
                 continue;
             else
                 break;
