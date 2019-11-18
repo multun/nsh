@@ -6,8 +6,7 @@
 
 #include <stdlib.h>
 
-// this function is here just in case res == &env->argv, so that expansion of
-// the parameters is done within the proper context
+// this function is here to free the expanded array in case the expansion fails
 void wordlist_expand(struct cpvect *res, struct wordlist *wl,
                      struct environment *env, struct errcont *cont)
 {
