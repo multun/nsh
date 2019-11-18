@@ -32,10 +32,18 @@ static inline GVECT_TYPE GVECT_FNAME(get)(struct GVECT_NAME *vect, size_t i)
     return pvect_get(&vect->base, i);
 }
 
+
+#ifndef GVECT_INIT_SIZE
 static inline void GVECT_FNAME(init)(struct GVECT_NAME *vect, size_t capacity)
 {
     pvect_init(&vect->base, capacity);
 }
+#else
+static inline void GVECT_FNAME(init)(struct GVECT_NAME *vect)
+{
+    pvect_init(&vect->base, GVECT_INIT_SIZE);
+}
+#endif
 
 static inline void GVECT_FNAME(destroy)(struct GVECT_NAME *vect)
 {

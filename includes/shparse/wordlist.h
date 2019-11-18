@@ -19,45 +19,20 @@ static inline char *shword_buf(struct shword *word)
     return word->buf;
 }
 
-/**
-** \brief represents a linked list of word
-*/
-struct wordlist
-{
-    struct pvect words;
-};
+#define GVECT_INIT_SIZE 10
+#define GVECT_NAME wordlist
+#define GVECT_TYPE struct shword *
+#include "utils/pvect_wrap.h"
+#undef GVECT_NAME
+#undef GVECT_TYPE
+#undef GVECT_INIT_SIZE
 
-static inline void wordlist_init(struct wordlist *wl)
-{
-    pvect_init(&wl->words, 4);
-}
-
-static inline void wordlist_push(struct wordlist *wl, struct shword *word)
-{
-    pvect_push(&wl->words, word);
-}
-
-static inline size_t wordlist_size(struct wordlist *wl)
-{
-    return pvect_size(&wl->words);
-}
-
-static inline struct shword *wordlist_get(struct wordlist *wl, size_t i)
-{
-    return pvect_get(&wl->words, i);
-}
 
 static inline char *wordlist_get_str(struct wordlist *wl, size_t i)
 {
     return shword_buf(wordlist_get(wl, i));
 }
 
-static inline void wordlist_destroy(struct wordlist *wl)
-{
-    for (size_t i = 0; i < wordlist_size(wl); i++)
-        free(wordlist_get(wl, i));
-    pvect_destroy(&wl->words);
-}
 
 /**
 ** \brief generate from a wordlist a table of arguments
