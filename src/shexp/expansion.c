@@ -64,7 +64,7 @@ void expansion_push(struct expansion_state *exp_state, char c)
         if (evect_size(&exp_state->result) == 0)
             return;
 
-        exp_state->callback(exp_state, exp_state->callback_data);
+        exp_state->callback.func(exp_state, exp_state->callback.data);
         expansion_state_reset_data(exp_state);
         return;
     }
@@ -81,14 +81,14 @@ static void expansion_push_string(struct expansion_state *exp_state, char *str)
 
 static void expansion_finalize(struct expansion_state *exp_state)
 {
-    if (exp_state->callback == NULL)
+    if (exp_state->callback.func == NULL)
         return;
 
     /* ignore empty words */
     if (evect_size(&exp_state->result) == 0 && !exp_state->allow_empty_word)
         return;
 
-    exp_state->callback(exp_state, exp_state->callback_data);
+    exp_state->callback.func(exp_state, exp_state->callback.data);
     expansion_state_reset_data(exp_state);
 }
 
@@ -456,7 +456,7 @@ void expand(struct expansion_state *exp_state,
 {
     // when IFS is NULL, callback is NULL too.
     // when isn't not NULL, there must be a callback
-    assert((exp_state->callback == NULL) == (exp_state->IFS == NULL));
+    assert((exp_state->callback.func == NULL) == (exp_state->IFS == NULL));
 
     /* on exception, free the expansion buffer */
     struct keeper keeper = KEEPER(errcont->keeper);
@@ -498,16 +498,7 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *
     return evect_data(&exp_state.result);
 }
 
-static void expansion_word_callback(struct expansion_state *exp_state, void *callback_data)
-{
-    struct cpvect *res = callback_data;
-    char *data = evect_data(&exp_state->result);
-    size_t size = evect_size(&exp_state->result);
-    cpvect_push(res, strndup(data, size));
-}
-
-
-void expand_word(struct cpvect *res, struct shword *word, struct environment *env, struct errcont *errcont)
+static void expand_word_callback(struct expansion_callback *callback, struct shword *word, struct environment *env, struct errcont *errcont)
 {
     /* initialize the character stream */
     struct cstream_string cs;
@@ -522,8 +513,7 @@ void expand_word(struct cpvect *res, struct shword *word, struct environment *en
     struct expansion_state exp_state;
     expansion_state_init(&exp_state, env);
     exp_state.line_info = &cs.base.line_info;
-    exp_state.callback = expansion_word_callback;
-    exp_state.callback_data = res;
+    exp_state.callback = *callback;
     exp_state.IFS = environment_var_get(env, "IFS");
 
     /* perform the expansion */
@@ -533,8 +523,25 @@ void expand_word(struct cpvect *res, struct shword *word, struct environment *en
     evect_destroy(&exp_state.result_meta);
 }
 
-void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont)
+void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, struct environment *env, struct errcont *errcont)
 {
     for (size_t i = 0; i < wordlist_size(wl); i++)
-        expand_word(res, wordlist_get(wl, i), env, errcont);
+        expand_word_callback(callback, wordlist_get(wl, i), env, errcont);
+}
+
+static void expansion_word_callback(struct expansion_state *exp_state, void *callback_data)
+{
+    struct cpvect *res = callback_data;
+    char *data = evect_data(&exp_state->result);
+    size_t size = evect_size(&exp_state->result);
+    cpvect_push(res, strndup(data, size));
+}
+
+void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont)
+{
+    struct expansion_callback callback = {
+        .func = expansion_word_callback,
+        .data = res,
+    };
+    expand_wordlist_callback(&callback, wl, env, errcont);
 }

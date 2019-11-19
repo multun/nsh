@@ -20,7 +20,6 @@
 */
 char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *env, struct errcont *errcont);
 
-void expand_word(struct cpvect *res, struct shword *wl, struct environment *env, struct errcont *errcont);
 void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont);
 
 struct expansion_state;
@@ -30,6 +29,17 @@ void expand(struct expansion_state *exp_state,
             struct errcont *errcont);
 
 typedef void (*expansion_callback_f)(struct expansion_state *exp_state, void *data);
+
+struct expansion_callback {
+    expansion_callback_f func;
+    void *data;
+};
+
+#define EXP
+
+void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont);
+
+void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, struct environment *env, struct errcont *errcont);
 
 // each output byte has a combination of these two flags:
 // it can start an unquoted section, and / or stop one.
@@ -64,8 +74,7 @@ struct expansion_state {
     struct environment *env;
 
     /* a callback to call on each segmented IFS word */
-    expansion_callback_f callback;
-    void *callback_data;
+    struct expansion_callback callback;
 };
 
 static inline void expansion_end_section(struct expansion_state *exp_state)
@@ -103,7 +112,7 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
     exp_state->IFS = NULL;
     exp_state->line_info = NULL;
     exp_state->env = env;
-    exp_state->callback = NULL;
+    exp_state->callback.func = NULL;
     evect_init(&exp_state->result, EXPANSION_DEFAULT_SIZE);
     evect_init(&exp_state->result_meta, EXPANSION_DEFAULT_SIZE);
     expansion_state_reset(exp_state);
