@@ -1,4 +1,3 @@
-#include "shexec/builtin_shopt.h"
 #include "shexec/builtins.h"
 #include "shexec/environment.h"
 #include "shexp/expansion.h"
@@ -59,7 +58,7 @@ static bool expansion_separator(struct expansion_state *exp_state, char c)
 void expansion_push(struct expansion_state *exp_state, char c)
 {
     // callback on IFS separator
-    if (exp_state->unquoted && expansion_separator(exp_state, c)) {
+    if (expansion_is_unquoted(exp_state) && expansion_separator(exp_state, c)) {
         // ignore empty words
         if (evect_size(&exp_state->result) == 0)
             return;
@@ -70,79 +69,31 @@ void expansion_push(struct expansion_state *exp_state, char c)
     }
 
     evect_push(&exp_state->result, c);
-    evect_push(&exp_state->result_meta, exp_state->unquoted);
+    evect_push(&exp_state->result_meta, expansion_is_unquoted(exp_state));
 }
 
-static void expansion_push_string(struct expansion_state *exp_state, char *str)
+void expansion_push_string(struct expansion_state *exp_state, const char *str)
 {
     for (; *str; str++)
         expansion_push(exp_state, *str);
 }
 
-static void expansion_finalize(struct expansion_state *exp_state)
+void expansion_force_end_word(struct expansion_state *exp_state)
 {
     if (exp_state->callback.func == NULL)
-        return;
-
-    /* ignore empty words */
-    if (evect_size(&exp_state->result) == 0 && !exp_state->allow_empty_word)
         return;
 
     exp_state->callback.func(exp_state, exp_state->callback.data);
     expansion_state_reset_data(exp_state);
 }
 
-static char *arguments_var_lookup(struct environment *env, char c)
+void expansion_end_word(struct expansion_state *exp_state)
 {
-    if (c < '0' || c > '9')
-        return NULL;
+    /* ignore empty words */
+    if (evect_size(&exp_state->result) == 0 && !exp_state->allow_empty_word)
+        return;
 
-    size_t arg_index = c - '0';
-    if (arg_index == 0)
-        return strdup(env->progname);
-
-    if ((int)arg_index >= env->argc)
-        return strdup("");
-    return strdup(env->argv[arg_index]);
-}
-
-static char *special_var_lookup(struct environment *env, char *var)
-{
-    assert(var[0]);
-    if (var[1] != '\0')
-        return NULL;
-
-    char *res;
-
-    if ((res = arguments_var_lookup(env, var[0])))
-        return res;
-
-    return special_char_lookup(env, *var);
-}
-
-static char *builtin_var_lookup(char *var)
-{
-    if (!strcmp("RANDOM", var))
-        return expand_random();
-    else if (!strcmp("UID", var))
-        return expand_uid();
-    else if (!strcmp("SHELLOPTS", var))
-        return expand_shopt();
-    return NULL;
-}
-
-char *expand_name(struct environment *env, char *var)
-{
-    char *res;
-    if ((res = special_var_lookup(env, var)))
-        return res;
-    if ((res = builtin_var_lookup(var)))
-        return res;
-
-    const char *env_var;
-    if ((env_var = environment_var_get(env, var)))
-        return strdup(env_var);
-    return NULL;
+    expansion_force_end_word(exp_state);
 }
 
 static void expand_guarded(struct expansion_state *exp_state,
@@ -176,10 +127,7 @@ static enum wlexer_op expand_dollar(struct expansion_state *exp_state,
     } while (true);
 
     variable_name_finalize(&var_name);
-    char *var_content = expand_name(exp_state->env, var_name.simple_var.data);
-    if (var_content != NULL)
-        expansion_push_string(exp_state, var_content);
-    free(var_content);
+    expand_name(exp_state, var_name.simple_var.data);
     variable_name_destroy(&var_name);
     return LEXER_OP_CONTINUE;
 }
@@ -218,10 +166,7 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
     variable_name_finalize(&var_name);
 
     // look for the variable value
-    char *var_content = expand_name(exp_state->env, variable_name_data(&var_name));
-    if (var_content != NULL)
-        expansion_push_string(exp_state, var_content);
-    free(var_content);
+    expand_name(exp_state, variable_name_data(&var_name));
 
     variable_name_destroy(&var_name);
     return LEXER_OP_CONTINUE;
@@ -245,10 +190,9 @@ static enum wlexer_op expand_squote(struct expansion_state *exp_state,
 
     exp_state->allow_empty_word = true;
     expansion_end_section(exp_state);
-    assert(exp_state->unquoted);
-    exp_state->unquoted = false;
+    enum expansion_quoting prev_mode = expansion_switch_quoting(exp_state, EXPANSION_QUOTING_QUOTED);
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_SINGLE_QUOTED));
-    exp_state->unquoted = true;
+    exp_state->quoting_mode = prev_mode;
     return LEXER_OP_CONTINUE;
 }
 
@@ -259,11 +203,10 @@ static enum wlexer_op expand_dquote(struct expansion_state *exp_state __unused,
         return LEXER_OP_RETURN;
 
     exp_state->allow_empty_word = true;
-    assert(exp_state->unquoted);
     expansion_end_section(exp_state);
-    exp_state->unquoted = false;
+    enum expansion_quoting prev_mode = expansion_switch_quoting(exp_state, EXPANSION_QUOTING_QUOTED);
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_DOUBLE_QUOTED));
-    exp_state->unquoted = true;
+    exp_state->quoting_mode = prev_mode;
     return LEXER_OP_CONTINUE;
 }
 
@@ -329,9 +272,8 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
 {
     expansion_end_section(exp_state);
 
-    // switch to unquoted mode to avoid buffer flushes
-    bool old_unquoted = exp_state->unquoted;
-    exp_state->unquoted = false;
+    // switch to nosplit quoted mode to avoid buffer flushes
+    enum expansion_quoting prev_mode = expansion_switch_quoting(exp_state, EXPANSION_QUOTING_NOSPLIT);
 
     int rc;
 
@@ -375,7 +317,7 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
 
     // push the result of the arithmetic expansion in the expansion buffer
     expansion_push_string(exp_state, print_buf);
-    exp_state->unquoted = old_unquoted;
+    exp_state->quoting_mode = prev_mode;
     return LEXER_OP_CONTINUE;
 }
 
@@ -470,7 +412,7 @@ void expand(struct expansion_state *exp_state,
     expand_guarded(exp_state, wlexer);
 
     /* push the last section when using IFS splitting */
-    expansion_finalize(exp_state);
+    expansion_end_word(exp_state);
 }
 
 char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *env, struct errcont *errcont)
@@ -486,7 +428,7 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *
 
     /* initialize the expansion buffer */
     struct expansion_state exp_state;
-    expansion_state_init(&exp_state, env);
+    expansion_state_init(&exp_state, env, EXPANSION_QUOTING_NOSPLIT);
     exp_state.line_info = &cs.base.line_info;
 
     /* perform the expansion */
@@ -511,7 +453,7 @@ static void expand_word_callback(struct expansion_callback *callback, struct shw
 
     /* initialize the expansion buffer */
     struct expansion_state exp_state;
-    expansion_state_init(&exp_state, env);
+    expansion_state_init(&exp_state, env, EXPANSION_QUOTING_UNQUOTED);
     exp_state.line_info = &cs.base.line_info;
     exp_state.callback = *callback;
     exp_state.IFS = environment_var_get(env, "IFS");

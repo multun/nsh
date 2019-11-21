@@ -7,6 +7,7 @@
 #include "utils/cpvect.h"
 #include "utils/error.h"
 #include "utils/evect.h"
+#include "utils/attr.h"
 
 
 /* the starting expansion buffer size */
@@ -35,8 +36,6 @@ struct expansion_callback {
     void *data;
 };
 
-#define EXP
-
 void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont);
 
 void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, struct environment *env, struct errcont *errcont);
@@ -48,6 +47,15 @@ void expand_wordlist_callback(struct expansion_callback *callback, struct wordli
 enum expansion_meta {
     EXPANSION_UNQUOTED = 1,
     EXPANSION_END_UNQUOTED = 2,
+};
+
+enum expansion_quoting {
+    // split on IFS
+    EXPANSION_QUOTING_UNQUOTED = 0,
+    // don't split on IFS, but split on $@
+    EXPANSION_QUOTING_QUOTED,
+    // never split. it's needed for $@
+    EXPANSION_QUOTING_NOSPLIT,
 };
 
 /**
@@ -63,7 +71,7 @@ struct expansion_state {
     struct evect result_meta;
 
     /* are we in an unquoted section */
-    bool unquoted;
+    enum expansion_quoting quoting_mode;
 
     /**
     ** quoting causes empty word to be allowed:
@@ -76,6 +84,38 @@ struct expansion_state {
     /* a callback to call on each segmented IFS word */
     struct expansion_callback callback;
 };
+
+static inline size_t expansion_result_size(struct expansion_state *exp_state)
+{
+    return evect_size(&exp_state->result);
+}
+
+static inline void expansion_result_cut(struct expansion_state *exp_state, size_t i)
+{
+    assert(i <= exp_state->result.size);
+    assert(i <= exp_state->result_meta.size);
+    exp_state->result.size = i;
+    exp_state->result_meta.size = i;
+}
+
+static inline bool expansion_is_unquoted(struct expansion_state *exp_state)
+{
+    return exp_state->quoting_mode == EXPANSION_QUOTING_UNQUOTED;
+}
+
+__unused_result static inline enum expansion_quoting expansion_switch_quoting(
+    struct expansion_state *exp_state, enum expansion_quoting new_mode)
+{
+    enum expansion_quoting old_mode = exp_state->quoting_mode;
+    exp_state->quoting_mode = new_mode;
+    return old_mode;
+}
+
+// flush the buffer to the callback
+void expansion_end_word(struct expansion_state *exp_state);
+
+// flush the buffer even if the word is empty
+void expansion_force_end_word(struct expansion_state *exp_state);
 
 static inline void expansion_end_section(struct expansion_state *exp_state)
 {
@@ -93,12 +133,7 @@ static inline void expansion_end_section(struct expansion_state *exp_state)
 }
 
 void expansion_push(struct expansion_state *exp_state, char c);
-
-static inline void expansion_state_reset(struct expansion_state *exp_state)
-{
-    exp_state->unquoted = true;
-    exp_state->allow_empty_word = false;
-}
+void expansion_push_string(struct expansion_state *exp_state, const char *str);
 
 static inline void expansion_state_reset_data(struct expansion_state *exp_state)
 {
@@ -107,7 +142,8 @@ static inline void expansion_state_reset_data(struct expansion_state *exp_state)
 }
 
 static inline void expansion_state_init(struct expansion_state *exp_state,
-                                        struct environment *env)
+                                        struct environment *env,
+                                        enum expansion_quoting quoting_mode)
 {
     exp_state->IFS = NULL;
     exp_state->line_info = NULL;
@@ -115,7 +151,8 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
     exp_state->callback.func = NULL;
     evect_init(&exp_state->result, EXPANSION_DEFAULT_SIZE);
     evect_init(&exp_state->result_meta, EXPANSION_DEFAULT_SIZE);
-    expansion_state_reset(exp_state);
+    exp_state->quoting_mode = quoting_mode;
+    exp_state->allow_empty_word = false;
 }
 
 /**
@@ -124,28 +161,7 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
 */
 void expand_subshell(struct expansion_state *exp_state, char *buf);
 
-/**
-** \brief expands special single character variables,
-**   except positional arguments
-** \param res a pointer to target the result with
-** \param env the environment to expand from
-** \param var the character being considered
-*/
-char *special_char_lookup(struct environment*env, char var);
-
-/**
-** \brief expands to a random integer
-** \param res a pointer to target the result with
-*/
-char *expand_random(void);
-
-/**
-** \brief expands the current uid
-** \param res a pointer to target the result with
-*/
-char *expand_uid(void);
-
-char *expand_name(struct environment*env, char *var);
+int expand_name(struct expansion_state *exp_state, char *var);
 
 void __noreturn expansion_error(struct expansion_state *exp_state, const char *fmt, ...);
 void expansion_warning(struct expansion_state *exp_state, const char *fmt, ...);

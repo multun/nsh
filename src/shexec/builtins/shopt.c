@@ -5,7 +5,6 @@
 
 #include "cli/shopt.h"
 #include "shexec/builtins.h"
-#include "shexec/builtin_shopt.h"
 #include "utils/evect.h"
 
 enum shopt_options
@@ -86,21 +85,4 @@ int builtin_shopt(struct environment *env, struct errcont *cont, int argc, char 
     for (; index < argc; index++)
         g_shopts[shopt_from_string(argv[index])] = opt[1];
     return 0;
-}
-
-char *expand_shopt(void)
-{
-    struct evect vec;
-    evect_init(&vec, 50);
-    bool first = true;
-    for (size_t i = 0; i < SHOPT_COUNT; i++)
-        if (g_shopts[i]) {
-            if (!first)
-                evect_push(&vec, ':');
-            for (const char *tmp = string_from_shopt(i); *tmp; tmp++)
-                evect_push(&vec, *tmp);
-            first = false;
-        }
-    evect_push(&vec, '\0');
-    return vec.data;
 }
