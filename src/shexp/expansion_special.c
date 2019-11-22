@@ -54,7 +54,7 @@ static int expand_at(struct expansion_state *exp_state)
     struct environment *env = exp_state->env;
     for (size_t i = 1; env->argv[i]; i++) {
         if (i > 1)
-            expansion_force_end_word(exp_state);
+            expansion_end_word(exp_state);
         expansion_push_string(exp_state, env->argv[i]);
     }
     return 0;

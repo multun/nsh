@@ -1,0 +1,7 @@
+{
+  "desc": "tests the proper handling of the IFS space special case",
+  "stdin": "IFS=' z'; var='zz zA zz BzzC  D  zzz   '; printf '>%s<\\n' $var\n",
+  "stdout": "><\n><\n><\n>A<\n><\n>B<\n><\n>C<\n>D<\n><\n><\n",
+  "stderr": "",
+  "retcode": 0
+}

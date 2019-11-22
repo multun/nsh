@@ -74,6 +74,12 @@ struct expansion_state {
     enum expansion_quoting quoting_mode;
 
     /**
+    ** Whether the last word was delimited by an IFS space.
+    ** When a valid separator is seen, the callback is immediatly called.
+    */
+    bool space_delimited;
+
+    /**
     ** quoting causes empty word to be allowed:
     ** $doesnotexist has no word, but '' has a word
     */
@@ -90,6 +96,12 @@ static inline size_t expansion_result_size(struct expansion_state *exp_state)
     return evect_size(&exp_state->result);
 }
 
+
+static inline bool expansion_has_content(struct expansion_state *exp_state)
+{
+    return expansion_result_size(exp_state) != 0 || exp_state->allow_empty_word;
+}
+
 static inline void expansion_result_cut(struct expansion_state *exp_state, size_t i)
 {
     assert(i <= exp_state->result.size);
@@ -103,6 +115,11 @@ static inline bool expansion_is_unquoted(struct expansion_state *exp_state)
     return exp_state->quoting_mode == EXPANSION_QUOTING_UNQUOTED;
 }
 
+static inline bool expansion_is_quoted(struct expansion_state *exp_state)
+{
+    return !expansion_is_unquoted(exp_state);
+}
+
 __unused_result static inline enum expansion_quoting expansion_switch_quoting(
     struct expansion_state *exp_state, enum expansion_quoting new_mode)
 {
@@ -111,11 +128,8 @@ __unused_result static inline enum expansion_quoting expansion_switch_quoting(
     return old_mode;
 }
 
-// flush the buffer to the callback
-void expansion_end_word(struct expansion_state *exp_state);
-
 // flush the buffer even if the word is empty
-void expansion_force_end_word(struct expansion_state *exp_state);
+void expansion_end_word(struct expansion_state *exp_state);
 
 static inline void expansion_end_section(struct expansion_state *exp_state)
 {
@@ -139,6 +153,7 @@ static inline void expansion_state_reset_data(struct expansion_state *exp_state)
 {
     evect_reset(&exp_state->result);
     evect_reset(&exp_state->result_meta);
+    exp_state->allow_empty_word = false;
 }
 
 static inline void expansion_state_init(struct expansion_state *exp_state,
@@ -147,6 +162,7 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
 {
     exp_state->IFS = NULL;
     exp_state->line_info = NULL;
+    exp_state->space_delimited = false;
     exp_state->env = env;
     exp_state->callback.func = NULL;
     evect_init(&exp_state->result, EXPANSION_DEFAULT_SIZE);

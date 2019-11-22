@@ -1,0 +1,7 @@
+{
+  "desc": "simple IFS test",
+  "stdin": "var='a  b'\necho s $var e\n",
+  "stdout": "s a b e\n",
+  "stderr": "",
+  "retcode": 0
+}

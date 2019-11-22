@@ -1,0 +1,7 @@
+{
+  "desc": "non-space IFS splitting with prefix / suffix",
+  "stdin": "var=azb; IFS=z; echo s${var}e\n",
+  "stdout": "sa be\n",
+  "stderr": "",
+  "retcode": 0
+}

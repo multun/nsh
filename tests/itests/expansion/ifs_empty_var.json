@@ -1,0 +1,7 @@
+{
+  "desc": "empty variable split",
+  "stdin": "echo s $empty e\n",
+  "stdout": "s e\n",
+  "stderr": "",
+  "retcode": 0
+}

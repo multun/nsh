@@ -44,41 +44,7 @@ void expansion_warning(struct expansion_state *exp_state, const char *fmt, ...)
     va_end(ap);
 }
 
-static bool expansion_separator(struct expansion_state *exp_state, char c)
-{
-    if (exp_state->IFS == NULL)
-        return false;
-
-    for (const char *sep = exp_state->IFS; *sep; sep++)
-        if (*sep == c)
-            return true;
-    return false;
-}
-
-void expansion_push(struct expansion_state *exp_state, char c)
-{
-    // callback on IFS separator
-    if (expansion_is_unquoted(exp_state) && expansion_separator(exp_state, c)) {
-        // ignore empty words
-        if (evect_size(&exp_state->result) == 0)
-            return;
-
-        exp_state->callback.func(exp_state, exp_state->callback.data);
-        expansion_state_reset_data(exp_state);
-        return;
-    }
-
-    evect_push(&exp_state->result, c);
-    evect_push(&exp_state->result_meta, expansion_is_unquoted(exp_state));
-}
-
-void expansion_push_string(struct expansion_state *exp_state, const char *str)
-{
-    for (; *str; str++)
-        expansion_push(exp_state, *str);
-}
-
-void expansion_force_end_word(struct expansion_state *exp_state)
+void expansion_end_word(struct expansion_state *exp_state)
 {
     if (exp_state->callback.func == NULL)
         return;
@@ -87,14 +53,72 @@ void expansion_force_end_word(struct expansion_state *exp_state)
     expansion_state_reset_data(exp_state);
 }
 
-void expansion_end_word(struct expansion_state *exp_state)
+enum expansion_sep_type
 {
-    /* ignore empty words */
-    if (evect_size(&exp_state->result) == 0 && !exp_state->allow_empty_word)
-        return;
+    EXPANSION_SEP_NONE = 0,
+    EXPANSION_SEP_REGULAR,
+    EXPANSION_SEP_SPACE,
+};
 
-    expansion_force_end_word(exp_state);
+static enum expansion_sep_type expansion_separator(struct expansion_state *exp_state, char c)
+{
+    if (exp_state->IFS == NULL)
+        return EXPANSION_SEP_NONE;
+
+    for (const char *sep = exp_state->IFS; *sep; sep++)
+        if (*sep == c) {
+            if (isspace(c))
+                return EXPANSION_SEP_SPACE;
+            return EXPANSION_SEP_REGULAR;
+        }
+    return EXPANSION_SEP_NONE;
 }
+
+void expansion_push_nosplit(struct expansion_state *exp_state, char c)
+{
+
+    evect_push(&exp_state->result, c);
+    evect_push(&exp_state->result_meta, expansion_is_unquoted(exp_state));
+}
+
+// handle IFS splitting of a given character
+void expansion_push(struct expansion_state *exp_state, char c)
+{
+    // IFS splitting is disabled inside quotes
+    if (expansion_is_quoted(exp_state)) {
+        expansion_push_nosplit(exp_state, c);
+        return;
+    }
+
+    switch (expansion_separator(exp_state, c)) {
+    case EXPANSION_SEP_NONE:
+        expansion_push_nosplit(exp_state, c);
+        return;
+    case EXPANSION_SEP_REGULAR:
+        if (exp_state->space_delimited) {
+            // some space delimiters caused the word to be delimited.
+            // IFS=' z'; var='a  zz'; printf '>%s<\n'
+            exp_state->space_delimited = false;
+            return;
+        }
+
+        expansion_end_word(exp_state);
+        return;
+    case EXPANSION_SEP_SPACE:
+        if (expansion_has_content(exp_state)) {
+            exp_state->space_delimited = true;
+            expansion_end_word(exp_state);
+        }
+        return;
+    }
+}
+
+void expansion_push_string(struct expansion_state *exp_state, const char *str)
+{
+    for (; *str; str++)
+        expansion_push(exp_state, *str);
+}
+
 
 static void expand_guarded(struct expansion_state *exp_state,
                            struct wlexer *wlexer);
@@ -132,15 +156,10 @@ static enum wlexer_op expand_dollar(struct expansion_state *exp_state,
     return LEXER_OP_CONTINUE;
 }
 
-static enum wlexer_op expand_regular(struct expansion_state *exp_state,
-                                     struct wlexer *wlexer,
-                                     struct wtoken *wtoken)
+static enum wlexer_op expand_variable(struct expansion_state *exp_state,
+                                      struct wlexer *wlexer,
+                                      struct wtoken *wtoken)
 {
-    if (wlexer->mode == MODE_SINGLE_QUOTED || wtoken->ch[0] != '$') {
-        expansion_push(exp_state, wtoken->ch[0]);
-        return LEXER_OP_CONTINUE;
-    }
-
     // fetch the longest valid variable name
     struct variable_name var_name;
     variable_name_init(&var_name, 16); // reasonable variable name size
@@ -170,6 +189,19 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
 
     variable_name_destroy(&var_name);
     return LEXER_OP_CONTINUE;
+}
+
+
+static enum wlexer_op expand_regular(struct expansion_state *exp_state,
+                                     struct wlexer *wlexer,
+                                     struct wtoken *wtoken)
+{
+    if (wlexer->mode == MODE_SINGLE_QUOTED || wtoken->ch[0] != '$') {
+        expansion_push(exp_state, wtoken->ch[0]);
+        return LEXER_OP_CONTINUE;
+    }
+
+    return expand_variable(exp_state, wlexer, wtoken);
 }
 
 static enum wlexer_op expand_eof(struct expansion_state *exp_state,
@@ -411,8 +443,9 @@ void expand(struct expansion_state *exp_state,
     exp_state->errcont = &sub_errcont;
     expand_guarded(exp_state, wlexer);
 
-    /* push the last section when using IFS splitting */
-    expansion_end_word(exp_state);
+    /* push the last section when using IFS splitting. */
+    if (expansion_has_content(exp_state))
+        expansion_end_word(exp_state);
 }
 
 char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *env, struct errcont *errcont)
