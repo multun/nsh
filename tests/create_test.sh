@@ -2,7 +2,9 @@
 
 set -e
 
-# usage cat/name:desc:content_file
+usage() {
+    echo 'cat/name:desc:content_file'
+}
 
 out_tmp="$(mktemp)"
 err_tmp="$(mktemp)"
@@ -60,7 +62,8 @@ create_tests() {
 if (($# > 0)); then
     create_tests "$@"
 else
-    while IFS='' read -r test_data; do
+    usage
+    while IFS='' read -e -r test_data; do
           create_tests "${test_data}"
     done
 fi
