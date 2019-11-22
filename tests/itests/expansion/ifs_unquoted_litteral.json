@@ -1,0 +1,7 @@
+{
+  "desc": "no IFS splitting on unquoted litterals",
+  "stdin": "IFS=y; echo ayaya\n",
+  "stdout": "ayaya\n",
+  "stderr": "",
+  "retcode": 0
+}

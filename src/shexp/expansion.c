@@ -196,12 +196,18 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
                                      struct wlexer *wlexer,
                                      struct wtoken *wtoken)
 {
-    if (wlexer->mode == MODE_SINGLE_QUOTED || wtoken->ch[0] != '$') {
-        expansion_push(exp_state, wtoken->ch[0]);
+    if (wlexer->mode != MODE_SINGLE_QUOTED && wtoken->ch[0] == '$')
+        return expand_variable(exp_state, wlexer, wtoken);
+
+    // litteral regular characters from the unquoted mode
+    // don't get any IFS splitting
+    if (wlexer->mode == MODE_UNQUOTED) {
+        expansion_push_nosplit(exp_state, wtoken->ch[0]);
         return LEXER_OP_CONTINUE;
     }
 
-    return expand_variable(exp_state, wlexer, wtoken);
+    expansion_push(exp_state, wtoken->ch[0]);
+    return LEXER_OP_CONTINUE;
 }
 
 static enum wlexer_op expand_eof(struct expansion_state *exp_state,
