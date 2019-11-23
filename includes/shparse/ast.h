@@ -205,6 +205,18 @@ struct shast_bool_op
     struct shast *right; /**< the second operand */
 };
 
+static inline const char *bool_op_to_string(enum bool_type type)
+{
+    switch (type) {
+    case BOOL_NOT:
+        return "NOT";
+    case BOOL_OR:
+        return "OR";
+    case BOOL_AND:
+        return "AND";
+    }
+}
+
 static inline void shast_bool_op_init(struct lexer *lexer,
                                       struct shast_bool_op *node)
 {
