@@ -77,8 +77,8 @@ static enum expansion_sep_type expansion_separator(struct expansion_state *exp_s
 void expansion_push_nosplit(struct expansion_state *exp_state, char c)
 {
 
-    evect_push(&exp_state->result, c);
-    evect_push(&exp_state->result_meta, expansion_is_unquoted(exp_state));
+    evect_push(&exp_state->result.string, c);
+    evect_push(&exp_state->result.metadata, expansion_is_unquoted(exp_state));
 }
 
 // handle IFS splitting of a given character
@@ -316,12 +316,12 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
     int rc;
 
     // expand the content of the arithmetic expansion
-    int initial_size = evect_size(&exp_state->result);
+    int initial_size = expansion_result_size(&exp_state->result);
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_ARITH));
 
     // get the arithmetic expression in a single string
     expansion_push(exp_state, '\0');
-    char *arith_content = evect_data(&exp_state->result) + initial_size;
+    char *arith_content = evect_data(&exp_state->result.string) + initial_size;
 
     // prepare the arithmetic wlexer and stream
     struct cstream_string cs;
@@ -351,7 +351,7 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
     sprintf(print_buf, "%d", res);
 
     // reset the expansion buffer to its starting point
-    exp_state->result.size = initial_size;
+    expansion_result_cut(&exp_state->result, initial_size);
 
     // push the result of the arithmetic expansion in the expansion buffer
     expansion_push_string(exp_state, print_buf);
@@ -442,8 +442,7 @@ void expand(struct expansion_state *exp_state,
     struct keeper keeper = KEEPER(errcont->keeper);
     struct errcont sub_errcont = ERRCONT(errcont->errman, &keeper);
     if (setjmp(keeper.env)) {
-        evect_destroy(&exp_state->result_meta);
-        evect_destroy(&exp_state->result);
+        expansion_result_destroy(&exp_state->result);
         shraise(errcont, NULL);
     }
     exp_state->errcont = &sub_errcont;
@@ -474,9 +473,9 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *
     expand(&exp_state, &wlexer, errcont);
 
     /* finalize the buffer and return it */
-    evect_push(&exp_state.result, '\0');
-    evect_destroy(&exp_state.result_meta);
-    return evect_data(&exp_state.result);
+    evect_destroy(&exp_state.result.metadata);
+    evect_push(&exp_state.result.string, '\0');
+    return evect_data(&exp_state.result.string);
 }
 
 static void expand_word_callback(struct expansion_callback *callback, struct shword *word, struct environment *env, struct errcont *errcont)
@@ -500,8 +499,8 @@ static void expand_word_callback(struct expansion_callback *callback, struct shw
     /* perform the expansion */
     expand(&exp_state, &wlexer, errcont);
 
-    evect_destroy(&exp_state.result);
-    evect_destroy(&exp_state.result_meta);
+    /* free the result buffer */
+    expansion_result_destroy(&exp_state.result);
 }
 
 void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, struct environment *env, struct errcont *errcont)
@@ -513,8 +512,8 @@ void expand_wordlist_callback(struct expansion_callback *callback, struct wordli
 static void expansion_word_callback(struct expansion_state *exp_state, void *callback_data)
 {
     struct cpvect *res = callback_data;
-    char *data = evect_data(&exp_state->result);
-    size_t size = evect_size(&exp_state->result);
+    char *data = evect_data(&exp_state->result.string);
+    size_t size = expansion_result_size(&exp_state->result);
     cpvect_push(res, strndup(data, size));
 }
 

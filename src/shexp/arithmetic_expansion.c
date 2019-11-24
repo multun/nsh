@@ -79,15 +79,15 @@ static arith_t arith_parse_string(const char *str)
 
 static int arith_string_to_int(struct expansion_state *exp_state, char *string)
 {
-    size_t cur_size = expansion_result_size(exp_state);
+    size_t cur_size = expansion_result_size(&exp_state->result);
     if (expand_name(exp_state, string) != 0) {
-        expansion_result_cut(exp_state, cur_size);
+        expansion_result_cut(&exp_state->result, cur_size);
         return 0;
     }
 
-    evect_push(&exp_state->result, '\0');
-    int res = arith_parse_string(evect_data(&exp_state->result) + cur_size);
-    expansion_result_cut(exp_state, cur_size);
+    evect_push(&exp_state->result.string, '\0');
+    int res = arith_parse_string(expansion_result_data(&exp_state->result) + cur_size);
+    expansion_result_cut(&exp_state->result, cur_size);
     return res;
 }
 

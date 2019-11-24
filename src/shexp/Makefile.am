@@ -8,4 +8,5 @@ libshexp_la_SOURCES = expansion.c \
                       operators.defs \
                       operators.py \
                       $(TOP_INCL)/shexp/variable.h \
-                      $(TOP_INCL)/shexp/expansion.h
+                      $(TOP_INCL)/shexp/expansion.h \
+                      $(TOP_INCL)/shexp/expansion_result.h

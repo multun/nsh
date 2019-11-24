@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shexp/expansion_result.h"
 #include "shexec/environment.h"
 #include "shparse/wordlist.h"
 #include "shwlex/wlexer.h"
@@ -24,6 +25,7 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *
 void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont);
 
 struct expansion_state;
+struct expansion_result;
 
 void expand(struct expansion_state *exp_state,
             struct wlexer *wlexer,
@@ -39,15 +41,6 @@ struct expansion_callback {
 void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont);
 
 void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, struct environment *env, struct errcont *errcont);
-
-// each output byte has a combination of these two flags:
-// it can start an unquoted section, and / or stop one.
-// beware, a char can stop a section even though no section
-// was opened.
-enum expansion_meta {
-    EXPANSION_UNQUOTED = 1,
-    EXPANSION_END_UNQUOTED = 2,
-};
 
 enum expansion_quoting {
     // split on IFS
@@ -65,10 +58,8 @@ struct expansion_state {
     const char *IFS;
     struct lineinfo *line_info;
     struct errcont *errcont;
-    struct evect result;
 
-    /* each output byte has a corresponding metadata byte */
-    struct evect result_meta;
+    struct expansion_result result;
 
     /* are we in an unquoted section */
     enum expansion_quoting quoting_mode;
@@ -91,23 +82,10 @@ struct expansion_state {
     struct expansion_callback callback;
 };
 
-static inline size_t expansion_result_size(struct expansion_state *exp_state)
-{
-    return evect_size(&exp_state->result);
-}
-
 
 static inline bool expansion_has_content(struct expansion_state *exp_state)
 {
-    return expansion_result_size(exp_state) != 0 || exp_state->allow_empty_word;
-}
-
-static inline void expansion_result_cut(struct expansion_state *exp_state, size_t i)
-{
-    assert(i <= exp_state->result.size);
-    assert(i <= exp_state->result_meta.size);
-    exp_state->result.size = i;
-    exp_state->result_meta.size = i;
+    return expansion_result_size(&exp_state->result) != 0 || exp_state->allow_empty_word;
 }
 
 static inline bool expansion_is_unquoted(struct expansion_state *exp_state)
@@ -133,17 +111,18 @@ void expansion_end_word(struct expansion_state *exp_state);
 
 static inline void expansion_end_section(struct expansion_state *exp_state)
 {
-    struct evect *meta = &exp_state->result_meta;
+    struct expansion_result *result = &exp_state->result;
+    size_t result_size = expansion_result_size(result);
     // if there's no section to end, give up
-    if (evect_size(meta) == 0)
+    if (result_size == 0)
         return;
 
-    char *last_char = &evect_data(meta)[evect_size(meta) - 1];
+    size_t last_i = result_size - 1;
     // if the last char isn't unquoted, it can't end an unquoted section
-    if (!(*last_char & EXPANSION_UNQUOTED))
+    if (!expansion_result_getflag(result, last_i, EXPANSION_UNQUOTED))
         return;
 
-    *last_char |= EXPANSION_END_UNQUOTED;
+    expansion_result_setflag(result, last_i, EXPANSION_END_UNQUOTED);
 }
 
 void expansion_push(struct expansion_state *exp_state, char c);
@@ -151,8 +130,7 @@ void expansion_push_string(struct expansion_state *exp_state, const char *str);
 
 static inline void expansion_state_reset_data(struct expansion_state *exp_state)
 {
-    evect_reset(&exp_state->result);
-    evect_reset(&exp_state->result_meta);
+    expansion_result_reset(&exp_state->result);
     exp_state->allow_empty_word = false;
 }
 
@@ -165,8 +143,7 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
     exp_state->space_delimited = false;
     exp_state->env = env;
     exp_state->callback.func = NULL;
-    evect_init(&exp_state->result, EXPANSION_DEFAULT_SIZE);
-    evect_init(&exp_state->result_meta, EXPANSION_DEFAULT_SIZE);
+    expansion_result_init(&exp_state->result, EXPANSION_DEFAULT_SIZE);
     exp_state->quoting_mode = quoting_mode;
     exp_state->allow_empty_word = false;
 }
