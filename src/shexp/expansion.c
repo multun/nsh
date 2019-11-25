@@ -49,6 +49,7 @@ void expansion_end_word(struct expansion_state *exp_state)
     if (exp_state->callback.func == NULL)
         return;
 
+    expansion_result_push(&exp_state->result, '\0', 0);
     exp_state->callback.func(exp_state, exp_state->callback.data);
     expansion_state_reset_data(exp_state);
 }
@@ -76,9 +77,7 @@ static enum expansion_sep_type expansion_separator(struct expansion_state *exp_s
 
 void expansion_push_nosplit(struct expansion_state *exp_state, char c)
 {
-
-    evect_push(&exp_state->result.string, c);
-    evect_push(&exp_state->result.metadata, expansion_is_unquoted(exp_state));
+    expansion_result_push(&exp_state->result, c, expansion_is_unquoted(exp_state));
 }
 
 // handle IFS splitting of a given character
@@ -321,7 +320,7 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
 
     // get the arithmetic expression in a single string
     expansion_push(exp_state, '\0');
-    char *arith_content = evect_data(&exp_state->result.string) + initial_size;
+    char *arith_content = expansion_result_data(&exp_state->result) + initial_size;
 
     // prepare the arithmetic wlexer and stream
     struct cstream_string cs;
@@ -475,7 +474,7 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *
     /* finalize the buffer and return it */
     evect_destroy(&exp_state.result.metadata);
     evect_push(&exp_state.result.string, '\0');
-    return evect_data(&exp_state.result.string);
+    return expansion_result_data(&exp_state.result);
 }
 
 static void expand_word_callback(struct expansion_callback *callback, struct shword *word, struct environment *env, struct errcont *errcont)
@@ -512,9 +511,7 @@ void expand_wordlist_callback(struct expansion_callback *callback, struct wordli
 static void expansion_word_callback(struct expansion_state *exp_state, void *callback_data)
 {
     struct cpvect *res = callback_data;
-    char *data = evect_data(&exp_state->result.string);
-    size_t size = expansion_result_size(&exp_state->result);
-    cpvect_push(res, strndup(data, size));
+    cpvect_push(res, strdup(expansion_result_data(&exp_state->result)));
 }
 
 void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont)

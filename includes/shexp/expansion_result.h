@@ -73,3 +73,9 @@ static inline void expansion_result_destroy(struct expansion_result *result)
     evect_destroy(&result->string);
     evect_destroy(&result->metadata);
 }
+
+static inline void expansion_result_push(struct expansion_result *result, char c, int flags)
+{
+    evect_push(&result->string, c);
+    evect_push(&result->metadata, flags);
+}

@@ -22,9 +22,7 @@ static void for_expansion_callback(struct expansion_state *exp_state, void *data
     struct shast_for *for_node = for_data->for_node;
 
     // copy the current expansion buffer
-    char *exp_data = expansion_result_data(&exp_state->result);
-    size_t exp_size = expansion_result_size(&exp_state->result);
-    char *var_value = strndup(exp_data, exp_size);
+    char *var_value = strdup(expansion_result_data(&exp_state->result));
 
     // assign the loop variable
     char *var_name = strdup(shword_buf(for_node->var));
