@@ -82,6 +82,10 @@ struct expansion_state {
     struct expansion_callback callback;
 };
 
+static inline void expansion_state_destroy(struct expansion_state *exp_state)
+{
+    expansion_result_destroy(&exp_state->result);
+}
 
 static inline bool expansion_has_content(struct expansion_state *exp_state)
 {

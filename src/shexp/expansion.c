@@ -441,7 +441,7 @@ void expand(struct expansion_state *exp_state,
     struct keeper keeper = KEEPER(errcont->keeper);
     struct errcont sub_errcont = ERRCONT(errcont->errman, &keeper);
     if (setjmp(keeper.env)) {
-        expansion_result_destroy(&exp_state->result);
+        expansion_state_destroy(exp_state);
         shraise(errcont, NULL);
     }
     exp_state->errcont = &sub_errcont;
@@ -475,8 +475,8 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *
     struct evect res;
     evect_steal(&exp_state.result.string, &res);
 
-    /* free the expansion result */
-    expansion_result_destroy(&exp_state.result);
+    /* cleanup the expansion state */
+    expansion_state_destroy(&exp_state);
 
     /* finalize the buffer and return it */
     evect_push(&res, '\0');
@@ -504,8 +504,8 @@ static void expand_word_callback(struct expansion_callback *callback, struct shw
     /* perform the expansion */
     expand(&exp_state, &wlexer, errcont);
 
-    /* free the result buffer */
-    expansion_result_destroy(&exp_state.result);
+    /* cleanup the expansion state */
+    expansion_state_destroy(&exp_state);
 }
 
 void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, struct environment *env, struct errcont *errcont)
