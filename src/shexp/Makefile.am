@@ -5,6 +5,7 @@ noinst_LTLIBRARIES = libshexp.la
 libshexp_la_SOURCES = expansion.c \
                       subshell.c expansion_special.c \
                       arithmetic_expansion.c \
+                      glob.c \
                       operators.defs \
                       operators.py \
                       $(TOP_INCL)/shexp/variable.h \
