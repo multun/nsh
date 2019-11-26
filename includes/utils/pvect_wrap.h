@@ -2,7 +2,9 @@
 #include "utils/attr.h"
 #include "gvect_common.h"
 
-#include "pvect.h"
+#ifndef PVECT_INCLUDED
+#error missing pvect include before pvect_wrap include
+#endif
 
 #ifndef GVECT_NAME
 #error undefined GVECT_NAME in generic vector

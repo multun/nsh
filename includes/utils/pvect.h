@@ -7,3 +7,5 @@
 
 #undef GVECT_NAME
 #undef GVECT_TYPE
+
+#define PVECT_INCLUDED
