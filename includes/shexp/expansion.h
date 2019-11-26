@@ -31,7 +31,7 @@ void expand(struct expansion_state *exp_state,
             struct wlexer *wlexer,
             struct errcont *errcont);
 
-typedef void (*expansion_callback_f)(struct expansion_state *exp_state, void *data);
+typedef void (*expansion_callback_f)(void *data, char *word, struct environment *env, struct errcont *cont);
 
 struct expansion_callback {
     expansion_callback_f func;

@@ -49,8 +49,9 @@ void expansion_end_word(struct expansion_state *exp_state)
     if (exp_state->callback.func == NULL)
         return;
 
-    expansion_result_push(&exp_state->result, '\0', 0);
-    exp_state->callback.func(exp_state, exp_state->callback.data);
+    char *word = strndup(expansion_result_data(&exp_state->result),
+                         expansion_result_size(&exp_state->result));
+    exp_state->callback.func(exp_state->callback.data, word, exp_state->env, exp_state->errcont);
     expansion_state_reset_data(exp_state);
 }
 
@@ -514,10 +515,10 @@ void expand_wordlist_callback(struct expansion_callback *callback, struct wordli
         expand_word_callback(callback, wordlist_get(wl, i), env, errcont);
 }
 
-static void expansion_word_callback(struct expansion_state *exp_state, void *callback_data)
+static void expansion_word_callback(void *data, char *word, struct environment *__unused env, struct errcont *__unused cont)
 {
-    struct cpvect *res = callback_data;
-    cpvect_push(res, strdup(expansion_result_data(&exp_state->result)));
+    struct cpvect *res = data;
+    cpvect_push(res, word);
 }
 
 void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont)
