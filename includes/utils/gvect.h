@@ -54,6 +54,14 @@ static inline size_t GVECT_FNAME(size)(struct GVECT_NAME *vect)
     return vect->size;
 }
 
+static inline void GVECT_FNAME(steal)(struct GVECT_NAME *vect, struct GVECT_NAME *dest)
+{
+    *dest = *vect;
+    vect->data = NULL;
+    vect->capacity = 0;
+    vect->size = 0;
+}
+
 static inline GVECT_TYPE *GVECT_FNAME(data)(struct GVECT_NAME *vect)
 {
     return vect->data;

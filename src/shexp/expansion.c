@@ -471,10 +471,16 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *
     /* perform the expansion */
     expand(&exp_state, &wlexer, errcont);
 
+    /* steal the content of the result data buffer */
+    struct evect res;
+    evect_steal(&exp_state.result.string, &res);
+
+    /* free the expansion result */
+    expansion_result_destroy(&exp_state.result);
+
     /* finalize the buffer and return it */
-    evect_destroy(&exp_state.result.metadata);
-    evect_push(&exp_state.result.string, '\0');
-    return expansion_result_data(&exp_state.result);
+    evect_push(&res, '\0');
+    return evect_data(&res);
 }
 
 static void expand_word_callback(struct expansion_callback *callback, struct shword *word, struct environment *env, struct errcont *errcont)
