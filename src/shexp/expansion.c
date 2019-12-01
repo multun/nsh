@@ -9,6 +9,7 @@
 #include "shlex/lexer.h"
 #include "shlex/variable.h"
 #include "shexp/arithmetic_expansion.h"
+#include "shexp/glob.h"
 
 #include <assert.h>
 #include <err.h>
@@ -21,7 +22,7 @@ static void expand_guarded(struct expansion_state *exp_state,
 
 static void __noreturn expansion_raise(struct expansion_state *exp_state)
 {
-    shraise(exp_state->errcont, &g_lexer_error);
+    shraise(expansion_state_errcont(exp_state), &g_lexer_error);
 }
 
 void __noreturn expansion_error(struct expansion_state *exp_state, const char *fmt, ...)
@@ -29,7 +30,7 @@ void __noreturn expansion_error(struct expansion_state *exp_state, const char *f
     va_list ap;
     va_start(ap, fmt);
 
-    vsherror(exp_state->line_info, exp_state->errcont, &g_lexer_error, fmt, ap);
+    vsherror(exp_state->line_info, expansion_state_errcont(exp_state), &g_lexer_error, fmt, ap);
 
     va_end(ap);
 }
@@ -46,12 +47,14 @@ void expansion_warning(struct expansion_state *exp_state, const char *fmt, ...)
 
 void expansion_end_word(struct expansion_state *exp_state)
 {
-    if (exp_state->callback.func == NULL)
+    if (!expansion_callback_ctx_available(&exp_state->callback_ctx))
         return;
 
-    char *word = strndup(expansion_result_data(&exp_state->result),
-                         expansion_result_size(&exp_state->result));
-    exp_state->callback.func(exp_state->callback.data, word, exp_state->env, exp_state->errcont);
+    expansion_result_push(&exp_state->result, '\0', 0);
+    glob_expand(&exp_state->glob_state, &exp_state->result, &exp_state->callback_ctx);
+    /* char *word = strndup(expansion_result_data(&exp_state->result), */
+    /*                      expansion_result_size(&exp_state->result)); */
+    /* exp_state->callback.func(exp_state->callback.data, word, exp_state->env, exp_state->errcont); */
     expansion_state_reset_data(exp_state);
 }
 
@@ -298,7 +301,7 @@ static enum wlexer_op expand_exp_subshell_open(struct expansion_state *exp_state
     expansion_end_section(exp_state);
 
     struct wlexer sub_wlexer = WLEXER_FORK(wlexer, MODE_SUBSHELL);
-    char *subshell_content = lexer_lex_string(exp_state->errcont, &sub_wlexer);
+    char *subshell_content = lexer_lex_string(expansion_state_errcont(exp_state), &sub_wlexer);
     expand_subshell(exp_state, subshell_content);
     subshell_content = NULL; // the ownership was transfered to expand_subshell
     return LEXER_OP_CONTINUE;
@@ -436,7 +439,7 @@ void expand(struct expansion_state *exp_state,
 {
     // when IFS is NULL, callback is NULL too.
     // when isn't not NULL, there must be a callback
-    assert((exp_state->callback.func == NULL) == (exp_state->IFS == NULL));
+    assert((exp_state->callback_ctx.callback.func == NULL) == (exp_state->IFS == NULL));
 
     /* on exception, free the expansion buffer */
     struct keeper keeper = KEEPER(errcont->keeper);
@@ -445,7 +448,7 @@ void expand(struct expansion_state *exp_state,
         expansion_state_destroy(exp_state);
         shraise(errcont, NULL);
     }
-    exp_state->errcont = &sub_errcont;
+    expansion_state_set_errcont(exp_state, &sub_errcont);
     expand_guarded(exp_state, wlexer);
 
     /* push the last section when using IFS splitting. */
@@ -466,7 +469,8 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *
 
     /* initialize the expansion buffer */
     struct expansion_state exp_state;
-    expansion_state_init(&exp_state, env, EXPANSION_QUOTING_NOSPLIT);
+    expansion_state_init(&exp_state, EXPANSION_QUOTING_NOSPLIT);
+    expansion_callback_ctx_init(&exp_state.callback_ctx, NULL, env, errcont);
     exp_state.line_info = &cs.base.line_info;
 
     /* perform the expansion */
@@ -497,9 +501,9 @@ static void expand_word_callback(struct expansion_callback *callback, struct shw
 
     /* initialize the expansion buffer */
     struct expansion_state exp_state;
-    expansion_state_init(&exp_state, env, EXPANSION_QUOTING_UNQUOTED);
+    expansion_state_init(&exp_state, EXPANSION_QUOTING_UNQUOTED);
+    expansion_callback_ctx_init(&exp_state.callback_ctx, callback, env, errcont);
     exp_state.line_info = &cs.base.line_info;
-    exp_state.callback = *callback;
     exp_state.IFS = environment_var_get(env, "IFS");
 
     /* perform the expansion */

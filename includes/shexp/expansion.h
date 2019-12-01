@@ -1,14 +1,16 @@
 #pragma once
 
-#include "shexp/expansion_result.h"
 #include "shexec/environment.h"
+#include "shexp/expansion_result.h"
+#include "shexp/expansion_callback.h"
+#include "shexp/glob.h"
 #include "shparse/wordlist.h"
 #include "shwlex/wlexer.h"
+#include "utils/attr.h"
 #include "utils/attr.h"
 #include "utils/cpvect.h"
 #include "utils/error.h"
 #include "utils/evect.h"
-#include "utils/attr.h"
 
 
 /* the starting expansion buffer size */
@@ -31,12 +33,6 @@ void expand(struct expansion_state *exp_state,
             struct wlexer *wlexer,
             struct errcont *errcont);
 
-typedef void (*expansion_callback_f)(void *data, char *word, struct environment *env, struct errcont *cont);
-
-struct expansion_callback {
-    expansion_callback_f func;
-    void *data;
-};
 
 void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont);
 
@@ -55,9 +51,11 @@ enum expansion_quoting {
 ** \brief the expansion context
 */
 struct expansion_state {
+    /* a callback to call on each segmented IFS word */
+    struct expansion_callback_ctx callback_ctx;
+
     const char *IFS;
     struct lineinfo *line_info;
-    struct errcont *errcont;
 
     struct expansion_result result;
 
@@ -76,15 +74,30 @@ struct expansion_state {
     */
     bool allow_empty_word;
 
-    struct environment *env;
-
-    /* a callback to call on each segmented IFS word */
-    struct expansion_callback callback;
+    /* some globbing specific state */
+    struct glob_state glob_state;
 };
+
+static inline struct errcont *expansion_state_errcont(struct expansion_state *exp_state)
+{
+    return exp_state->callback_ctx.errcont;
+}
+
+static inline struct environment *expansion_state_env(struct expansion_state *exp_state)
+{
+    return exp_state->callback_ctx.env;
+}
+
+static inline void expansion_state_set_errcont(struct expansion_state *exp_state,
+                                               struct errcont *cont)
+{
+    exp_state->callback_ctx.errcont = cont;
+}
 
 static inline void expansion_state_destroy(struct expansion_state *exp_state)
 {
     expansion_result_destroy(&exp_state->result);
+    glob_state_destroy(&exp_state->glob_state);
 }
 
 static inline bool expansion_has_content(struct expansion_state *exp_state)
@@ -139,17 +152,15 @@ static inline void expansion_state_reset_data(struct expansion_state *exp_state)
 }
 
 static inline void expansion_state_init(struct expansion_state *exp_state,
-                                        struct environment *env,
                                         enum expansion_quoting quoting_mode)
 {
     exp_state->IFS = NULL;
     exp_state->line_info = NULL;
     exp_state->space_delimited = false;
-    exp_state->env = env;
-    exp_state->callback.func = NULL;
     expansion_result_init(&exp_state->result, EXPANSION_DEFAULT_SIZE);
     exp_state->quoting_mode = quoting_mode;
     exp_state->allow_empty_word = false;
+    glob_state_init(&exp_state->glob_state);
 }
 
 /**

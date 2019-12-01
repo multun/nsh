@@ -288,7 +288,8 @@ static int arith_lex_number(struct expansion_state *exp_state, struct cstream *c
         int var_int = arith_string_to_int(alexer->exp_state, left->data.string);         \
         var_int Op right_int;                                                            \
         char *new_value = mprintf("%d", var_int);                                        \
-        environment_var_assign(alexer->exp_state->env, left->data.string, new_value,     \
+        environment_var_assign(expansion_state_env(alexer->exp_state),                   \
+                               left->data.string, new_value,                             \
                                false);                                                   \
         /* don't free the key string, as it is used in the hash table */                 \
         *left = ARITH_VALUE_INT(var_int);                                                \
@@ -383,7 +384,7 @@ static int arith_equal_left(struct arith_value *left, struct arith_token *self _
     int res = arith_value_to_int(alexer->exp_state, &right);
     arith_value_destroy(&right);
     char *new_value = mprintf("%d", res);
-    environment_var_assign(alexer->exp_state->env, left->data.string, new_value, false);
+    environment_var_assign(expansion_state_env(alexer->exp_state), left->data.string, new_value, false);
     // don't free the key string, as it is used in the hash table
     *left = ARITH_VALUE_INT(res);
     return 0;
@@ -451,7 +452,8 @@ static int arith_ternary_left(struct arith_value *left, struct arith_token *self
         int old_value = var_int;                                                         \
         var_int Op;                                                                      \
         char *new_value = mprintf("%d", var_int);                                        \
-        environment_var_assign(alexer->exp_state->env, left->data.string, new_value,     \
+        environment_var_assign(expansion_state_env(alexer->exp_state),                   \
+                               left->data.string, new_value,                             \
                                false);                                                   \
         /* don't free the key string, as it is used in the hash table */                 \
         *left = ARITH_VALUE_INT(old_value);                                              \
@@ -475,7 +477,8 @@ static int arith_ternary_left(struct arith_value *left, struct arith_token *self
         int var_int = arith_string_to_int(alexer->exp_state, right.value.data.string);   \
         Op var_int;                                                                      \
         char *new_value = mprintf("%d", var_int);                                        \
-        environment_var_assign(alexer->exp_state->env, right.value.data.string,          \
+        environment_var_assign(expansion_state_env(alexer->exp_state),                   \
+                               right.value.data.string,                                  \
                                new_value, false);                                        \
         /* don't free the key string, as it is used in the hash table */                 \
         *res = ARITH_VALUE_INT(var_int);                                                 \

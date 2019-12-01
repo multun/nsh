@@ -1,6 +1,8 @@
 #include "cli/cmdopts.h"
 #include "repl/repl.h"
 
+#include <locale.h>
+
 /**
 ** \mainpage Introduction
 **
@@ -69,5 +71,8 @@ int main(int argc, char *argv[])
     int cmdstart = cmdopts_parse(argc, argv);
     if (cmdstart < 0)
         return CMDOPTS_STATUS(cmdstart);
+
+    setlocale(LC_ALL, "");
+
     return run(&ARG_CONTEXT(argc, cmdstart, argv));
 }

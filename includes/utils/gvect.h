@@ -1,7 +1,7 @@
+#include <assert.h>
 #include <stddef.h>
 #include "utils/attr.h"
 #include "gvect_common.h"
-
 #ifndef GVECT_NAME
 #error undefined GVECT_NAME in generic vector
 #endif
@@ -80,4 +80,10 @@ static inline GVECT_TYPE *GVECT_FNAME(last)(struct GVECT_NAME *vect)
 static inline void GVECT_FNAME(reset)(struct GVECT_NAME *vect)
 {
     vect->size = 0;
+}
+
+static inline void GVECT_FNAME(cut)(struct GVECT_NAME *vect, size_t i)
+{
+    assert(i <= vect->size);
+    vect->size = i;
 }

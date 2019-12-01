@@ -65,3 +65,13 @@ static inline GVECT_TYPE *GVECT_FNAME(last)(struct GVECT_NAME *vect)
 {
     return (GVECT_TYPE*)pvect_last(&vect->base);
 }
+
+static inline void GVECT_FNAME(reset)(struct GVECT_NAME *vect)
+{
+    pvect_reset(&vect->base);
+}
+
+static inline void GVECT_FNAME(cut)(struct GVECT_NAME *vect, size_t i)
+{
+    pvect_cut(&vect->base, i);
+}

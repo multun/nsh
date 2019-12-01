@@ -2,6 +2,7 @@
 
 #include "utils/evect.h"
 
+#include <string.h>
 #include <assert.h>
 #include <stdbool.h>
 
@@ -46,6 +47,11 @@ static inline char *expansion_result_data(struct expansion_result *result)
     return evect_data(&result->string);
 }
 
+static inline char *expansion_result_meta(struct expansion_result *result)
+{
+    return evect_data(&result->metadata);
+}
+
 static inline bool expansion_result_getflag(struct expansion_result *result, size_t i, int flag)
 {
     return evect_get(&result->metadata, i) & flag;
@@ -78,4 +84,9 @@ static inline void expansion_result_push(struct expansion_result *result, char c
 {
     evect_push(&result->string, c);
     evect_push(&result->metadata, flags);
+}
+
+static inline char *expansion_result_dup(struct expansion_result *result)
+{
+    return strndup(expansion_result_data(result), expansion_result_size(result));
 }

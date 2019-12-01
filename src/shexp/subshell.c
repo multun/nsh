@@ -14,7 +14,7 @@ static int subshell_child(struct expansion_state *exp_state, char *str)
 {
     struct context ctx;
     memset(&ctx, 0, sizeof(ctx));
-    ctx.env = exp_state->env;
+    ctx.env = expansion_state_env(exp_state);
 
     struct cstream_string cs;
     cstream_string_init(&cs, str);
@@ -77,7 +77,7 @@ void expand_subshell(struct expansion_state *exp_state, char *buf)
         int res = subshell_child(exp_state, buf);
         free(buf);
         close(pfd[1]);
-        clean_exit(exp_state->errcont, res);
+        clean_exit(expansion_state_errcont(exp_state), res);
     }
     // parent branch
     else

@@ -13,20 +13,14 @@ struct for_data {
     int rc;
 };
 
-static void for_expansion_callback(struct expansion_state *exp_state, void *data)
+static void for_expansion_callback(void *data, char *var_value, struct environment *env, struct errcont *cont)
 {
-    struct errcont *cont = exp_state->errcont;
-    struct environment *env = exp_state->env;
-
     struct for_data *for_data = data;
     struct shast_for *for_node = for_data->for_node;
 
-    // copy the current expansion buffer
-    char *var_value = strdup(expansion_result_data(&exp_state->result));
-
     // assign the loop variable
     char *var_name = strdup(shword_buf(for_node->var));
-    environment_var_assign(exp_state->env, var_name, var_value, false);
+    environment_var_assign(env, var_name, var_value, false);
 
     struct keeper keeper = KEEPER(cont->keeper);
     struct errcont ncont = ERRCONT(cont->errman, &keeper);
@@ -38,7 +32,7 @@ static void for_expansion_callback(struct expansion_state *exp_state, void *data
             shraise(cont, NULL);
     } else {
         // execute the ast
-        for_data->rc = ast_exec(exp_state->env, for_node->body, &ncont);
+        for_data->rc = ast_exec(env, for_node->body, &ncont);
     }
 }
 

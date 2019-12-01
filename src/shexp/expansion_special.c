@@ -25,7 +25,7 @@ static int expand_pid(struct expansion_state *exp_state)
 
 static int expand_star_sep(struct expansion_state *exp_state, char sep)
 {
-    struct environment *env = exp_state->env;
+    struct environment *env = expansion_state_env(exp_state);
     for (size_t i = 1; env->argv[i]; i++) {
         if (i > 1)
             expansion_push(exp_state, sep);
@@ -51,7 +51,7 @@ static int expand_at(struct expansion_state *exp_state)
     if (exp_state->quoting_mode == EXPANSION_QUOTING_NOSPLIT)
         return expand_star_sep(exp_state, ' ');
 
-    struct environment *env = exp_state->env;
+    struct environment *env = expansion_state_env(exp_state);
     for (size_t i = 1; env->argv[i]; i++) {
         if (i > 1)
             expansion_end_word(exp_state);
@@ -62,7 +62,7 @@ static int expand_at(struct expansion_state *exp_state)
 
 static int expand_sharp(struct expansion_state *exp_state)
 {
-    struct environment *env = exp_state->env;
+    struct environment *env = expansion_state_env(exp_state);
     // the shell argc always is one step behind the C argc
     int argc = env->argc;
 
@@ -84,7 +84,7 @@ static int expand_sharp(struct expansion_state *exp_state)
 static int expand_return(struct expansion_state *exp_state)
 {
     char res[UINT_MAX_CHARS(unsigned char) + /* \0 */ 1];
-    unsigned char retcode = (256 + exp_state->env->code) % 256;
+    unsigned char retcode = (256 + expansion_state_env(exp_state)->code) % 256;
     sprintf(res, "%u", retcode);
     expansion_push_string(exp_state, res);
     return 0;
@@ -130,7 +130,7 @@ static int expand_uid(struct expansion_state *exp_state)
 
 static int arguments_var_lookup(struct expansion_state *exp_state, char c)
 {
-    struct environment *env = exp_state->env;
+    struct environment *env = expansion_state_env(exp_state);
     if (c < '0' || c > '9')
         return 1;
 
@@ -192,7 +192,7 @@ int expand_name(struct expansion_state *exp_state, char *var)
         return 0;
 
     const char *env_var;
-    if ((env_var = environment_var_get(exp_state->env, var))) {
+    if ((env_var = environment_var_get(expansion_state_env(exp_state), var))) {
         expansion_push_string(exp_state, env_var);
         return 0;
     }
