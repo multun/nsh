@@ -1,8 +1,10 @@
 #pragma once
 
-#include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdbool.h>
+#include <stdlib.h>
+
 
 /* log10(n) = log2(n) * (ln(2) / ln(10)) */
 /* log10(n) <= log2(n) * 0.3 + 1 */
@@ -43,4 +45,15 @@ static inline int parse_int(const char *str, int *val)
 
     *val = res;
     return 0;
+}
+
+
+static inline bool portable_filename_char(char c)
+{
+    return ((c >= 'A' && c <= 'Z') ||
+            (c >= '0' && c <= '9') ||
+            (c >= 'a' && c <= 'z') ||
+            (c == '.') ||
+            (c == '_') ||
+            (c == '-'));
 }

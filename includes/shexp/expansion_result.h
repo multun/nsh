@@ -47,6 +47,11 @@ static inline char *expansion_result_data(struct expansion_result *result)
     return evect_data(&result->string);
 }
 
+static inline char expansion_result_last(struct expansion_result *result)
+{
+    return evect_data(&result->string)[evect_size(&result->string) - 1];
+}
+
 static inline char *expansion_result_meta(struct expansion_result *result)
 {
     return evect_data(&result->metadata);

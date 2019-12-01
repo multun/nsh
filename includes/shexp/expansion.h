@@ -12,6 +12,10 @@
 #include "utils/error.h"
 #include "utils/evect.h"
 
+enum expansion_flags
+{
+    EXP_FLAGS_ASSIGNMENT = 1,
+};
 
 /* the starting expansion buffer size */
 #define EXPANSION_DEFAULT_SIZE 100
@@ -22,9 +26,7 @@
 ** \param cont the error context to work with
 ** \return a malloc allocated expanded string
 */
-char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *env, struct errcont *errcont);
-
-void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont);
+char *expand_nosplit(struct lineinfo *line_info, char *str, int flags, struct environment *env, struct errcont *errcont);
 
 struct expansion_state;
 struct expansion_result;
@@ -34,9 +36,9 @@ void expand(struct expansion_state *exp_state,
             struct errcont *errcont);
 
 
-void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont);
+void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags, struct environment *env, struct errcont *errcont);
 
-void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, struct environment *env, struct errcont *errcont);
+void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, int flags, struct environment *env, struct errcont *errcont);
 
 enum expansion_quoting {
     // split on IFS
@@ -51,6 +53,9 @@ enum expansion_quoting {
 ** \brief the expansion context
 */
 struct expansion_state {
+    /* the expansion settings */
+    int flags;
+
     /* a callback to call on each segmented IFS word */
     struct expansion_callback_ctx callback_ctx;
 
@@ -152,8 +157,10 @@ static inline void expansion_state_reset_data(struct expansion_state *exp_state)
 }
 
 static inline void expansion_state_init(struct expansion_state *exp_state,
-                                        enum expansion_quoting quoting_mode)
+                                        enum expansion_quoting quoting_mode,
+                                        int flags)
 {
+    exp_state->flags = flags;
     exp_state->IFS = NULL;
     exp_state->line_info = NULL;
     exp_state->space_delimited = false;

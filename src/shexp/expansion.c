@@ -14,8 +14,10 @@
 #include <assert.h>
 #include <err.h>
 #include <errno.h>
+#include <pwd.h>
 #include <stdarg.h>
 #include <string.h>
+#include <sys/types.h>
 
 static void expand_guarded(struct expansion_state *exp_state,
                            struct wlexer *wlexer);
@@ -82,6 +84,12 @@ static enum expansion_sep_type expansion_separator(struct expansion_state *exp_s
 void expansion_push_nosplit(struct expansion_state *exp_state, char c)
 {
     expansion_result_push(&exp_state->result, c, expansion_is_unquoted(exp_state));
+}
+
+static void expansion_push_string_nosplit(struct expansion_state *exp_state, const char *str)
+{
+    for (; *str; str++)
+        expansion_push_nosplit(exp_state, *str);
 }
 
 // handle IFS splitting of a given character
@@ -194,6 +202,52 @@ static enum wlexer_op expand_variable(struct expansion_state *exp_state,
     return LEXER_OP_CONTINUE;
 }
 
+static enum wlexer_op expand_tilde(struct expansion_state *exp_state,
+                                   struct wlexer *wlexer,
+                                   struct wtoken *wtoken)
+{
+    /* push a tilde */
+    expansion_push_nosplit(exp_state, '~');
+    size_t start_offset = expansion_result_size(&exp_state->result);
+    do {
+        memset(wtoken, 0, sizeof(*wtoken));
+        wlexer_peek(wtoken, wlexer);
+        if (wtoken->type != WTOK_REGULAR)
+            break;
+        if (!portable_filename_char(wtoken->ch[0]))
+            break;
+
+        expansion_push(exp_state, wtoken->ch[0]);
+        wlexer_discard(wlexer);
+    } while (true);
+    size_t end_offset = expansion_result_size(&exp_state->result);
+
+    const char *home;
+
+    size_t username_length = end_offset - start_offset;
+    if (username_length == 0) {
+        /* no username case*/
+        home = environment_var_get(expansion_state_env(exp_state), "HOME");
+    } else {
+        /* some username was provided */
+        /* add a temporary nul byte (not accounted in size) */
+        evect_finalize(&exp_state->result.string);
+        char *username = expansion_result_data(&exp_state->result) + start_offset;
+        struct passwd *passwd = getpwnam(username);
+        if (passwd == NULL)
+            return LEXER_OP_CONTINUE;
+
+        home = passwd->pw_dir;
+    }
+
+    /* preserve the data if there's no home directory */
+    if (home == NULL)
+        return LEXER_OP_CONTINUE;
+
+    expansion_result_cut(&exp_state->result, start_offset - 1);
+    expansion_push_string_nosplit(exp_state, home);
+    return LEXER_OP_CONTINUE;
+}
 
 static enum wlexer_op expand_regular(struct expansion_state *exp_state,
                                      struct wlexer *wlexer,
@@ -201,6 +255,14 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
 {
     if (wlexer->mode != MODE_SINGLE_QUOTED && wtoken->ch[0] == '$')
         return expand_variable(exp_state, wlexer, wtoken);
+
+    if (wlexer->mode == MODE_UNQUOTED && wtoken->ch[0] == '~' &&
+        /* if the tilde is at the start of the line */
+        (wlexer->cs->offset == 1 ||
+         /* or right after a colon during an assignment */
+         ((exp_state->flags & EXP_FLAGS_ASSIGNMENT) &&
+          expansion_result_last(&exp_state->result) == ':')))
+        return expand_tilde(exp_state, wlexer, wtoken);
 
     // litteral regular characters from the unquoted mode
     // don't get any IFS splitting
@@ -456,7 +518,7 @@ void expand(struct expansion_state *exp_state,
         expansion_end_word(exp_state);
 }
 
-char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *env, struct errcont *errcont)
+char *expand_nosplit(struct lineinfo *line_info, char *str, int flags, struct environment *env, struct errcont *errcont)
 {
     /* initialize the character stream */
     struct cstream_string cs;
@@ -469,7 +531,7 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *
 
     /* initialize the expansion buffer */
     struct expansion_state exp_state;
-    expansion_state_init(&exp_state, EXPANSION_QUOTING_NOSPLIT);
+    expansion_state_init(&exp_state, EXPANSION_QUOTING_NOSPLIT, flags);
     expansion_callback_ctx_init(&exp_state.callback_ctx, NULL, env, errcont);
     exp_state.line_info = &cs.base.line_info;
 
@@ -488,7 +550,7 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, struct environment *
     return evect_data(&res);
 }
 
-static void expand_word_callback(struct expansion_callback *callback, struct shword *word, struct environment *env, struct errcont *errcont)
+static void expand_word_callback(struct expansion_callback *callback, struct shword *word, int flags, struct environment *env, struct errcont *errcont)
 {
     /* initialize the character stream */
     struct cstream_string cs;
@@ -501,7 +563,7 @@ static void expand_word_callback(struct expansion_callback *callback, struct shw
 
     /* initialize the expansion buffer */
     struct expansion_state exp_state;
-    expansion_state_init(&exp_state, EXPANSION_QUOTING_UNQUOTED);
+    expansion_state_init(&exp_state, EXPANSION_QUOTING_UNQUOTED, flags);
     expansion_callback_ctx_init(&exp_state.callback_ctx, callback, env, errcont);
     exp_state.line_info = &cs.base.line_info;
     exp_state.IFS = environment_var_get(env, "IFS");
@@ -513,10 +575,10 @@ static void expand_word_callback(struct expansion_callback *callback, struct shw
     expansion_state_destroy(&exp_state);
 }
 
-void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, struct environment *env, struct errcont *errcont)
+void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, int flags, struct environment *env, struct errcont *errcont)
 {
     for (size_t i = 0; i < wordlist_size(wl); i++)
-        expand_word_callback(callback, wordlist_get(wl, i), env, errcont);
+        expand_word_callback(callback, wordlist_get(wl, i), flags, env, errcont);
 }
 
 static void expansion_word_callback(void *data, char *word, struct environment *__unused env, struct errcont *__unused cont)
@@ -525,11 +587,11 @@ static void expansion_word_callback(void *data, char *word, struct environment *
     cpvect_push(res, word);
 }
 
-void expand_wordlist(struct cpvect *res, struct wordlist *wl, struct environment *env, struct errcont *errcont)
+void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags, struct environment *env, struct errcont *errcont)
 {
     struct expansion_callback callback = {
         .func = expansion_word_callback,
         .data = res,
     };
-    expand_wordlist_callback(&callback, wl, env, errcont);
+    expand_wordlist_callback(&callback, wl, flags, env, errcont);
 }

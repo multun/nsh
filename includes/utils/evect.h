@@ -16,3 +16,10 @@
 ** \param str the string to push
 */
 void evect_push_string(struct evect *vect, const char *str);
+
+/* add a temporary nul byte (not accounted in size) */
+static inline void evect_finalize(struct evect *vect)
+{
+    evect_push(vect, '\0');
+    vect->size--;
+}

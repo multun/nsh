@@ -61,7 +61,7 @@ int for_exec(struct environment *env, struct shast *ast, struct errcont *cont)
         }
     }
     else
-        expand_wordlist_callback(&for_callback, &for_node->collection, env, &ncont);
+        expand_wordlist_callback(&for_callback, &for_node->collection, 0, env, &ncont);
 
     env->depth--;
     return for_data.rc;

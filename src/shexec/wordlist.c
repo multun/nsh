@@ -23,5 +23,5 @@ void wordlist_expand(struct cpvect *res, struct wordlist *wl,
     }
 
     /* expand the argument list */
-    expand_wordlist(res, wl, env, &ERRCONT(cont->errman, &keeper));
+    expand_wordlist(res, wl, 0, env, &ERRCONT(cont->errman, &keeper));
 }
