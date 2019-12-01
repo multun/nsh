@@ -12,7 +12,6 @@
 // was opened.
 enum expansion_meta {
     EXPANSION_UNQUOTED = 1,
-    EXPANSION_END_UNQUOTED = 2,
 };
 
 struct expansion_result {

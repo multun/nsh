@@ -131,22 +131,6 @@ __unused_result static inline enum expansion_quoting expansion_switch_quoting(
 // flush the buffer even if the word is empty
 void expansion_end_word(struct expansion_state *exp_state);
 
-static inline void expansion_end_section(struct expansion_state *exp_state)
-{
-    struct expansion_result *result = &exp_state->result;
-    size_t result_size = expansion_result_size(result);
-    // if there's no section to end, give up
-    if (result_size == 0)
-        return;
-
-    size_t last_i = result_size - 1;
-    // if the last char isn't unquoted, it can't end an unquoted section
-    if (!expansion_result_getflag(result, last_i, EXPANSION_UNQUOTED))
-        return;
-
-    expansion_result_setflag(result, last_i, EXPANSION_END_UNQUOTED);
-}
-
 void expansion_push(struct expansion_state *exp_state, char c);
 void expansion_push_string(struct expansion_state *exp_state, const char *str);
 

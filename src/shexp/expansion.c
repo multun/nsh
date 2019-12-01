@@ -292,7 +292,6 @@ static enum wlexer_op expand_squote(struct expansion_state *exp_state,
         return LEXER_OP_RETURN;
 
     exp_state->allow_empty_word = true;
-    expansion_end_section(exp_state);
     enum expansion_quoting prev_mode = expansion_switch_quoting(exp_state, EXPANSION_QUOTING_QUOTED);
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_SINGLE_QUOTED));
     exp_state->quoting_mode = prev_mode;
@@ -306,7 +305,6 @@ static enum wlexer_op expand_dquote(struct expansion_state *exp_state __unused,
         return LEXER_OP_RETURN;
 
     exp_state->allow_empty_word = true;
-    expansion_end_section(exp_state);
     enum expansion_quoting prev_mode = expansion_switch_quoting(exp_state, EXPANSION_QUOTING_QUOTED);
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_DOUBLE_QUOTED));
     exp_state->quoting_mode = prev_mode;
@@ -316,8 +314,6 @@ static enum wlexer_op expand_dquote(struct expansion_state *exp_state __unused,
 static enum wlexer_op expand_btick(struct expansion_state *exp_state,
                                    struct wlexer *wlexer, struct wtoken *wtoken __unused)
 {
-    expansion_end_section(exp_state);
-
     struct evect btick_content;
     evect_init(&btick_content, 32); // hopefuly sane default :(
     struct wlexer_btick_state btick_state = WLEXER_BTICK_INIT;
@@ -343,8 +339,6 @@ static enum wlexer_op expand_btick(struct expansion_state *exp_state,
 static enum wlexer_op expand_escape(struct expansion_state *exp_state,
                                     struct wlexer *wlexer, struct wtoken *wtoken __unused)
 {
-    expansion_end_section(exp_state);
-
     // clearing characters isn't safe if
     // the wlexer has some cached tokens
     assert(!wlexer_has_lookahead(wlexer));
@@ -360,8 +354,6 @@ static enum wlexer_op expand_exp_subshell_open(struct expansion_state *exp_state
                                                struct wlexer *wlexer,
                                                struct wtoken *wtoken __unused)
 {
-    expansion_end_section(exp_state);
-
     struct wlexer sub_wlexer = WLEXER_FORK(wlexer, MODE_SUBSHELL);
     char *subshell_content = lexer_lex_string(expansion_state_errcont(exp_state), &sub_wlexer);
     expand_subshell(exp_state, subshell_content);
@@ -373,8 +365,6 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
                                         struct wlexer *wlexer,
                                         struct wtoken *wtoken __unused)
 {
-    expansion_end_section(exp_state);
-
     // switch to nosplit quoted mode to avoid buffer flushes
     enum expansion_quoting prev_mode = expansion_switch_quoting(exp_state, EXPANSION_QUOTING_NOSPLIT);
 
