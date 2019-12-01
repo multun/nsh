@@ -50,6 +50,9 @@ struct cstream
     // the line-related informations, updated on each read
     struct lineinfo line_info;
 
+    // the number of read characters
+    size_t offset;
+
     // whether buf contains some data
     bool has_buf;
 

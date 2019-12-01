@@ -9,6 +9,7 @@ void cstream_init(struct cstream *cs, struct io_backend *backend, bool interacti
         .backend = backend,
         .interactive = interactive,
         .has_buf = false,
+        .offset = 0,
     };
 }
 
@@ -48,6 +49,7 @@ int cstream_pop(struct cstream *cs)
     } else
         cs->line_info.column++;
 
+    cs->offset++;
     return res;
 }
 
