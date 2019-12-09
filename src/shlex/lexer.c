@@ -133,16 +133,22 @@ static enum wlexer_op sublexer_exp_subsh_close(struct lexer *lexer __unused,
 static enum wlexer_op sublexer_subsh_open(struct lexer *lexer, struct wlexer *wlexer,
                                          struct token *token __unused, struct wtoken *wtoken)
 {
-    if (tok_size(token) != 0)
-        return LEXER_OP_CANCEL;
-
+    /* (echo test) */
+    /* ^           */
     if (wlexer->mode == MODE_UNQUOTED)
     {
+        /* oops(echo test) */
+        /*     ^           */
+        if (tok_size(token) != 0)
+            /* break the first token appart */
+            return LEXER_OP_CANCEL;
         wtoken_push(token, wtoken);
         token->type = TOK_LPAR;
         return LEXER_OP_RETURN;
     }
 
+    /* $( (test)) */
+    /*    ^       */
     wtoken_push(token, wtoken);
     lexer_lex_untyped(token, &WLEXER_FORK(wlexer, MODE_SUBSHELL), lexer);
     struct wtoken end_wtoken = {
@@ -158,11 +164,15 @@ static enum wlexer_op sublexer_subsh_close(struct lexer *lexer __unused,
                                            struct token *token __unused,
                                            struct wtoken *wtoken __unused)
 {
-    if (tok_size(token) != 0)
-        return LEXER_OP_CANCEL;
-
+    /* (echo test) */
+    /*           ^ */
     if (wlexer->mode == MODE_UNQUOTED)
     {
+        /* oops(echo test) */
+        /*               ^ */
+        if (tok_size(token) != 0)
+            return LEXER_OP_CANCEL;
+
         wtoken_push(token, wtoken);
         token->type = TOK_RPAR;
         return LEXER_OP_RETURN;

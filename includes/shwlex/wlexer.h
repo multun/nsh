@@ -100,7 +100,9 @@ enum wlexer_op
     LEXER_OP_FALLTHROUGH = 0,
     LEXER_OP_CONTINUE = 1,
     LEXER_OP_RETURN = 2,
+    /* push back into the wlexer */
     LEXER_OP_PUSH = 4,
+    /* push back and return */
     LEXER_OP_CANCEL = LEXER_OP_RETURN | LEXER_OP_PUSH,
 };
 

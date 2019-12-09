@@ -1,0 +1,7 @@
+{
+  "desc": "all different types of parenthesis",
+  "stdin": "printf '>%s<\\n' hard$((1 $( (echo +$((! (0)))))))times\n",
+  "stdout": ">hard2times<\n",
+  "stderr": "",
+  "retcode": 0
+}
