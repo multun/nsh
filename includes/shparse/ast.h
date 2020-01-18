@@ -37,6 +37,7 @@ struct shast
         AST_TYPE_APPLY(DECLARE_AST_TYPE_ENUM)
     } type; /**< type of node */
 
+    bool async;
     struct lineinfo line_info;
 };
 
@@ -63,6 +64,7 @@ AST_TYPE_APPLY(DECLARE_AST_FREE_UTILS)
 static inline void shast_init(struct shast *ast, enum shnode_type type, struct lexer *lexer)
 {
     ast->type = type;
+    ast->async = false;
     ast->line_info = *lexer_line_info(lexer);
 }
 

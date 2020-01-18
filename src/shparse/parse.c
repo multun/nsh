@@ -30,15 +30,30 @@ void parse_list(struct shast **res, struct lexer *lexer, struct errcont *errcont
 {
     struct shast_list *list = shast_list_attach(res, lexer);
     while (true) {
+        /* parse the and_or rule */
         shast_vect_push(&list->commands, NULL);
-        parse_and_or(shast_vect_last(&list->commands), lexer, errcont);
+        struct shast **last_ast = shast_vect_last(&list->commands);
+        parse_and_or(last_ast, lexer, errcont);
+
         const struct token *tok = lexer_peek(lexer, errcont);
-        if (!tok_is(tok, TOK_SEMI) && !tok_is(tok, TOK_AND))
+        if (tok_is(tok, TOK_AND)) {
+            /* mark the last ast as asynchronous */
+            (*last_ast)->async = true;
+        } else if (tok_is(tok, TOK_SEMI)) {
+            /* do nothing */
+        } else
+            /* stop parsing the list */
             break;
+
         lexer_discard(lexer, errcont);
         tok = lexer_peek(lexer, errcont);
+
+        /* accept these cases:
+        **  - COMMAND ; EOF
+        **  - COMMAND ; NEWLINE
+        */
         if (tok_is(tok, TOK_EOF) || tok_is(tok, TOK_NEWLINE))
-            return;
+            break;
     }
 }
 
