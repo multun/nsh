@@ -28,10 +28,8 @@ void parse_compound_list(struct shast **res, struct lexer *lexer, struct errcont
         if (tok_is(tok, TOK_AND)) {
             /* mark the last ast as asynchronous */
             (*last_ast)->async = true;
-        } else if (tok_is(tok, TOK_SEMI)) {
-            /* do nothing */
-        } else
-            /* stop parsing the list */
+        } else if (!tok_is(tok, TOK_SEMI) && !tok_is(tok, TOK_NEWLINE))
+            /* stop parsing the list if an unexpected token is met */
             break;
 
         lexer_discard(lexer, errcont);
