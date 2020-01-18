@@ -9,10 +9,9 @@ static void negate_ast(struct shast **ast, struct lexer *lexer, bool neg)
     if (!neg)
         return;
 
-    struct shast_bool_op *bool_op = shast_bool_op_create(lexer);
-    bool_op->type = BOOL_NOT;
-    bool_op->left = *ast;
-    *ast = &bool_op->base;
+    struct shast_negate *neg_ast = shast_negate_create(lexer);
+    neg_ast->child = *ast;
+    *ast = &neg_ast->base;
 }
 
 static void pipeline_loop(struct shast **res, struct lexer *lexer, struct errcont *errcont)

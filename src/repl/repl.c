@@ -10,20 +10,22 @@
 
 #include <err.h>
 
-static void try_read_eval(struct lexer *lex, struct shast **ast, struct errcont *errcont, struct context *cont)
+static void try_read_eval(struct lexer *lex, struct errcont *errcont, struct context *cont)
 {
-    parse(ast, lex, errcont);
-    if (*ast == NULL)
+    struct shast *ast = NULL;
+    parse(&ast, lex, errcont);
+    if (ast == NULL)
         return;
 
     if (g_shopts[SHOPT_AST_PRINT]) {
         FILE *f = fopen("42sh_ast.dot", "w+");
-        ast_print(f, *ast);
+        ast_print(f, ast);
         fclose(f);
     }
 
     history_update(cont);
-    cont->env->code = ast_exec(cont->env, *ast, errcont);
+    cont->env->code = ast_exec(cont->env, ast, errcont);
+    shast_ref_put(ast);
 }
 
 // returns whether to continue
@@ -84,14 +86,12 @@ bool repl(struct context *ctx)
         /* create a lexer */
         struct lexer *lex = lexer_create(ctx->cs);
 
-        struct shast *ast = NULL;
          /* parse and execute */
         if (setjmp(keeper.env))
             running = handle_repl_exception(&eman, ctx);
         else
-            try_read_eval(lex, &ast, &errcont, ctx);
+            try_read_eval(lex, &errcont, ctx);
 
-        ast_free(ast);
 
         /* reset the error handler */
         cstream_set_errcont(ctx->cs, NULL);

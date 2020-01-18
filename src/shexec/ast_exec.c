@@ -14,9 +14,10 @@ static int (*ast_exec_utils[])(struct environment *env,
 
 int ast_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 {
-    if (ast)
+    if (ast) {
+        //printf("executing an asynchronous node\n");
         env->code = ast_exec_utils[ast->type](env, ast, cont);
-    else
+    } else
         env->code = 0;
     return env->code;
 }

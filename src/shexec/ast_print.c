@@ -207,10 +207,17 @@ void bool_op_print(FILE *f, struct shast *ast)
     ast_print_rec(f, bool_op->left);
     print_rel(f, bool_op, bool_op->left, NULL);
 
-    if (bool_op->type != BOOL_NOT) {
-        ast_print_rec(f, bool_op->right);
-        print_rel(f, bool_op, bool_op->right, NULL);
-    }
+    ast_print_rec(f, bool_op->right);
+    print_rel(f, bool_op, bool_op->right, NULL);
+}
+
+void negate_print(FILE *f, struct shast *ast)
+{
+    struct shast_negate *negate = (struct shast_negate *)ast;
+    print_node(f, negate, "!");
+
+    ast_print_rec(f, negate->child);
+    print_rel(f, negate, negate->child, NULL);
 }
 
 void case_print(FILE *f, struct shast *ast)

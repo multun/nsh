@@ -22,6 +22,7 @@
     F(SHNODE_PIPE, pipe)                    \
     F(SHNODE_CASE, case)                    \
     F(SHNODE_BOOL_OP, bool_op)              \
+    F(SHNODE_NEGATE, negate)                \
     F(SHNODE_LIST, list)                    \
     F(SHNODE_SUBSHELL, subshell)            \
     F(SHNODE_FUNCTION, function)            \
@@ -36,6 +37,14 @@ struct shast
     {
         AST_TYPE_APPLY(DECLARE_AST_TYPE_ENUM)
     } type; /**< type of node */
+
+    /* a reference counting field, needed for functions and the job
+    ** control's command pretty-printing.
+    **
+    ** TODO: hardcode the function pointer to ast_ref_free into the refcnt logic
+    ** it would save 8 bytes per AST node.
+    */
+    struct refcnt refcnt;
 
     bool async;
     struct lineinfo line_info;
@@ -60,13 +69,6 @@ AST_TYPE_APPLY(DECLARE_AST_FREE_UTILS)
 #undef GVECT_NAME
 #undef GVECT_TYPE
 
-
-static inline void shast_init(struct shast *ast, enum shnode_type type, struct lexer *lexer)
-{
-    ast->type = type;
-    ast->async = false;
-    ast->line_info = *lexer_line_info(lexer);
-}
 
 #define DEFINE_AST_TYPE(Name, TypeVal)                                  \
     static inline struct Name *Name##_create(struct lexer *lexer)       \
@@ -107,11 +109,33 @@ void ast_print(FILE *f, struct shast *ast);
 int ast_exec(struct environment*env, struct shast *ast, struct errcont *cont);
 
 /**
-** \brief free ast recursively
-** \param ast the tree
+** \brief The ast refcount free callback
+** \param refcnt the refcnt field of the tree
 **/
-void ast_free(struct shast *ast);
+void ast_ref_free(struct refcnt *refcnt);
 
+
+static inline void shast_init(struct shast *ast, enum shnode_type type, struct lexer *lexer)
+{
+    ast->type = type;
+    ast->async = false;
+    ref_init(&ast->refcnt, ast_ref_free);
+    ast->line_info = *lexer_line_info(lexer);
+}
+
+static inline struct shast *shast_ref_get(struct shast *ast)
+{
+    ref_get(&ast->refcnt);
+    return ast;
+}
+
+static inline void shast_ref_put(struct shast *ast)
+{
+    /* match the behavior of free(3) */
+    if (ast == NULL)
+        return;
+    ref_put(&ast->refcnt);
+}
 
 #define REDIRECTIONS_APPLY(F)                       \
     F(REDIR_LESS, "<", redir_less)                  \
@@ -201,7 +225,6 @@ struct shast_bool_op
     {
         BOOL_OR,
         BOOL_AND,
-        BOOL_NOT,
     } type; /**< the type of operator */
     struct shast *left; /**< the first operand */
     struct shast *right; /**< the second operand */
@@ -210,8 +233,6 @@ struct shast_bool_op
 static inline const char *bool_op_to_string(enum bool_type type)
 {
     switch (type) {
-    case BOOL_NOT:
-        return "NOT";
     case BOOL_OR:
         return "OR";
     case BOOL_AND:
@@ -226,6 +247,20 @@ static inline void shast_bool_op_init(struct lexer *lexer,
 }
 
 DEFINE_AST_TYPE(shast_bool_op, SHNODE_BOOL_OP)
+
+struct shast_negate
+{
+    struct shast base;
+    struct shast *child;
+};
+
+static inline void shast_negate_init(struct lexer *lexer,
+                                     struct shast_negate *node)
+{
+    shast_init(&node->base, SHNODE_NEGATE, lexer);
+}
+
+DEFINE_AST_TYPE(shast_negate, SHNODE_NEGATE)
 
 struct shast_case_item
 {
