@@ -11,72 +11,6 @@
 #include "shlex/lexer_error.h"
 #include "shwlex/wlexer.h"
 
-#define LEXERROR(LineInfo, Errcont, ...)                                                 \
-    sherror((LineInfo), (Errcont), &g_lexer_error, __VA_ARGS__)
-
-#define TOK_IS_OP(Type) ((Type) >= TOK_LESS && (Type) <= TOK_LESSDASH)
-#define LEX_OP_TOKS(F)                                                                   \
-    F(TOK_LESS, "<")                                                                     \
-    F(TOK_GREAT, ">")                                                                    \
-    F(TOK_SEMI, ";")                                                                     \
-    F(TOK_AND, "&")                                                                      \
-    F(TOK_PIPE, "|")                                                                     \
-                                                                                         \
-    F(TOK_LPAR, "(")                                                                     \
-    F(TOK_RPAR, ")")                                                                     \
-                                                                                         \
-    F(TOK_AND_IF, "&&")                                                                  \
-    F(TOK_OR_IF, "||")                                                                   \
-    F(TOK_DSEMI, ";;")                                                                   \
-    F(TOK_DLESS, "<<")                                                                   \
-    F(TOK_DGREAT, ">>")                                                                  \
-    F(TOK_LESSAND, "<&")                                                                 \
-    F(TOK_GREATAND, ">&")                                                                \
-    F(TOK_LESSGREAT, "<>")                                                               \
-    F(TOK_CLOBBER, ">|")                                                                 \
-    F(TOK_LESSDASH, "<<-")
-
-#define TOK_IS_KW(Type) ((Type) >= TOK_IF && (Type) <= TOK_FUNC)
-#define TOK_KW_ALIGN(Type) ((Type)-TOK_IF)
-
-#define LEX_KW_TOKS(F)                                                                   \
-    F(TOK_IF, "if")                                                                      \
-    F(TOK_THEN, "then")                                                                  \
-    F(TOK_ELSE, "else")                                                                  \
-    F(TOK_ELIF, "elif")                                                                  \
-    F(TOK_FI, "fi")                                                                      \
-    F(TOK_DO, "do")                                                                      \
-    F(TOK_DONE, "done")                                                                  \
-                                                                                         \
-    F(TOK_CASE, "case")                                                                  \
-    F(TOK_ESAC, "esac")                                                                  \
-    F(TOK_WHILE, "while")                                                                \
-    F(TOK_UNTIL, "until")                                                                \
-    F(TOK_FOR, "for")                                                                    \
-    F(TOK_LBRACE, "{")                                                                   \
-    F(TOK_RBRACE, "}")                                                                   \
-    F(TOK_BANG, "!")                                                                     \
-    F(TOK_IN, "in")                                                                      \
-                                                                                         \
-    F(TOK_FUNC, "function")
-
-#define LEX_CONST_ENUM(TokName, Value) TokName,
-
-#define TOK_IS_GEN_DET(Type)                                                             \
-    ((Type) == TOK_NEWLINE || (Type) == TOK_EOF || (Type) == TOK_IO_NUMBER)
-#define LEX_GEN_TOKS(F)                                                                  \
-    F(TOK_WORD)                                                                          \
-    F(TOK_ASSIGNMENT_WORD)                                                               \
-    F(TOK_NAME)                                                                          \
-    F(TOK_NEWLINE)                                                                       \
-    F(TOK_IO_NUMBER)                                                                     \
-                                                                                         \
-    F(TOK_EOF)
-
-#define TOK_IS_DET(Type) (TOK_IS_GEN_DET(Type) || TOK_IS_OP(Type))
-
-#define LEX_GEN_TOKS_ENUM(Tokname) Tokname,
-
 #define TOK_BUF_MIN_SIZE 10
 
 /**
@@ -87,8 +21,9 @@ struct token
 {
     enum token_type
     {
-        LEX_OP_TOKS(LEX_CONST_ENUM) LEX_KW_TOKS(LEX_CONST_ENUM)
-            LEX_GEN_TOKS(LEX_GEN_TOKS_ENUM)
+#define X(TokName, Value) TokName,
+#include "tokens.defs"
+#undef X
     } type;
 
     struct lineinfo lineinfo;
@@ -157,11 +92,6 @@ struct token *tok_alloc(struct lexer *lexer);
 void tok_free(struct token *free, bool free_buf);
 
 /**
-** \brief tests whether a token can be of the requested type
-*/
-bool tok_is(const struct token *tok, enum token_type type);
-
-/**
 ** \brief allocates a new lexer
 ** \param stream the character stream to bind the lexer to
 */
@@ -208,3 +138,43 @@ struct token *lexer_peek_at(struct lexer *lexer, struct token *tok, struct errco
 ** \param wlexer word lexer to pull words from
 */
 char *lexer_lex_string(struct errcont *errcont, struct wlexer *wlexer);
+
+static inline bool token_type_keyword(enum token_type type)
+{
+    switch (type) {
+#define X(TypeName, ...) case TypeName:
+#include "shlex/keywords.defs"
+#undef X
+        return true;
+    default:
+        return false;
+    }
+}
+
+static inline bool token_type_name_keyword(enum token_type type)
+{
+    switch (type) {
+#define X(TypeName, ...) case TypeName:
+#include "shlex/name_keywords.defs"
+#undef X
+        return true;
+    default:
+        return false;
+    }
+}
+
+/**
+** \brief tests whether a token can be of the requested type
+*/
+static inline bool tok_is(const struct token *tok, enum token_type type)
+{
+    switch (type) {
+    case TOK_WORD:
+        return tok->type == TOK_ASSIGNMENT_WORD || tok->type == TOK_NAME
+            || tok->type == TOK_WORD || token_type_keyword(tok->type);
+    case TOK_NAME:
+        return tok->type == TOK_NAME || token_type_name_keyword(tok->type);
+    default:
+        return tok->type == type;
+    }
+}

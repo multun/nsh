@@ -1,0 +1,6 @@
+X(TOK_WORD, "<word>")
+X(TOK_ASSIGNMENT_WORD, "<assignment word>")
+X(TOK_NAME, "<name>")
+X(TOK_NEWLINE, "\\n")
+X(TOK_IO_NUMBER, "<io number>")
+X(TOK_EOF, "EOF")

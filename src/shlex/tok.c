@@ -20,36 +20,3 @@ void tok_free(struct token *tok, bool free_buf)
         evect_destroy(&tok->str);
     free(tok);
 }
-
-#define LEX_OPS_MAP(TokName, Value) Value,
-
-static const char *g_keywords[] = {LEX_KW_TOKS(LEX_OPS_MAP)};
-
-static bool tok_is_ass(const char *str, bool first)
-{
-    if (!*str)
-        return false;
-    if (*str == '=')
-        return !first;
-    return ((*str >= '0' && *str <= '9' && !first) || *str == '_'
-            || (*str >= 'a' && *str <= 'z') || (*str >= 'A' && *str <= 'Z'))
-        && tok_is_ass(str + 1, false);
-}
-
-bool tok_is(const struct token *tok, enum token_type type)
-{
-    if (TOK_IS_DET(tok->type) || TOK_IS_DET(type))
-        return tok->type == type;
-
-    if (type == TOK_ASSIGNMENT_WORD)
-        return tok_is_ass(tok_buf(tok), true);
-
-    // TODO: handle name
-    if (type == TOK_WORD || type == TOK_NAME)
-        return true;
-
-    if (TOK_IS_KW(type))
-        return !strcmp(g_keywords[TOK_KW_ALIGN(type)], tok_buf(tok));
-
-    return true;
-}

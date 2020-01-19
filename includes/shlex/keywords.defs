@@ -1,0 +1,5 @@
+/* the order is super important, this needs to be sorted */
+X(TOK_BANG, "!")
+#include "name_keywords.defs"
+X(TOK_LBRACE, "{")
+X(TOK_RBRACE, "}")

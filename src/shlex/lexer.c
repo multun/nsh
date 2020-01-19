@@ -1,5 +1,6 @@
-#include "shlex/lexer.h"
 #include "shexec/clean_exit.h"
+#include "shlex/lexer.h"
+#include "shlex/variable.h"
 #include "shwlex/wlexer.h"
 #include "utils/alloc.h"
 #include "utils/attr.h"
@@ -298,6 +299,77 @@ static bool is_only_digits(struct token *tok)
     return true;
 }
 
+static const char *g_keywords[] = {
+#define X(Type, Val) Val,
+#include "shlex/keywords.defs"
+#undef X
+};
+
+static int compare_keyword(const void *va, const void *vb)
+{
+    const char * const *a = va;
+    const char * const *b = vb;
+    return strcmp(*a, *b);
+}
+
+enum token_type keyword_search(const char *keyword)
+{
+    size_t keyword_count = ARR_SIZE(g_keywords);
+    const char **search_res = bsearch(
+        &keyword, g_keywords,
+        keyword_count, sizeof(g_keywords[0]),
+        compare_keyword);
+
+    if (search_res == NULL)
+        return TOK_UNDEF;
+
+    /* TOK_KEYWORD_START_ is just before the keywords list */
+    return (search_res - g_keywords) + 1 + TOK_KEYWORD_START_;
+}
+
+static void lexer_type_token(struct lexer *lexer, struct token *tok)
+{
+    if (tok->type != TOK_WORD)
+        return;
+
+    size_t tok_len = tok_size(tok) - 1;
+
+    for (size_t i = 0; i < tok_len; i++)
+        if (tok_buf(tok)[i] == '\0')
+            lexer_err(lexer, "no input NUL bytes are allowed");
+
+    if (is_only_digits(tok)) {
+        struct wtoken next_tok;
+        wlexer_peek(&next_tok, &lexer->wlexer);
+        int ch = next_tok.ch[0];
+        if (ch == '>' || ch == '<')
+            tok->type = TOK_IO_NUMBER;
+        return;
+    }
+
+    char *var_sep = strchr(tok_buf(tok), '=');
+    if (var_sep != NULL) {
+        size_t var_name_len = var_sep - tok_buf(tok);
+        if (variable_name_check_string(tok_buf(tok), var_name_len) == 0)
+            tok->type = TOK_ASSIGNMENT_WORD;
+        /* in case something has an '=' char but no valid name,
+        ** preserve the current TOK_WORD value of tok->type.
+        */
+        return;
+    }
+
+    /* for name keywords, the type will first be set as TOK_NAME,
+    ** then by the correct type.
+    */
+
+    if (variable_name_check_string(tok_buf(tok), tok_len) == 0)
+        tok->type = TOK_NAME;
+
+    enum token_type search_type = keyword_search(tok_buf(tok));
+    if (search_type != TOK_UNDEF)
+        tok->type = search_type;
+}
+
 static void lexer_lex(struct token **tres, struct lexer *lexer, struct errcont *errcont)
 {
     // the lexer and the IO stream both have their own global error contexts
@@ -306,26 +378,9 @@ static void lexer_lex(struct token **tres, struct lexer *lexer, struct errcont *
 
     struct token *res = *tres = tok_alloc(lexer);
     lexer_lex_untyped(res, &lexer->wlexer, lexer);
-
-    if (res->type != TOK_WORD)
-        goto typing_done;
-
-    for (size_t i = 0; i < tok_size(res); i++)
-        if (res->str.data[i] == '\0')
-            lexer_err(lexer, "no input NUL bytes are allowed");
-
-    if (is_only_digits(res)) {
-        struct wtoken next_tok;
-        wlexer_peek(&next_tok, &lexer->wlexer);
-        int ch = next_tok.ch[0];
-        if (ch == '>' || ch == '<')
-            res->type = TOK_IO_NUMBER;
-        goto typing_done;
-    }
-
-typing_done:
     tok_push(res, '\0');
-    return;
+
+    lexer_type_token(lexer, res);
 }
 
 char *lexer_lex_string(struct errcont *errcont, struct wlexer *wlexer)

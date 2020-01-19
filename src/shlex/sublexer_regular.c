@@ -4,14 +4,17 @@
 #include <assert.h>
 #include <ctype.h>
 
-#define LEX_OPS_MAP(TokName, Value) {Value, sizeof(Value) - 1, TokName},
 
 static const struct sh_operator
 {
     const char *repr;
     size_t repr_size;
     enum token_type type;
-} g_operators[] = {LEX_OP_TOKS(LEX_OPS_MAP)};
+} g_operators[] = {
+#define X(TokName, Value) {Value, sizeof(Value) - 1, TokName},
+#include "shlex/operators.defs"
+#undef X
+};
 
 static const struct sh_operator *find_operator(const char *buf, size_t size, char next_ch)
 {
