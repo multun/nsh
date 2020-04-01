@@ -571,7 +571,7 @@ void expand_wordlist_callback(struct expansion_callback *callback, struct wordli
         expand_word_callback(callback, wordlist_get(wl, i), flags, env, errcont);
 }
 
-static void expansion_word_callback(void *data, char *word, struct environment *__unused env, struct errcont *__unused cont)
+static void expansion_word_callback(void *data, char *word, struct environment *env __unused, struct errcont *cont __unused)
 {
     struct cpvect *res = data;
     cpvect_push(res, word);
