@@ -24,12 +24,19 @@ typedef int (*f_io_reader)(struct cstream *cs);
 typedef void (*f_io_destructor)(struct cstream *cs);
 
 /**
+** \brief A pointer to a function resetting a stream
+** \param a stream to reset
+*/
+typedef void (*f_io_reset)(struct cstream *cs);
+
+/**
 ** \brief io backends are structures holding stream type specific routines
 */
 struct io_backend
 {
     f_io_reader reader;
     f_io_destructor dest;
+    f_io_reset reset;
 };
 
 /**
@@ -116,6 +123,11 @@ int cstream_pop(struct cstream *cs);
 */
 bool cstream_eof(struct cstream *cs);
 
+static inline void cstream_reset(struct cstream *cs)
+{
+    if (cs->backend->reset)
+        cs->backend->reset(cs);
+}
 
 #include "io/cstream_readline.h"
 #include "io/cstream_file.h"

@@ -56,7 +56,13 @@ static bool handle_repl_exception(struct errman *eman, struct context *cont)
 
     cont->env->code = g_cmdopts.src == SHSRC_COMMAND ? 1 : 2;
     // stop if the repl isn't interactive
-    return cont->cs->interactive;
+    if (!cont->cs->interactive)
+        return false;
+
+    // when an error occurs midline on an interactive stream,
+    // reset the line buffer. for example: `foo bar()`
+    cstream_reset(cont->cs);
+    return true;
 }
 
 bool repl(struct context *ctx)

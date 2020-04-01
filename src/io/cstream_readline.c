@@ -80,9 +80,19 @@ static void readline_io_dest(struct cstream *base_cs)
     free(cs->current_line);
 }
 
+static void readline_io_reset(struct cstream *base_cs)
+{
+    struct cstream_readline *cs = (struct cstream_readline *)base_cs;
+    free(cs->current_line);
+    cs->current_line = NULL;
+    cs->line_position = 0;
+}
+
+
 struct io_backend io_readline_backend = {
     .reader = readline_io_reader,
     .dest = readline_io_dest,
+    .reset = readline_io_reset,
 };
 
 void cstream_readline_init(struct cstream_readline *cs)
