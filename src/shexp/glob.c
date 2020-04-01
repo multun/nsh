@@ -227,7 +227,7 @@ enum glob_type glob_parse_path(struct gpath_vect *res, struct glob_pattern *patt
     do {
         size_t pattern_start = pattern_i;
         enum glob_type section_status = glob_parse_trivial(pattern, &pattern_i);
-        if (section_status == GLOB_INVALID)
+        if (section_status == GLOB_TYPE_INVALID)
             return GLOB_TYPE_INVALID;
 
         if (section_status == GLOB_TYPE_COMPLEX)
@@ -250,7 +250,7 @@ enum glob_type glob_parse_path(struct gpath_vect *res, struct glob_pattern *patt
             elem->length = pattern_length;
             elem->sep_count = sep_count;
             elem->name = strndup(pattern->data + pattern_start, pattern_length);
-            elem->trivial = section_status == GLOB_MATCH;
+            elem->trivial = section_status == GLOB_TYPE_TRIVIAL;
             gpath_vect_push(res, elem);
         }
     } while (pattern->data[pattern_i] != '\0');
