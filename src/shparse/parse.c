@@ -22,7 +22,7 @@ void parse(struct shast **res, struct lexer *lexer, struct errcont *errcont)
     tok = lexer_peek(lexer, errcont);
     if (tok_is(tok, TOK_EOF) || tok_is(tok, TOK_NEWLINE))
         return;
-    parser_err(&tok->lineinfo, errcont, "unxpected token %s, expected 'EOF' or '\\n'",
+    parser_err(&tok->lineinfo, errcont, "unexpected token %s, expected 'EOF' or '\\n'",
                TOKT_STR(tok));
 }
 
