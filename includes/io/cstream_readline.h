@@ -8,11 +8,6 @@ struct cstream_readline {
 
     char *current_line;
 
-    bool close_on_exit;
-
-    // contains each poped character since the beginning of the line.
-    struct evect linebuf;
-
     // position in the current line
     size_t line_position;
 };
