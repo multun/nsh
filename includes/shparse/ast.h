@@ -237,6 +237,8 @@ static inline const char *bool_op_to_string(enum bool_type type)
         return "OR";
     case BOOL_AND:
         return "AND";
+    default:
+        abort();
     }
 }
 

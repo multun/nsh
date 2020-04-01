@@ -71,6 +71,8 @@ int glob_class_type_size(enum glob_class_type type) {
         return 1;
     case GLOB_CLASS_RANGE:
         return 3;
+    default:
+        abort();
     }
 }
 

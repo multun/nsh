@@ -23,5 +23,7 @@ int bool_op_exec(struct environment *env, struct shast *ast, struct errcont *con
         if (!ast_exec(env, bool_op->left, cont))
             return 0;
         return ast_exec(env, bool_op->right, cont);
+    default:
+        abort();
     }
 }
