@@ -18,7 +18,7 @@ static void try_read_eval(struct lexer *lex, struct errcont *errcont, struct con
         return;
 
     if (g_shopts[SHOPT_AST_PRINT]) {
-        FILE *f = fopen("42sh_ast.dot", "w+");
+        FILE *f = fopen("nsh_ast.dot", "w+");
         ast_print(f, ast);
         fclose(f);
     }

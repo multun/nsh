@@ -11,7 +11,7 @@
 *.so
 *.out
 
-/42sh
+/nsh
 
 # TEST SUITE
 __pycache__

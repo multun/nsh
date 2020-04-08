@@ -23,7 +23,7 @@ static const char *cont_get_var(struct context *cont, const char *name, const ch
 
 static const char *get_ps1(struct context *context)
 {
-    return cont_get_var(context, "PS1", "42sh> ");
+    return cont_get_var(context, "PS1", "nsh> ");
 }
 
 static const char *get_ps2(struct context *context)

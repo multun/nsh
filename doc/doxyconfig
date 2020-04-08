@@ -4,7 +4,7 @@
 # Project related configuration options
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
-PROJECT_NAME           = 42sh
+PROJECT_NAME           = nsh
 OUTPUT_DIRECTORY       = doc/gen/
 CREATE_SUBDIRS         = NO
 ALLOW_UNICODE_NAMES    = NO

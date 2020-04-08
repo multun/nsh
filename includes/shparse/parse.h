@@ -40,7 +40,7 @@ static inline void parser_consume_optional(struct lexer *lexer, enum token_type 
 }
 
 /**
-** \brief parse the input of 42sh.
+** \brief parse the input of nsh.
 **
 ** \param res buffer to store the parsing results.
 ** \param lexer lexer to use in parsing.

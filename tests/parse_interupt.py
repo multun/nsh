@@ -17,7 +17,7 @@ b = sys.stdin.buffer.read()
 command_san = ['valgrind', '-q', '--error-exitcode=100',
                '--leak-check=full', '--show-leak-kinds=all', '--']
 
-path_42 = Path("./42sh").resolve()
+path_42 = Path("./nsh").resolve()
 
 for i in range(len(b)):
     rb = b[:i]

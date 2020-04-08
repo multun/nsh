@@ -35,7 +35,7 @@ def highlight(string, status=False, bold=False):
 
 
 def _test_parser():
-    parser = ArgumentParser(description='Runs the 42sh test suite')
+    parser = ArgumentParser(description='Runs the nsh test suite')
     paa = parser.add_argument
 
     paa('-t', '--timeout', action='store', type=int, default=TIMEOUT_DEFAULT,
@@ -56,7 +56,7 @@ def _test_parser():
     paa('-q', '--quiet', action='store_true',
         help='Don\'t display diffs on failed tests')
 
-    paa('target', nargs='?', default=str(tests_path.parent / '42sh'),
+    paa('target', nargs='?', default=str(tests_path.parent / 'nsh'),
         help='hosts to run tests on')
 
     return parser
@@ -118,7 +118,7 @@ def run_process(conf, args, stdin):
 
 def diffio(mine, ref):
     res = difflib.diff_bytes(difflib.unified_diff, [mine], [ref],
-                             fromfile=b"42sh", tofile=b"ref")
+                             fromfile=b"nsh", tofile=b"ref")
     return '\n'.join(b.decode('unicode_escape') for b in res)
 
 

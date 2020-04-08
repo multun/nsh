@@ -6,7 +6,7 @@
 /**
 ** \mainpage Introduction
 **
-** dish could be divided into seven main components:
+** nsh could be divided into seven main components:
 **    - utils, a general toolbox
 **    - cli, the command line parsing toolkit
 **    - io, the base IO abstractions

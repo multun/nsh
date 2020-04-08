@@ -12,7 +12,7 @@
 
 FILE *history_open(void)
 {
-    char *history_path = home_suffix("/.42sh_history");
+    char *history_path = home_suffix("/.nsh_history");
     FILE *ret = fopen(history_path, "a+");
     free(history_path);
 

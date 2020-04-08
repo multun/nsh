@@ -34,12 +34,12 @@ static bool context_load_rc(struct environment *env, const char *path, const cha
 
 static bool context_load_all_rc(struct context *cont)
 {
-    const char global_rc[] = "/etc/42shrc";
+    const char global_rc[] = "/etc/nshrc";
     if (context_load_rc(cont->env, global_rc, global_rc))
         return true;
 
-    char *rc_path = home_suffix("/.42shrc");
-    bool should_exit = context_load_rc(cont->env, rc_path, "~/.42shrc");
+    char *rc_path = home_suffix("/.nshrc");
+    bool should_exit = context_load_rc(cont->env, rc_path, "~/.nshrc");
     free(rc_path);
     return should_exit;
 }

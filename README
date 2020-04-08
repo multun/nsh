@@ -1,6 +1,6 @@
 # Introduction
 
-42sh, also known as dish, is a work in progress POSIX shell command language
+nsh, also known as dish, is a work in progress POSIX shell command language
 interpreter. It can execute commands, perform IO redirections and more.
 
 
@@ -38,12 +38,12 @@ tests/check.py -q
 # Usage
 
 ```sh
-42sh [--norc] [--token-print | --ast-print] [ -c COMMAND | FILE ]
+nsh [--norc] [--token-print | --ast-print] [ -c COMMAND | FILE ]
 ```
 
 For extended usage information, see
 ```sh
-man doc/42sh.1
+man doc/nsh.1
 ```
 
 
