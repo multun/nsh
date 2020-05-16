@@ -11,23 +11,23 @@
 
 static int source_file(struct errcont *cont, struct environment *env, char *path)
 {
-    struct context ctx;
-    memset(&ctx, 0, sizeof(ctx));
-    ctx.env = env;
-
+    int rc;
     FILE *file;
-    int res;
-    if ((res = cstream_file_setup(&file, path, false)))
-        return res;
+
+    if ((rc = cstream_file_setup(&file, path, false)))
+        return rc;
 
     struct cstream_file cs;
     cstream_file_init(&cs, file, true);
-    ctx.cs = &cs.base;
+
+    struct context ctx;
+    context_from_env(&ctx, &cs.base, env);
+
     if (repl(&ctx))
         clean_exit(cont, ctx.env->code);
 
-    int rc = ctx.env->code;
-    ctx.env = NULL; // avoid double free
+    rc = ctx.env->code;
+
     context_destroy(&ctx);
     cstream_destroy(&cs.base);
     return rc;

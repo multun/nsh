@@ -12,8 +12,8 @@
 
 static bool context_load_rc(struct environment *env, const char *path, const char *source)
 {
-    struct context cont;
-    memset(&cont, 0, sizeof(cont));
+    struct context ctx;
+
     FILE *file = fopen(path, "r");
     int res;
     if ((res = cstream_file_setup(&file, path, true)))
@@ -21,45 +21,57 @@ static bool context_load_rc(struct environment *env, const char *path, const cha
 
     struct cstream_file cs;
     cstream_file_init(&cs, file, true);
-    cont.cs = &cs.base;
-    cont.env = env;
     cs.base.line_info = LINEINFO(source, NULL);
-    cs.base.context = &cont;
+    cs.base.context = &ctx;
 
-    bool should_exit = repl(&cont);
+    context_from_env(&ctx, &cs.base, env);
 
-    cstream_destroy(cont.cs);
+    bool should_exit = repl(&ctx);
+
+    context_destroy(&ctx);
+    cstream_destroy(ctx.cs);
     return should_exit;
 }
 
-static bool context_load_all_rc(struct context *cont)
+static bool context_load_all_rc(struct context *ctx)
 {
     const char global_rc[] = "/etc/nshrc";
-    if (context_load_rc(cont->env, global_rc, global_rc))
+    if (context_load_rc(ctx->env, global_rc, global_rc))
         return true;
 
     char *rc_path = home_suffix("/.nshrc");
-    bool should_exit = context_load_rc(cont->env, rc_path, "~/.nshrc");
+    bool should_exit = context_load_rc(ctx->env, rc_path, "~/.nshrc");
     free(rc_path);
     return should_exit;
 }
 
-bool context_init(int *rc, struct context *cont, struct cstream *cs, struct arg_context *arg_cont)
+void context_from_env(struct context *ctx, struct cstream *cs, struct environment *env)
 {
-    cont->cs = cs;
-    cont->env = environment_create(arg_cont);
+    memset(ctx, 0, sizeof(*ctx));
+    ctx->cs = cs;
+    ctx->env = env;
+    ctx->lexer = lexer_create(cs);
+    environment_get(env);
+}
 
-    if (cont->cs->interactive && !g_cmdopts.norc && context_load_all_rc(cont)) {
-        *rc = cont->env->code;
+bool context_init(int *rc, struct context *ctx, struct cstream *cs, struct arg_context *arg_ctx)
+{
+    struct environment *env = environment_create(arg_ctx);
+    context_from_env(ctx, cs, env);
+    environment_put(env);
+
+    if (ctx->cs->interactive && !g_cmdopts.norc && context_load_all_rc(ctx)) {
+        *rc = ctx->env->code;
         return true;
     }
 
-    history_init(cont);
+    history_init(ctx);
     return false;
 }
 
-void context_destroy(struct context *cont)
+void context_destroy(struct context *ctx)
 {
-    environment_free(cont->env);
-    history_destroy(cont);
+    history_destroy(ctx);
+    lexer_free(ctx->lexer);
+    environment_put(ctx->env);
 }

@@ -30,21 +30,6 @@ static char **arg_context_extract(int *target_argc, struct arg_context *args)
     return ret;
 }
 
-struct environment *environment_create(struct arg_context *arg_cont)
-{
-    struct environment *env = xmalloc(sizeof(*env));
-    env->argv = arg_context_extract(&env->argc, arg_cont);
-    env->progname = strdup(arg_cont->argv[arg_cont->progname_ind]);
-    hash_table_init(&env->variables, 10);
-    hash_table_init(&env->functions, 10);
-    env->code = 0;
-
-    env->break_count = 0;
-    env->depth = 0;
-    environment_load(env);
-    return env;
-}
-
 char **environment_array(struct environment *env)
 {
     char **res = xmalloc((env->variables.size + 1) * sizeof(*res));
@@ -85,20 +70,6 @@ static void var_free(struct hash_head *head)
     free(var);
 }
 
-void environment_free(struct environment *env)
-{
-    if (!env)
-        return;
-
-    free(env->progname);
-    argv_free(env->argv);
-    hash_table_map(&env->variables, var_free);
-    hash_table_map(&env->functions, shast_function_hash_put);
-    hash_table_destroy(&env->variables);
-    hash_table_destroy(&env->functions);
-    free(env);
-}
-
 const char *environment_var_get(struct environment *env, const char *name)
 {
     struct hash_head *prev = hash_table_find(&env->variables, NULL, name);
@@ -128,4 +99,32 @@ void environment_var_assign(struct environment *env, char *name, char *value, bo
     nvar->value = value;
     nvar->to_export = export;
     hash_table_insert(&env->variables, insertion_pos, &nvar->hash);
+}
+
+static void environment_free(struct refcnt *refcnt)
+{
+    struct environment *env = (struct environment *)refcnt;
+    free(env->progname);
+    argv_free(env->argv);
+    hash_table_map(&env->variables, var_free);
+    hash_table_map(&env->functions, shast_function_hash_put);
+    hash_table_destroy(&env->variables);
+    hash_table_destroy(&env->functions);
+    free(env);
+}
+
+struct environment *environment_create(struct arg_context *arg_cont)
+{
+    struct environment *env = xmalloc(sizeof(*env));
+    ref_init(&env->refcnt, environment_free);
+    env->argv = arg_context_extract(&env->argc, arg_cont);
+    env->progname = strdup(arg_cont->argv[arg_cont->progname_ind]);
+    hash_table_init(&env->variables, 10);
+    hash_table_init(&env->functions, 10);
+    env->code = 0;
+
+    env->break_count = 0;
+    env->depth = 0;
+    environment_load(env);
+    return env;
 }

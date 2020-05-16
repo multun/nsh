@@ -51,6 +51,9 @@ struct context
     // the stream the context works on
     struct cstream *cs;
 
+    // the lexer the loops pulls data from
+    struct lexer *lexer;
+
     // the history file, which may be NULL in case none should be opened
     FILE *history;
 };
@@ -72,6 +75,7 @@ bool repl(struct context *ctx);
 ** \returns whether the program should exit
 */
 bool context_init(int *rc, struct context *cont, struct cstream *cs, struct arg_context *arg_cont);
+void context_from_env(struct context *cont, struct cstream *cs, struct environment *env);
 
 /**
 ** \brief destroys an exiting context and all the ressources allocated

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utils/hash_table.h"
+#include "utils/refcnt.h"
 
 struct shast_list;
 struct arg_context;
@@ -17,6 +18,8 @@ struct shexec_variable
 */
 struct environment
 {
+    struct refcnt refcnt;
+
     struct hash_table variables;
     struct hash_table functions;
 
@@ -44,21 +47,25 @@ struct environment
 */
 struct environment *environment_create(struct arg_context *arg_cont);
 
+static inline void environment_get(struct environment *env)
+{
+    ref_get(&env->refcnt);
+}
+
+static inline void environment_put(struct environment *env)
+{
+    ref_put(&env->refcnt);
+}
+
 /**
 ** \brief initialize an environment based on the current context
 */
 void environment_load(struct environment *env);
 
 /**
-** \brief free an environment
-*/
-void environment_free(struct environment *env);
-
-/**
 ** \brief convert the environment to a raw environment variable strings array
 */
 char **environment_array(struct environment *env);
-
 
 const char *environment_var_get(struct environment *env, const char *name);
 

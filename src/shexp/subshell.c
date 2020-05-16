@@ -12,18 +12,15 @@
 
 static int subshell_child(struct expansion_state *exp_state, char *str)
 {
-    struct context ctx;
-    memset(&ctx, 0, sizeof(ctx));
-    ctx.env = expansion_state_env(exp_state);
-
     struct cstream_string cs;
     cstream_string_init(&cs, str);
     cs.base.line_info = LINEINFO("<subshell>", exp_state->line_info);
 
-    ctx.cs = &cs.base;
+    struct context ctx;
+    context_from_env(&ctx, &cs.base, expansion_state_env(exp_state));
+
     repl(&ctx);
     int rc = ctx.env->code;
-    ctx.env = NULL; // avoid double free
     context_destroy(&ctx);
     cstream_destroy(&cs.base);
     return rc;
