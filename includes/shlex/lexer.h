@@ -103,6 +103,11 @@ struct lexer *lexer_create(struct cstream *stream);
 void lexer_free(struct lexer *lexer);
 
 /**
+** \brief resets the lexer, which includes destroying all the pending tokens
+*/
+void lexer_reset(struct lexer *lexer);
+
+/**
 ** \brief peeks a token without removing it from the stack
 ** \param lexer the lexer to peek at
 ** \param errcont the error context

@@ -71,6 +71,9 @@ bool repl(struct context *ctx)
     struct keeper keeper = KEEPER(NULL);
     struct errcont errcont = ERRCONT(&eman, &keeper);
 
+    /* create a lexer */
+    struct lexer *lex = lexer_create(ctx->cs);
+
     volatile bool running = true;
     do {
         ctx->line_start = true;
@@ -89,9 +92,6 @@ bool repl(struct context *ctx)
             return false;
         cstream_set_errcont(ctx->cs, NULL);
 
-        /* create a lexer */
-        struct lexer *lex = lexer_create(ctx->cs);
-
          /* parse and execute */
         if (setjmp(keeper.env))
             running = handle_repl_exception(&eman, ctx);
@@ -102,8 +102,9 @@ bool repl(struct context *ctx)
         /* reset the error handler */
         cstream_set_errcont(ctx->cs, NULL);
 
-        /* destroy the lexer */
-        lexer_free(lex);
+        // prepare the lexer to handle a new line
+        // forgetting all the remaining tokens
+        lexer_reset(lex);
     } while (running);
     return true;
 }

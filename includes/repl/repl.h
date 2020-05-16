@@ -36,7 +36,7 @@ struct arg_context
 struct context
 {
     // the runtime environment, such as functions and variables
-    struct environment*env;
+    struct environment *env;
 
     // whether we should display the ps1 instead of the ps2
     // it may feel awkward to store this here, but it wouldn't
@@ -50,9 +50,6 @@ struct context
 
     // the stream the context works on
     struct cstream *cs;
-
-    // the lexer the loops pulls data from
-    struct lexer *lexer;
 
     // the history file, which may be NULL in case none should be opened
     FILE *history;

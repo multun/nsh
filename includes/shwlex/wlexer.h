@@ -81,11 +81,16 @@ static inline void wlexer_clear_lookahead(struct wlexer *wlex)
     wlex->lookahead.type = WTOK_UNKNOWN;
 }
 
+static inline void wlexer_reset(struct wlexer *lexer)
+{
+    lexer->mode = MODE_UNQUOTED;
+    memset(&lexer->lookahead, 0, sizeof(lexer->lookahead));
+}
+
 static inline void wlexer_init(struct wlexer *lexer, struct cstream *cs)
 {
     lexer->cs = cs;
-    lexer->mode = MODE_UNQUOTED;
-    memset(&lexer->lookahead, 0, sizeof(lexer->lookahead));
+    wlexer_reset(lexer);
 }
 
 

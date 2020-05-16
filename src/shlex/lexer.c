@@ -421,3 +421,32 @@ struct token *lexer_pop(struct lexer *lexer, struct errcont *errcont)
     lexer->head = ret->next;
     return ret;
 }
+
+struct lexer *lexer_create(struct cstream *stream)
+{
+    struct lexer *res = xmalloc(sizeof(*res));
+    wlexer_init(&res->wlexer, stream);
+    res->head = NULL;
+    return res;
+}
+
+static void lexer_reset_tokens(struct lexer *lexer)
+{
+    while (lexer->head) {
+        struct token *tok = lexer->head;
+        lexer->head = tok->next;
+        tok_free(tok, true);
+    }
+}
+
+void lexer_reset(struct lexer *lexer)
+{
+    lexer_reset_tokens(lexer);
+    wlexer_reset(&lexer->wlexer);
+}
+
+void lexer_free(struct lexer *lexer)
+{
+    lexer_reset_tokens(lexer);
+    free(lexer);
+}
