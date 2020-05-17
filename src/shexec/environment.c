@@ -101,13 +101,19 @@ void environment_var_assign(struct environment *env, char *name, char *value, bo
     hash_table_insert(&env->variables, insertion_pos, &nvar->hash);
 }
 
+static void function_hash_put(struct hash_head *head)
+{
+    struct shast_function *func = container_of(head, struct shast_function, hash);
+    shast_ref_put(&func->base);
+}
+
 static void environment_free(struct refcnt *refcnt)
 {
     struct environment *env = (struct environment *)refcnt;
     free(env->progname);
     argv_free(env->argv);
     hash_table_map(&env->variables, var_free);
-    hash_table_map(&env->functions, shast_function_hash_put);
+    hash_table_map(&env->functions, function_hash_put);
     hash_table_destroy(&env->variables);
     hash_table_destroy(&env->functions);
     free(env);

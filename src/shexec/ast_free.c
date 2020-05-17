@@ -4,8 +4,6 @@
 void if_free(struct shast *ast)
 {
     struct shast_if *if_node = (struct shast_if *)ast;
-    if (!ast)
-        return;
     shast_ref_put(if_node->condition);
     shast_ref_put(if_node->branch_true);
     shast_ref_put(if_node->branch_false);
@@ -14,9 +12,6 @@ void if_free(struct shast *ast)
 
 void while_free(struct shast *ast)
 {
-    if (!ast)
-        return;
-
     struct shast_while *while_node = (struct shast_while *)ast;
     shast_ref_put(while_node->condition);
     shast_ref_put(while_node->body);
@@ -25,8 +20,6 @@ void while_free(struct shast *ast)
 
 void pipe_free(struct shast *ast)
 {
-    if (!ast)
-        return;
     struct shast_pipe *pipe = (struct shast_pipe *)ast;
     shast_ref_put(pipe->left);
     shast_ref_put(pipe->right);
@@ -35,8 +28,6 @@ void pipe_free(struct shast *ast)
 
 void list_free(struct shast *ast)
 {
-    if (!ast)
-        return;
     struct shast_list *list = (struct shast_list *)ast;
     for (size_t i = 0; i < shast_vect_size(&list->commands); i++)
         shast_ref_put(shast_vect_get(&list->commands, i));
@@ -46,8 +37,6 @@ void list_free(struct shast *ast)
 
 void subshell_free(struct shast *ast)
 {
-    if (!ast)
-        return;
     struct shast_subshell *subshell = (struct shast_subshell *)ast;
     shast_ref_put(subshell->action);
     free(ast);
@@ -55,8 +44,6 @@ void subshell_free(struct shast *ast)
 
 void bool_op_free(struct shast *ast)
 {
-    if (!ast)
-        return;
     struct shast_bool_op *bool_op = (struct shast_bool_op *)ast;
     shast_ref_put(bool_op->left);
     shast_ref_put(bool_op->right);
@@ -65,9 +52,6 @@ void bool_op_free(struct shast *ast)
 
 void negate_free(struct shast *ast)
 {
-    if (!ast)
-        return;
-
     struct shast_negate *negate = (struct shast_negate *)ast;
     shast_ref_put(negate->child);
     free(negate);
@@ -82,8 +66,6 @@ static void case_item_free(struct shast_case_item *case_item)
 
 void case_free(struct shast *ast)
 {
-    if (!ast)
-        return;
     struct shast_case *case_node = (struct shast_case *)ast;
 
     free(case_node->var);
@@ -95,9 +77,6 @@ void case_free(struct shast *ast)
 
 void cmd_free(struct shast *ast)
 {
-    if (!ast)
-        return;
-
     struct shast_cmd *command = (struct shast_cmd*)ast;
     wordlist_destroy(&command->arguments);
     free(command);
@@ -105,9 +84,6 @@ void cmd_free(struct shast *ast)
 
 void block_free(struct shast *ast)
 {
-    if (!ast)
-        return;
-
     struct shast_block *block = (struct shast_block *)ast;
     for (size_t i = 0; i < redir_vect_size(&block->redirs); i++)
         shast_redirection_free(redir_vect_get(&block->redirs, i));
@@ -123,9 +99,6 @@ void block_free(struct shast *ast)
 
 void for_free(struct shast *ast)
 {
-    if (!ast)
-        return;
-
     struct shast_for *for_node = (struct shast_for *)ast;
     free(for_node->var);
     wordlist_destroy(&for_node->collection);
@@ -135,30 +108,10 @@ void for_free(struct shast *ast)
 
 void function_free(struct shast *ast)
 {
-    if (!ast)
-        return;
-
     struct shast_function *func = (struct shast_function *)ast;
-    ref_put(&func->refcnt);
-}
-
-void shast_function_ref_free(struct refcnt *refcnt)
-{
-    struct shast_function *func;
-    func = container_of(refcnt, struct shast_function, refcnt);
     free(hash_head_key(&func->hash));
     shast_ref_put(func->body);
     free(func);
-}
-
-void assignment_free(struct shast_assignment *assign)
-{
-    if (!assign)
-        return;
-
-    free(assign->name);
-    // don't free the value, as it's a pointer to the end of the key=value string
-    free(assign);
 }
 
 #define AST_FREE_UTILS(EnumName, Name) \

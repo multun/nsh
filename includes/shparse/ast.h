@@ -330,23 +330,19 @@ DEFINE_AST_TYPE(shast_for, SHNODE_FOR)
 struct shast_function
 {
     struct shast base;
-    struct refcnt refcnt;
     struct hash_head hash;
     struct shast *body; /**< the function body */
 };
 
-void shast_function_ref_free(struct refcnt *refcnt);
-
 static inline void shast_function_hash_put(struct hash_head *head)
 {
     struct shast_function *func = container_of(head, struct shast_function, hash);
-    ref_put(&func->refcnt);
+    ref_put(&func->base.refcnt);
 }
 
 static inline void shast_function_init(struct lexer *lexer, struct shast_function *node)
 {
     shast_init(&node->base, SHNODE_FUNCTION, lexer);
-    ref_init(&node->refcnt, shast_function_ref_free);
 }
 
 DEFINE_AST_TYPE(shast_function, SHNODE_FUNCTION)

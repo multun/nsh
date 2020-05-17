@@ -19,11 +19,11 @@ int function_exec(struct environment *env, struct shast *ast, struct errcont *co
     {
         struct shast_function *former_func = container_of(func_hash, struct shast_function, hash);
         hash_table_remove(&env->functions, &former_func->hash);
-        ref_put(&former_func->refcnt);
+        shast_ref_put(&former_func->base);
     }
 
     // insert the new function
     hash_table_insert(&env->functions, insertion_point, &function->hash);
-    ref_get(&function->refcnt);
+    shast_ref_get(&function->base);
     return 0;
 }
