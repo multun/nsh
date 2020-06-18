@@ -4,7 +4,6 @@
 
 #include <err.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <sys/wait.h>
 
 int subshell_exec(struct environment *env, struct shast *ast, struct errcont *cont)
@@ -12,7 +11,7 @@ int subshell_exec(struct environment *env, struct shast *ast, struct errcont *co
     // TODO: error handling
     struct shast_subshell *subshell = (struct shast_subshell *)ast;
 
-    int cpid = fork();
+    int cpid = managed_fork(&env->sigman);
     if (cpid == -1)
         err(1, "fork() failed");
 

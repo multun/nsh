@@ -63,7 +63,7 @@ void expand_subshell(struct expansion_state *exp_state, char *buf)
     if (pipe(pfd) < 0)
         err(1, "pipe() failed");
 
-    int cpid = fork();
+    int cpid = managed_fork(&expansion_state_env(exp_state)->sigman);
     if (cpid < 0)
         err(1, "fork() failed");
 

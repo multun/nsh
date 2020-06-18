@@ -123,6 +123,7 @@ struct environment *environment_create(struct arg_context *arg_cont)
 {
     struct environment *env = xmalloc(sizeof(*env));
     ref_init(&env->refcnt, environment_free);
+    signal_manager_init(&env->sigman);
     env->argv = arg_context_extract(&env->argc, arg_cont);
     env->progname = strdup(arg_cont->argv[arg_cont->progname_ind]);
     hash_table_init(&env->variables, 10);

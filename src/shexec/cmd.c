@@ -24,7 +24,7 @@ static int builtin_exec(struct environment *env, struct errcont *cont, f_builtin
 static int cmd_fork_exec(struct environment *env, struct errcont *cont)
 {
     int status;
-    pid_t pid = fork();
+    pid_t pid = managed_fork(&env->sigman);
     if (pid < 0)
         clean_err(cont, errno, "cmd_exec: error while forking");
 

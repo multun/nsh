@@ -2,6 +2,7 @@
 
 #include "utils/hash_table.h"
 #include "utils/refcnt.h"
+#include "utils/signal_manager.h"
 
 struct shast_list;
 struct arg_context;
@@ -19,6 +20,8 @@ struct shexec_variable
 struct environment
 {
     struct refcnt refcnt;
+
+    struct signal_manager sigman;
 
     struct hash_table variables;
     struct hash_table functions;
@@ -56,11 +59,6 @@ static inline void environment_put(struct environment *env)
 {
     ref_put(&env->refcnt);
 }
-
-/**
-** \brief initialize an environment based on the current context
-*/
-void environment_load(struct environment *env);
 
 /**
 ** \brief convert the environment to a raw environment variable strings array

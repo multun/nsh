@@ -52,15 +52,15 @@ static int pipe_father(struct pipe_context *pc)
     return WEXITSTATUS(status);
 }
 
-static bool pipe_init(struct pipe_context *pc)
+static bool pipe_init(struct environment *env, struct pipe_context *pc)
 {
     if (pipe(pc->pd) < 0) {
         warn("pipe_init: pipe failed");
         return true;
     }
 
-    if ((pc->child_pid[0] = fork()) < 0
-        || (pc->child_pid[0] > 0 && (pc->child_pid[1] = fork()) < 0)) {
+    if ((pc->child_pid[0] = managed_fork(&env->sigman)) < 0
+        || (pc->child_pid[0] > 0 && (pc->child_pid[1] = managed_fork(&env->sigman)) < 0)) {
         warn("pipe_init: error while forking");
         return true;
     }
@@ -72,7 +72,7 @@ int pipe_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 {
     struct shast_pipe *pipe = (struct shast_pipe *)ast;
     struct pipe_context pc;
-    if (pipe_init(&pc))
+    if (pipe_init(env, &pc))
         return 1;
 
     else if (pc.child_pid[0] == 0) {

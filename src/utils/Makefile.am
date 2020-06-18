@@ -12,6 +12,13 @@ libutils_la_SOURCES = xalloc.c \
                       mprintf.c \
                       lineinfo.c \
                       pathutils.c \
+                      signal_lut.c \
+                      signal_pipe.c \
+                      signal_manager.c \
+                      $(TOP_INCL)/utils/signal_manager.h \
+                      $(TOP_INCL)/utils/signal_lut.h \
+                      $(TOP_INCL)/utils/signal_pipe.h \
+                      $(TOP_INCL)/utils/signal_list.h \
                       $(TOP_INCL)/utils/alloc.h \
                       $(TOP_INCL)/utils/mprintf.h \
                       $(TOP_INCL)/utils/error.h \
