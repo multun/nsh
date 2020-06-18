@@ -334,12 +334,6 @@ struct shast_function
     struct shast *body; /**< the function body */
 };
 
-static inline void shast_function_hash_put(struct hash_head *head)
-{
-    struct shast_function *func = container_of(head, struct shast_function, hash);
-    ref_put(&func->base.refcnt);
-}
-
 static inline void shast_function_init(struct lexer *lexer, struct shast_function *node)
 {
     shast_init(&node->base, SHNODE_FUNCTION, lexer);
