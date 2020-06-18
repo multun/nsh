@@ -46,7 +46,7 @@ char **environment_array(struct environment *env)
     return res;
 }
 
-void environment_load(struct environment *env)
+static void environment_load_variables(struct environment *env)
 {
     for (size_t i = 0; environ[i]; i++) {
         char *var = environ[i];
@@ -132,6 +132,6 @@ struct environment *environment_create(struct arg_context *arg_cont)
 
     env->break_count = 0;
     env->depth = 0;
-    environment_load(env);
+    environment_load_variables(env);
     return env;
 }
