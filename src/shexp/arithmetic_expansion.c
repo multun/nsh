@@ -2,6 +2,7 @@
 #include "shexp/expansion.h"
 #include "shexp/arithmetic_expansion.h"
 #include "utils/mprintf.h"
+#include "utils/parsing.h"
 
 #include <string.h>
 #include <err.h>
@@ -150,43 +151,6 @@ static bool arith_breaks_expression(char c)
     return isspace(c) || arith_starts_operator(c);
 }
 
-
-// the field is zero if the char doesn't map to anything, 1 + value otherwise
-static char arith_number_map[127] =
-{
-    ['0'] = 1,
-    ['1'] = 2,
-    ['2'] = 3,
-    ['3'] = 4,
-    ['4'] = 5,
-    ['5'] = 6,
-    ['6'] = 7,
-    ['7'] = 8,
-    ['8'] = 9,
-    ['9'] = 10,
-    ['A'] = 11,
-    ['B'] = 12,
-    ['C'] = 13,
-    ['D'] = 14,
-    ['E'] = 15,
-    ['F'] = 16,
-    ['a'] = 11,
-    ['b'] = 12,
-    ['c'] = 13,
-    ['d'] = 14,
-    ['e'] = 15,
-    ['f'] = 16,
-};
-
-static int arith_parse_digit(int c)
-{
-    int max_ascii = sizeof(arith_number_map) / sizeof(arith_number_map[0]);
-    if (c <= 0 || c >= max_ascii)
-        return -1;
-
-    return arith_number_map[c] - 1;
-}
-
 static int arith_lex_number_base(struct cstream *cs)
 {
     int c = cstream_peek(cs);
@@ -215,7 +179,7 @@ static int arith_lex_number(struct expansion_state *exp_state, struct cstream *c
         if (c == EOF || arith_breaks_expression(c))
             break;
 
-        int new_digit = arith_parse_digit(c);
+        int new_digit = parse_digit(c);
         if (new_digit == -1 || new_digit >= base) {
             expansion_warning(exp_state, "'%c' (0x%x) isn't a valid base %d digit", c, c, base);
             return 1;

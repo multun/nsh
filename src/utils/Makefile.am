@@ -15,6 +15,8 @@ libutils_la_SOURCES = xalloc.c \
                       signal_lut.c \
                       signal_pipe.c \
                       signal_manager.c \
+                      parsing.c \
+                      $(TOP_INCL)/utils/parsing.h \
                       $(TOP_INCL)/utils/signal_manager.h \
                       $(TOP_INCL)/utils/signal_lut.h \
                       $(TOP_INCL)/utils/signal_pipe.h \

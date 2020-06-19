@@ -7,19 +7,24 @@
 #include "cli/shopt.h"
 #include "shexec/builtins.h"
 #include "utils/evect.h"
+#include "utils/parsing.h"
 
 enum shecho_opt
 {
     SHECHO_NL = 1,
     SHECHO_ESC = 2,
-    SHECHO_RET = 4,
 };
 
-static int builtin_echo_parse_opt(int *opt, char **argv)
+static int parse_options(int *opt, char **argv)
 {
     int pos = 1;
-    bool run = true;
-    while (run && argv[pos] && *(argv[pos]) == '-' && strlen(argv[pos]) == 2) {
+    while (argv[pos]) {
+        if (argv[pos][0] != '-')
+            break;
+
+        if (strlen(argv[pos]) != 2)
+            break;
+
         switch (argv[pos][1]) {
         case 'n':
             *opt |= SHECHO_NL;
@@ -31,136 +36,135 @@ static int builtin_echo_parse_opt(int *opt, char **argv)
             *opt &= ~SHECHO_ESC;
             break;
         default:
-            pos--;
-            run = false;
-            break;
+            return pos;
         }
         pos++;
     }
     return pos;
 }
 
-static void echo_parse_base(char **c, int base, struct evect *vec)
+static size_t echo_parse_base(const char * const str, int base, size_t len)
 {
+    /* the 'x' or '0' in '\x' or '\0'*/
+    char basis_tag = *str;
+
     char res = 0;
+
     size_t index = 0;
-    size_t len = base == 8 ? 3 : 2;
-    for (; index < len && (*c)[1]; index++) {
-        res *= base;
-        if ((*c)[1] >= '0' && ((*c)[1] < '8' || ((*c)[1] <= '9' && base > 9)))
-            res += ((*c)++)[1] - '0';
-        else if (base == 16 && ((*c)[1] >= 'a' && ((*c)[1] < 'f')))
-            res += ((*c)++)[1] - 'a';
-        else if (base == 16 && ((*c)[1] >= 'A' && ((*c)[1] < 'F')))
-            res += ((*c)++)[1] - 'A';
-        else
+    for (; index < len; index++) {
+        /* the +1 skips the basis tag */
+        int num = parse_digit(str[index + 1]);
+        /* if the digit isn't a valid input, stop there */
+        if (num == -1)
             break;
+
+        res *= base;
+        res += num;
     }
-    if (index < 1 && base == 16) {
-        evect_push(vec, '\\');
-        evect_push(vec, 'x');
-    } else if (index)
-        evect_push(vec, res);
+
+    /* handle empty escapes */
+    if (index == 0) {
+        if (base == 8) {
+            /* echo -e '\0' is interpreted as a nul byte, not as an empty escape */
+            putchar('\0');
+            return 0;
+        }
+        putchar('\\');
+        putchar(basis_tag);
+        return 0;
+    }
+
+    putchar(res);
+    /* we return the number of consumed chars, excluding the basis tag */
+    return index;
 }
 
-static void echo_print_num(char **c, struct evect *vec)
-{
-    switch (**c) {
-    case 'r':
-        evect_push(vec, '\r');
-        break;
-    case 't':
-        evect_push(vec, '\t');
-        break;
-    case 'v':
-        evect_push(vec, '\v');
-        break;
-    case '\\':
-        evect_push(vec, '\\');
-        break;
-    case '0':
-        echo_parse_base(c, 8, vec);
-        break;
-    case 'x':
-        echo_parse_base(c, 16, vec);
-        break;
-    default:
-        evect_push(vec, '\\');
-        evect_push(vec, **c);
-        break;
-    }
-}
-
-static void echo_print_esc(char **c, struct evect *vec)
+static void echo_print_esc(const char **c)
 {
     switch (**c) {
     case 'a':
-        evect_push(vec, '\a');
+        putchar('\a');
         break;
     case 'b':
-        evect_push(vec, '\b');
+        putchar('\b');
         break;
     case 'c':
-        evect_push(vec, '\0');
+        putchar('\0');
         break;
     case 'e':
     case 'E':
-        evect_push(vec, 0x1b);
+        putchar(0x1b);
         break;
     case 'f':
-        evect_push(vec, '\f');
+        putchar('\f');
         break;
     case 'n':
-        evect_push(vec, '\n');
+        putchar('\n');
+        break;
+    case 'r':
+        putchar('\r');
+        break;
+    case 't':
+        putchar('\t');
+        break;
+    case 'v':
+        putchar('\v');
+        break;
+    case '\\':
+        putchar('\\');
+        break;
+    case '0':
+        *c += echo_parse_base(*c, 8, 3);
+        break;
+    case 'x':
+        *c += echo_parse_base(*c, 16, 2);
         break;
     default:
-        echo_print_num(c, vec);
+        putchar('\\');
+        putchar(**c);
         break;
     }
 }
 
-static void echo_print(char *c, int opt, struct evect *vec)
+static void echo_print(const char *c, int opt)
 {
-    bool esc = false;
-    for (; *c && !(opt & SHECHO_RET); c++) {
-        if (!(opt & SHECHO_ESC))
-            evect_push(vec, *c);
-        else if (!esc) {
-            if (*c != '\\')
-                evect_push(vec, *c);
-            else
-                esc = true;
-        } else {
-            esc = false;
-            echo_print_esc(&c, vec);
+    for (; *c; c++) {
+        if (!(opt & SHECHO_ESC)) {
+            putchar(*c);
+            continue;
         }
+
+        if (*c != '\\') {
+            putchar(*c);
+            continue;
+        }
+
+        c++;
+        if (*c == '\0') {
+            putchar('\\');
+            return;
+        }
+
+        echo_print_esc(&c);
     }
-    if (esc)
-        evect_push(vec, '\\');
 }
 
-int builtin_echo(struct environment *env, struct errcont *cont, int argc, char **argv)
+int builtin_echo(struct environment *__unused env, struct errcont *__unused cont, int argc, char **argv)
 {
-    if (!env || !cont)
-        warnx("cd: missing context elements");
+    int options = 0;
+    if (g_shopts[SHOPT_XPG_ECHO])
+        options = SHECHO_ESC;
 
-    int opt = SHECHO_ESC * g_shopts[SHOPT_XPG_ECHO];
-    int pos = builtin_echo_parse_opt(&opt, argv);
-    struct evect vec;
-    if (argv[pos])
-        evect_init(&vec, strlen(argv[pos]));
-    else
-        evect_init(&vec, 2);
-    for (int i = pos; i < argc; i++) {
-        if (i != pos)
-            evect_push(&vec, ' ');
-        echo_print(argv[i], opt, &vec);
+    int options_end = parse_options(&options, argv);
+
+    for (int i = options_end; i < argc; i++) {
+        if (i != options_end)
+            putchar(' ');
+        echo_print(argv[i], options);
     }
-    if (!(opt & SHECHO_NL))
-        evect_push(&vec, '\n');
-    evect_push(&vec, '\0');
 
-    int res = printf("%s", vec.data) < 0;
-    evect_destroy(&vec);
-    return !!(res);
+    if (!(options & SHECHO_NL))
+        putchar('\n');
+
+    return 0;
 }
