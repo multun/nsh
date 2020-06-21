@@ -29,15 +29,15 @@ static void try_read_eval(struct lexer *lex, struct errcont *errcont, struct con
 }
 
 // returns whether to continue
-static bool handle_repl_exception(struct errman *eman, struct context *cont)
+static bool handle_repl_exception(struct errman *eman, struct context *ctx)
 {
     if (eman->class == &g_clean_exit) {
-        cont->env->code = eman->retcode;
+        ctx->env->code = eman->retcode;
         return false;
     }
 
     if (eman->class == &g_keyboard_interrupt) {
-        cont->env->code = eman->retcode;
+        ctx->env->code = eman->retcode;
         return true;
     }
 
@@ -54,9 +54,9 @@ static bool handle_repl_exception(struct errman *eman, struct context *cont)
     // bash: -c: line 1: syntax error: unexpected end of file
     // $ echo $?
 
-    cont->env->code = g_cmdopts.src == SHSRC_COMMAND ? 1 : 2;
+    ctx->env->code = g_cmdopts.src == SHSRC_COMMAND ? 1 : 2;
     // stop if the repl isn't interactive
-    return cont->cs->interactive;
+    return ctx->cs->interactive;
 }
 
 bool repl(struct context *ctx)
