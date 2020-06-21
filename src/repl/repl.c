@@ -10,23 +10,6 @@
 
 #include <err.h>
 
-static void try_read_eval(struct lexer *lex, struct errcont *errcont, struct context *cont)
-{
-    struct shast *ast = NULL;
-    parse(&ast, lex, errcont);
-    if (ast == NULL)
-        return;
-
-    if (g_shopts[SHOPT_AST_PRINT]) {
-        FILE *f = fopen("nsh_ast.dot", "w+");
-        ast_print(f, ast);
-        fclose(f);
-    }
-
-    history_update(cont);
-    cont->env->code = ast_exec(cont->env, ast, errcont);
-    shast_ref_put(ast);
-}
 
 // returns whether to continue
 static bool handle_repl_exception(struct errman *eman, struct context *ctx)
@@ -85,17 +68,38 @@ bool repl(struct context *ctx)
 
          /* parse and execute */
         if (setjmp(keeper.env)) {
+            /* decide whether to stop running the repl */
             if (!handle_repl_exception(&eman, ctx)) {
                 cstream_set_errcont(ctx->cs, NULL);
                 return true;
             }
-            // when an interactive non-fatal interupt occurs,
-            // reset the line buffer / token list / ...
-            // for example: `foo bar()`
+
+            /* when an interactive non-fatal interupt occurs, cleanup temporary data (tokens, buffers, ...) */
             context_reset(ctx);
+
+            /* restart all over again */
+            continue;
         }
 
-        try_read_eval(ctx->lexer, &errcont, ctx);
+        parse(&ctx->ast, ctx->lexer, &errcont);
+
+        if (ctx->ast != NULL) {
+            /* pretty-print the ast */
+            if (g_shopts[SHOPT_AST_PRINT]) {
+                FILE *f = fopen("nsh_ast.dot", "w+");
+                ast_print(f, ctx->ast);
+                fclose(f);
+            }
+
+            /* update the shell history */
+            history_update(ctx);
+
+            /* execute the parsed AST */
+            ctx->env->code = ast_exec(ctx->env, ctx->ast, &errcont);
+
+            /* drop the AST reference */
+            context_drop_ast(ctx);
+        }
 
         /* reset the error handler */
         cstream_set_errcont(ctx->cs, NULL);

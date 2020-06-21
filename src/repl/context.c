@@ -4,6 +4,7 @@
 #include "repl/repl.h"
 #include "shexec/environment.h"
 #include "utils/pathutils.h"
+#include "shparse/ast.h"
 
 #include <pwd.h>
 #include <stdbool.h>
@@ -74,4 +75,23 @@ void context_destroy(struct context *ctx)
     history_destroy(ctx);
     lexer_free(ctx->lexer);
     environment_put(ctx->env);
+    context_drop_ast(ctx);
+}
+
+void context_reset(struct context *ctx)
+{
+    ctx->line_start = true;
+    cstream_reset(ctx->cs);
+    lexer_reset(ctx->lexer);
+    evect_reset(&ctx->line_buffer);
+    context_drop_ast(ctx);
+}
+
+void context_drop_ast(struct context *ctx)
+{
+    if (!ctx->ast)
+        return;
+
+    shast_ref_put(ctx->ast);
+    ctx->ast = NULL;
 }

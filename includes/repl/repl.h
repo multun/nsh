@@ -5,6 +5,7 @@
 #include "shexec/environment.h"
 #include "shlex/lexer.h"
 #include "utils/error.h"
+#include "shparse/ast.h"
 
 #include <stdbool.h>
 
@@ -31,7 +32,7 @@ struct arg_context
     }
 
 /**
-** \brief detailsribes the current context of the read eval loop
+** \brief describes the current context of the read eval loop
 */
 struct context
 {
@@ -58,12 +59,19 @@ struct context
     FILE *history;
 };
 
-static inline void context_reset(struct context *ctx)
-{
-    cstream_reset(ctx->cs);
-    lexer_reset(ctx->lexer);
-    ctx->line_start = true;
-}
+/**
+** \brief drop the refence to the AST, if the context holds one
+** \param ctx the runtime context
+*/
+void context_drop_ast(struct context *ctx);
+
+
+/**
+** \brief reset temporary state, and get the context ready for a new repl round
+** \param ctx the runtime context
+*/
+void context_reset(struct context *ctx);
+
 
 /**
 ** \brief runs shell command from an already setup context
