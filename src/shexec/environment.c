@@ -121,7 +121,7 @@ static void environment_free(struct refcnt *refcnt)
 
 struct environment *environment_create(struct arg_context *arg_cont)
 {
-    struct environment *env = xmalloc(sizeof(*env));
+    struct environment *env = zalloc(sizeof(*env));
     ref_init(&env->refcnt, environment_free);
     signal_manager_init(&env->sigman);
     env->argv = arg_context_extract(&env->argc, arg_cont);
