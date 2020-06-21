@@ -1,0 +1,7 @@
+{
+  "desc": "test dynamic integer precision with %.*d",
+  "stdin": "printf '%.*d\\n' 3 42\n",
+  "stdout": "042\n",
+  "stderr": "",
+  "retcode": 0
+}

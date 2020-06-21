@@ -1,0 +1,7 @@
+{
+  "desc": "test three char octal",
+  "stdin": "printf '\\077'\n",
+  "stdout": "?",
+  "stderr": "",
+  "retcode": 0
+}

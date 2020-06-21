@@ -1,0 +1,7 @@
+{
+  "desc": "test interactions between auto 0 prefixed octal and explicit precision",
+  "stdin": "printf '%#.4o\\n' 42\n",
+  "stdout": "0052\n",
+  "stderr": "",
+  "retcode": 0
+}

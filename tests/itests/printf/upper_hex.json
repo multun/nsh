@@ -1,0 +1,7 @@
+{
+  "desc": "test upper hex format spec",
+  "stdin": "printf '%X\\n' 42\n",
+  "stdout": "2A\n",
+  "stderr": "",
+  "retcode": 0
+}

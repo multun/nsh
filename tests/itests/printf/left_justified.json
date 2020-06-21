@@ -1,0 +1,7 @@
+{
+  "desc": "test left justified output",
+  "stdin": "printf '>%-4d<\\n' 42\n",
+  "stdout": ">42  <\n",
+  "stderr": "",
+  "retcode": 0
+}

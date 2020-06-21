@@ -1,0 +1,7 @@
+{
+  "desc": "test integer precision",
+  "stdin": "printf '%.4d\\n' 42\n",
+  "stdout": "0042\n",
+  "stderr": "",
+  "retcode": 0
+}

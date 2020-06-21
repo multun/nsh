@@ -6,11 +6,15 @@
 #include <stdlib.h>
 
 
-/* log10(n) = log2(n) * (ln(2) / ln(10)) */
-/* log10(n) <= log2(n) * 0.3 + 1 */
+/* gives the number of characters needed to print some type in base 8 or 10.
+** log10(n) = log2(n) * (ln(2) / ln(10))
+** log8(n) = log2(n) * (ln(2) / ln(8))
+** log10(n) <= log2(n) / 3 + 1
+** log8(n) <= log2(n) / 3 + 1
+*/
 #define UINT_MAX_CHARS(IntegerType)                     \
     ((sizeof(IntegerType) * CHAR_BIT) / 3               \
-     + 1 /* last digit (round to the upper decimal) */) \
+     + 1 /* last digit (round to the upper decimal) */)
 
 #define INT_MAX_CHARS(IntegerType)                      \
     (1 /* - sign */ + UINT_MAX_CHARS(IntegerType))

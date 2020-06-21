@@ -1,0 +1,7 @@
+{
+  "desc": "test repeated output",
+  "stdin": "printf '>%s<\\n' a b c\n",
+  "stdout": ">a<\n>b<\n>c<\n",
+  "stderr": "",
+  "retcode": 0
+}

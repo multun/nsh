@@ -1,0 +1,7 @@
+{
+  "desc": "test the hex escape extension",
+  "stdin": "printf '\\x61'\n",
+  "stdout": "a",
+  "stderr": "",
+  "retcode": 0
+}

@@ -1,0 +1,7 @@
+{
+  "desc": "test octal escapes",
+  "stdin": "printf '\\141'\n",
+  "stdout": "a",
+  "stderr": "",
+  "retcode": 0
+}

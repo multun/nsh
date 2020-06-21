@@ -1,0 +1,7 @@
+{
+  "desc": "test auto 0 prefixed octal",
+  "stdin": "printf '%#o\\n' 42\n",
+  "stdout": "052\n",
+  "stderr": "",
+  "retcode": 0
+}

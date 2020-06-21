@@ -7,15 +7,16 @@
 ** \brief lists all available builtins
 */
 #define BUILTINS_APPLY(F)                                                                \
+    F(break)                                                                             \
     F(cd)                                                                                \
+    F(continue)                                                                          \
     F(echo)                                                                              \
     F(exit)                                                                              \
-    F(break)                                                                             \
-    F(continue)                                                                          \
-    F(shopt)                                                                             \
-    F(source)                                                                            \
+    F(export)                                                                            \
     F(history)                                                                           \
-    F(export)
+    F(printf)                                                                            \
+    F(shopt)                                                                             \
+    F(source)
 
 #define BUILTINS_DECLARE(Name)                                                           \
     int builtin_##Name(struct environment*env, struct errcont *cont, int argc, char **argv);

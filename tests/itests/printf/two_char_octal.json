@@ -1,0 +1,7 @@
+{
+  "desc": "test two char escapes",
+  "stdin": "printf '\\77z'\n",
+  "stdout": "?z",
+  "stderr": "",
+  "retcode": 0
+}

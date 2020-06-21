@@ -1,0 +1,7 @@
+{
+  "desc": "test extra args without specifiers",
+  "stdin": "printf 'nop' a b c\n",
+  "stdout": "nop",
+  "stderr": "",
+  "retcode": 0
+}

@@ -1,0 +1,7 @@
+{
+  "desc": "test octal integer input",
+  "stdin": "printf '%d' '0777'\n",
+  "stdout": "511",
+  "stderr": "",
+  "retcode": 0
+}

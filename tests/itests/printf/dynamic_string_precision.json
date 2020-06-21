@@ -1,0 +1,7 @@
+{
+  "desc": "test dynamic string precision with %.*s",
+  "stdin": "printf '%.*s\\n' 3 foobar\n",
+  "stdout": "foo\n",
+  "stderr": "",
+  "retcode": 0
+}

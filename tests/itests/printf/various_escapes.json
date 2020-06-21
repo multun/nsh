@@ -1,0 +1,7 @@
+{
+  "desc": "test various backslash escapes",
+  "stdin": "printf '\\\\\\a\\b\\f\\n\\r\\t\\v'\n",
+  "stdout": "\\\u0007\b\f\n\r\t\u000b",
+  "stderr": "",
+  "retcode": 0
+}

@@ -1,0 +1,7 @@
+{
+  "desc": "test missing printf arguments",
+  "stdin": "printf '%.*s %d %c\\n'\n",
+  "stdout": " 0 \u0000\n",
+  "stderr": "",
+  "retcode": 0
+}

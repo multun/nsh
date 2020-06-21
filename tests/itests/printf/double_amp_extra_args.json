@@ -1,0 +1,7 @@
+{
+  "desc": "test the special % escape interaction with format repeat",
+  "stdin": "printf '%%' a b c\n",
+  "stdout": "%",
+  "stderr": "",
+  "retcode": 0
+}

@@ -1,0 +1,7 @@
+{
+  "desc": "test weird char code escape integer input",
+  "stdin": "printf '%d' '\"a'\n",
+  "stdout": "97",
+  "stderr": "",
+  "retcode": 0
+}
