@@ -149,7 +149,7 @@ static void echo_print(const char *c, int opt)
     }
 }
 
-int builtin_echo(struct environment *__unused env, struct errcont *__unused cont, int argc, char **argv)
+int builtin_echo(struct environment *env __unused, struct errcont *cont __unused, int argc, char **argv)
 {
     int options = 0;
     if (g_shopts[SHOPT_XPG_ECHO])
