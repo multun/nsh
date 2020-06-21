@@ -43,6 +43,14 @@ struct glob_path_element
     bool trivial;
 };
 
+
+static inline void glob_path_element_destroy(struct glob_path_element *item)
+{
+    free(item->name);
+    free(item);
+}
+
+
 #include "utils/pvect.h"
 
 #define GVECT_NAME gpath_vect
@@ -66,14 +74,22 @@ static inline void glob_state_init(struct glob_state *state)
     evect_init(&state->path_buffer, 42);
 }
 
+static inline void gpath_vect_destroy_items(struct gpath_vect *vect)
+{
+    for (size_t i = 0; i < gpath_vect_size(vect); i++)
+        glob_path_element_destroy(gpath_vect_get(vect, i));
+}
+
 static inline void glob_state_reset(struct glob_state *state)
 {
+    gpath_vect_destroy_items(&state->path_elements);
     gpath_vect_reset(&state->path_elements);
     evect_reset(&state->path_buffer);
 }
 
 static inline void glob_state_destroy(struct glob_state *state)
 {
+    gpath_vect_destroy_items(&state->path_elements);
     gpath_vect_destroy(&state->path_elements);
     evect_destroy(&state->path_buffer);
 }

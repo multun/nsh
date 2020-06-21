@@ -54,9 +54,6 @@ void expansion_end_word(struct expansion_state *exp_state)
 
     expansion_result_push(&exp_state->result, '\0', 0);
     glob_expand(&exp_state->glob_state, &exp_state->result, &exp_state->callback_ctx);
-    /* char *word = strndup(expansion_result_data(&exp_state->result), */
-    /*                      expansion_result_size(&exp_state->result)); */
-    /* exp_state->callback.func(exp_state->callback.data, word, exp_state->env, exp_state->errcont); */
     expansion_state_reset_data(exp_state);
 }
 
