@@ -58,6 +58,13 @@ struct context
     FILE *history;
 };
 
+static inline void context_reset(struct context *ctx)
+{
+    cstream_reset(ctx->cs);
+    lexer_reset(ctx->lexer);
+    ctx->line_start = true;
+}
+
 /**
 ** \brief runs shell command from an already setup context
 ** \param ctx a runtime context
