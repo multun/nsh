@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 set -e
 
@@ -59,7 +59,7 @@ create_tests() {
     done
 }
 
-if (($# > 0)); then
+if [ $# != 0 ]; then
     create_tests "$@"
 else
     usage
