@@ -1,6 +1,6 @@
 AC_PREREQ([2.64])
 AC_CONFIG_MACRO_DIR([m4])
-AC_INIT([nsh], [1.0], [], [nsh], [acu.epita.fr])
+AC_INIT([nsh], [1.0], [], [nsh], [https://github.com/multun/nsh/])
 
 AM_INIT_AUTOMAKE([foreign subdir-objects -Wall -Werror])
 

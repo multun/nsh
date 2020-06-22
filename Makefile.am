@@ -6,8 +6,16 @@ ACLOCAL_AMFLAGS = -I m4
 
 bin_PROGRAMS = nsh
 
-SUBDIRS = src/shlex src/io src/shparse src/utils src/shexec \
-          src/cli src/repl src/shexp src/shwlex
+SUBDIRS = \
+    src/cli \
+    src/io \
+    src/repl \
+    src/shexec \
+    src/shexp \
+    src/shlex \
+    src/shparse \
+    src/shwlex \
+    src/utils
 
 
 include $(top_srcdir)/tests/itests.mk
@@ -21,9 +29,18 @@ doc:
 	doxygen $(srcdir)/doc/doxyconfig
 
 
-nsh_LDADD = src/repl/librepl.la src/shparse/libparse.la src/shexec/libshexec.la \
-             src/cli/libcli.la src/shlex/libshlex.la src/shexp/libshexp.la \
-             src/shwlex/libshwlex.la src/io/libio.la src/utils/libutils.la
+# the order of this list matters
+# each lib must have all of its dependencies below it
+nsh_LDADD = \
+    src/repl/librepl.la \
+    src/shparse/libparse.la \
+    src/shexec/libshexec.la \
+    src/cli/libcli.la \
+    src/shlex/libshlex.la \
+    src/shexp/libshexp.la \
+    src/shwlex/libshwlex.la \
+    src/io/libio.la \
+    src/utils/libutils.la
 
 nsh_SOURCES = src/main.c
 
