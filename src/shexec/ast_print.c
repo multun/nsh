@@ -90,16 +90,16 @@ void cmd_print(FILE *f, struct shast *ast)
 }
 
 
-void pipe_print(FILE *f, struct shast *ast)
+void pipeline_print(FILE *f, struct shast *ast)
 {
-    struct shast_pipe *pipe = (struct shast_pipe *)ast;
+    struct shast_pipeline *pipe = (struct shast_pipeline *)ast;
     print_node(f, pipe, "|");
 
-    ast_print_rec(f, pipe->left);
-    print_rel(f, pipe, pipe->left, NULL);
-
-    ast_print_rec(f, pipe->right);
-    print_rel(f, pipe, pipe->right, NULL);
+    for (size_t i = 0; i < shast_vect_size(&pipe->children); i++) {
+        struct shast *cur = shast_vect_get(&pipe->children, i);
+        ast_print_rec(f, cur);
+        print_rel(f, pipe, cur, NULL);
+    }
 }
 
 

@@ -19,7 +19,7 @@
     F(SHNODE_IF, if)                        \
     F(SHNODE_FOR, for)                      \
     F(SHNODE_WHILE, while)                  \
-    F(SHNODE_PIPE, pipe)                    \
+    F(SHNODE_PIPELINE, pipeline)            \
     F(SHNODE_CASE, case)                    \
     F(SHNODE_BOOL_OP, bool_op)              \
     F(SHNODE_NEGATE, negate)                \
@@ -68,6 +68,13 @@ AST_TYPE_APPLY(DECLARE_AST_FREE_UTILS)
 #include "utils/pvect_wrap.h"
 #undef GVECT_NAME
 #undef GVECT_TYPE
+
+static inline struct shast **shast_vect_tail_slot(struct shast_vect *vect)
+{
+    shast_vect_push(vect, NULL);
+    return shast_vect_last(vect);
+}
+
 
 
 #define DEFINE_AST_TYPE(Name, TypeVal)                                  \
@@ -370,19 +377,19 @@ static inline void shast_list_init(struct lexer *lexer, struct shast_list *node)
 
 DEFINE_AST_TYPE(shast_list, SHNODE_LIST)
 
-struct shast_pipe
+struct shast_pipeline
 {
     struct shast base;
-    struct shast *left; /**< the left operand */
-    struct shast *right; /**< the right operand */
+    struct shast_vect children;
 };
 
-static inline void shast_pipe_init(struct lexer *lexer, struct shast_pipe *node)
+static inline void shast_pipeline_init(struct lexer *lexer, struct shast_pipeline *node)
 {
-    shast_init(&node->base, SHNODE_PIPE, lexer);
+    shast_init(&node->base, SHNODE_PIPELINE, lexer);
+    shast_vect_init(&node->children, 2);
 }
 
-DEFINE_AST_TYPE(shast_pipe, SHNODE_PIPE)
+DEFINE_AST_TYPE(shast_pipeline, SHNODE_PIPELINE)
 
 struct shast_subshell
 {

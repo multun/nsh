@@ -14,33 +14,40 @@ static void negate_ast(struct shast **ast, struct lexer *lexer, bool neg)
     *ast = &neg_ast->base;
 }
 
-static void pipeline_loop(struct shast **res, struct lexer *lexer, struct errcont *errcont)
-{
-    while (true) {
-        const struct token *tok = lexer_peek(lexer, errcont);
-        if (!tok_is(tok, TOK_PIPE))
-            break;
-        tok_free(lexer_pop(lexer, errcont), true);
-        parse_newlines(lexer, errcont);
-        tok = lexer_peek(lexer, errcont);
-        struct shast_pipe *pipe = shast_pipe_create(lexer);
-        pipe->left = *res;
-        *res = &pipe->base;
-        parse_command(&pipe->right, lexer, errcont);
-    }
-}
-
 void parse_pipeline(struct shast **res, struct lexer *lexer, struct errcont *errcont)
 {
+    /* detect pipeline negation: '! foo | bar' */
     const struct token *tok = lexer_peek(lexer, errcont);
     bool negation = tok_is(tok, TOK_BANG);
     if (negation)
         lexer_discard(lexer, errcont);
 
+    /* parse a single command */
     parse_command(res, lexer, errcont);
+
+    /* if the command isn't followed by a pipe, apply negation and stop there */
     tok = lexer_peek(lexer, errcont);
-    pipeline_loop(res, lexer, errcont);
+    if (!tok_is(tok, TOK_PIPE)) {
+        negate_ast(res, lexer, negation);
+        return;
+    }
+
+    /* otherwise, create a fully fledged pipeline */
+    struct shast *first_child = *res;
+    struct shast_pipeline *pipeline = shast_pipeline_attach(res, lexer);
+    shast_vect_push(&pipeline->children, first_child);
     negate_ast(res, lexer, negation);
+
+    /* fill the pipeline while there are '|' tokens */
+    do {
+        /* drop the '|' token*/
+        tok_free(lexer_pop(lexer, errcont), true);
+        /* drop newlines */
+        parse_newlines(lexer, errcont);
+        /* parse the next command in a new slot at the end of the children list */
+        parse_command(shast_vect_tail_slot(&pipeline->children), lexer, errcont);
+        tok = lexer_peek(lexer, errcont);
+    } while (tok_is(tok, TOK_PIPE));
 }
 
 static enum redir_type parse_redir_type(const struct token *tok)

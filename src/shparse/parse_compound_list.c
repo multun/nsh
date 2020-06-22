@@ -17,12 +17,11 @@ void parse_compound_list(struct shast **res, struct lexer *lexer, struct errcont
     parse_newlines(lexer, errcont);
     struct shast_list *list = shast_list_attach(res, lexer);
     while (true) {
-        // parse the command
-        shast_vect_push(&list->commands, NULL);
-        struct shast **last_ast = shast_vect_last(&list->commands);
+        struct shast **last_ast = shast_vect_tail_slot(&list->commands);
+        /* parse the command */
         parse_and_or(last_ast, lexer, errcont);
 
-        // stop if there's no command separator
+        /* stop if there's no command separator */
         const struct token *tok = lexer_peek(lexer, errcont);
 
         if (tok_is(tok, TOK_AND)) {
@@ -35,7 +34,7 @@ void parse_compound_list(struct shast **res, struct lexer *lexer, struct errcont
         lexer_discard(lexer, errcont);
         parse_newlines(lexer, errcont);
 
-        // stop if there's a compound list terminator keyword
+        /* stop if there's a compound list terminator keyword */
         tok = lexer_peek(lexer, errcont);
         if (compound_list_end(tok))
             break;

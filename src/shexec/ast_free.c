@@ -18,11 +18,12 @@ void while_free(struct shast *ast)
     free(while_node);
 }
 
-void pipe_free(struct shast *ast)
+void pipeline_free(struct shast *ast)
 {
-    struct shast_pipe *pipe = (struct shast_pipe *)ast;
-    shast_ref_put(pipe->left);
-    shast_ref_put(pipe->right);
+    struct shast_pipeline *pipe = (struct shast_pipeline *)ast;
+    for (size_t i = 0; i < shast_vect_size(&pipe->children); i++)
+        shast_ref_put(shast_vect_get(&pipe->children, i));
+    shast_vect_destroy(&pipe->children);
     free(ast);
 }
 

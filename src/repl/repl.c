@@ -4,6 +4,7 @@
 #include "repl/history.h"
 #include "repl/repl.h"
 #include "shexec/clean_exit.h"
+#include "shexec/runtime_error.h"
 #include "shlex/lexer.h"
 #include "shparse/parse.h"
 #include "utils/error.h"
@@ -24,8 +25,15 @@ static bool handle_repl_exception(struct errman *eman, struct context *ctx)
         return true;
     }
 
+    if (eman->class == &g_runtime_error) {
+        ctx->env->code = eman->retcode;
+        /* continue if the REPL is interactive */
+        return ctx->cs->interactive;
+    }
+
     if (eman->class != &g_parser_error && eman->class != &g_lexer_error)
         errx(2, "received an unknown exception");
+
     // syntax errors don't have the same return code inside and outside
     // of the REPL
 
