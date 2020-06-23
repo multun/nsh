@@ -125,6 +125,7 @@ bool cstream_eof(struct cstream *cs);
 
 static inline void cstream_reset(struct cstream *cs)
 {
+    cs->has_buf = false;
     if (cs->backend->reset)
         cs->backend->reset(cs);
 }
