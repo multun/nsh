@@ -44,34 +44,47 @@ void history_update(struct context *ctx)
         return;
 
     struct evect *cmd_vect = &ctx->line_buffer;
-    if (cmd_vect->data[ctx->line_buffer.size - 1] == '\n')
-        cmd_vect->data[--ctx->line_buffer.size] = '\0';
-    else
-        evect_push(cmd_vect, '\0');
 
-    add_history(cmd_vect->data);
-
+    /* if we couln't open an history file, reset the buffer and give up */
     if (!ctx->history) {
-        ctx->line_buffer.size = 0;
+        evect_reset(cmd_vect);
         return;
     }
 
-    cmd_vect->data[ctx->line_buffer.size - 1] = '\n';
-    evect_push(cmd_vect, '\0');
+    /* there should be something in the command buffer, as parsing
+       must have proceeded for history_update to be called */
+    assert(cmd_vect->size != 0);
+
+    /* in production, just skip adding to the history if it happens anyway */
+    if (cmd_vect->size == 0)
+        return;
+
+    /* NUL-terminate the command buffer, removing that one anoying \n if it's there */
+    if (cmd_vect->data[cmd_vect->size - 1] == '\n')
+        cmd_vect->data[--cmd_vect->size] = '\0';
+    else
+        evect_push(cmd_vect, '\0');
+
+    /* use readline_history */
+    add_history(cmd_vect->data);
 
     if (fputs(cmd_vect->data, ctx->history) == EOF) {
         warnx("couldn't update history, closing history file");
-        history_destroy(ctx);
+        fclose(ctx->history);
+        ctx->history = NULL;
     } else
-        ctx->line_buffer.size = 0;
+        evect_reset(cmd_vect);
 }
 
 void history_destroy(struct context *ctx)
 {
-    if (!ctx->history)
+    if (!ctx->cs->interactive)
         return;
 
     evect_destroy(&ctx->line_buffer);
-    fclose(ctx->history);
-    ctx->history = NULL;
+
+    if (ctx->history) {
+        fclose(ctx->history);
+        ctx->history = NULL;
+    }
 }
