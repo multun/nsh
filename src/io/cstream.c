@@ -26,8 +26,10 @@ static inline int cstream_get(struct cstream *cs)
 int cstream_peek(struct cstream *cs)
 {
     if (!cs->has_buf) {
-        cs->has_buf = true;
+        /* /!\\ cstream_get can raise an exception. be careful /!\\ */
+        /* swapping the following two lines results in an awful bug */
         cs->buf = cstream_get(cs);
+        cs->has_buf = true;
     }
 
     return cs->buf;
@@ -41,6 +43,7 @@ int cstream_pop(struct cstream *cs)
         cs->has_buf = false;
         res = cs->buf;
     } else
+        /* /!\\ cstream_get can raise an exception. be careful /!\\ */
         res = cstream_get(cs);
 
     if (res == '\n') {
