@@ -202,6 +202,6 @@ runtime_error:
     }
     free(children_pids);
 
-    ex_scope->errman->retcode = status;
+    ex_scope->context->retcode = status;
     shraise(ex_scope, &g_runtime_error);
 }

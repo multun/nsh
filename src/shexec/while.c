@@ -7,13 +7,13 @@
 int while_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
 {
     struct shast_while *while_node = (struct shast_while *)ast;
-    struct errman *errman = ex_scope->errman;
-    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(errman, ex_scope);
+    struct ex_context *ex_context = ex_scope->context;
+    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_context, ex_scope);
 
     env->depth++;
 
     if (setjmp(sub_ex_scope.env)) {
-        if (errman->class == &g_ex_break) {
+        if (ex_context->class == &g_ex_break) {
             /* the break builtin should ensure no impossible break is emitted */
             assert(env->break_count);
 
@@ -21,7 +21,7 @@ int while_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_s
             if (env->break_count != 0)
                 goto reraise;
             goto exit_while;
-        } else if (errman->class == &g_ex_continue) {
+        } else if (ex_context->class == &g_ex_continue) {
             /* do nothing */
         } else {
             /* forward all other exception */

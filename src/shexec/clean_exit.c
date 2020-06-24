@@ -30,6 +30,6 @@ void ATTR(noreturn) clean_errx(struct ex_scope *ex_scope, int retcode, const cha
 
 void ATTR(noreturn) clean_exit(struct ex_scope *ex_scope, int retcode)
 {
-    ex_scope->errman->retcode = retcode;
+    ex_scope->context->retcode = retcode;
     shraise(ex_scope, &g_clean_exit);
 }

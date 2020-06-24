@@ -491,7 +491,7 @@ void expand(struct expansion_state *exp_state,
     assert((exp_state->callback_ctx.callback.func == NULL) == (exp_state->IFS == NULL));
 
     /* on exception, free the expansion buffer */
-    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->errman, ex_scope);
+    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->context, ex_scope);
     if (setjmp(sub_ex_scope.env)) {
         expansion_state_destroy(exp_state);
         shraise(ex_scope, NULL);

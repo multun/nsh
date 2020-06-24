@@ -52,7 +52,7 @@ static void check_interrupt(struct ex_scope *ex_scope)
     rl_done = 1;
     rl_callback_handler_remove();
     fputs("^C\n", stderr);
-    ex_scope->errman->retcode = 128 + SIGINT;
+    ex_scope->context->retcode = 128 + SIGINT;
     shraise(ex_scope, &g_keyboard_interrupt);
 }
 

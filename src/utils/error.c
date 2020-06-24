@@ -11,7 +11,7 @@
 void ATTR(noreturn) shraise(struct ex_scope *ex_scope, const struct ex_class *class)
 {
     if (class)
-        ex_scope->errman->class = class;
+        ex_scope->context->class = class;
     longjmp(ex_scope->env, 1);
 }
 
@@ -29,7 +29,7 @@ void ATTR(noreturn) vsherror(const struct lineinfo *li, struct ex_scope *ex_scop
                              const struct ex_class *ex_class, const char *format, va_list ap)
 {
     assert(ex_scope);
-    ex_scope->errman->class = ex_class;
+    ex_scope->context->class = ex_class;
     vshwarn(li, format, ap);
     shraise(ex_scope, NULL);
 }

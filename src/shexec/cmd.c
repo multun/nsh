@@ -79,7 +79,7 @@ int cmd_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_sco
 
     /* on exception, free the argument array */
     int res = 0;
-    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->errman, ex_scope);
+    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->context, ex_scope);
     if (setjmp(sub_ex_scope.env)) {
         argv_free(env->argv);
         env->argc = prev_argc;

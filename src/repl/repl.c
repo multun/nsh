@@ -18,19 +18,19 @@ enum repl_action
     REPL_ACTION_CONTINUE,
 };
 
-static enum repl_action handle_repl_exception(struct repl_result *res, struct context *ctx, struct errman *eman)
+static enum repl_action handle_repl_exception(struct repl_result *res, struct context *ctx, struct ex_context *ex_context)
 {
-    if (eman->class == &g_clean_exit) {
-        ctx->env->code = eman->retcode;
+    if (ex_context->class == &g_clean_exit) {
+        ctx->env->code = ex_context->retcode;
         goto exception_stop;
     }
 
-    if (eman->class == &g_keyboard_interrupt || eman->class == &g_runtime_error) {
-        ctx->env->code = eman->retcode;
+    if (ex_context->class == &g_keyboard_interrupt || ex_context->class == &g_runtime_error) {
+        ctx->env->code = ex_context->retcode;
         goto exception_continue_if_interactive;
     }
 
-    if (eman->class != &g_parser_error && eman->class != &g_lexer_error)
+    if (ex_context->class != &g_parser_error && ex_context->class != &g_lexer_error)
         errx(2, "received an unknown exception");
 
     // syntax errors don't have the same return code inside and outside of the REPL
@@ -51,23 +51,23 @@ exception_continue_if_interactive:
 
 exception_stop:
     res->status = REPL_EXCEPTION;
-    res->exception_class = eman->class;
+    res->exception_class = ex_context->class;
     return REPL_ACTION_STOP;
 }
 
 
 enum repl_action repl_eof(struct repl_result *res, struct context *ctx)
 {
-    struct errman eman = ERRMAN;
-    struct ex_scope ex_scope = EXCEPTION_SCOPE(&eman, NULL);
+    struct ex_context ex_context;
+    struct ex_scope ex_scope = EXCEPTION_SCOPE(&ex_context, NULL);
 
     /* handle keyboard interupts in initial EOF check */
     if (setjmp(ex_scope.env)) {
-        if (eman.class != &g_keyboard_interrupt)
+        if (ex_context.class != &g_keyboard_interrupt)
             errx(2, "received an unknown exception in EOF check");
 
         /* propagate the status code from the exception to the repl */
-        ctx->env->code = eman.retcode;
+        ctx->env->code = ex_context.retcode;
 
         /* just stop if not interactive */
         if (!context_interactive(ctx)) {
@@ -93,8 +93,8 @@ enum repl_action repl_eof(struct repl_result *res, struct context *ctx)
 
 void repl(struct repl_result *res, struct context *ctx)
 {
-    struct errman eman = ERRMAN;
-    struct ex_scope ex_scope = EXCEPTION_SCOPE(&eman, NULL);
+    struct ex_context ex_context;
+    struct ex_scope ex_scope = EXCEPTION_SCOPE(&ex_context, NULL);
 
     while (true) {
         ctx->line_start = true;
@@ -109,7 +109,7 @@ void repl(struct repl_result *res, struct context *ctx)
          /* parse and execute */
         if (setjmp(ex_scope.env)) {
             /* decide whether to stop running the repl */
-            if (handle_repl_exception(res, ctx, &eman) == REPL_ACTION_STOP)
+            if (handle_repl_exception(res, ctx, &ex_context) == REPL_ACTION_STOP)
                 break;
 
             /* when an interactive non-fatal interupt occurs, cleanup temporary data (tokens, buffers, ...) */

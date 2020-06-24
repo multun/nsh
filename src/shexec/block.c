@@ -31,8 +31,7 @@ int block_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_s
             redir_undo_stack_push(&undo_stack, &cur_undo, undo_i);
     }
 
-
-    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->errman, ex_scope);
+    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->context, ex_scope);
     if (setjmp(sub_ex_scope.env)) {
         // on exceptions, undo redirections and re-raise
         redir_undo_stack_cancel(&undo_stack);

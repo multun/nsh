@@ -24,7 +24,7 @@ struct ex_class
 ** \details this structure is required in order to store some information
 **   about the current error context
 */
-struct errman
+struct ex_context
 {
     const struct ex_class *class;
     int retcode;
@@ -33,7 +33,7 @@ struct errman
 /**
 ** \brief describes an exception scope
 ** \details this structure holds all the data required to raise an exception:
-**   the parent scope can be used to go up the stack, and the error manager
+**   the parent scope can be used to go up the stack, and the exception context
 **   can store information about the exception being thrown.
 */
 
@@ -41,19 +41,13 @@ struct ex_scope
 {
     struct ex_scope *father;
     jmp_buf env;
-    struct errman *errman;
+    struct ex_context *context;
 };
-
-#define ERRMAN                                                                           \
-    (struct errman)                                                                      \
-    {                                                                                    \
-        .class = NULL,                                                                   \
-    }
 
 #define EXCEPTION_SCOPE(Man, Father)                                                     \
     (struct ex_scope)                                                                    \
     {                                                                                    \
-        .errman = (Man),                                                                 \
+        .context = (Man),                                                                \
         .father = (Father)                                                               \
     }
 

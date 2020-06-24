@@ -13,7 +13,7 @@ void wordlist_expand(struct cpvect *res, struct wordlist *wl,
     cpvect_init(res, wordlist_size(wl) + 1);
 
     /* on exception, free the result array */
-    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->errman, ex_scope);
+    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->context, ex_scope);
     if (setjmp(sub_ex_scope.env)) {
         /* free the result vector elements */
         for (size_t i = 0; i < cpvect_size(res); i++)
