@@ -11,27 +11,29 @@
 
 #include <err.h>
 
+enum repl_action
+{
+    REPL_ACTION_NONE = 0,
+    REPL_ACTION_STOP,
+    REPL_ACTION_CONTINUE,
+};
 
-// returns whether to continue
-static bool handle_repl_exception(struct errman *eman, struct context *ctx)
+static enum repl_action handle_repl_exception(struct repl_result *res, struct context *ctx, struct errman *eman)
 {
     if (eman->class == &g_clean_exit) {
         ctx->env->code = eman->retcode;
-        return false;
+        goto exception_stop;
     }
 
     if (eman->class == &g_keyboard_interrupt || eman->class == &g_runtime_error) {
         ctx->env->code = eman->retcode;
-        /* continue if the REPL is interactive */
-        return context_interactive(ctx);
+        goto exception_continue_if_interactive;
     }
 
     if (eman->class != &g_parser_error && eman->class != &g_lexer_error)
         errx(2, "received an unknown exception");
 
-    // syntax errors don't have the same return code inside and outside
-    // of the REPL
-
+    // syntax errors don't have the same return code inside and outside of the REPL
     // $ (
     // > bash: syntax error: unexpected end of file
     // $ echo $?
@@ -41,11 +43,56 @@ static bool handle_repl_exception(struct errman *eman, struct context *ctx)
     // $ echo $?
 
     ctx->env->code = g_cmdopts.src == SHSRC_COMMAND ? 1 : 2;
-    // stop if the repl isn't interactive
-    return context_interactive(ctx);
+
+exception_continue_if_interactive:
+    /* continue if the repl is interactive */
+    if (context_interactive(ctx))
+        return REPL_ACTION_CONTINUE;
+
+exception_stop:
+    res->status = REPL_EXCEPTION;
+    res->exception_class = eman->class;
+    return REPL_ACTION_STOP;
 }
 
-bool repl(struct context *ctx)
+
+enum repl_action repl_eof(struct repl_result *res, struct context *ctx)
+{
+    struct errman eman = ERRMAN;
+    struct keeper keeper = KEEPER(NULL);
+    struct errcont errcont = ERRCONT(&eman, &keeper);
+
+    /* handle keyboard interupts in initial EOF check */
+    if (setjmp(keeper.env)) {
+        if (eman.class != &g_keyboard_interrupt)
+            errx(2, "received an unknown exception in EOF check");
+
+        /* propagate the status code from the exception to the repl */
+        ctx->env->code = eman.retcode;
+
+        /* just stop if not interactive */
+        if (!context_interactive(ctx)) {
+            res->status = REPL_OK;
+            return REPL_ACTION_STOP;
+        }
+
+        /* if the stream is interactive, clear the cached EOF and restart parsing */
+        cstream_reset(ctx->cs);
+        return REPL_ACTION_CONTINUE;
+    }
+
+    /* check for EOF with the above context */
+    cstream_set_errcont(ctx->cs, &errcont);
+    if (cstream_eof(ctx->cs)) {
+        res->status = REPL_OK;
+        return REPL_ACTION_STOP;
+    }
+    cstream_set_errcont(ctx->cs, NULL);
+    return REPL_ACTION_NONE;
+}
+
+
+void repl(struct repl_result *res, struct context *ctx)
 {
     struct errman eman = ERRMAN;
     struct keeper keeper = KEEPER(NULL);
@@ -54,36 +101,18 @@ bool repl(struct context *ctx)
     while (true) {
         ctx->line_start = true;
 
-        /* handle keyboard interupts in initial EOF check */
-        if (setjmp(keeper.env)) {
-            if (eman.class != &g_keyboard_interrupt)
-                errx(2, "received an unknown exception in EOF check");
-
-            /* propagate the status code from the exception to the repl */
-            ctx->env->code = eman.retcode;
-
-            /* just stop if not interactive */
-            if (!context_interactive(ctx))
-                return false;
-
-            /* if the stream is interactive, clear the cached EOF and restart parsing */
-            cstream_reset(ctx->cs);
+        /* check for EOF */
+        enum repl_action action = repl_eof(res, ctx);
+        if (action == REPL_ACTION_CONTINUE)
             continue;
-        }
-
-        /* check for EOF with the above context */
-        cstream_set_errcont(ctx->cs, &errcont);
-        if (cstream_eof(ctx->cs))
-            return false;
-        cstream_set_errcont(ctx->cs, NULL);
+        if (action == REPL_ACTION_STOP)
+            break;
 
          /* parse and execute */
         if (setjmp(keeper.env)) {
             /* decide whether to stop running the repl */
-            if (!handle_repl_exception(&eman, ctx)) {
-                cstream_set_errcont(ctx->cs, NULL);
-                return true;
-            }
+            if (handle_repl_exception(res, ctx, &eman) == REPL_ACTION_STOP)
+                break;
 
             /* when an interactive non-fatal interupt occurs, cleanup temporary data (tokens, buffers, ...) */
             context_reset(ctx);
@@ -115,8 +144,12 @@ bool repl(struct context *ctx)
         /* reset the error handler */
         cstream_set_errcont(ctx->cs, NULL);
 
-        // prepare the lexer to handle a new line
-        // forgetting all the remaining tokens
+        /* prepare the lexer to handle a new line, forgetting all the remaining tokens
+         TODO: check whether is it needed, and document the reason */
         lexer_reset(ctx->lexer);
     }
+
+    /* reset the error handler */
+    cstream_set_errcont(ctx->cs, NULL);
+    return;
 }

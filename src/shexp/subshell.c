@@ -20,8 +20,9 @@ static int subshell_child(struct expansion_state *exp_state, char *str)
     struct context ctx;
     context_from_env(&ctx, &cs.base, expansion_state_env(exp_state));
 
-    repl(&ctx);
-    int rc = ctx.env->code;
+    struct repl_result repl_res;
+    repl(&repl_res, &ctx);
+    int rc = repl_status(&ctx);
     context_destroy(&ctx);
     cstream_destroy(&cs.base);
     return rc;

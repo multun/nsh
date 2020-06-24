@@ -6,6 +6,7 @@
 #include "shlex/lexer.h"
 #include "utils/error.h"
 #include "shparse/ast.h"
+#include "shexec/clean_exit.h"
 
 #include <stdbool.h>
 
@@ -59,6 +60,11 @@ struct context
     FILE *history;
 };
 
+static inline int repl_status(const struct context *ctx)
+{
+    return ctx->env->code;
+}
+
 /**
 ** \brief checks if the context should be treated as interactive.
 **   Interactive contexts restart on keyboard interupts and append to history.
@@ -82,12 +88,29 @@ void context_drop_ast(struct context *ctx);
 */
 void context_reset(struct context *ctx);
 
+struct repl_result
+{
+    enum repl_status
+    {
+        REPL_OK = 0,
+        REPL_EXCEPTION,
+    } status;
+
+    /* the class of the exception that stopped the loop, if any */
+    const struct ex_class *exception_class;
+};
+
+static inline bool repl_called_exit(const struct repl_result *repl_res)
+{
+    return repl_res->status == REPL_EXCEPTION && repl_res->exception_class == &g_clean_exit;
+}
+
 
 /**
 ** \brief runs shell command from an already setup context
 ** \param ctx a runtime context
 */
-bool repl(struct context *ctx);
+void repl(struct repl_result *res, struct context *ctx);
 
 /**
 ** \brief initializes a context from command line arguments

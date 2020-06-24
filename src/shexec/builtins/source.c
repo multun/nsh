@@ -23,10 +23,12 @@ static int source_file(struct errcont *cont, struct environment *env, char *path
     struct context ctx;
     context_from_env(&ctx, &cs.base, env);
 
-    if (repl(&ctx))
-        clean_exit(cont, ctx.env->code);
+    struct repl_result repl_res;
+    repl(&repl_res, &ctx);
+    rc = repl_status(&ctx);
 
-    rc = ctx.env->code;
+    if (repl_called_exit(&repl_res))
+        clean_exit(cont, rc);
 
     context_destroy(&ctx);
     cstream_destroy(&cs.base);

@@ -5,6 +5,7 @@
 #include "shexec/environment.h"
 #include "utils/pathutils.h"
 #include "shparse/ast.h"
+#include "shexec/clean_exit.h"
 
 #include <pwd.h>
 #include <stdbool.h>
@@ -27,11 +28,14 @@ static bool context_load_rc(struct environment *env, const char *path, const cha
 
     context_from_env(&ctx, &cs.base, env);
 
-    bool should_exit = repl(&ctx);
+    struct repl_result repl_res;
+    repl(&repl_res, &ctx);
 
     context_destroy(&ctx);
     cstream_destroy(ctx.cs);
-    return should_exit;
+
+    /* exiting in an rc file causes the shell to exit */
+    return repl_called_exit(&repl_res);
 }
 
 static bool context_load_all_rc(struct context *ctx)

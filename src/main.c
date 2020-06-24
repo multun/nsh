@@ -53,10 +53,10 @@ static int run(struct arg_context *arg_cont)
     if (context_init(&res, &cont, cs, arg_cont))
         goto err_context;
 
-    // the return value represents whether
-    // the repl exited using an exception
-    repl(&cont);
-    res = cont.env->code;
+    struct repl_result repl_res;
+    repl(&repl_res, &cont);
+
+    res = repl_status(&cont);
 
     context_destroy(&cont);
 err_context:
