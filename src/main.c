@@ -41,38 +41,40 @@
 **
 */
 
-static int run(struct arg_context *arg_cont)
+int main(int argc, char *argv[])
 {
-    struct context cont;
-    int res = 0;
+    int rc;
 
+    /* parse the arguments */
+    int cmdstart = cmdopts_parse(argc, argv);
+    if (cmdstart < 0)
+        return CMDOPTS_STATUS(cmdstart);
+    struct arg_context arg_cont = ARG_CONTEXT(argc, cmdstart, argv);
+
+    /* load the configured locale */
+    setlocale(LC_ALL, "");
+
+    struct context cont;
+
+    /* initialize IO */
     struct cstream *cs;
-    if ((res = cstream_dispatch_init(&cont, &cs, arg_cont)))
+    if ((rc = cstream_dispatch_init(&cont, &cs, &arg_cont)))
         goto err_cstream;
 
-    if (context_init(&res, &cont, cs, arg_cont))
+    /* initialize the context the repl will work with */
+    if (context_init(&rc, &cont, cs, &arg_cont))
         goto err_context;
 
+    /* run the repl */
     struct repl_result repl_res;
     repl(&repl_res, &cont);
+    rc = repl_status(&cont);
 
-    res = repl_status(&cont);
-
+    /* cleanup */
     context_destroy(&cont);
 err_context:
     cstream_destroy(cs);
     free(cs);
 err_cstream:
-    return res;
-}
-
-int main(int argc, char *argv[])
-{
-    int cmdstart = cmdopts_parse(argc, argv);
-    if (cmdstart < 0)
-        return CMDOPTS_STATUS(cmdstart);
-
-    setlocale(LC_ALL, "");
-
-    return run(&ARG_CONTEXT(argc, cmdstart, argv));
+    return rc;
 }
