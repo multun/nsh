@@ -8,11 +8,11 @@
 #include <stdlib.h>
 #include <err.h>
 
-void ATTR(noreturn) shraise(struct errcont *cont, const struct ex_class *class)
+void ATTR(noreturn) shraise(struct ex_scope *ex_scope, const struct ex_class *class)
 {
     if (class)
-        cont->errman->class = class;
-    longjmp(cont->env, 1);
+        ex_scope->errman->class = class;
+    longjmp(ex_scope->env, 1);
 }
 
 void vshwarn(const struct lineinfo *li, const char *format, va_list ap)
@@ -25,22 +25,22 @@ void vshwarn(const struct lineinfo *li, const char *format, va_list ap)
     fputc('\n', stderr);
 }
 
-void ATTR(noreturn) vsherror(const struct lineinfo *li, struct errcont *cont,
+void ATTR(noreturn) vsherror(const struct lineinfo *li, struct ex_scope *ex_scope,
                              const struct ex_class *ex_class, const char *format, va_list ap)
 {
-    assert(cont);
-    cont->errman->class = ex_class;
+    assert(ex_scope);
+    ex_scope->errman->class = ex_class;
     vshwarn(li, format, ap);
-    shraise(cont, NULL);
+    shraise(ex_scope, NULL);
 }
 
-void ATTR(noreturn) sherror(const struct lineinfo *li, struct errcont *cont,
+void ATTR(noreturn) sherror(const struct lineinfo *li, struct ex_scope *ex_scope,
                             const struct ex_class *ex_class, const char *format, ...)
 {
     va_list ap;
     va_start(ap, format);
 
-    vsherror(li, cont, ex_class, format, ap);
+    vsherror(li, ex_scope, ex_class, format, ap);
 
     va_end(ap);
 }

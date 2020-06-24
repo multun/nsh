@@ -45,12 +45,12 @@ struct signal_handler
     struct list_head __list;
     struct signal_manager *sigman;
     int signal;
-    void (*handle)(struct errcont *errcont, struct signal_handler*);
+    void (*handle)(struct ex_scope *ex_scope, struct signal_handler*);
     void (*remove)(struct signal_handler*);
 };
 
 extern void signal_manager_init(struct signal_manager *sigman);
 extern void signal_manager_setup_handler(struct signal_manager *sigman, struct signal_handler *handler, int signal, bool head_handler);
-extern void signal_manager_dispatch(struct signal_manager *sigman, struct errcont *errcont, int signal);
+extern void signal_manager_dispatch(struct signal_manager *sigman, struct ex_scope *ex_scope, int signal);
 extern void signal_handler_del(struct signal_handler *handler);
 extern pid_t signal_manager_fork(struct signal_manager *sigman);

@@ -23,22 +23,22 @@ enum expansion_flags
 /**
 ** \brief expands a string
 ** \param env the environment used within the expansion
-** \param cont the error context to work with
+** \param ex_scope the exception scope to work with
 ** \return a malloc allocated expanded string
 */
-char *expand_nosplit(struct lineinfo *line_info, char *str, int flags, struct environment *env, struct errcont *errcont);
+char *expand_nosplit(struct lineinfo *line_info, char *str, int flags, struct environment *env, struct ex_scope *ex_scope);
 
 struct expansion_state;
 struct expansion_result;
 
 void expand(struct expansion_state *exp_state,
             struct wlexer *wlexer,
-            struct errcont *errcont);
+            struct ex_scope *ex_scope);
 
 
-void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags, struct environment *env, struct errcont *errcont);
+void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags, struct environment *env, struct ex_scope *ex_scope);
 
-void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, int flags, struct environment *env, struct errcont *errcont);
+void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, int flags, struct environment *env, struct ex_scope *ex_scope);
 
 enum expansion_quoting {
     // split on IFS
@@ -83,9 +83,9 @@ struct expansion_state {
     struct glob_state glob_state;
 };
 
-static inline struct errcont *expansion_state_errcont(struct expansion_state *exp_state)
+static inline struct ex_scope *expansion_state_ex_scope(struct expansion_state *exp_state)
 {
-    return exp_state->callback_ctx.errcont;
+    return exp_state->callback_ctx.ex_scope;
 }
 
 static inline struct environment *expansion_state_env(struct expansion_state *exp_state)
@@ -93,10 +93,10 @@ static inline struct environment *expansion_state_env(struct expansion_state *ex
     return exp_state->callback_ctx.env;
 }
 
-static inline void expansion_state_set_errcont(struct expansion_state *exp_state,
-                                               struct errcont *cont)
+static inline void expansion_state_set_ex_scope(struct expansion_state *exp_state,
+                                                struct ex_scope *ex_scope)
 {
-    exp_state->callback_ctx.errcont = cont;
+    exp_state->callback_ctx.ex_scope = ex_scope;
 }
 
 static inline void expansion_state_destroy(struct expansion_state *exp_state)

@@ -24,7 +24,7 @@ static void expand_guarded(struct expansion_state *exp_state,
 
 static void __noreturn expansion_raise(struct expansion_state *exp_state)
 {
-    shraise(expansion_state_errcont(exp_state), &g_lexer_error);
+    shraise(expansion_state_ex_scope(exp_state), &g_lexer_error);
 }
 
 void __noreturn expansion_error(struct expansion_state *exp_state, const char *fmt, ...)
@@ -32,7 +32,7 @@ void __noreturn expansion_error(struct expansion_state *exp_state, const char *f
     va_list ap;
     va_start(ap, fmt);
 
-    vsherror(exp_state->line_info, expansion_state_errcont(exp_state), &g_lexer_error, fmt, ap);
+    vsherror(exp_state->line_info, expansion_state_ex_scope(exp_state), &g_lexer_error, fmt, ap);
 
     va_end(ap);
 }
@@ -352,7 +352,7 @@ static enum wlexer_op expand_exp_subshell_open(struct expansion_state *exp_state
                                                struct wtoken *wtoken __unused)
 {
     struct wlexer sub_wlexer = WLEXER_FORK(wlexer, MODE_SUBSHELL);
-    char *subshell_content = lexer_lex_string(expansion_state_errcont(exp_state), &sub_wlexer);
+    char *subshell_content = lexer_lex_string(expansion_state_ex_scope(exp_state), &sub_wlexer);
     expand_subshell(exp_state, subshell_content);
     subshell_content = NULL; // the ownership was transfered to expand_subshell
     return LEXER_OP_CONTINUE;
@@ -484,19 +484,19 @@ static void expand_guarded(struct expansion_state *exp_state,
 
 void expand(struct expansion_state *exp_state,
             struct wlexer *wlexer,
-            struct errcont *errcont)
+            struct ex_scope *ex_scope)
 {
     // when IFS is NULL, callback is NULL too.
     // when isn't not NULL, there must be a callback
     assert((exp_state->callback_ctx.callback.func == NULL) == (exp_state->IFS == NULL));
 
     /* on exception, free the expansion buffer */
-    struct errcont sub_errcont = ERRCONT(errcont->errman, errcont);
-    if (setjmp(sub_errcont.env)) {
+    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->errman, ex_scope);
+    if (setjmp(sub_ex_scope.env)) {
         expansion_state_destroy(exp_state);
-        shraise(errcont, NULL);
+        shraise(ex_scope, NULL);
     }
-    expansion_state_set_errcont(exp_state, &sub_errcont);
+    expansion_state_set_ex_scope(exp_state, &sub_ex_scope);
     expand_guarded(exp_state, wlexer);
 
     /* push the last section when using IFS splitting. */
@@ -504,7 +504,7 @@ void expand(struct expansion_state *exp_state,
         expansion_end_word(exp_state);
 }
 
-char *expand_nosplit(struct lineinfo *line_info, char *str, int flags, struct environment *env, struct errcont *errcont)
+char *expand_nosplit(struct lineinfo *line_info, char *str, int flags, struct environment *env, struct ex_scope *ex_scope)
 {
     /* initialize the character stream */
     struct cstream_string cs;
@@ -518,11 +518,11 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, int flags, struct en
     /* initialize the expansion buffer */
     struct expansion_state exp_state;
     expansion_state_init(&exp_state, EXPANSION_QUOTING_NOSPLIT, flags);
-    expansion_callback_ctx_init(&exp_state.callback_ctx, NULL, env, errcont);
+    expansion_callback_ctx_init(&exp_state.callback_ctx, NULL, env, ex_scope);
     exp_state.line_info = &cs.base.line_info;
 
     /* perform the expansion */
-    expand(&exp_state, &wlexer, errcont);
+    expand(&exp_state, &wlexer, ex_scope);
 
     /* steal the content of the result data buffer */
     struct evect res;
@@ -536,7 +536,7 @@ char *expand_nosplit(struct lineinfo *line_info, char *str, int flags, struct en
     return evect_data(&res);
 }
 
-static void expand_word_callback(struct expansion_callback *callback, struct shword *word, int flags, struct environment *env, struct errcont *errcont)
+static void expand_word_callback(struct expansion_callback *callback, struct shword *word, int flags, struct environment *env, struct ex_scope *ex_scope)
 {
     /* initialize the character stream */
     struct cstream_string cs;
@@ -550,34 +550,34 @@ static void expand_word_callback(struct expansion_callback *callback, struct shw
     /* initialize the expansion buffer */
     struct expansion_state exp_state;
     expansion_state_init(&exp_state, EXPANSION_QUOTING_UNQUOTED, flags);
-    expansion_callback_ctx_init(&exp_state.callback_ctx, callback, env, errcont);
+    expansion_callback_ctx_init(&exp_state.callback_ctx, callback, env, ex_scope);
     exp_state.line_info = &cs.base.line_info;
     exp_state.IFS = environment_var_get(env, "IFS");
 
     /* perform the expansion */
-    expand(&exp_state, &wlexer, errcont);
+    expand(&exp_state, &wlexer, ex_scope);
 
     /* cleanup the expansion state */
     expansion_state_destroy(&exp_state);
 }
 
-void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, int flags, struct environment *env, struct errcont *errcont)
+void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, int flags, struct environment *env, struct ex_scope *ex_scope)
 {
     for (size_t i = 0; i < wordlist_size(wl); i++)
-        expand_word_callback(callback, wordlist_get(wl, i), flags, env, errcont);
+        expand_word_callback(callback, wordlist_get(wl, i), flags, env, ex_scope);
 }
 
-static void expansion_word_callback(void *data, char *word, struct environment *env __unused, struct errcont *cont __unused)
+static void expansion_word_callback(void *data, char *word, struct environment *env __unused, struct ex_scope *ex_scope __unused)
 {
     struct cpvect *res = data;
     cpvect_push(res, word);
 }
 
-void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags, struct environment *env, struct errcont *errcont)
+void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags, struct environment *env, struct ex_scope *ex_scope)
 {
     struct expansion_callback callback = {
         .func = expansion_word_callback,
         .data = res,
     };
-    expand_wordlist_callback(&callback, wl, flags, env, errcont);
+    expand_wordlist_callback(&callback, wl, flags, env, ex_scope);
 }

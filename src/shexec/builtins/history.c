@@ -41,9 +41,9 @@ static int history_reload(void)
     return 0;
 }
 
-int builtin_history(struct environment *env, struct errcont *cont, int argc, char **argv)
+int builtin_history(struct environment *env, struct ex_scope *ex_scope __unused, int argc, char **argv)
 {
-    if (argc == 1 && cont)
+    if (argc == 1)
         return history_format(env);
 
     for (int i = 1; i < argc; i++)

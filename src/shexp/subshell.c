@@ -76,7 +76,7 @@ void expand_subshell(struct expansion_state *exp_state, char *buf)
         int res = subshell_child(exp_state, buf);
         free(buf);
         close(pfd[1]);
-        clean_exit(expansion_state_errcont(exp_state), res);
+        clean_exit(expansion_state_ex_scope(exp_state), res);
     }
     // parent branch
     else

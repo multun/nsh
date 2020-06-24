@@ -54,7 +54,7 @@ struct shast
     void Name ## _print(FILE *f, struct shast *ast);
 
 #define DECLARE_AST_EXEC_UTILS(EnumName, Name) \
-    int Name ## _exec(struct environment *env, struct shast *ast, struct errcont *cont);
+    int Name ## _exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope);
 
 #define DECLARE_AST_FREE_UTILS(EnumName, Name) \
     void Name ## _free(struct shast *ast);
@@ -113,7 +113,7 @@ void ast_print(FILE *f, struct shast *ast);
 ** \param env the current environment
 ** \param ast the tree
 **/
-int ast_exec(struct environment*env, struct shast *ast, struct errcont *cont);
+int ast_exec(struct environment*env, struct shast *ast, struct ex_scope *ex_scope);
 
 /**
 ** \brief The ast refcount free callback
@@ -197,7 +197,7 @@ struct shast_assignment
 #undef GVECT_TYPE
 
 void assign_vect_print(FILE *f, struct assign_vect *vect, void *parent);
-void assignment_exec(struct environment *env, struct shast_assignment *ast, struct errcont *cont);
+void assignment_exec(struct environment *env, struct shast_assignment *ast, struct ex_scope *ex_scope);
 
 static inline void shast_assignment_free(struct shast_assignment *assign)
 {

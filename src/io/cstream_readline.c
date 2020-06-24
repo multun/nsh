@@ -44,7 +44,7 @@ static int readline_io_reader_unwrapped(struct cstream_readline *cs)
 
     if (!str) {
         const char *prompt = prompt_get(&cs->base);
-        str = cs->current_line = readline_wrapped(cs->base.errcont, prompt);
+        str = cs->current_line = readline_wrapped(cs->base.ex_scope, prompt);
         cs->line_position = 0;
     }
 

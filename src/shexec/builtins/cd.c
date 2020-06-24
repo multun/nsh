@@ -63,11 +63,8 @@ static int cd_with_minus(struct environment *env)
     return 0;
 }
 
-int builtin_cd(struct environment *env, struct errcont *cont, int argc, char **argv)
+int builtin_cd(struct environment *env, struct ex_scope *ex_scope __unused, int argc, char **argv)
 {
-    if (!env || !cont)
-        warnx("cd: missing context elements");
-
     if (argc > 2) {
         warnx("cd: too many arguments");
         return 1;

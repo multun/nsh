@@ -19,9 +19,9 @@
     F(source)
 
 #define BUILTINS_DECLARE(Name)                                                           \
-    int builtin_##Name(struct environment*env, struct errcont *cont, int argc, char **argv);
+    int builtin_##Name(struct environment *env, struct ex_scope *ex_scope, int argc, char **argv);
 
-typedef int (*f_builtin)(struct environment*env, struct errcont *cont, int argc, char **argv);
+typedef int (*f_builtin)(struct environment *env, struct ex_scope *ex_scope, int argc, char **argv);
 
 BUILTINS_APPLY(BUILTINS_DECLARE)
 

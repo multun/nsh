@@ -7,16 +7,16 @@
 
 static int (*ast_exec_utils[])(struct environment *env,
                                struct shast *ast,
-                               struct errcont *cont) =
+                               struct ex_scope *ex_scope) =
 {
     AST_TYPE_APPLY(AST_EXEC_UTILS)
 };
 
-int ast_exec(struct environment *env, struct shast *ast, struct errcont *cont)
+int ast_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
 {
     if (ast) {
         //printf("executing an asynchronous node\n");
-        env->code = ast_exec_utils[ast->type](env, ast, cont);
+        env->code = ast_exec_utils[ast->type](env, ast, ex_scope);
     } else
         env->code = 0;
     return env->code;

@@ -15,19 +15,19 @@
 #include "utils/hash_table.h"
 #include "utils/macros.h"
 
-static int builtin_exec(struct environment *env, struct errcont *cont, f_builtin builtin)
+static int builtin_exec(struct environment *env, struct ex_scope *ex_scope, f_builtin builtin)
 {
-    int res = builtin(env, cont, env->argc, env->argv);
+    int res = builtin(env, ex_scope, env->argc, env->argv);
     fflush(stdout);
     return res;
 }
 
-static int cmd_fork_exec(struct environment *env, struct errcont *cont)
+static int cmd_fork_exec(struct environment *env, struct ex_scope *ex_scope)
 {
     int status;
     pid_t pid = managed_fork(env);
     if (pid < 0)
-        clean_err(cont, errno, "cmd_exec: error while forking");
+        clean_err(ex_scope, errno, "cmd_exec: error while forking");
 
     /* parent branch */
     if (pid != 0) {
@@ -39,29 +39,29 @@ static int cmd_fork_exec(struct environment *env, struct errcont *cont)
     char **penv = environment_array(env);
     execvpe(env->argv[0], env->argv, penv);
     argv_free(penv);
-    clean_err(cont, 125 + errno, "couldn't exec \"%s\"", env->argv[0]);
+    clean_err(ex_scope, 125 + errno, "couldn't exec \"%s\"", env->argv[0]);
 }
 
-static int cmd_run_command(struct environment *env, struct errcont *cont)
+static int cmd_run_command(struct environment *env, struct ex_scope *ex_scope)
 {
     /* look for functions */
     struct hash_head *func_hash = hash_table_find(&env->functions, NULL, env->argv[0]);
     if (func_hash)
     {
         struct shast_function *func = container_of(func_hash, struct shast_function, hash);
-        return ast_exec(env, func->body, cont);
+        return ast_exec(env, func->body, ex_scope);
     }
 
     /* look for builtins */
     f_builtin builtin = builtin_search(env->argv[0]);
     if (builtin)
-        return builtin_exec(env, cont, builtin);
+        return builtin_exec(env, ex_scope, builtin);
 
     /* no function or builtin found, fork and exec */
-    return cmd_fork_exec(env, cont);
+    return cmd_fork_exec(env, ex_scope);
 }
 
-int cmd_exec(struct environment *env, struct shast *ast, struct errcont *cont)
+int cmd_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
 {
     struct shast_cmd *command = (struct shast_cmd*)ast;
     struct wordlist *wl = &command->arguments;
@@ -70,7 +70,7 @@ int cmd_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 
     /* expand the arguments array */
     struct cpvect new_argv;
-    wordlist_expand(&new_argv, wl, env, cont);
+    wordlist_expand(&new_argv, wl, env, ex_scope);
 
     /* setup argc / argv using the expanded array */
     env->argc = cpvect_size(&new_argv);
@@ -79,16 +79,16 @@ int cmd_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 
     /* on exception, free the argument array */
     int res = 0;
-    struct errcont sub_errcont = ERRCONT(cont->errman, cont);
-    if (setjmp(sub_errcont.env)) {
+    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->errman, ex_scope);
+    if (setjmp(sub_ex_scope.env)) {
         argv_free(env->argv);
         env->argc = prev_argc;
         env->argv = prev_argv;
-        shraise(cont, NULL);
+        shraise(ex_scope, NULL);
     }
 
     /* run the command */
-    res = cmd_run_command(env, &sub_errcont);
+    res = cmd_run_command(env, &sub_ex_scope);
 
     /* cleanup */
     argv_free(env->argv);

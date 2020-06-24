@@ -5,14 +5,14 @@
 #include "shexec/environment.h"
 #include "shexec/execution.h"
 
-int block_exec(struct environment *env, struct shast *ast, struct errcont *cont)
+int block_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
 {
     int rc;
     struct shast_block *block = (struct shast_block *)ast;
 
     // perform variable assignments
     for (size_t i = 0; i < assign_vect_size(&block->assigns); i++)
-        assignment_exec(env, assign_vect_get(&block->assigns, i), cont);
+        assignment_exec(env, assign_vect_get(&block->assigns, i), ex_scope);
 
     // perform redirections
     struct redir_undo_stack undo_stack = UNDO_STACK_INIT;
@@ -32,15 +32,15 @@ int block_exec(struct environment *env, struct shast *ast, struct errcont *cont)
     }
 
 
-    struct errcont sub_errcont = ERRCONT(cont->errman, cont);
-    if (setjmp(sub_errcont.env)) {
+    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->errman, ex_scope);
+    if (setjmp(sub_ex_scope.env)) {
         // on exceptions, undo redirections and re-raise
         redir_undo_stack_cancel(&undo_stack);
-        shraise(cont, NULL);
+        shraise(ex_scope, NULL);
     }
 
     // run the command block and undo redirections
-    rc = ast_exec(env, block->command, &sub_errcont);
+    rc = ast_exec(env, block->command, &sub_ex_scope);
     redir_undo_stack_cancel(&undo_stack);
     return rc;
 }

@@ -59,10 +59,10 @@ exception_stop:
 enum repl_action repl_eof(struct repl_result *res, struct context *ctx)
 {
     struct errman eman = ERRMAN;
-    struct errcont errcont = ERRCONT(&eman, NULL);
+    struct ex_scope ex_scope = EXCEPTION_SCOPE(&eman, NULL);
 
     /* handle keyboard interupts in initial EOF check */
-    if (setjmp(errcont.env)) {
+    if (setjmp(ex_scope.env)) {
         if (eman.class != &g_keyboard_interrupt)
             errx(2, "received an unknown exception in EOF check");
 
@@ -81,12 +81,12 @@ enum repl_action repl_eof(struct repl_result *res, struct context *ctx)
     }
 
     /* check for EOF with the above context */
-    cstream_set_errcont(ctx->cs, &errcont);
+    cstream_set_ex_scope(ctx->cs, &ex_scope);
     if (cstream_eof(ctx->cs)) {
         res->status = REPL_OK;
         return REPL_ACTION_STOP;
     }
-    cstream_set_errcont(ctx->cs, NULL);
+    cstream_set_ex_scope(ctx->cs, NULL);
     return REPL_ACTION_NONE;
 }
 
@@ -94,7 +94,7 @@ enum repl_action repl_eof(struct repl_result *res, struct context *ctx)
 void repl(struct repl_result *res, struct context *ctx)
 {
     struct errman eman = ERRMAN;
-    struct errcont errcont = ERRCONT(&eman, NULL);
+    struct ex_scope ex_scope = EXCEPTION_SCOPE(&eman, NULL);
 
     while (true) {
         ctx->line_start = true;
@@ -107,7 +107,7 @@ void repl(struct repl_result *res, struct context *ctx)
             break;
 
          /* parse and execute */
-        if (setjmp(errcont.env)) {
+        if (setjmp(ex_scope.env)) {
             /* decide whether to stop running the repl */
             if (handle_repl_exception(res, ctx, &eman) == REPL_ACTION_STOP)
                 break;
@@ -119,7 +119,7 @@ void repl(struct repl_result *res, struct context *ctx)
             continue;
         }
 
-        parse(&ctx->ast, ctx->lexer, &errcont);
+        parse(&ctx->ast, ctx->lexer, &ex_scope);
 
         if (ctx->ast != NULL) {
             /* pretty-print the ast */
@@ -133,14 +133,14 @@ void repl(struct repl_result *res, struct context *ctx)
             history_update(ctx);
 
             /* execute the parsed AST */
-            ctx->env->code = ast_exec(ctx->env, ctx->ast, &errcont);
+            ctx->env->code = ast_exec(ctx->env, ctx->ast, &ex_scope);
 
             /* drop the AST reference */
             context_drop_ast(ctx);
         }
 
         /* reset the error handler */
-        cstream_set_errcont(ctx->cs, NULL);
+        cstream_set_ex_scope(ctx->cs, NULL);
 
         /* prepare the lexer to handle a new line, forgetting all the remaining tokens
          TODO: check whether is it needed, and document the reason */
@@ -148,6 +148,6 @@ void repl(struct repl_result *res, struct context *ctx)
     }
 
     /* reset the error handler */
-    cstream_set_errcont(ctx->cs, NULL);
+    cstream_set_ex_scope(ctx->cs, NULL);
     return;
 }

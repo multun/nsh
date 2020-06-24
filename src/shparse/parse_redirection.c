@@ -14,19 +14,19 @@ static void negate_ast(struct shast **ast, struct lexer *lexer, bool neg)
     *ast = &neg_ast->base;
 }
 
-void parse_pipeline(struct shast **res, struct lexer *lexer, struct errcont *errcont)
+void parse_pipeline(struct shast **res, struct lexer *lexer, struct ex_scope *ex_scope)
 {
     /* detect pipeline negation: '! foo | bar' */
-    const struct token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, ex_scope);
     bool negation = tok_is(tok, TOK_BANG);
     if (negation)
-        lexer_discard(lexer, errcont);
+        lexer_discard(lexer, ex_scope);
 
     /* parse a single command */
-    parse_command(res, lexer, errcont);
+    parse_command(res, lexer, ex_scope);
 
     /* if the command isn't followed by a pipe, apply negation and stop there */
-    tok = lexer_peek(lexer, errcont);
+    tok = lexer_peek(lexer, ex_scope);
     if (!tok_is(tok, TOK_PIPE)) {
         negate_ast(res, lexer, negation);
         return;
@@ -41,12 +41,12 @@ void parse_pipeline(struct shast **res, struct lexer *lexer, struct errcont *err
     /* fill the pipeline while there are '|' tokens */
     do {
         /* drop the '|' token*/
-        tok_free(lexer_pop(lexer, errcont), true);
+        tok_free(lexer_pop(lexer, ex_scope), true);
         /* drop newlines */
-        parse_newlines(lexer, errcont);
+        parse_newlines(lexer, ex_scope);
         /* parse the next command in a new slot at the end of the children list */
-        parse_command(shast_vect_tail_slot(&pipeline->children), lexer, errcont);
-        tok = lexer_peek(lexer, errcont);
+        parse_command(shast_vect_tail_slot(&pipeline->children), lexer, ex_scope);
+        tok = lexer_peek(lexer, ex_scope);
     } while (tok_is(tok, TOK_PIPE));
 }
 
@@ -73,14 +73,14 @@ static enum redir_type parse_redir_type(const struct token *tok)
     return REDIR_NONE;
 }
 
-int parse_redirection(struct redir_vect *vect, struct lexer *lexer, struct errcont *errcont)
+int parse_redirection(struct redir_vect *vect, struct lexer *lexer, struct ex_scope *ex_scope)
 {
-    struct token *tok = lexer_peek(lexer, errcont);
+    struct token *tok = lexer_peek(lexer, ex_scope);
     int left = -1;
     if (tok_is(tok, TOK_IO_NUMBER)) {
         left = atoi(tok_buf(tok));
-        lexer_discard(lexer, errcont);
-        tok = lexer_peek(lexer, errcont);
+        lexer_discard(lexer, ex_scope);
+        tok = lexer_peek(lexer, ex_scope);
     }
 
     enum redir_type type = parse_redir_type(tok);
@@ -94,7 +94,7 @@ int parse_redirection(struct redir_vect *vect, struct lexer *lexer, struct errco
     redir_vect_push(vect, redir);
     redir->left = left;
     redir->type = type;
-    lexer_discard(lexer, errcont);
-    redir->right = parse_word(lexer, errcont);
+    lexer_discard(lexer, ex_scope);
+    redir->right = parse_word(lexer, ex_scope);
     return 0;
 }

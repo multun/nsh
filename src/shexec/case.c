@@ -5,10 +5,10 @@
 #include <string.h>
 #include <fnmatch.h>
 
-int case_exec(struct environment *env, struct shast *ast, struct errcont *cont)
+int case_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
 {
     struct shast_case *case_node = (struct shast_case *)ast;
-    char *case_var = expand_nosplit(&case_node->base.line_info, shword_buf(case_node->var), 0, env, cont);
+    char *case_var = expand_nosplit(&case_node->base.line_info, shword_buf(case_node->var), 0, env, ex_scope);
     for (size_t case_i = 0; case_item_vect_size(&case_node->cases); case_i++) {
         struct shast_case_item *case_item = case_item_vect_get(&case_node->cases, case_i);
         for (size_t i = 0; i < wordlist_size(&case_item->pattern); i++)
@@ -18,7 +18,7 @@ int case_exec(struct environment *env, struct shast *ast, struct errcont *cont)
                 continue;
 
             free(case_var);
-            return ast_exec(env, case_item->action, cont);
+            return ast_exec(env, case_item->action, ex_scope);
         }
     }
     free(case_var);

@@ -4,7 +4,7 @@
 #include "shexec/clean_exit.h"
 #include "utils/alloc.h"
 
-int builtin_exit(struct environment *env, struct errcont *cont, int argc, char **argv)
+int builtin_exit(struct environment *env, struct ex_scope *ex_scope, int argc, char **argv)
 {
     if (!env)
         warnx("exit: missing context elements");
@@ -23,5 +23,5 @@ int builtin_exit(struct environment *env, struct errcont *cont, int argc, char *
     } else
         rc = env->code;
 
-    clean_exit(cont, rc);
+    clean_exit(ex_scope, rc);
 }

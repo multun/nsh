@@ -17,7 +17,7 @@ __noreturn void lexer_err(struct lexer *lexer, const char *fmt, ...)
     va_list ap;
     va_start(ap, fmt);
 
-    vsherror(lexer_line_info(lexer), lexer->errcont, &g_lexer_error, fmt, ap);
+    vsherror(lexer_line_info(lexer), lexer->ex_scope, &g_lexer_error, fmt, ap);
 
     va_end(ap);
 }
@@ -123,11 +123,11 @@ static void lexer_type_token(struct lexer *lexer, struct token *tok)
         tok->type = search_type;
 }
 
-static void lexer_lex(struct token **tres, struct lexer *lexer, struct errcont *errcont)
+static void lexer_lex(struct token **tres, struct lexer *lexer, struct ex_scope *ex_scope)
 {
     // the lexer and the IO stream both have their own global error contexts
-    lexer->errcont = errcont;
-    wlexer_set_errcont(&lexer->wlexer, errcont);
+    lexer->ex_scope = ex_scope;
+    wlexer_set_ex_scope(&lexer->wlexer, ex_scope);
 
     struct token *res = *tres = tok_alloc(lexer);
     lexer_lex_untyped(res, &lexer->wlexer, lexer);
@@ -136,39 +136,39 @@ static void lexer_lex(struct token **tres, struct lexer *lexer, struct errcont *
     lexer_type_token(lexer, res);
 }
 
-char *lexer_lex_string(struct errcont *errcont, struct wlexer *wlexer)
+char *lexer_lex_string(struct ex_scope *ex_scope, struct wlexer *wlexer)
 {
     struct lexer lexer = {
         .wlexer = *wlexer,
-        .errcont = errcont,
+        .ex_scope = ex_scope,
         .head = NULL,
     };
 
-    lexer_lex(&lexer.head, &lexer, errcont);
+    lexer_lex(&lexer.head, &lexer, ex_scope);
     assert(lexer.head->next == NULL);
     char *buf = tok_buf(lexer.head);
     tok_free(lexer.head, false);
     return buf;
 }
 
-struct token *lexer_peek_at(struct lexer *lexer, struct token *tok, struct errcont *errcont)
+struct token *lexer_peek_at(struct lexer *lexer, struct token *tok, struct ex_scope *ex_scope)
 {
     if (!tok->next)
-        lexer_lex(&tok->next, lexer, errcont);
+        lexer_lex(&tok->next, lexer, ex_scope);
     return tok->next;
 }
 
-struct token *lexer_peek(struct lexer *lexer, struct errcont *errcont)
+struct token *lexer_peek(struct lexer *lexer, struct ex_scope *ex_scope)
 {
     if (!lexer->head)
-        lexer_lex(&lexer->head, lexer, errcont);
+        lexer_lex(&lexer->head, lexer, ex_scope);
     return lexer->head;
 }
 
-struct token *lexer_pop(struct lexer *lexer, struct errcont *errcont)
+struct token *lexer_pop(struct lexer *lexer, struct ex_scope *ex_scope)
 {
     if (!lexer->head)
-        lexer_lex(&lexer->head, lexer, errcont);
+        lexer_lex(&lexer->head, lexer, ex_scope);
 
     struct token *ret = lexer->head;
     lexer->head = ret->next;

@@ -24,10 +24,10 @@ static bool compound_list_block_end(const struct token *tok)
 }
 
 
-static bool parse_compound_list_end(struct shast *prev_ast, struct lexer *lexer, struct errcont *errcont)
+static bool parse_compound_list_end(struct shast *prev_ast, struct lexer *lexer, struct ex_scope *ex_scope)
 {
     /* stop if there's no command separator */
-    const struct token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, ex_scope);
 
     if (tok_is(tok, TOK_AND)) {
         /* mark the last ast as asynchronous */
@@ -36,21 +36,21 @@ static bool parse_compound_list_end(struct shast *prev_ast, struct lexer *lexer,
         /* stop parsing the list if an unexpected token is met */
         return true;
 
-    lexer_discard(lexer, errcont);
-    parse_newlines(lexer, errcont);
+    lexer_discard(lexer, ex_scope);
+    parse_newlines(lexer, ex_scope);
 
     /* stop if there's a compound list terminator keyword */
-    tok = lexer_peek(lexer, errcont);
+    tok = lexer_peek(lexer, ex_scope);
     return compound_list_block_end(tok);
 }
 
 
-void parse_compound_list(struct shast **res, struct lexer *lexer, struct errcont *errcont)
+void parse_compound_list(struct shast **res, struct lexer *lexer, struct ex_scope *ex_scope)
 {
     /* start by parsing a pipeline, and stopping right away if we can */
-    parse_newlines(lexer, errcont);
-    parse_and_or(res, lexer, errcont);
-    if (parse_compound_list_end(*res, lexer, errcont))
+    parse_newlines(lexer, ex_scope);
+    parse_and_or(res, lexer, ex_scope);
+    if (parse_compound_list_end(*res, lexer, ex_scope))
         return;
 
     /* if the list doesn't end there, inject a list node */
@@ -60,16 +60,16 @@ void parse_compound_list(struct shast **res, struct lexer *lexer, struct errcont
 
     while (true) {
         struct shast **last_ast = shast_vect_tail_slot(&list->commands);
-        parse_and_or(last_ast, lexer, errcont);
-        if (parse_compound_list_end(*last_ast, lexer, errcont))
+        parse_and_or(last_ast, lexer, ex_scope);
+        if (parse_compound_list_end(*last_ast, lexer, ex_scope))
             break;
     }
 }
 
 
-static bool parse_list_end(struct shast *prev_ast, struct lexer *lexer, struct errcont *errcont)
+static bool parse_list_end(struct shast *prev_ast, struct lexer *lexer, struct ex_scope *ex_scope)
 {
-    const struct token *tok = lexer_peek(lexer, errcont);
+    const struct token *tok = lexer_peek(lexer, ex_scope);
     if (tok_is(tok, TOK_AND)) {
         /* mark the last ast as asynchronous */
         prev_ast->async = true;
@@ -79,22 +79,22 @@ static bool parse_list_end(struct shast *prev_ast, struct lexer *lexer, struct e
         /* stop parsing the list */
         return true;
 
-    lexer_discard(lexer, errcont);
+    lexer_discard(lexer, ex_scope);
 
     /* stop when:
     **  - COMMAND ; EOF
     **  - COMMAND ; NEWLINE
     */
-    tok = lexer_peek(lexer, errcont);
+    tok = lexer_peek(lexer, ex_scope);
     return tok_is(tok, TOK_EOF) || tok_is(tok, TOK_NEWLINE);
 }
 
 
-void parse_list(struct shast **res, struct lexer *lexer, struct errcont *errcont)
+void parse_list(struct shast **res, struct lexer *lexer, struct ex_scope *ex_scope)
 {
     /* start by parsing a pipeline, and stopping right away if we can */
-    parse_and_or(res, lexer, errcont);
-    if (parse_list_end(*res, lexer, errcont))
+    parse_and_or(res, lexer, ex_scope);
+    if (parse_list_end(*res, lexer, ex_scope))
         return;
 
     /* if the list doesn't end there, inject a list node */
@@ -104,8 +104,8 @@ void parse_list(struct shast **res, struct lexer *lexer, struct errcont *errcont
 
     while (true) {
         struct shast **last_ast = shast_vect_tail_slot(&list->commands);
-        parse_and_or(last_ast, lexer, errcont);
-        if (parse_list_end(*last_ast, lexer, errcont))
+        parse_and_or(last_ast, lexer, ex_scope);
+        if (parse_list_end(*last_ast, lexer, ex_scope))
             break;
     }
 }

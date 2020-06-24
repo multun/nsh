@@ -4,7 +4,7 @@
 #include "shparse/ast.h"
 #include "utils/hash_table.h"
 
-int function_exec(struct environment *env, struct shast *ast, struct errcont *cont __unused)
+int function_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope __unused)
 {
     struct shast_function *function = (struct shast_function *)ast;
     char *function_name = hash_head_key(&function->hash);

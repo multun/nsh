@@ -40,20 +40,20 @@ static int builtin_generic_break(struct environment *env, int argc, char **argv)
     return -1;
 }
 
-int builtin_break(struct environment *env, struct errcont *cont,
+int builtin_break(struct environment *env, struct ex_scope *ex_scope,
                   int argc, char **argv)
 {
     int rc;
     if ((rc = builtin_generic_break(env, argc, argv)) >= 0)
         return rc;
-    shraise(cont, &g_ex_break);
+    shraise(ex_scope, &g_ex_break);
 }
 
-int builtin_continue(struct environment *env, struct errcont *cont,
+int builtin_continue(struct environment *env, struct ex_scope *ex_scope,
                      int argc, char **argv)
 {
     int rc;
     if ((rc = builtin_generic_break(env, argc, argv)) >= 0)
         return rc;
-    shraise(cont, &g_ex_continue);
+    shraise(ex_scope, &g_ex_continue);
 }

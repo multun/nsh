@@ -47,7 +47,7 @@ static inline char *wordlist_get_str(struct wordlist *wl, size_t i)
 ** \return argc
 **/
 void wordlist_expand(struct cpvect *res, struct wordlist *wl,
-                     struct environment *env, struct errcont *cont);
+                     struct environment *env, struct ex_scope *ex_scope);
 
 /**
 ** \brief free a wordlist

@@ -13,7 +13,7 @@ struct for_data {
     int rc;
 };
 
-static void for_expansion_callback(void *data, char *var_value, struct environment *env, struct errcont *cont)
+static void for_expansion_callback(void *data, char *var_value, struct environment *env, struct ex_scope *ex_scope)
 {
     struct for_data *for_data = data;
     struct shast_for *for_node = for_data->for_node;
@@ -22,21 +22,21 @@ static void for_expansion_callback(void *data, char *var_value, struct environme
     char *var_name = strdup(shword_buf(for_node->var));
     environment_var_assign(env, var_name, var_value, false);
 
-    struct errcont sub_errcont = ERRCONT(cont->errman, cont);
-    if (setjmp(sub_errcont.env)) {
+    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->errman, ex_scope);
+    if (setjmp(sub_ex_scope.env)) {
         /* handle continues by returning from the callback */
-        if (cont->errman->class == &g_ex_continue)
+        if (ex_scope->errman->class == &g_ex_continue)
             return;
 
         /* reraise any other exception */
-        shraise(cont, NULL);
+        shraise(ex_scope, NULL);
     }
 
     /* execute the ast */
-    for_data->rc = ast_exec(env, for_node->body, &sub_errcont);
+    for_data->rc = ast_exec(env, for_node->body, &sub_ex_scope);
 }
 
-int for_exec(struct environment *env, struct shast *ast, struct errcont *cont)
+int for_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
 {
     struct shast_for *for_node = (struct shast_for *)ast;
     struct for_data for_data = {
@@ -51,9 +51,9 @@ int for_exec(struct environment *env, struct shast *ast, struct errcont *cont)
         .data = &for_data,
     };
 
-    struct errcont sub_errcont = ERRCONT(cont->errman, cont);
-    if (setjmp(sub_errcont.env)) {
-        if (cont->errman->class != &g_ex_break)
+    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->errman, ex_scope);
+    if (setjmp(sub_ex_scope.env)) {
+        if (ex_scope->errman->class != &g_ex_break)
             goto reraise;
 
         assert(env->break_count > 0);
@@ -61,7 +61,7 @@ int for_exec(struct environment *env, struct shast *ast, struct errcont *cont)
         if (env->break_count != 0)
             goto reraise;
     } else {
-        expand_wordlist_callback(&for_callback, &for_node->collection, 0, env, &sub_errcont);
+        expand_wordlist_callback(&for_callback, &for_node->collection, 0, env, &sub_ex_scope);
     }
 
     env->depth--;
@@ -69,5 +69,5 @@ int for_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 
 reraise:
     env->depth--;
-    shraise(cont, NULL);
+    shraise(ex_scope, NULL);
 }

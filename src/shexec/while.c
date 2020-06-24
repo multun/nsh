@@ -4,15 +4,15 @@
 #include "shexec/break.h"
 #include "shexec/environment.h"
 
-int while_exec(struct environment *env, struct shast *ast, struct errcont *errcont)
+int while_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
 {
     struct shast_while *while_node = (struct shast_while *)ast;
-    struct errman *errman = errcont->errman;
-    struct errcont sub_errcont = ERRCONT(errman, errcont);
+    struct errman *errman = ex_scope->errman;
+    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(errman, ex_scope);
 
     env->depth++;
 
-    if (setjmp(sub_errcont.env)) {
+    if (setjmp(sub_ex_scope.env)) {
         if (errman->class == &g_ex_break) {
             /* the break builtin should ensure no impossible break is emitted */
             assert(env->break_count);
@@ -30,9 +30,9 @@ int while_exec(struct environment *env, struct shast *ast, struct errcont *errco
     }
 
     volatile int rc = 0;
-    while ((ast_exec(env, while_node->condition, &sub_errcont) == 0)
+    while ((ast_exec(env, while_node->condition, &sub_ex_scope) == 0)
            != while_node->is_until)
-        rc = ast_exec(env, while_node->body, &sub_errcont);
+        rc = ast_exec(env, while_node->body, &sub_ex_scope);
 
 exit_while:
     env->depth--;
@@ -40,5 +40,5 @@ exit_while:
 
 reraise:
     env->depth--;
-    shraise(errcont, NULL);
+    shraise(ex_scope, NULL);
 }

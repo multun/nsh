@@ -33,13 +33,13 @@ struct errman
 /**
 ** \brief describes an exception scope
 ** \details this structure holds all the data required to raise an exception:
-**   the parent error context can be used to go up the stack, and the error manager
+**   the parent scope can be used to go up the stack, and the error manager
 **   can store information about the exception being thrown.
 */
 
-struct errcont
+struct ex_scope
 {
-    struct errcont *father;
+    struct ex_scope *father;
     jmp_buf env;
     struct errman *errman;
 };
@@ -50,32 +50,32 @@ struct errcont
         .class = NULL,                                                                   \
     }
 
-#define ERRCONT(Man, Father)                                                             \
-    (struct errcont)                                                                     \
+#define EXCEPTION_SCOPE(Man, Father)                                                     \
+    (struct ex_scope)                                                                    \
     {                                                                                    \
         .errman = (Man),                                                                 \
         .father = (Father)                                                               \
     }
 
 /**
-** \fn void shraise(struct errcont *cont, const struct ex_class *class)
+** \fn void shraise(struct ex_scope *ex_scope, const struct ex_class *class)
 ** \brief raise an exception
 ** \details uses longjmp to go to the exception handler
-** \param cont the context to raise into
+** \param ex_scope the exception scope to raise into
 ** \param class the exception class to raise
 */
-void ATTR(noreturn) shraise(struct errcont *cont, const struct ex_class *class);
+void ATTR(noreturn) shraise(struct ex_scope *ex_scope, const struct ex_class *class);
 
 /**
 ** \brief prints line information, a message, and exit using shraise
 ** \param lineinfo the line-related metadata
-** \param cont the error context to raise the exception in
+** \param ex_scope the exception scope to raise the exception in
 ** \param ex_class the exception class being thrown
 ** \param format the error message's format string
 */
-void ATTR(noreturn) sherror(const struct lineinfo *lineinfo, struct errcont *cont,
+void ATTR(noreturn) sherror(const struct lineinfo *lineinfo, struct ex_scope *ex_scope,
                             const struct ex_class *ex_class, const char *format, ...);
 
-void ATTR(noreturn) vsherror(const struct lineinfo *li, struct errcont *cont,
+void ATTR(noreturn) vsherror(const struct lineinfo *li, struct ex_scope *ex_scope,
                              const struct ex_class *ex_class, const char *format, va_list ap);
 void vshwarn(const struct lineinfo *li, const char *format, va_list ap);

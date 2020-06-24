@@ -4,7 +4,7 @@
 #include "utils/error.h"
 
 
-typedef void (*expansion_callback_f)(void *data, char *word, struct environment *env, struct errcont *cont);
+typedef void (*expansion_callback_f)(void *data, char *word, struct environment *env, struct ex_scope *ex_scope);
 
 struct expansion_callback {
     expansion_callback_f func;
@@ -14,13 +14,13 @@ struct expansion_callback {
 struct expansion_callback_ctx {
     struct expansion_callback callback;
     struct environment *env;
-    struct errcont *errcont;
+    struct ex_scope *ex_scope;
 };
 
 static inline void expansion_callback_ctx_init(struct expansion_callback_ctx *ctx,
                                                struct expansion_callback *callback,
                                                struct environment *env,
-                                               struct errcont *errcont)
+                                               struct ex_scope *ex_scope)
 {
     if (callback) {
         ctx->callback = *callback;
@@ -28,12 +28,12 @@ static inline void expansion_callback_ctx_init(struct expansion_callback_ctx *ct
         ctx->callback.func = NULL;
     }
     ctx->env = env;
-    ctx->errcont = errcont;
+    ctx->ex_scope = ex_scope;
 }
 
 static inline void expansion_callback_ctx_call(struct expansion_callback_ctx *ctx, char *word)
 {
-    ctx->callback.func(ctx->callback.data, word, ctx->env, ctx->errcont);
+    ctx->callback.func(ctx->callback.data, word, ctx->env, ctx->ex_scope);
 }
 
 static inline bool expansion_callback_ctx_available(struct expansion_callback_ctx *ctx)
