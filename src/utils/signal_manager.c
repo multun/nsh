@@ -53,7 +53,7 @@ void signal_handler_del(struct signal_handler *handler)
         sigman->signal_disabled(sigman->hook_state, signal);
 }
 
-pid_t managed_fork(struct signal_manager *sigman)
+pid_t signal_manager_fork(struct signal_manager *sigman)
 {
     if (sigman->pre_fork_hook)
         sigman->pre_fork_hook(sigman->hook_state);

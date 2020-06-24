@@ -39,6 +39,9 @@ struct environment
     // the loop nesting depth
     size_t depth;
 
+    // forked children loose their interactivity
+    bool forked;
+
     // current last return code
     int code;
 };

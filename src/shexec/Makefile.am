@@ -10,6 +10,7 @@ libshexec_la_SOURCES = \
     $(TOP_INCL)/shexec/clean_exit.h \
     $(TOP_INCL)/shexec/environment.h \
     $(TOP_INCL)/shexec/execution.h \
+    $(TOP_INCL)/shexec/managed_fork.h \
     $(TOP_INCL)/shexec/runtime_error.h \
     args.c \
     assignment.c \
@@ -37,6 +38,7 @@ libshexec_la_SOURCES = \
     function.c \
     if.c \
     list.c \
+    managed_fork.c \
     pipe.c \
     redirection.c \
     runtime_error.c \

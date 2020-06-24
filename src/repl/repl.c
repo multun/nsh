@@ -20,15 +20,10 @@ static bool handle_repl_exception(struct errman *eman, struct context *ctx)
         return false;
     }
 
-    if (eman->class == &g_keyboard_interrupt) {
-        ctx->env->code = eman->retcode;
-        return true;
-    }
-
-    if (eman->class == &g_runtime_error) {
+    if (eman->class == &g_keyboard_interrupt || eman->class == &g_runtime_error) {
         ctx->env->code = eman->retcode;
         /* continue if the REPL is interactive */
-        return ctx->cs->interactive;
+        return context_interactive(ctx);
     }
 
     if (eman->class != &g_parser_error && eman->class != &g_lexer_error)
@@ -47,7 +42,7 @@ static bool handle_repl_exception(struct errman *eman, struct context *ctx)
 
     ctx->env->code = g_cmdopts.src == SHSRC_COMMAND ? 1 : 2;
     // stop if the repl isn't interactive
-    return ctx->cs->interactive;
+    return context_interactive(ctx);
 }
 
 bool repl(struct context *ctx)
@@ -61,11 +56,19 @@ bool repl(struct context *ctx)
 
         /* handle keyboard interupts in initial EOF check */
         if (setjmp(keeper.env)) {
-            if (eman.class == &g_keyboard_interrupt) {
-                ctx->env->code = eman.retcode;
-                continue;
-            }
-            errx(2, "received an unknown exception in EOF check");
+            if (eman.class != &g_keyboard_interrupt)
+                errx(2, "received an unknown exception in EOF check");
+
+            /* propagate the status code from the exception to the repl */
+            ctx->env->code = eman.retcode;
+
+            /* just stop if not interactive */
+            if (!context_interactive(ctx))
+                return false;
+
+            /* if the stream is interactive, clear the cached EOF and restart parsing */
+            cstream_reset(ctx->cs);
+            continue;
         }
 
         /* check for EOF with the above context */

@@ -129,6 +129,7 @@ struct environment *environment_create(struct arg_context *arg_cont)
     hash_table_init(&env->variables, 10);
     hash_table_init(&env->functions, 10);
     env->code = 0;
+    env->forked = false;
 
     env->break_count = 0;
     env->depth = 0;

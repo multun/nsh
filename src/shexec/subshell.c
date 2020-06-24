@@ -1,6 +1,7 @@
 #include "shparse/ast.h"
 #include "utils/hash_table.h"
 #include "shexec/clean_exit.h"
+#include "shexec/managed_fork.h"
 
 #include <err.h>
 #include <stdio.h>
@@ -11,7 +12,7 @@ int subshell_exec(struct environment *env, struct shast *ast, struct errcont *co
     // TODO: error handling
     struct shast_subshell *subshell = (struct shast_subshell *)ast;
 
-    int cpid = managed_fork(&env->sigman);
+    int cpid = managed_fork(env);
     if (cpid == -1)
         err(1, "fork() failed");
 

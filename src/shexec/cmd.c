@@ -11,6 +11,7 @@
 #include "shexec/builtins.h"
 #include "shexec/clean_exit.h"
 #include "shexec/environment.h"
+#include "shexec/managed_fork.h"
 #include "utils/hash_table.h"
 #include "utils/macros.h"
 
@@ -24,7 +25,7 @@ static int builtin_exec(struct environment *env, struct errcont *cont, f_builtin
 static int cmd_fork_exec(struct environment *env, struct errcont *cont)
 {
     int status;
-    pid_t pid = managed_fork(&env->sigman);
+    pid_t pid = managed_fork(env);
     if (pid < 0)
         clean_err(cont, errno, "cmd_exec: error while forking");
 

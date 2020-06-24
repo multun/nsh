@@ -60,6 +60,16 @@ struct context
 };
 
 /**
+** \brief checks if the context should be treated as interactive.
+**   Interactive contexts restart on keyboard interupts and append to history.
+** \param ctx the runtime context
+*/
+static inline bool context_interactive(struct context *ctx)
+{
+    return ctx->cs->interactive && !ctx->env->forked;
+}
+
+/**
 ** \brief drop the refence to the AST, if the context holds one
 ** \param ctx the runtime context
 */

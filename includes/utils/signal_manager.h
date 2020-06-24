@@ -53,4 +53,4 @@ extern void signal_manager_init(struct signal_manager *sigman);
 extern void signal_manager_setup_handler(struct signal_manager *sigman, struct signal_handler *handler, int signal, bool head_handler);
 extern void signal_manager_dispatch(struct signal_manager *sigman, struct errcont *errcont, int signal);
 extern void signal_handler_del(struct signal_handler *handler);
-extern pid_t managed_fork(struct signal_manager *sigman);
+extern pid_t signal_manager_fork(struct signal_manager *sigman);

@@ -7,6 +7,7 @@
 
 #include "shparse/ast.h"
 #include "shexec/clean_exit.h"
+#include "shexec/managed_fork.h"
 #include "shexec/runtime_error.h"
 #include "utils/safe_syscalls.h"
 
@@ -146,7 +147,7 @@ int pipeline_exec(struct environment *env, struct shast *ast, struct errcont *co
         else
             pipeline_enqueue_pipe(&queue);
 
-        int child_pid = managed_fork(&env->sigman);
+        int child_pid = managed_fork(env);
         /* error handling */
         if (child_pid == -1) {
             warn("pipe_exec: fork() failed");

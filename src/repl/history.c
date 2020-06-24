@@ -28,6 +28,8 @@ FILE *history_open(void)
 
 void history_init(struct context *ctx)
 {
+    /* do not use context_interactive, we don't care about
+       forked processes removing interactivity */
     if (!ctx->cs->interactive) {
         ctx->history = NULL;
         return;
@@ -40,7 +42,9 @@ void history_init(struct context *ctx)
 
 void history_update(struct context *ctx)
 {
-    if (!ctx->cs->interactive)
+    /* use context_interactive, as we don't want forked
+       processes to log their commands */
+    if (context_interactive(ctx))
         return;
 
     struct evect *cmd_vect = &ctx->line_buffer;
@@ -78,6 +82,8 @@ void history_update(struct context *ctx)
 
 void history_destroy(struct context *ctx)
 {
+    /* do not use context_interactive, we don't care about
+       forked processes removing interactivity */
     if (!ctx->cs->interactive)
         return;
 

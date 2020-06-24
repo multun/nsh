@@ -1,6 +1,7 @@
 #include "repl/repl.h"
 #include "shexec/clean_exit.h"
 #include "shexec/environment.h"
+#include "shexec/managed_fork.h"
 #include "shexp/expansion.h"
 #include "utils/error.h"
 #include "utils/evect.h"
@@ -63,7 +64,7 @@ void expand_subshell(struct expansion_state *exp_state, char *buf)
     if (pipe(pfd) < 0)
         err(1, "pipe() failed");
 
-    int cpid = managed_fork(&expansion_state_env(exp_state)->sigman);
+    int cpid = managed_fork(expansion_state_env(exp_state));
     if (cpid < 0)
         err(1, "fork() failed");
 
