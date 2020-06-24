@@ -20,19 +20,6 @@ struct ex_class
 };
 
 /**
-** \brief a kind of exception handler
-** \details the current environment can be stored inside env, and
-**   the parent context inside father
-*/
-struct keeper
-{
-#ifndef NDEBUG
-    struct keeper *father;
-#endif
-    jmp_buf env;
-};
-
-/**
 ** \brief a per-thread error context
 ** \details this structure is required in order to store some information
 **   about the current error context
@@ -44,46 +31,36 @@ struct errman
 };
 
 /**
-** \brief detailsribes an error context
+** \brief describes an exception scope
 ** \details this structure holds all the data required to raise an exception:
-**   the keeper state can be uesd to go up the stack, and the error manager
+**   the parent error context can be used to go up the stack, and the error manager
 **   can store information about the exception being thrown.
 */
+
 struct errcont
 {
+    struct errcont *father;
+    jmp_buf env;
     struct errman *errman;
-    struct keeper *keeper;
 };
 
 #define ERRMAN                                                                           \
-    (struct errman)                                                                           \
+    (struct errman)                                                                      \
     {                                                                                    \
         .class = NULL,                                                                   \
     }
 
-#define ERRCONT(Man, Keeper)                                                             \
-    (struct errcont)                                                                          \
+#define ERRCONT(Man, Father)                                                             \
+    (struct errcont)                                                                     \
     {                                                                                    \
-        .errman = (Man), .keeper = (Keeper)                                              \
+        .errman = (Man),                                                                 \
+        .father = (Father)                                                               \
     }
-
-#ifndef NDEBUG
-#    define KEEPER(Father)                                                               \
-        (struct keeper)                                                                       \
-        {                                                                                \
-            .father = (Father)                                                           \
-        }
-#else
-#    define KEEPER(Father) ((struct keeper){0})
-#endif
 
 /**
 ** \fn void shraise(struct errcont *cont, const struct ex_class *class)
 ** \brief raise an exception
-** \details uses longjmp to notify the closest keeper
-**   in order to avoid allocated data being lost, all allocations
-**   between the keeper and the shraise call should be able to be
-**   cleaner up by the keeper.
+** \details uses longjmp to go to the exception handler
 ** \param cont the context to raise into
 ** \param class the exception class to raise
 */

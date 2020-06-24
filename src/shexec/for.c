@@ -22,17 +22,17 @@ static void for_expansion_callback(void *data, char *var_value, struct environme
     char *var_name = strdup(shword_buf(for_node->var));
     environment_var_assign(env, var_name, var_value, false);
 
-    struct keeper keeper = KEEPER(cont->keeper);
-    struct errcont ncont = ERRCONT(cont->errman, &keeper);
-    if (setjmp(keeper.env)) {
+    struct errcont sub_errcont = ERRCONT(cont->errman, cont);
+    if (setjmp(sub_errcont.env)) {
         // if the exception isn't a continue, or if it is for an outer loop,
         // re-raise the exception
+        // TODO: cleanup this condition
         if (cont->errman->class != &g_ex_continue
             || --env->break_count != 0)
             shraise(cont, NULL);
     } else {
         // execute the ast
-        for_data->rc = ast_exec(env, for_node->body, &ncont);
+        for_data->rc = ast_exec(env, for_node->body, &sub_errcont);
     }
 }
 
@@ -51,9 +51,8 @@ int for_exec(struct environment *env, struct shast *ast, struct errcont *cont)
         .data = &for_data,
     };
 
-    struct keeper keeper = KEEPER(cont->keeper);
-    struct errcont ncont = ERRCONT(cont->errman, &keeper);
-    if (setjmp(keeper.env)) {
+    struct errcont sub_errcont = ERRCONT(cont->errman, cont);
+    if (setjmp(sub_errcont.env)) {
         if ((cont->errman->class != &g_ex_break)
             || --env->break_count) {
             env->depth--;
@@ -61,7 +60,7 @@ int for_exec(struct environment *env, struct shast *ast, struct errcont *cont)
         }
     }
     else
-        expand_wordlist_callback(&for_callback, &for_node->collection, 0, env, &ncont);
+        expand_wordlist_callback(&for_callback, &for_node->collection, 0, env, &sub_errcont);
 
     env->depth--;
     return for_data.rc;

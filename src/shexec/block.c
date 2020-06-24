@@ -32,15 +32,15 @@ int block_exec(struct environment *env, struct shast *ast, struct errcont *cont)
     }
 
 
-    struct keeper keeper = KEEPER(cont->keeper);
-    if (setjmp(keeper.env)) {
+    struct errcont sub_errcont = ERRCONT(cont->errman, cont);
+    if (setjmp(sub_errcont.env)) {
         // on exceptions, undo redirections and re-raise
         redir_undo_stack_cancel(&undo_stack);
         shraise(cont, NULL);
     }
 
     // run the command block and undo redirections
-    rc = ast_exec(env, block->command, &ERRCONT(cont->errman, &keeper));
+    rc = ast_exec(env, block->command, &sub_errcont);
     redir_undo_stack_cancel(&undo_stack);
     return rc;
 }

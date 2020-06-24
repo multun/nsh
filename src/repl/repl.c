@@ -59,11 +59,10 @@ exception_stop:
 enum repl_action repl_eof(struct repl_result *res, struct context *ctx)
 {
     struct errman eman = ERRMAN;
-    struct keeper keeper = KEEPER(NULL);
-    struct errcont errcont = ERRCONT(&eman, &keeper);
+    struct errcont errcont = ERRCONT(&eman, NULL);
 
     /* handle keyboard interupts in initial EOF check */
-    if (setjmp(keeper.env)) {
+    if (setjmp(errcont.env)) {
         if (eman.class != &g_keyboard_interrupt)
             errx(2, "received an unknown exception in EOF check");
 
@@ -95,8 +94,7 @@ enum repl_action repl_eof(struct repl_result *res, struct context *ctx)
 void repl(struct repl_result *res, struct context *ctx)
 {
     struct errman eman = ERRMAN;
-    struct keeper keeper = KEEPER(NULL);
-    struct errcont errcont = ERRCONT(&eman, &keeper);
+    struct errcont errcont = ERRCONT(&eman, NULL);
 
     while (true) {
         ctx->line_start = true;
@@ -109,7 +107,7 @@ void repl(struct repl_result *res, struct context *ctx)
             break;
 
          /* parse and execute */
-        if (setjmp(keeper.env)) {
+        if (setjmp(errcont.env)) {
             /* decide whether to stop running the repl */
             if (handle_repl_exception(res, ctx, &eman) == REPL_ACTION_STOP)
                 break;

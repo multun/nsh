@@ -12,7 +12,7 @@ void ATTR(noreturn) shraise(struct errcont *cont, const struct ex_class *class)
 {
     if (class)
         cont->errman->class = class;
-    longjmp(cont->keeper->env, 1);
+    longjmp(cont->env, 1);
 }
 
 void vshwarn(const struct lineinfo *li, const char *format, va_list ap)

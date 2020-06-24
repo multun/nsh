@@ -491,9 +491,8 @@ void expand(struct expansion_state *exp_state,
     assert((exp_state->callback_ctx.callback.func == NULL) == (exp_state->IFS == NULL));
 
     /* on exception, free the expansion buffer */
-    struct keeper keeper = KEEPER(errcont->keeper);
-    struct errcont sub_errcont = ERRCONT(errcont->errman, &keeper);
-    if (setjmp(keeper.env)) {
+    struct errcont sub_errcont = ERRCONT(errcont->errman, errcont);
+    if (setjmp(sub_errcont.env)) {
         expansion_state_destroy(exp_state);
         shraise(errcont, NULL);
     }

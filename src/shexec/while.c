@@ -4,30 +4,41 @@
 #include "shexec/break.h"
 #include "shexec/environment.h"
 
-int while_exec(struct environment *env, struct shast *ast, struct errcont *cont)
+int while_exec(struct environment *env, struct shast *ast, struct errcont *errcont)
 {
     struct shast_while *while_node = (struct shast_while *)ast;
-    volatile int res = 0;
-    struct keeper keeper = KEEPER(cont->keeper);
-    struct errcont ncont = ERRCONT(cont->errman, &keeper);
+    struct errman *errman = errcont->errman;
+    struct errcont sub_errcont = ERRCONT(errman, errcont);
+
     env->depth++;
 
-    volatile bool local_continue = true;
-    if (setjmp(keeper.env)) {
-        // the break builtin ensures no impossible break is emitted
-        if ((cont->errman->class != &g_ex_break && cont->errman->class != &g_ex_continue)
-            || --env->break_count) {
-            env->depth--;
-            shraise(cont, NULL);
+    if (setjmp(sub_errcont.env)) {
+        if (errman->class == &g_ex_break) {
+            /* the break builtin should ensure no impossible break is emitted */
+            assert(env->break_count);
+
+            env->break_count--;
+            if (env->break_count != 0)
+                goto reraise;
+            goto exit_while;
+        } else if (errman->class == &g_ex_continue) {
+            /* do nothing */
+        } else {
+            /* forward all other exception */
+            goto reraise;
         }
-        local_continue = (cont->errman->class == &g_ex_continue);
     }
 
-    if (local_continue)
-        while ((ast_exec(env, while_node->condition, &ncont) == 0)
-               != while_node->is_until)
-            res = ast_exec(env, while_node->body, &ncont);
+    volatile int rc = 0;
+    while ((ast_exec(env, while_node->condition, &sub_errcont) == 0)
+           != while_node->is_until)
+        rc = ast_exec(env, while_node->body, &sub_errcont);
 
+exit_while:
     env->depth--;
-    return res;
+    return rc;
+
+reraise:
+    env->depth--;
+    shraise(errcont, NULL);
 }

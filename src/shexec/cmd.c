@@ -67,7 +67,6 @@ int cmd_exec(struct environment *env, struct shast *ast, struct errcont *cont)
     struct wordlist *wl = &command->arguments;
     int volatile prev_argc = env->argc;
     char **volatile prev_argv = env->argv;
-    struct keeper keeper = KEEPER(cont->keeper);
 
     /* expand the arguments array */
     struct cpvect new_argv;
@@ -80,7 +79,8 @@ int cmd_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 
     /* on exception, free the argument array */
     int res = 0;
-    if (setjmp(keeper.env)) {
+    struct errcont sub_errcont = ERRCONT(cont->errman, cont);
+    if (setjmp(sub_errcont.env)) {
         argv_free(env->argv);
         env->argc = prev_argc;
         env->argv = prev_argv;
@@ -88,7 +88,7 @@ int cmd_exec(struct environment *env, struct shast *ast, struct errcont *cont)
     }
 
     /* run the command */
-    res = cmd_run_command(env, &ERRCONT(cont->errman, &keeper));
+    res = cmd_run_command(env, &sub_errcont);
 
     /* cleanup */
     argv_free(env->argv);
