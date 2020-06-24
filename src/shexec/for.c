@@ -18,22 +18,22 @@ static void for_expansion_callback(void *data, char *var_value, struct environme
     struct for_data *for_data = data;
     struct shast_for *for_node = for_data->for_node;
 
-    // assign the loop variable
+    /* assign the loop variable */
     char *var_name = strdup(shword_buf(for_node->var));
     environment_var_assign(env, var_name, var_value, false);
 
     struct errcont sub_errcont = ERRCONT(cont->errman, cont);
     if (setjmp(sub_errcont.env)) {
-        // if the exception isn't a continue, or if it is for an outer loop,
-        // re-raise the exception
-        // TODO: cleanup this condition
-        if (cont->errman->class != &g_ex_continue
-            || --env->break_count != 0)
-            shraise(cont, NULL);
-    } else {
-        // execute the ast
-        for_data->rc = ast_exec(env, for_node->body, &sub_errcont);
+        /* handle continues by returning from the callback */
+        if (cont->errman->class == &g_ex_continue)
+            return;
+
+        /* reraise any other exception */
+        shraise(cont, NULL);
     }
+
+    /* execute the ast */
+    for_data->rc = ast_exec(env, for_node->body, &sub_errcont);
 }
 
 int for_exec(struct environment *env, struct shast *ast, struct errcont *cont)
@@ -53,15 +53,21 @@ int for_exec(struct environment *env, struct shast *ast, struct errcont *cont)
 
     struct errcont sub_errcont = ERRCONT(cont->errman, cont);
     if (setjmp(sub_errcont.env)) {
-        if ((cont->errman->class != &g_ex_break)
-            || --env->break_count) {
-            env->depth--;
-            shraise(cont, NULL);
-        }
-    }
-    else
+        if (cont->errman->class != &g_ex_break)
+            goto reraise;
+
+        assert(env->break_count > 0);
+        env->break_count--;
+        if (env->break_count != 0)
+            goto reraise;
+    } else {
         expand_wordlist_callback(&for_callback, &for_node->collection, 0, env, &sub_errcont);
+    }
 
     env->depth--;
     return for_data.rc;
+
+reraise:
+    env->depth--;
+    shraise(cont, NULL);
 }
