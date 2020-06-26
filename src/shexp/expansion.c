@@ -150,12 +150,13 @@ static enum wlexer_op expand_dollar(struct expansion_state *exp_state,
 
         assert(wtoken->type == WTOK_REGULAR);
 
-        if (!variable_name_check(&var_name, wtoken->ch[0])) {
+        char c = wtoken->ch[0];
+        if (!variable_name_check(&var_name, c)) {
             variable_name_destroy(&var_name);
-            expansion_error(exp_state, "invalid characted in ${} section: %c", wtoken->ch[0]);
+            expansion_error(exp_state, "invalid character in ${} section: `%c' (%#x)", c, c);
         }
 
-        variable_name_push(&var_name, wtoken->ch[0]);
+        variable_name_push(&var_name, c);
     } while (true);
 
     variable_name_finalize(&var_name);
