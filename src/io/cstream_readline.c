@@ -4,38 +4,43 @@
 #include "shlex/variable.h"
 #include "utils/alloc.h"
 #include "utils/macros.h"
+#include "shexp/expansion.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-static const char *cont_get_var(struct context *cont, const char *name, const char *default_value)
+static const char *get_ps1(struct context *ctx)
 {
-    struct hash_head *var_hash = hash_table_find(&cont->env->variables, NULL, name);
-    if (var_hash == NULL)
-        return default_value;
-
-    struct shexec_variable *var = container_of(var_hash, struct shexec_variable, hash);
-    if (var->value == NULL)
-        return default_value;
-    return var->value;
-}
-
-static const char *get_ps1(struct context *context)
-{
-    return cont_get_var(context, "PS1", "nsh> ");
-}
-
-static const char *get_ps2(struct context *context)
-{
-    return cont_get_var(context, "PS2", "> ");
-}
-
-static const char *prompt_get(struct cstream *cs)
-{
-    const char *res = (cs->context->line_start ? get_ps1 : get_ps2)(cs->context);
-    cs->context->line_start = false;
+    const char *res = environment_var_get(ctx->env, "PS1");
+    if (res == NULL)
+        return "nsh> ";
     return res;
+}
+
+static const char *get_ps2(struct context *ctx)
+{
+    const char *res = environment_var_get(ctx->env, "PS2");
+    if (res == NULL)
+        return "> ";
+    return res;
+}
+
+static char *prompt_get(struct cstream *cs)
+{
+    struct context *ctx = cs->context;
+    const char *res = (ctx->line_start ? get_ps1 : get_ps2)(ctx);
+    ctx->line_start = false;
+
+    struct ex_context ex_context;
+    struct ex_scope ex_scope = EXCEPTION_SCOPE(&ex_context, NULL);
+
+    if (setjmp(ex_scope.env)) {
+        /* if an error occurs, use the unexpanded prompt */
+        return strdup(res);
+    }
+
+    return expand_nosplit(&cs->line_info, res, EXP_FLAGS_PROMPT, ctx->env, &ex_scope);
 }
 
 static int readline_io_reader_unwrapped(struct cstream_readline *cs)
@@ -43,7 +48,7 @@ static int readline_io_reader_unwrapped(struct cstream_readline *cs)
     char *str = cs->current_line;
 
     if (!str) {
-        const char *prompt = prompt_get(&cs->base);
+        char *prompt = prompt_get(&cs->base);
         str = cs->current_line = readline_wrapped(cs->base.ex_scope, prompt);
         cs->line_position = 0;
     }

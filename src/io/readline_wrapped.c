@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/select.h>
+#include <stdlib.h>
 
 // readline's header requires including stdio beforehand
 #include <readline/history.h>
@@ -56,7 +57,7 @@ static void check_interrupt(struct ex_scope *ex_scope)
     shraise(ex_scope, &g_keyboard_interrupt);
 }
 
-char *readline_wrapped(struct ex_scope *ex_scope, const char *prompt)
+char *readline_wrapped(struct ex_scope *ex_scope, char *prompt)
 {
     int rc;
 
@@ -67,6 +68,7 @@ char *readline_wrapped(struct ex_scope *ex_scope, const char *prompt)
     // reset the interupt flag
     ctrl_c = false;
     rl_callback_handler_install(prompt, process_line);
+    free(prompt);
     while (true) {
         if ((rc = select(1, &rfds, NULL, NULL, NULL)) < 0) {
             if (errno == EAGAIN)

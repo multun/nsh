@@ -18,6 +18,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 static void expand_guarded(struct expansion_state *exp_state,
                            struct wlexer *wlexer);
@@ -247,6 +248,81 @@ static enum wlexer_op expand_tilde(struct expansion_state *exp_state,
     return LEXER_OP_CONTINUE;
 }
 
+static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
+                                           struct wlexer *wlexer __unused,
+                                           struct wtoken *wtoken __unused,
+                                           char c)
+{
+    /*
+      TODO: implement the remaining prompt escapes
+    \d     the date in "Weekday Month Date" format (e.g., "Tue May 26")
+    \D{format}
+           the format is passed to strftime(3) and the result is inserted into the prompt string; an empty format results in a  locale-specific
+           time representation.  The braces are required
+    \h     the hostname up to the first `.'
+    \H     the hostname
+    \j     the number of jobs currently managed by the shell
+    \l     the basename of the shell's terminal device name
+    \s     the name of the shell, the basename of $0 (the portion following the final slash)
+    \t     the current time in 24-hour HH:MM:SS format
+    \T     the current time in 12-hour HH:MM:SS format
+    \@     the current time in 12-hour am/pm format
+    \A     the current time in 24-hour HH:MM format
+    \v     the version of bash (e.g., 2.00)
+    \V     the release of bash, version + patch level (e.g., 2.00.0)
+    \w     the current working directory, with $HOME abbreviated with a tilde (uses the value of the PROMPT_DIRTRIM variable)
+    \W     the basename of the current working directory, with $HOME abbreviated with a tilde
+    \!     the history number of this command
+    \#     the command number of this command
+    \nnn   the character corresponding to the octal number nnn
+     */
+
+    switch (c) {
+    case 'n':
+        expansion_push_nosplit(exp_state, '\n');
+        break;
+    case 'u': {
+        struct passwd *pwd = getpwuid(geteuid());
+        if (pwd == NULL)
+            return LEXER_OP_FALLTHROUGH;
+
+        const char *username = pwd->pw_name;
+        if (username == NULL)
+            return LEXER_OP_FALLTHROUGH;
+
+        expansion_push_string_nosplit(exp_state, username);
+        break;
+    }
+    case '$':
+        expansion_push_nosplit(exp_state, geteuid() == 0 ? '#' : '$');
+        break;
+    case '\\':
+        expansion_push_nosplit(exp_state, '\\');
+        break;
+    case 'a':
+        expansion_push_nosplit(exp_state, '\a');
+        break;
+    case 'e':
+        expansion_push_nosplit(exp_state, 033);
+        break;
+    case 'r':
+        expansion_push_nosplit(exp_state, '\r');
+        break;
+    case '[':
+        /* Start Of Heading - tells readline the next chars have a 0 printed size */
+        expansion_push_nosplit(exp_state, 001);
+        break;
+    case ']':
+        /* Start Of Text - tells readline the next chars have some printed size again */
+        expansion_push_nosplit(exp_state, 002);
+        break;
+    default:
+        return LEXER_OP_FALLTHROUGH;
+    }
+
+    return LEXER_OP_CONTINUE;
+}
+
 static enum wlexer_op expand_regular(struct expansion_state *exp_state,
                                      struct wlexer *wlexer,
                                      struct wtoken *wtoken)
@@ -353,6 +429,13 @@ static enum wlexer_op expand_escape(struct expansion_state *exp_state,
     int ch = cstream_pop(wlexer->cs);
     if (ch == EOF)
         expansion_error(exp_state, "unexpected EOF in escape, during expansion");
+
+    /* handle PS1 / PS2 escapes */
+    if ((exp_state->flags & EXP_FLAGS_PROMPT)) {
+        enum wlexer_op res = expand_prompt_escape(exp_state, wlexer, wtoken, ch);
+        if (res != LEXER_OP_FALLTHROUGH)
+            return res;
+    }
 
     expansion_push(exp_state, ch);
     return LEXER_OP_CONTINUE;

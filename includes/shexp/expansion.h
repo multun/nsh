@@ -15,6 +15,7 @@
 enum expansion_flags
 {
     EXP_FLAGS_ASSIGNMENT = 1,
+    EXP_FLAGS_PROMPT = 2,
 };
 
 /* the starting expansion buffer size */
