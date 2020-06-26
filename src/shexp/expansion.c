@@ -253,13 +253,23 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
     if (wlexer->mode != MODE_SINGLE_QUOTED && wtoken->ch[0] == '$')
         return expand_variable(exp_state, wlexer, wtoken);
 
-    if (wlexer->mode == MODE_UNQUOTED && wtoken->ch[0] == '~' &&
-        /* if the tilde is at the start of the line */
-        (wlexer->cs->offset == 1 ||
-         /* or right after a colon during an assignment */
-         ((exp_state->flags & EXP_FLAGS_ASSIGNMENT) &&
-          expansion_result_last(&exp_state->result) == ':')))
-        return expand_tilde(exp_state, wlexer, wtoken);
+    /* handle special meaning of regular characters */
+    switch (wtoken->ch[0]) {
+    case '~':
+        /* ~ must be unquoted */
+        if (wlexer->mode != MODE_UNQUOTED)
+            break;
+
+        /* expand if the tilde is at the start of the line */
+        if (wlexer->cs->offset == 1)
+            return expand_tilde(exp_state, wlexer, wtoken);
+
+        /* or right after a colon during an assignment */
+        if ((exp_state->flags & EXP_FLAGS_ASSIGNMENT) &&
+            expansion_result_last(&exp_state->result) == ':')
+            return expand_tilde(exp_state, wlexer, wtoken);
+        break;
+    }
 
     // litteral regular characters from the unquoted mode
     // don't get any IFS splitting
