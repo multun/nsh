@@ -515,7 +515,7 @@ void expand(struct expansion_state *exp_state,
         expansion_end_word(exp_state);
 }
 
-char *expand_nosplit(struct lineinfo *line_info, char *str, int flags, struct environment *env, struct ex_scope *ex_scope)
+char *expand_nosplit(struct lineinfo *line_info, const char *str, int flags, struct environment *env, struct ex_scope *ex_scope)
 {
     /* initialize the character stream */
     struct cstream_string cs;

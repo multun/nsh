@@ -26,7 +26,7 @@ enum expansion_flags
 ** \param ex_scope the exception scope to work with
 ** \return a malloc allocated expanded string
 */
-char *expand_nosplit(struct lineinfo *line_info, char *str, int flags, struct environment *env, struct ex_scope *ex_scope);
+char *expand_nosplit(struct lineinfo *line_info, const char *str, int flags, struct environment *env, struct ex_scope *ex_scope);
 
 struct expansion_state;
 struct expansion_result;
