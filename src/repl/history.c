@@ -44,7 +44,7 @@ void history_update(struct context *ctx)
 {
     /* use context_interactive, as we don't want forked
        processes to log their commands */
-    if (context_interactive(ctx))
+    if (!context_interactive(ctx))
         return;
 
     struct evect *cmd_vect = &ctx->line_buffer;
