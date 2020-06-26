@@ -1,6 +1,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <limits.h>
+#include <err.h>
 
 #include "shparse/ast.h"
 #include "repl/repl.h"
@@ -13,6 +15,8 @@
 #include "utils/hash_table.h"
 #include "utils/macros.h"
 #include "utils/mprintf.h"
+#include "utils/safe_syscalls.h"
+
 
 static char **arg_context_extract(int *target_argc, struct arg_context *args)
 {
@@ -56,9 +60,16 @@ static void environment_load_variables(struct environment *env)
         environment_var_assign(env, name, value, true);
     }
 
-    if (hash_table_find(&env->variables, NULL, "PWD") == NULL)
-        update_pwd("PWD", env);
-    if (hash_table_find(&env->variables, NULL, "IFS") == NULL)
+    const char *PWD = environment_var_get(env, "PWD");
+    if (PWD == NULL) {
+        char *pwd;
+        if ((pwd = safe_getcwd()) == NULL)
+            warn("getcwd() failed");
+        else
+            environment_var_assign(env, strdup("PWD"), pwd, true);
+    }
+
+    if (environment_var_get(env, "IFS") == NULL)
         environment_var_assign(env, strdup("IFS"), strdup("\t\n "), true);
 }
 

@@ -20,3 +20,16 @@ static inline int safe_dup2(int src, int dst)
         continue;
     return rc;
 }
+
+static inline char *safe_getcwd(void) {
+#ifdef __GLIBC__
+    return getcwd(NULL, 0);
+#else
+    char *buf = zalloc(PATH_MAX);
+    if (buf)
+        return buf;
+
+    free(buf);
+    return NULL;
+#endif
+}

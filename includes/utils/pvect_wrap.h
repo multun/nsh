@@ -61,6 +61,11 @@ static inline void GVECT_FNAME(push)(struct GVECT_NAME *vect, GVECT_TYPE item)
     pvect_push(&vect->base, item);
 }
 
+static inline GVECT_TYPE GVECT_FNAME(pop)(struct GVECT_NAME *vect)
+{
+    return pvect_pop(&vect->base);
+}
+
 static inline GVECT_TYPE *GVECT_FNAME(last)(struct GVECT_NAME *vect)
 {
     return (GVECT_TYPE*)pvect_last(&vect->base);

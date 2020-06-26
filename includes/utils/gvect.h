@@ -49,6 +49,13 @@ void GVECT_FNAME(destroy)(struct GVECT_NAME *vect);
 */
 void GVECT_FNAME(push)(struct GVECT_NAME *vect, GVECT_TYPE c);
 
+/**
+** \brief pop an item from the end of the vector
+** \param vect the vector to pop from
+** \return the last item of the vector
+*/
+GVECT_TYPE GVECT_FNAME(pop)(struct GVECT_NAME *vect);
+
 static inline size_t GVECT_FNAME(size)(struct GVECT_NAME *vect)
 {
     return vect->size;

@@ -21,3 +21,8 @@ void GVECT_FNAME(push)(struct GVECT_NAME *vect, GVECT_TYPE c)
     }
     vect->data[vect->size++] = c;
 }
+
+GVECT_TYPE GVECT_FNAME(pop)(struct GVECT_NAME *vect)
+{
+    return vect->data[--vect->size];
+}

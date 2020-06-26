@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 /* gives the number of characters needed to print some type in base 8 or 10.
@@ -19,6 +20,12 @@
 #define INT_MAX_CHARS(IntegerType)                      \
     (1 /* - sign */ + UINT_MAX_CHARS(IntegerType))
 
+
+static inline bool startswith(const char *str, const char *prefix)
+{
+    size_t prefix_length = strlen(prefix);
+    return strncmp(str, prefix, prefix_length) == 0;
+}
 
 static inline int parse_long(const char *str, long *val)
 {
