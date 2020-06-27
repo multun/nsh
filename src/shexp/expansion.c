@@ -69,6 +69,7 @@ enum expansion_sep_type
     EXPANSION_SEP_SPACE,
 };
 
+
 static enum expansion_sep_type expansion_separator(struct expansion_state *exp_state, char c)
 {
     if (exp_state->IFS == NULL)
@@ -83,19 +84,21 @@ static enum expansion_sep_type expansion_separator(struct expansion_state *exp_s
     return EXPANSION_SEP_NONE;
 }
 
+/* push c into the result without going through IFS splitting */
 void expansion_push_nosplit(struct expansion_state *exp_state, char c)
 {
     expansion_result_push(&exp_state->result, c, expansion_is_unquoted(exp_state));
 }
 
-static void expansion_push_string_nosplit(struct expansion_state *exp_state, const char *str)
+static void expansion_push_nosplit_string(struct expansion_state *exp_state, const char *str)
 {
     for (; *str; str++)
         expansion_push_nosplit(exp_state, *str);
 }
 
-// handle IFS splitting of a given character
-void expansion_push(struct expansion_state *exp_state, char c)
+/* push c into the result, going through IFS splitting
+   beware: when splitting occurs, the callback can raise an exception */
+void expansion_push_splitable(struct expansion_state *exp_state, char c)
 {
     // IFS splitting is disabled inside quotes
     if (expansion_is_quoted(exp_state)) {
@@ -126,10 +129,10 @@ void expansion_push(struct expansion_state *exp_state, char c)
     }
 }
 
-void expansion_push_string(struct expansion_state *exp_state, const char *str)
+void expansion_push_splitable_string(struct expansion_state *exp_state, const char *str)
 {
     for (; *str; str++)
-        expansion_push(exp_state, *str);
+        expansion_push_splitable(exp_state, *str);
 }
 
 
@@ -248,7 +251,7 @@ static enum wlexer_op expand_tilde(struct expansion_state *exp_state,
         return LEXER_OP_CONTINUE;
 
     expansion_result_cut(&exp_state->result, start_offset - 1);
-    expansion_push_string_nosplit(exp_state, home);
+    expansion_push_nosplit_string(exp_state, home);
     return LEXER_OP_CONTINUE;
 }
 
@@ -269,7 +272,7 @@ static void expand_strftime(struct expansion_state *exp_state, const char *forma
     else
         timebuf[sizeof(timebuf) - 1] = '\0';
 
-    expansion_push_string_nosplit(exp_state, timebuf);
+    expansion_push_nosplit_string(exp_state, timebuf);
 }
 
 
@@ -317,7 +320,7 @@ static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
     case 'W': {
         const char *PWD = environment_var_get(expansion_state_env(exp_state), "PWD");
         if (PWD == NULL || strlen(PWD) == 0) {
-            expansion_push_string_nosplit(exp_state, "<unknown PWD>");
+            expansion_push_nosplit_string(exp_state, "<unknown PWD>");
             break;
         }
 
@@ -327,7 +330,7 @@ static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
             /* the n first characters must be the same */
             const char *trimmed_pwd = path_remove_prefix(PWD, HOME);
             if (trimmed_pwd != NULL) {
-                expansion_push_string_nosplit(exp_state, "~/");
+                expansion_push_nosplit_string(exp_state, "~/");
                 PWD = trimmed_pwd;
                 replaced_tilde = true;
             }
@@ -356,14 +359,14 @@ static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
             if (skipped_components) {
                 if (replaced_tilde)
                     expansion_push_nosplit(exp_state, '/');
-                expansion_push_string_nosplit(exp_state, "...");
+                expansion_push_nosplit_string(exp_state, "...");
                 if (skipped_components != pwd_comp_count)
                     expansion_push_nosplit(exp_state, '/');
             }
         }
 
     push_path:
-        expansion_push_string_nosplit(exp_state, PWD);
+        expansion_push_nosplit_string(exp_state, PWD);
         break;
     }
     case 'h':
@@ -383,7 +386,7 @@ static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
                 *first_dot = '\0';
         }
 
-        expansion_push_string_nosplit(exp_state, buf);
+        expansion_push_nosplit_string(exp_state, buf);
         break;
     }
     case 'n':
@@ -398,7 +401,7 @@ static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
         if (username == NULL)
             return LEXER_OP_FALLTHROUGH;
 
-        expansion_push_string_nosplit(exp_state, username);
+        expansion_push_nosplit_string(exp_state, username);
         break;
     }
     case '$':
@@ -503,7 +506,7 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
         return LEXER_OP_CONTINUE;
     }
 
-    expansion_push(exp_state, wtoken->ch[0]);
+    expansion_push_splitable(exp_state, wtoken->ch[0]);
     return LEXER_OP_CONTINUE;
 }
 
@@ -592,7 +595,7 @@ static enum wlexer_op expand_escape(struct expansion_state *exp_state,
         return LEXER_OP_CONTINUE;
     }
 
-    expansion_push(exp_state, ch);
+    expansion_push_splitable(exp_state, ch);
     return LEXER_OP_CONTINUE;
 }
 
@@ -655,7 +658,7 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
     expansion_result_cut(&exp_state->result, initial_size);
 
     // push the result of the arithmetic expansion in the expansion buffer
-    expansion_push_string(exp_state, print_buf);
+    expansion_push_splitable_string(exp_state, print_buf);
     exp_state->quoting_mode = prev_mode;
     return LEXER_OP_CONTINUE;
 }

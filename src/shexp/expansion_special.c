@@ -19,7 +19,7 @@ static int expand_pid(struct expansion_state *exp_state)
     char res[UINT_MAX_CHARS(pid_t) + /* \0 */ 1];
     pid_t id = getpid();
     sprintf(res, "%u", id);
-    expansion_push_string(exp_state, res);
+    expansion_push_splitable_string(exp_state, res);
     return 0;
 }
 
@@ -28,8 +28,8 @@ static int expand_star_sep(struct expansion_state *exp_state, char sep)
     struct environment *env = expansion_state_env(exp_state);
     for (size_t i = 1; env->argv[i]; i++) {
         if (i > 1)
-            expansion_push(exp_state, sep);
-        expansion_push_string(exp_state, env->argv[i]);
+            expansion_push_splitable(exp_state, sep);
+        expansion_push_splitable_string(exp_state, env->argv[i]);
     }
     return 0;
 }
@@ -55,7 +55,7 @@ static int expand_at(struct expansion_state *exp_state)
     for (size_t i = 1; env->argv[i]; i++) {
         if (i > 1)
             expansion_end_word(exp_state);
-        expansion_push_string(exp_state, env->argv[i]);
+        expansion_push_splitable_string(exp_state, env->argv[i]);
     }
     return 0;
 }
@@ -77,7 +77,7 @@ static int expand_sharp(struct expansion_state *exp_state)
 
     char res[INT_MAX_CHARS(int) + /* \0 */ 1];
     sprintf(res, "%d", argc);
-    expansion_push_string(exp_state, res);
+    expansion_push_splitable_string(exp_state, res);
     return 0;
 }
 
@@ -86,7 +86,7 @@ static int expand_return(struct expansion_state *exp_state)
     char res[UINT_MAX_CHARS(unsigned char) + /* \0 */ 1];
     unsigned char retcode = (256 + expansion_state_env(exp_state)->code) % 256;
     sprintf(res, "%u", retcode);
-    expansion_push_string(exp_state, res);
+    expansion_push_splitable_string(exp_state, res);
     return 0;
 }
 
@@ -115,7 +115,7 @@ static int expand_random(struct expansion_state *exp_state)
     // "This pseudo-random number generator was not seen as being useful to interactive users."
     char res[INT_MAX_CHARS(int) + /* \0 */ 1];
     sprintf(res, "%d", rand() % 32768);
-    expansion_push_string(exp_state, res);
+    expansion_push_splitable_string(exp_state, res);
     return 0;
 }
 
@@ -124,7 +124,7 @@ static int expand_uid(struct expansion_state *exp_state)
     char res[UINT_MAX_CHARS(uid_t) + /* \0 */ 1];
     uid_t id = getuid();
     sprintf(res, "%u", id);
-    expansion_push_string(exp_state, res);
+    expansion_push_splitable_string(exp_state, res);
     return 0;
 }
 
@@ -136,14 +136,14 @@ static int arguments_var_lookup(struct expansion_state *exp_state, char c)
 
     size_t arg_index = c - '0';
     if (arg_index == 0) {
-        expansion_push_string(exp_state, env->progname);
+        expansion_push_splitable_string(exp_state, env->progname);
         return 0;
     }
 
     if ((int)arg_index >= env->argc)
         return 0;
 
-    expansion_push_string(exp_state, env->argv[arg_index]);
+    expansion_push_splitable_string(exp_state, env->argv[arg_index]);
     return 0;
 }
 
@@ -166,8 +166,8 @@ static int expand_shopt(struct expansion_state *exp_state)
     for (size_t i = 0; i < SHOPT_COUNT; i++)
         if (g_shopts[i]) {
             if (!first)
-                expansion_push(exp_state, ':');
-            expansion_push_string(exp_state, string_from_shopt(i));
+                expansion_push_splitable(exp_state, ':');
+            expansion_push_splitable_string(exp_state, string_from_shopt(i));
             first = false;
         }
     return 0;
@@ -193,7 +193,7 @@ int expand_name(struct expansion_state *exp_state, char *var)
 
     const char *env_var;
     if ((env_var = environment_var_get(expansion_state_env(exp_state), var))) {
-        expansion_push_string(exp_state, env_var);
+        expansion_push_splitable_string(exp_state, env_var);
         return 0;
     }
     return 1;

@@ -132,8 +132,8 @@ __unused_result static inline enum expansion_quoting expansion_switch_quoting(
 // flush the buffer even if the word is empty
 void expansion_end_word(struct expansion_state *exp_state);
 
-void expansion_push(struct expansion_state *exp_state, char c);
-void expansion_push_string(struct expansion_state *exp_state, const char *str);
+void expansion_push_splitable(struct expansion_state *exp_state, char c);
+void expansion_push_splitable_string(struct expansion_state *exp_state, const char *str);
 
 static inline void expansion_state_reset_data(struct expansion_state *exp_state)
 {

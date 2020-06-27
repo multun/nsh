@@ -48,10 +48,10 @@ static void subshell_parent(struct expansion_state *exp_state, int cfd)
         }
 
         while (newline_count) {
-            expansion_push(exp_state, '\n');
+            expansion_push_splitable(exp_state, '\n');
             newline_count--;
         }
-        expansion_push(exp_state, cur_char);
+        expansion_push_splitable(exp_state, cur_char);
     }
 
     fclose(creader);
