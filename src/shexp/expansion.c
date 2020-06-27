@@ -19,6 +19,8 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <time.h>
+
 
 static void expand_guarded(struct expansion_state *exp_state,
                            struct wlexer *wlexer);
@@ -248,6 +250,27 @@ static enum wlexer_op expand_tilde(struct expansion_state *exp_state,
     return LEXER_OP_CONTINUE;
 }
 
+
+static void expand_strftime(struct expansion_state *exp_state, const char *format)
+{
+    char timebuf[128];
+
+    /* Make the current time/date into a string. */
+    time_t current_time;
+    time(&current_time);
+
+    struct tm *tm = localtime(&current_time);
+
+    int written_bytes = strftime(timebuf, sizeof(timebuf), format, tm);
+    if (written_bytes == 0)
+        timebuf[0] = '\0';
+    else
+        timebuf[sizeof(timebuf) - 1] = '\0';
+
+    expansion_push_string_nosplit(exp_state, timebuf);
+}
+
+
 static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
                                            struct wlexer *wlexer __unused,
                                            struct wtoken *wtoken __unused,
@@ -255,19 +278,11 @@ static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
 {
     /*
       TODO: implement the remaining prompt escapes
-    \d     the date in "Weekday Month Date" format (e.g., "Tue May 26")
-    \D{format}
-           the format is passed to strftime(3) and the result is inserted into the prompt string; an empty format results in a  locale-specific
-           time representation.  The braces are required
     \h     the hostname up to the first `.'
     \H     the hostname
     \j     the number of jobs currently managed by the shell
     \l     the basename of the shell's terminal device name
     \s     the name of the shell, the basename of $0 (the portion following the final slash)
-    \t     the current time in 24-hour HH:MM:SS format
-    \T     the current time in 12-hour HH:MM:SS format
-    \@     the current time in 12-hour am/pm format
-    \A     the current time in 24-hour HH:MM format
     \v     the version of bash (e.g., 2.00)
     \V     the release of bash, version + patch level (e.g., 2.00.0)
     \w     the current working directory, with $HOME abbreviated with a tilde (uses the value of the PROMPT_DIRTRIM variable)
@@ -336,6 +351,45 @@ static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
         /* Start Of Text - tells readline the next chars have some printed size again */
         expansion_push_nosplit(exp_state, 002);
         break;
+    case 'd':
+        expand_strftime(exp_state, "%a %b %d");
+        break;
+    case 't':
+        expand_strftime(exp_state, "%H:%M:%S");
+        break;
+    case 'T':
+        expand_strftime(exp_state, "%I:%M:%S");
+        break;
+    case '@':
+        expand_strftime(exp_state, "%I:%M %p");
+        break;
+    case 'A':
+        expand_strftime(exp_state, "%H:%M");
+        break;
+    case 'D': {
+        assert(!wlexer_has_lookahead(wlexer));
+        if (cstream_peek(wlexer->cs) != '{')
+            return LEXER_OP_FALLTHROUGH;
+        cstream_pop(wlexer->cs);
+
+        int initial_size = expansion_result_size(&exp_state->result);
+        while (true) {
+            int next_c = cstream_peek(wlexer->cs);
+            if (next_c == EOF)
+                expansion_error(exp_state, "unexpected EOF in \\D{format} prompt escape");
+            if (next_c == '}') {
+                cstream_pop(wlexer->cs);
+                break;
+            }
+            expansion_push_nosplit(exp_state, cstream_pop(wlexer->cs));
+        }
+
+        expansion_push_nosplit(exp_state, '\0');
+        expansion_result_cut(&exp_state->result, initial_size);
+        expand_strftime(exp_state, expansion_result_data(&exp_state->result));
+        break;
+    }
+
     default:
         return LEXER_OP_FALLTHROUGH;
     }
