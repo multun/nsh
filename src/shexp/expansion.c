@@ -278,8 +278,6 @@ static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
 {
     /*
       TODO: implement the remaining prompt escapes
-    \h     the hostname up to the first `.'
-    \H     the hostname
     \j     the number of jobs currently managed by the shell
     \l     the basename of the shell's terminal device name
     \s     the name of the shell, the basename of $0 (the portion following the final slash)
@@ -313,6 +311,26 @@ static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
     }
 
     switch (c) {
+    case 'h':
+    case 'H': {
+        /* get the hostname */
+        char buf[HOST_NAME_MAX + 1];
+        if (gethostname(buf, HOST_NAME_MAX) == -1) {
+            warn("gethostname() failed");
+            return LEXER_OP_FALLTHROUGH;
+        }
+        buf[HOST_NAME_MAX] = '\0';
+
+        /* strip the domain if required */
+        if (c == 'h') {
+            char *first_dot = strchr(buf, '.');
+            if (first_dot)
+                *first_dot = '\0';
+        }
+
+        expansion_push_string_nosplit(exp_state, buf);
+        break;
+    }
     case 'n':
         expansion_push_nosplit(exp_state, '\n');
         break;
