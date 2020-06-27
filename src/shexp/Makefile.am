@@ -14,4 +14,5 @@ libshexp_la_SOURCES = \
     glob.c \
     operators.defs \
     operators.py \
+    prompt.c \
     subshell.c

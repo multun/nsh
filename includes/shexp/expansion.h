@@ -134,6 +134,8 @@ void expansion_end_word(struct expansion_state *exp_state);
 
 void expansion_push_splitable(struct expansion_state *exp_state, char c);
 void expansion_push_splitable_string(struct expansion_state *exp_state, const char *str);
+void expansion_push_nosplit(struct expansion_state *exp_state, char c);
+void expansion_push_nosplit_string(struct expansion_state *exp_state, const char *str);
 
 static inline void expansion_state_reset_data(struct expansion_state *exp_state)
 {
@@ -160,6 +162,7 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
 ** \param exp_state the expansion state
 */
 void expand_subshell(struct expansion_state *exp_state, char *buf);
+enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state, struct wlexer *wlexer, char c);
 
 int expand_name(struct expansion_state *exp_state, char *var);
 
