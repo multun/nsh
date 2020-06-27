@@ -1,0 +1,7 @@
+{
+  "desc": "echo $ with IFS='$'",
+  "stdin": "IFS='$'; echo $\n",
+  "stdout": "$\n",
+  "stderr": "",
+  "retcode": 0
+}

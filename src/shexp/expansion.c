@@ -187,7 +187,7 @@ static enum wlexer_op expand_variable(struct expansion_state *exp_state,
     // push lonely dollars as is
     if (var_name.simple_var.size == 0) {
         variable_name_destroy(&var_name);
-        expansion_push(exp_state, wtoken->ch[0]);
+        expansion_push_nosplit(exp_state, wtoken->ch[0]);
         return LEXER_OP_CONTINUE;
     }
 
