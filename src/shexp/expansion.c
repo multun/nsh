@@ -473,7 +473,7 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_ARITH));
 
     // get the arithmetic expression in a single string
-    expansion_push(exp_state, '\0');
+    expansion_push_nosplit(exp_state, '\0');
     char *arith_content = expansion_result_data(&exp_state->result) + initial_size;
 
     // prepare the arithmetic wlexer and stream
@@ -534,9 +534,9 @@ static enum wlexer_op expand_arith_group_open(struct expansion_state *exp_state,
     assert(wlexer->mode == MODE_ARITH_GROUP || wlexer->mode == MODE_ARITH);
     // expand to the litteral value, so that the arithmetic interpreter can
     // re-parse it after parameter substitution
-    expansion_push(exp_state, '(');
+    expansion_push_nosplit(exp_state, '(');
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_ARITH_GROUP));
-    expansion_push(exp_state, ')');
+    expansion_push_nosplit(exp_state, ')');
     return LEXER_OP_CONTINUE;
 }
 
