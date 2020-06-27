@@ -216,7 +216,7 @@ static enum wlexer_op expand_tilde(struct expansion_state *exp_state,
         if (!portable_filename_char(wtoken->ch[0]))
             break;
 
-        expansion_push(exp_state, wtoken->ch[0]);
+        expansion_push_nosplit(exp_state, wtoken->ch[0]);
         wlexer_discard(wlexer);
     } while (true);
     size_t end_offset = expansion_result_size(&exp_state->result);
