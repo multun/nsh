@@ -1,0 +1,7 @@
+{
+  "desc": "test IFS splitting of escaped chars",
+  "stdin": "IFS=z; echo \\z\n",
+  "stdout": "z\n",
+  "stderr": "",
+  "retcode": 0
+}

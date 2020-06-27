@@ -437,6 +437,13 @@ static enum wlexer_op expand_escape(struct expansion_state *exp_state,
             return res;
     }
 
+    // litteral regular characters from the unquoted mode
+    // don't get any IFS splitting
+    if (wlexer->mode == MODE_UNQUOTED) {
+        expansion_push_nosplit(exp_state, ch);
+        return LEXER_OP_CONTINUE;
+    }
+
     expansion_push(exp_state, ch);
     return LEXER_OP_CONTINUE;
 }
