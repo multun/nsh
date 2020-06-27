@@ -4,6 +4,8 @@
 #include "shlex/variable.h"
 #include "utils/evect.h"
 #include "utils/strutils.h"
+#include "utils/pathutils.h"
+#include "utils/parsing.h"
 #include "utils/mprintf.h"
 #include "shwlex/wlexer.h"
 #include "shlex/lexer.h"
@@ -311,6 +313,59 @@ static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
     }
 
     switch (c) {
+    case 'w':
+    case 'W': {
+        const char *PWD = environment_var_get(expansion_state_env(exp_state), "PWD");
+        if (PWD == NULL || strlen(PWD) == 0) {
+            expansion_push_string_nosplit(exp_state, "<unknown PWD>");
+            break;
+        }
+
+        bool replaced_tilde = false;
+        const char *HOME = environment_var_get(expansion_state_env(exp_state), "HOME");
+        if (HOME != NULL) {
+            /* the n first characters must be the same */
+            const char *trimmed_pwd = path_remove_prefix(PWD, HOME);
+            if (trimmed_pwd != NULL) {
+                expansion_push_string_nosplit(exp_state, "~/");
+                PWD = trimmed_pwd;
+                replaced_tilde = true;
+            }
+        }
+
+        if (c == 'w') {
+            const char *DIRTRIM = environment_var_get(expansion_state_env(exp_state), "PROMPT_DIRTRIM");
+            /* ignore trimming if PROMPT_DIRTRIM is unset */
+            if (DIRTRIM == NULL)
+                goto push_path;
+
+            /* parse the number of directories to keep */
+            size_t dirtrim;
+            if (parse_pure_integer(&dirtrim, 10, DIRTRIM) == -1)
+                goto push_path;
+
+            /* keep the dirtrim last components */
+            size_t pwd_comp_count = path_count_components(PWD);
+            size_t skipped_components = 0;
+            if (dirtrim + /* the root component */ 1 < pwd_comp_count) {
+                skipped_components = pwd_comp_count - dirtrim;
+                PWD = path_skip_components(PWD, skipped_components);
+            }
+
+            /* add the elipsis */
+            if (skipped_components) {
+                if (replaced_tilde)
+                    expansion_push_nosplit(exp_state, '/');
+                expansion_push_string_nosplit(exp_state, "...");
+                if (skipped_components != pwd_comp_count)
+                    expansion_push_nosplit(exp_state, '/');
+            }
+        }
+
+    push_path:
+        expansion_push_string_nosplit(exp_state, PWD);
+        break;
+    }
     case 'h':
     case 'H': {
         /* get the hostname */
@@ -390,7 +445,8 @@ static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
             return LEXER_OP_FALLTHROUGH;
         cstream_pop(wlexer->cs);
 
-        int initial_size = expansion_result_size(&exp_state->result);
+        struct evect *res = &exp_state->result.string;
+        int initial_size = evect_size(res);
         while (true) {
             int next_c = cstream_peek(wlexer->cs);
             if (next_c == EOF)
@@ -399,12 +455,12 @@ static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
                 cstream_pop(wlexer->cs);
                 break;
             }
-            expansion_push_nosplit(exp_state, cstream_pop(wlexer->cs));
+            evect_push(res, cstream_pop(wlexer->cs));
         }
 
-        expansion_push_nosplit(exp_state, '\0');
-        expansion_result_cut(&exp_state->result, initial_size);
-        expand_strftime(exp_state, expansion_result_data(&exp_state->result));
+        evect_push(res, '\0');
+        evect_cut(res, initial_size);
+        expand_strftime(exp_state, evect_data(res));
         break;
     }
 

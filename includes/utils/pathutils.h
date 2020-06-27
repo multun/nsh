@@ -21,16 +21,6 @@ static inline bool path_component_trailing_slash(struct path_component *cmp)
     return cmp->data[cmp->length] == '/';
 }
 
-static inline bool path_component_eq(struct path_component *cmp, const char *str)
-{
-    /* str must start like the component */
-    if (strncmp(cmp->data, str, cmp->length) != 0)
-        return false;
-
-    /* and have the same length */
-    return str[cmp->length] == '\0';
-}
-
 void path_component_init(struct path_component *cmp, const char *data);
 void path_component_next(struct path_component *cmp);
 bool path_component_valid(struct path_component *cmp);
@@ -40,7 +30,9 @@ size_t path_component_repr_size(struct path_component *cmp);
 char *path_canonicalize(const char *complex_path);
 
 char *path_join(const char *base, const char *relpath);
-
+size_t path_count_components(const char *path);
+const char *path_skip_components(const char *path, size_t count);
+const char *path_remove_prefix(const char *path, const char *prefix_path);
 
 struct pathlist_iter
 {

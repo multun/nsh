@@ -7,6 +7,28 @@
 #include <string.h>
 #include <unistd.h>
 
+
+static bool path_component_str_eq(struct path_component *cmp, const char *str)
+{
+    /* str must start like the component */
+    if (strncmp(cmp->data, str, cmp->length) != 0)
+        return false;
+
+    /* and have the same length */
+    return str[cmp->length] == '\0';
+}
+
+static bool path_component_eq(struct path_component *cmp_a, struct path_component *cmp_b)
+{
+    if (cmp_a->length != cmp_b->length)
+        return false;
+    if (strncmp(cmp_a->data, cmp_b->data, cmp_b->length) != 0)
+        return false;
+    if (cmp_a->root != cmp_b->root)
+        return false;
+    return true;
+}
+
 char *home_suffix(const char *suffix)
 {
     char *home = getpwuid(getuid())->pw_dir;
@@ -86,10 +108,10 @@ char *path_canonicalize(const char *complex_path)
 
     struct path_component cmp;
     for (path_component_init(&cmp, complex_path); path_component_valid(&cmp); path_component_next(&cmp)) {
-        if (path_component_eq(&cmp, "."))
+        if (path_component_str_eq(&cmp, "."))
             continue;
 
-        if (path_component_eq(&cmp, "..")) {
+        if (path_component_str_eq(&cmp, "..")) {
             if (cmp.comp_i == 0)
                 goto keep_component;
 
@@ -145,4 +167,47 @@ char *path_join(const char *base, const char *relpath)
     if (base[strlen(base) - 1] == '/')
         sep = "";
     return mprintf("%s%s%s", base, sep, relpath);
+}
+
+size_t path_count_components(const char *path)
+{
+    size_t count = 0;
+    struct path_component cmp;
+    for (path_component_init(&cmp, path); path_component_valid(&cmp); path_component_next(&cmp))
+        count++;
+    return count;
+}
+
+
+const char *path_skip_components(const char *path, size_t count)
+{
+    struct path_component cmp;
+    for (path_component_init(&cmp, path); path_component_valid(&cmp); path_component_next(&cmp)) {
+        if (cmp.comp_i == count)
+            return cmp.data;
+    }
+    /* return a pointer to the final NUL byte */
+    return cmp.data;
+}
+
+const char *path_remove_prefix(const char *path, const char *prefix_path)
+{
+    struct path_component cmp;
+    struct path_component prefix_cmp;
+    path_component_init(&cmp, path);
+    path_component_init(&prefix_cmp, prefix_path);
+
+    for (;; path_component_next(&cmp), path_component_next(&prefix_cmp)) {
+        /* if the prefix ended, we're all good */
+        if (!path_component_valid(&prefix_cmp))
+            return cmp.data;
+
+        /* if the prefix didn't end but the path did,
+           there's no prefix to remove */
+        if (!path_component_valid(&cmp))
+            return NULL;
+
+        if (!path_component_eq(&cmp, &prefix_cmp))
+            return NULL;
+    }
 }
