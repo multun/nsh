@@ -274,8 +274,28 @@ static enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
     \W     the basename of the current working directory, with $HOME abbreviated with a tilde
     \!     the history number of this command
     \#     the command number of this command
-    \nnn   the character corresponding to the octal number nnn
      */
+
+    /* octal escapes */
+    if (c >= '0' && c <= '7') {
+        assert(!wlexer_has_lookahead(wlexer));
+        char res = c - '0';
+
+        size_t max_size = 3;
+        /* anything above 0o377 doesn't fit in a byte */
+        if (res > 3)
+            max_size = 2;
+
+        for (size_t i = 1; i < max_size; i++) {
+            int next_c = cstream_peek(wlexer->cs);
+            if (next_c < '0' || next_c > '7')
+                break;
+            res = res * 8 + (cstream_pop(wlexer->cs) - '0');
+        }
+
+        expansion_push_nosplit(exp_state, res);
+        return LEXER_OP_CONTINUE;
+    }
 
     switch (c) {
     case 'n':
