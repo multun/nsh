@@ -1,2 +1,3 @@
 #!/bin/bash
-AFL_SKIP_CPUFREQ=1 afl-fuzz -i in -o out ./nsh @@
+testdir="$(dirname "$0")"
+AFL_SKIP_CPUFREQ=1 afl-fuzz -i in -o out "$testdir"/../nsh @@
