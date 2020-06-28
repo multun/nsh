@@ -77,13 +77,18 @@ int cmd_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_sco
     struct cpvect new_argv;
     wordlist_expand(&new_argv, wl, env, ex_scope);
 
+    /* when the array didn't expand to anything, there's no command to run */
+    if (cpvect_size(&new_argv) == 0) {
+        argv_free(cpvect_size(&new_argv), cpvect_data(&new_argv));
+        return 0;
+    }
+
     /* setup argc / argv using the expanded array */
     env->argc = cpvect_size(&new_argv);
     cpvect_push(&new_argv, NULL);
     env->argv = cpvect_data(&new_argv);
 
     /* on exception, free the argument array */
-    int res = 0;
     struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->context, ex_scope);
     if (setjmp(sub_ex_scope.env)) {
         argv_free(env->argc, env->argv);
@@ -93,11 +98,11 @@ int cmd_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_sco
     }
 
     /* run the command */
-    res = cmd_run_command(env, &sub_ex_scope);
+    int rc = cmd_run_command(env, &sub_ex_scope);
 
     /* cleanup */
     argv_free(env->argc, env->argv);
     env->argc = prev_argc;
     env->argv = prev_argv;
-    return res;
+    return rc;
 }
