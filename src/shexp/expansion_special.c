@@ -191,10 +191,17 @@ int expand_name(struct expansion_state *exp_state, char *var)
     if (builtin_var_lookup(exp_state, var) == 0)
         return 0;
 
-    const char *env_var;
-    if ((env_var = environment_var_get_cstring(expansion_state_env(exp_state), var))) {
-        expansion_push_splitable_string(exp_state, env_var);
-        return 0;
-    }
-    return 1;
+    struct sh_string *env_var;
+    if ((env_var = environment_var_get_string(expansion_state_env(exp_state), var)) == NULL)
+        return 1;
+
+    /* tell the expansion_state we're currently holding a reference to this variable.
+       if this step is skipped, a reference will be lost when an exception occurs in
+       expansion_push_splitable. */
+    exp_state->scratch_value = &env_var->base;
+    sh_string_get(env_var);
+    expansion_push_splitable_string(exp_state, sh_string_data(env_var));
+    sh_string_put(env_var);
+    exp_state->scratch_value = NULL;
+    return 0;
 }

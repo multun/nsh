@@ -1,0 +1,7 @@
+{
+  "desc": "deleting a variable while splitting it",
+  "stdin": "var='a   b'; for e in $var; do echo $e; var=oops; done\n",
+  "stdout": "a\nb\n",
+  "stderr": "",
+  "retcode": 0
+}
