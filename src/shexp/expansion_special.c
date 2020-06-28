@@ -147,7 +147,7 @@ static int arguments_var_lookup(struct expansion_state *exp_state, char c)
     return 0;
 }
 
-static int special_var_lookup(struct expansion_state *exp_state, char *var)
+static int special_var_lookup(struct expansion_state *exp_state, const char *var)
 {
     assert(var[0]);
     if (var[1] != '\0')
@@ -173,7 +173,7 @@ static int expand_shopt(struct expansion_state *exp_state)
     return 0;
 }
 
-static int builtin_var_lookup(struct expansion_state *exp_state, char *var)
+static int builtin_var_lookup(struct expansion_state *exp_state, const char *var)
 {
     if (strcmp("RANDOM", var) == 0)
         return expand_random(exp_state);
@@ -184,15 +184,15 @@ static int builtin_var_lookup(struct expansion_state *exp_state, char *var)
     return 1;
 }
 
-int expand_name(struct expansion_state *exp_state, char *var)
+int expand_name(struct expansion_state *exp_state, const char *var_name)
 {
-    if (special_var_lookup(exp_state, var) == 0)
+    if (special_var_lookup(exp_state, var_name) == 0)
         return 0;
-    if (builtin_var_lookup(exp_state, var) == 0)
+    if (builtin_var_lookup(exp_state, var_name) == 0)
         return 0;
 
     struct sh_string *env_var;
-    if ((env_var = environment_var_get_string(expansion_state_env(exp_state), var)) == NULL)
+    if ((env_var = environment_var_get_string(expansion_state_env(exp_state), var_name)) == NULL)
         return 1;
 
     /* tell the expansion_state we're currently holding a reference to this variable.

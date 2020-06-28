@@ -18,6 +18,11 @@ static inline char *variable_name_data(struct variable_name *name)
     return evect_data(&name->simple_var);
 }
 
+static inline size_t variable_name_size(struct variable_name *name)
+{
+    return evect_size(&name->simple_var);
+}
+
 static inline bool is_basic(char c)
 {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
@@ -115,6 +120,12 @@ static inline void variable_name_init(struct variable_name *var, size_t size)
 {
     var->is_special = false;
     evect_init(&var->simple_var, size);
+}
+
+static inline void variable_name_reset(struct variable_name *var)
+{
+    var->is_special = false;
+    evect_reset(&var->simple_var);
 }
 
 static inline void simple_variable_name_finalize(struct evect *var)

@@ -11,6 +11,7 @@
 #include "utils/cpvect.h"
 #include "utils/error.h"
 #include "utils/evect.h"
+#include "shlex/variable.h"
 
 enum expansion_flags
 {
@@ -88,6 +89,9 @@ struct expansion_state {
        it doesn't have to setup an exception handler to drop its reference:
        the expansion context can do it. */
     struct sh_value *scratch_value;
+
+    /* the same buffer is re-used during expansion */
+    struct variable_name scratch_variable_name;
 };
 
 static inline struct ex_scope *expansion_state_ex_scope(struct expansion_state *exp_state)
@@ -112,6 +116,7 @@ static inline void expansion_state_destroy(struct expansion_state *exp_state)
     glob_state_destroy(&exp_state->glob_state);
     if (exp_state->scratch_value)
         sh_value_put(exp_state->scratch_value);
+    variable_name_destroy(&exp_state->scratch_variable_name);
 }
 
 static inline bool expansion_has_content(struct expansion_state *exp_state)
@@ -164,6 +169,7 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
     exp_state->allow_empty_word = false;
     glob_state_init(&exp_state->glob_state);
     exp_state->scratch_value = NULL;
+    variable_name_init(&exp_state->scratch_variable_name, 16); // reasonable variable name size
 }
 
 /**
@@ -173,7 +179,7 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
 void expand_subshell(struct expansion_state *exp_state, char *buf);
 enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state, struct wlexer *wlexer, char c);
 
-int expand_name(struct expansion_state *exp_state, char *var);
+int expand_name(struct expansion_state *exp_state, const char *var);
 
 void __noreturn expansion_error(struct expansion_state *exp_state, const char *fmt, ...);
 void expansion_warning(struct expansion_state *exp_state, const char *fmt, ...);

@@ -2,7 +2,6 @@
 #include "shexec/environment.h"
 #include "shexec/runtime_error.h"
 #include "shexp/expansion.h"
-#include "shlex/variable.h"
 #include "utils/evect.h"
 #include "utils/strutils.h"
 #include "shwlex/wlexer.h"
@@ -136,8 +135,7 @@ static enum wlexer_op expand_dollar(struct expansion_state *exp_state,
                                     struct wtoken *wtoken)
 {
     struct wlexer exp_wlexer = WLEXER_FORK(wlexer, MODE_EXPANSION);
-    struct variable_name var_name;
-    variable_name_init(&var_name, 16); // reasonable variable name size
+    variable_name_reset(&exp_state->scratch_variable_name);
 
     do {
         memset(wtoken, 0, sizeof(*wtoken));
@@ -145,23 +143,21 @@ static enum wlexer_op expand_dollar(struct expansion_state *exp_state,
         if (wtoken->type == WTOK_EXP_CLOSE)
             break;
 
-        if (wtoken->type != WTOK_REGULAR) {
-            variable_name_destroy(&var_name);
+        if (wtoken->type != WTOK_REGULAR)
             expansion_error(exp_state, "invalid character type in ${} section: %s", wtoken_type_to_string(wtoken->type));
-        }
 
         char c = wtoken->ch[0];
-        if (!variable_name_check(&var_name, c)) {
-            variable_name_destroy(&var_name);
+        if (!variable_name_check(&exp_state->scratch_variable_name, c))
             expansion_error(exp_state, "invalid character in ${} section: `%c' (%#x)", c, c);
-        }
 
-        variable_name_push(&var_name, c);
+        variable_name_push(&exp_state->scratch_variable_name, c);
     } while (true);
 
-    variable_name_finalize(&var_name);
-    expand_name(exp_state, var_name.simple_var.data);
-    variable_name_destroy(&var_name);
+    if (variable_name_size(&exp_state->scratch_variable_name) == 0)
+        expansion_error(exp_state, "empty parameter substitution");
+
+    variable_name_finalize(&exp_state->scratch_variable_name);
+    expand_name(exp_state, variable_name_data(&exp_state->scratch_variable_name));
     return LEXER_OP_CONTINUE;
 }
 
@@ -170,33 +166,29 @@ static enum wlexer_op expand_variable(struct expansion_state *exp_state,
                                       struct wtoken *wtoken)
 {
     // fetch the longest valid variable name
-    struct variable_name var_name;
-    variable_name_init(&var_name, 16); // reasonable variable name size
+    variable_name_reset(&exp_state->scratch_variable_name);
     do {
         struct wtoken next_tok;
         wlexer_peek(&next_tok, wlexer);
         if (next_tok.type != WTOK_REGULAR)
             break;
-        if (!variable_name_check(&var_name, next_tok.ch[0]))
+        if (!variable_name_check(&exp_state->scratch_variable_name, next_tok.ch[0]))
             break;
-        variable_name_push(&var_name, next_tok.ch[0]);
+        variable_name_push(&exp_state->scratch_variable_name, next_tok.ch[0]);
         wlexer_clear_lookahead(wlexer);
     } while (true);
 
     // push lonely dollars as is
-    if (var_name.simple_var.size == 0) {
-        variable_name_destroy(&var_name);
+    if (variable_name_size(&exp_state->scratch_variable_name) == 0) {
         expansion_push_nosplit(exp_state, wtoken->ch[0]);
         return LEXER_OP_CONTINUE;
     }
 
     // add the trailing null byte
-    variable_name_finalize(&var_name);
+    variable_name_finalize(&exp_state->scratch_variable_name);
 
-    // look for the variable value
-    expand_name(exp_state, variable_name_data(&var_name));
-
-    variable_name_destroy(&var_name);
+    // look for the variable value, transfering the ownership of var_name
+    expand_name(exp_state, variable_name_data(&exp_state->scratch_variable_name));
     return LEXER_OP_CONTINUE;
 }
 

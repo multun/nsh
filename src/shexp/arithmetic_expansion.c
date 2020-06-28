@@ -81,10 +81,8 @@ static enum arith_status arith_string_to_int(struct expansion_state *exp_state,
                                              char *string)
 {
     size_t cur_size = expansion_result_size(&exp_state->result);
-    if (expand_name(exp_state, string) != 0) {
-        expansion_result_cut(&exp_state->result, cur_size);
+    if (expand_name(exp_state, string) != 0)
         return 0;
-    }
 
     evect_push(&exp_state->result.string, '\0');
     int res = arith_parse_string(expansion_result_data(&exp_state->result) + cur_size);
