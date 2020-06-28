@@ -1,0 +1,7 @@
+{
+  "desc": "a case with no matching pattern",
+  "stdin": "case b in a) echo matched; exit 0;; esac\necho ok\n",
+  "stdout": "ok\n",
+  "stderr": "",
+  "retcode": 0
+}
