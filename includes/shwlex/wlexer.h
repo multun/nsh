@@ -147,3 +147,5 @@ static inline bool wlexer_btick_escaped(struct wlexer_btick_state *state)
 
 #define WLEXER_BTICK_FOR(State, WTok)                                                    \
     for (; wlexer_btick_cond((State), (WTok)); (State)->ran = true)
+
+const char *wtoken_type_to_string(enum wtoken_type);

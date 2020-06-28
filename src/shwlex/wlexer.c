@@ -2,6 +2,8 @@
 
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
+
 
 static void wlexer_lex(struct wtoken *res, struct wlexer *lex);
 
@@ -225,5 +227,48 @@ static void wlexer_lex(struct wtoken *res, struct wlexer *lex)
     default:
         res->type = WTOK_REGULAR;
         return;
+    }
+}
+
+
+const char *wtoken_type_to_string(enum wtoken_type type)
+{
+    switch (type) {
+    case WTOK_UNKNOWN:
+        return "unknown";
+    case WTOK_SQUOTE:
+        return "simple quote";
+    case WTOK_DQUOTE:
+        return "double quote";
+    case WTOK_BTICK:
+        return "backtick";
+    case WTOK_ESCAPE:
+        return "escape";
+    case WTOK_EOF:
+        return "EOF";
+    case WTOK_EXP_SUBSH_OPEN:
+        return "expansion subshell open";
+    case WTOK_EXP_SUBSH_CLOSE:
+        return "expansion subshell close";
+    case WTOK_SUBSH_OPEN:
+        return "subshell open";
+    case WTOK_SUBSH_CLOSE:
+        return "subshell close";
+    case WTOK_ARITH_OPEN:
+        return "arithmetic open";
+    case WTOK_ARITH_CLOSE:
+        return "arithmetic clone";
+    case WTOK_ARITH_GROUP_OPEN:
+        return "arithmetic group open";
+    case WTOK_ARITH_GROUP_CLOSE:
+        return "arithmetic group close";
+    case WTOK_EXP_OPEN:
+        return "expansion open";
+    case WTOK_EXP_CLOSE:
+        return "expansion close";
+    case WTOK_REGULAR:
+        return "regular";
+    default:
+        abort();
     }
 }
