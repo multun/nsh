@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
 usage() {
     echo 'cat/name:desc:content_file'
 }
