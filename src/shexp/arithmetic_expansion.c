@@ -196,6 +196,8 @@ static enum arith_status arith_lex_number(struct expansion_state *exp_state,
 #include "operators.defs"
 #undef X
 
+/* infix operators */
+
 #define DEFINE_INFIX(Name, Op)                                                           \
     static enum arith_status Name(struct arith_value *left, struct arith_token *self,    \
                                   struct arith_lexer *alexer)                            \
@@ -212,6 +214,16 @@ static enum arith_status arith_lex_number(struct expansion_state *exp_state,
         return ARITH_OK;                                                                 \
     }
 
+#define TOKEN_OPERATOR_INFIX(NulPrio, LeftPrio, Name, Op, ...)                           \
+    DEFINE_INFIX(arith_##Name##_left, Op)                                                \
+    struct arith_token_type arith_type_##Name = {                                        \
+        .handle_left = arith_##Name##_left,                                              \
+        .left_priority = LeftPrio,                                                       \
+        .name = (const char[]){__VA_ARGS__},                                             \
+    };
+
+/* unary operators */
+
 #define DEFINE_UN(Name, Op)                                                              \
     static enum arith_status Name(struct arith_value *res, struct arith_token *self,     \
                                   struct arith_lexer *alexer)                            \
@@ -226,7 +238,16 @@ static enum arith_status arith_lex_number(struct expansion_state *exp_state,
         return ARITH_OK;                                                                 \
     }
 
-// TODO: factor the template to reduce code size
+#define TOKEN_OPERATOR_PREFIX(NulPrio, LeftPrio, Name, Op, ...)                          \
+    DEFINE_UN(arith_##Name##_nul, Op)                                                    \
+    struct arith_token_type arith_type_##Name = {                                        \
+        .handle_nul = arith_##Name##_nul,                                                \
+        .nul_priority = NulPrio,                                                         \
+        .name = (const char[]){__VA_ARGS__},                                             \
+    };
+
+/* += and friends */
+
 #define DEFINE_ASSIGN_OP(Name, Op)                                                       \
     static enum arith_status Name(struct arith_value *left,                              \
                                   struct arith_token *self __unused,                     \
@@ -258,77 +279,6 @@ static enum arith_status arith_lex_number(struct expansion_state *exp_state,
         return ARITH_OK;                                                                 \
     }
 
-static enum arith_status arith_div_equal_left(struct arith_value *left,
-                                              struct arith_token *self __unused,
-                                              struct arith_lexer *alexer)
-{
-    enum arith_status rc;
-
-    if (left->type != ARITH_VALUE_STRING) {
-        warnx("expected a name as left operand");
-        return ARITH_SYNTAX_ERROR;
-    }
-
-    struct arith_value right;
-    if ((rc = arith_parse(&right, alexer, 0))) {
-        arith_value_destroy(left);
-        return rc;
-    }
-
-    int right_int = arith_value_to_int(alexer->exp_state, &right);
-    arith_value_destroy(&right);
-
-    if (right_int == 0) {
-        expansion_warning(alexer->exp_state, "division by 0");
-        return ARITH_RUNTIME_ERROR;
-    }
-
-    int var_int = arith_string_to_int(alexer->exp_state, left->data.string);
-    var_int /= right_int;
-    char *new_value = mprintf("%d", var_int);
-    environment_var_assign_cstring(expansion_state_env(alexer->exp_state),
-                                   left->data.string, new_value, false);
-    /* don't free the key string, as it is used in the hash table */
-    *left = ARITH_VALUE_INT(var_int);
-    return ARITH_OK;
-}
-
-#define TOKEN_OPERATOR_DIV_EQUAL(NulPrio, LeftPrio, Name, Op, ...)                       \
-    struct arith_token_type arith_type_##Name = {                                        \
-        .handle_left = arith_##Name##_left,                                              \
-        .left_priority = LeftPrio,                                                       \
-        .name = (const char[]){__VA_ARGS__},                                             \
-    };
-
-static enum arith_status arith_div_left(struct arith_value *left,
-                                        struct arith_token *self,
-                                        struct arith_lexer *alexer)
-{
-    enum arith_status rc;
-    int i_left = arith_value_to_int(alexer->exp_state, left);
-    arith_value_destroy(left);
-    struct arith_value right;
-    if ((rc = arith_parse(&right, alexer, self->type->left_priority)))
-        return rc;
-    int i_right = arith_value_to_int(alexer->exp_state, &right);
-    arith_value_destroy(&right);
-
-    if (i_right == 0) {
-        expansion_warning(alexer->exp_state, "division by 0");
-        return ARITH_RUNTIME_ERROR;
-    }
-
-    *left = ARITH_VALUE_INT(i_left / i_right);
-    return ARITH_OK;
-}
-
-#define TOKEN_OPERATOR_DIV(NulPrio, LeftPrio, Name, Op, ...)                             \
-    struct arith_token_type arith_type_##Name = {                                        \
-        .handle_left = arith_div_left,                                                   \
-        .left_priority = LeftPrio,                                                       \
-        .name = (const char[]){__VA_ARGS__},                                             \
-    };
-
 #define TOKEN_OPERATOR_ASSIGN_OP(NulPrio, LeftPrio, Name, Op, ...)                       \
     DEFINE_ASSIGN_OP(arith_##Name##_left, Op)                                            \
     struct arith_token_type arith_type_##Name = {                                        \
@@ -337,32 +287,85 @@ static enum arith_status arith_div_left(struct arith_value *left,
         .name = (const char[]){__VA_ARGS__},                                             \
     };
 
-#define TOKEN_OPERATOR_INFIX(NulPrio, LeftPrio, Name, Op, ...)                           \
-    DEFINE_INFIX(arith_##Name##_left, Op)                                                \
+/* /= and %=, which has a check for div by 0 */
+
+#define DEFINE_DIV_ASSIGN_OP(Name, Op)                                                   \
+    static enum arith_status Name(struct arith_value *left,                              \
+                                  struct arith_token *self __unused,                     \
+                                  struct arith_lexer *alexer)                            \
+    {                                                                                    \
+        enum arith_status rc;                                                            \
+                                                                                         \
+        if (left->type != ARITH_VALUE_STRING) {                                          \
+            warnx("expected a name as left operand");                                    \
+            return ARITH_SYNTAX_ERROR;                                                   \
+        }                                                                                \
+                                                                                         \
+        struct arith_value right;                                                        \
+        if ((rc = arith_parse(&right, alexer, 0))) {                                     \
+            arith_value_destroy(left);                                                   \
+            return rc;                                                                   \
+        }                                                                                \
+                                                                                         \
+        int right_int = arith_value_to_int(alexer->exp_state, &right);                   \
+        arith_value_destroy(&right);                                                     \
+                                                                                         \
+        if (right_int == 0) {                                                            \
+            expansion_warning(alexer->exp_state, "division by 0");                       \
+            return ARITH_RUNTIME_ERROR;                                                  \
+        }                                                                                \
+                                                                                         \
+        int var_int = arith_string_to_int(alexer->exp_state, left->data.string);         \
+        var_int Op right_int;                                                            \
+        char *new_value = mprintf("%d", var_int);                                        \
+        environment_var_assign_cstring(expansion_state_env(alexer->exp_state),           \
+                                       left->data.string, new_value, false);             \
+        /* don't free the key string, as it is used in the hash table */                 \
+        *left = ARITH_VALUE_INT(var_int);                                                \
+        return ARITH_OK;                                                                 \
+    }
+
+#define TOKEN_OPERATOR_DIV_EQUAL(NulPrio, LeftPrio, Name, Op, ...)                       \
+    DEFINE_DIV_ASSIGN_OP(arith_##Name##_left, Op)                                        \
     struct arith_token_type arith_type_##Name = {                                        \
         .handle_left = arith_##Name##_left,                                              \
         .left_priority = LeftPrio,                                                       \
         .name = (const char[]){__VA_ARGS__},                                             \
     };
 
-#define TOKEN_OPERATOR_PREFIX(NulPrio, LeftPrio, Name, Op, ...)                          \
-    DEFINE_UN(arith_##Name##_nul, Op)                                                    \
+/* / and % operators */
+
+#define DEFINE_DIV(Name, Op)                                                             \
+    static enum arith_status Name(struct arith_value *left, struct arith_token *self,    \
+                                  struct arith_lexer *alexer)                            \
+    {                                                                                    \
+        enum arith_status rc;                                                            \
+        int i_left = arith_value_to_int(alexer->exp_state, left);                        \
+        arith_value_destroy(left);                                                       \
+        struct arith_value right;                                                        \
+        if ((rc = arith_parse(&right, alexer, self->type->left_priority)))               \
+            return rc;                                                                   \
+        int i_right = arith_value_to_int(alexer->exp_state, &right);                     \
+        arith_value_destroy(&right);                                                     \
+                                                                                         \
+        if (i_right == 0) {                                                              \
+            expansion_warning(alexer->exp_state, "division by 0");                       \
+            return ARITH_RUNTIME_ERROR;                                                  \
+        }                                                                                \
+                                                                                         \
+        *left = ARITH_VALUE_INT(i_left Op i_right);                                      \
+        return ARITH_OK;                                                                 \
+    }
+
+#define TOKEN_OPERATOR_DIV(NulPrio, LeftPrio, Name, Op, ...)                             \
+    DEFINE_DIV(arith_##Name##_left, Op)                                                  \
     struct arith_token_type arith_type_##Name = {                                        \
-        .handle_nul = arith_##Name##_nul,                                                \
-        .nul_priority = NulPrio,                                                         \
+        .handle_left = arith_##Name##_left,                                              \
+        .left_priority = LeftPrio,                                                       \
         .name = (const char[]){__VA_ARGS__},                                             \
     };
 
-#define TOKEN_OPERATOR_INFIX_PREFIX(NulPrio, LeftPrio, Name, Op, ...)                    \
-    DEFINE_INFIX(arith_##Name##_left, Op)                                                \
-    DEFINE_UN(arith_##Name##_nul, Op)                                                    \
-    struct arith_token_type arith_type_##Name = {                                        \
-        .handle_left = arith_##Name##_left,                                              \
-        .handle_nul = arith_##Name##_nul,                                                \
-        .left_priority = LeftPrio,                                                       \
-        .nul_priority = NulPrio,                                                         \
-        .name = (const char[]){__VA_ARGS__},                                             \
-    };
+/* ( ) grouping operator */
 
 static enum arith_status arith_lparen_nul(struct arith_value *res,
                                           struct arith_token *self __unused,
@@ -399,6 +402,8 @@ static enum arith_status arith_lparen_nul(struct arith_value *res,
         .name = (const char[]){__VA_ARGS__},                                             \
     };
 
+/* = operator */
+
 static enum arith_status arith_equal_left(struct arith_value *left,
                                           struct arith_token *self __unused,
                                           struct arith_lexer *alexer)
@@ -432,6 +437,8 @@ static enum arith_status arith_equal_left(struct arith_value *left,
         .left_priority = LeftPrio,                                                       \
         .name = (const char[]){__VA_ARGS__},                                             \
     };
+
+/* ternary operator */
 
 static enum arith_status arith_ternary_left(struct arith_value *left,
                                             struct arith_token *self __unused,
@@ -474,7 +481,8 @@ static enum arith_status arith_ternary_left(struct arith_value *left,
         .name = (const char[]){__VA_ARGS__},                                             \
     };
 
-// TODO: factor the template to reduce code size
+/* val++ style operators */
+
 #define DEFINE_POSTFIX_INCRDECR(Name, Op)                                                \
     static enum arith_status Name(struct arith_value *left,                              \
                                   struct arith_token *self __unused,                     \
@@ -496,7 +504,8 @@ static enum arith_status arith_ternary_left(struct arith_value *left,
         return ARITH_OK;                                                                 \
     }
 
-// TODO: factor the template to reduce code size
+/* ++val style operators */
+
 #define DEFINE_PREFIX_INCRDECR(Name, Op)                                                 \
     static enum arith_status Name(struct arith_value *res,                               \
                                   struct arith_token *self __unused,                     \
@@ -532,12 +541,23 @@ static enum arith_status arith_ternary_left(struct arith_value *left,
         .name = (const char[]){__VA_ARGS__},                                             \
     };
 
+/* + and - operators */
+
+#define TOKEN_OPERATOR_INFIX_PREFIX(NulPrio, LeftPrio, Name, Op, ...)                    \
+    DEFINE_INFIX(arith_##Name##_left, Op)                                                \
+    DEFINE_UN(arith_##Name##_nul, Op)                                                    \
+    struct arith_token_type arith_type_##Name = {                                        \
+        .handle_left = arith_##Name##_left,                                              \
+        .handle_nul = arith_##Name##_nul,                                                \
+        .left_priority = LeftPrio,                                                       \
+        .nul_priority = NulPrio,                                                         \
+        .name = (const char[]){__VA_ARGS__},                                             \
+    };
+
 #define X(NulPrio, LeftPrio, Name, TokenType, Op, ...)                                   \
     TokenType(NulPrio, LeftPrio, Name, Op, __VA_ARGS__)
 #include "operators.defs"
 #undef X
-
-#define OP_TYPE(Name) arith_type_##Name
 
 struct arith_operator
 {
@@ -546,12 +566,14 @@ struct arith_operator
     struct arith_token_type *type;
 };
 static struct arith_operator arith_operators[] = {
+#define OP_TYPE(Name) arith_type_##Name
 #define X(NulPrio, LeftPrio, Name, TokenType, Op, ...)                                   \
     {.value = (char[]){__VA_ARGS__},                                                     \
      .op_len = sizeof((char[]){__VA_ARGS__}) - 1,                                        \
      .type = &OP_TYPE(Name)},
 #include "operators.defs"
 #undef X
+#undef OP_TYPE
 };
 
 static const struct arith_operator *find_operator(const char *buf, size_t size,

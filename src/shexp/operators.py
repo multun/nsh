@@ -15,8 +15,8 @@ IGNORE_TOKEN_TYPES = {
 _TOKENS = """
 exclam PREFIX !
 different INFIX !=
-mod INFIX %
-mod_equal ASSIGN_OP %=
+mod DIV %
+mod_equal DIV_EQUAL %=
 and INFIX &
 and_and INFIX &&
 and_equal ASSIGN_OP &=
@@ -30,8 +30,8 @@ plus_equal ASSIGN_OP +=
 minus INFIX_PREFIX -
 minus_minus PREFIX_POSTFIX --
 minus_equal ASSIGN_OP -=
-div INFIX /
-div_equal ASSIGN_OP /=
+div DIV /
+div_equal DIV_EQUAL /=
 colon NOP :
 inferior INFIX <
 lshift INFIX <<

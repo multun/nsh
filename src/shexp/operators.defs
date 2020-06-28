@@ -2,8 +2,8 @@
 /* X(pre_prio, post_prio, name, token_class, token_value, value) */
 X(130, 130, exclam, TOKEN_OPERATOR_PREFIX, !, '!', 0)
 X(80, 80, different, TOKEN_OPERATOR_INFIX, !=, '!', '=', 0)
-X(120, 120, mod, TOKEN_OPERATOR_INFIX, %, '%', 0)
-X(10, 10, mod_equal, TOKEN_OPERATOR_ASSIGN_OP, %=, '%', '=', 0)
+X(120, 120, mod, TOKEN_OPERATOR_DIV, %, '%', 0)
+X(10, 10, mod_equal, TOKEN_OPERATOR_DIV_EQUAL, %=, '%', '=', 0)
 X(70, 70, and, TOKEN_OPERATOR_INFIX, &, '&', 0)
 X(40, 40, and_and, TOKEN_OPERATOR_INFIX, &&, '&', '&', 0)
 X(10, 10, and_equal, TOKEN_OPERATOR_ASSIGN_OP, &=, '&', '=', 0)
