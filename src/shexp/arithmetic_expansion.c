@@ -197,7 +197,6 @@ static int arith_lex_number(struct expansion_state *exp_state, struct cstream *c
 #include "operators.defs"
 #undef X
 
-
 #define DEFINE_INFIX(Name, Op)                                                           \
     static int Name(struct arith_value *left, struct arith_token *self,                  \
                     struct arith_lexer *alexer)                                          \
@@ -259,6 +258,77 @@ static int arith_lex_number(struct expansion_state *exp_state, struct cstream *c
         *left = ARITH_VALUE_INT(var_int);                                                \
         return 0;                                                                        \
     }
+
+static int arith_div_equal_left(struct arith_value *left,
+                                struct arith_token *self __unused,
+                                struct arith_lexer *alexer)
+{
+    int rc;
+
+    if (left->type != ARITH_VALUE_STRING) {
+        warnx("expected a name as left operand");
+        return 1;
+    }
+
+    struct arith_value right;
+    if ((rc = arith_parse(&right, alexer, 0))) {
+        arith_value_destroy(left);
+        return rc;
+    }
+
+    int right_int = arith_value_to_int(alexer->exp_state, &right);
+    arith_value_destroy(&right);
+
+    if (right_int == 0) {
+        expansion_warning(alexer->exp_state, "division by 0");
+        return 1;
+    }
+
+    int var_int = arith_string_to_int(alexer->exp_state, left->data.string);
+    var_int /= right_int;
+    char *new_value = mprintf("%d", var_int);
+    environment_var_assign_cstring(expansion_state_env(alexer->exp_state),
+                                   left->data.string, new_value,
+                                   false);
+    /* don't free the key string, as it is used in the hash table */
+    *left = ARITH_VALUE_INT(var_int);
+    return 0;
+}
+
+#define TOKEN_OPERATOR_DIV_EQUAL(NulPrio, LeftPrio, Name, Op, ...)                       \
+    struct arith_token_type arith_type_##Name = {                                        \
+        .handle_left = arith_##Name##_left,                                              \
+        .left_priority = LeftPrio,                                                       \
+        .name = (const char[]){__VA_ARGS__},                                             \
+    };
+
+static int arith_div_left(struct arith_value *left, struct arith_token *self,
+                          struct arith_lexer *alexer)
+{
+    int rc;
+    int i_left = arith_value_to_int(alexer->exp_state, left);
+    arith_value_destroy(left);
+    struct arith_value right;
+    if ((rc = arith_parse(&right, alexer, self->type->left_priority)))
+        return rc;
+    int i_right = arith_value_to_int(alexer->exp_state, &right);
+    arith_value_destroy(&right);
+
+    if (i_right == 0) {
+        expansion_warning(alexer->exp_state, "division by 0");
+        return 1;
+    }
+
+    *left = ARITH_VALUE_INT(i_left / i_right);
+    return 0;
+}
+
+#define TOKEN_OPERATOR_DIV(NulPrio, LeftPrio, Name, Op, ...)                             \
+    struct arith_token_type arith_type_##Name = {                                        \
+        .handle_left = arith_div_left,                                                   \
+        .left_priority = LeftPrio,                                                       \
+        .name = (const char[]){__VA_ARGS__},                                             \
+    };
 
 #define TOKEN_OPERATOR_ASSIGN_OP(NulPrio, LeftPrio, Name, Op, ...)                       \
     DEFINE_ASSIGN_OP(arith_##Name##_left, Op)                                            \
