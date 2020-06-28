@@ -37,8 +37,9 @@ static char *prompt_get(struct cstream *cs)
 
     if (setjmp(ex_scope.env)) {
         /* if an error occurs, use the unexpanded prompt */
+        char *res = strdup(sh_string_data(unexpanded));
         sh_string_put(unexpanded);
-        return strdup(default_prompt);
+        return res;
     }
 
     char *res = expand_nosplit(&cs->line_info, sh_string_data(unexpanded), EXP_FLAGS_PROMPT, ctx->env, &ex_scope);
