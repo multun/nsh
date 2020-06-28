@@ -192,7 +192,7 @@ int expand_name(struct expansion_state *exp_state, char *var)
         return 0;
 
     const char *env_var;
-    if ((env_var = environment_var_get(expansion_state_env(exp_state), var))) {
+    if ((env_var = environment_var_get_cstring(expansion_state_env(exp_state), var))) {
         expansion_push_splitable_string(exp_state, env_var);
         return 0;
     }

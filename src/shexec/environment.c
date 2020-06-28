@@ -43,7 +43,15 @@ char **environment_array(struct environment *env)
     for_each_hash(it, &env->variables)
     {
         struct shexec_variable *var = container_of(it.cur, struct shexec_variable, hash);
-        res[i] = mprintf("%s=%s", hash_head_key(it.cur), var->value);
+        if (var->value == NULL)
+            continue;
+
+        struct sh_value *value = var->value;
+        if (!sh_value_is_string(value))
+            continue;
+
+        struct sh_string *str_value = (struct sh_string*)value;
+        res[i] = mprintf("%s=%s", hash_head_key(it.cur), sh_string_data(str_value));
         i++;
     }
     assert(i == env->variables.size);
@@ -57,31 +65,31 @@ static void environment_load_variables(struct environment *env)
         char *eq = strchr(var, '=');
         char *name = strndup(var, eq - var);
         char *value = strdup(eq + 1);
-        environment_var_assign(env, name, value, true);
+        environment_var_assign_cstring(env, name, value, true);
     }
 
-    const char *PWD = environment_var_get(env, "PWD");
+    const char *PWD = environment_var_get_cstring(env, "PWD");
     if (PWD == NULL) {
         char *pwd;
         if ((pwd = safe_getcwd()) == NULL)
             warn("getcwd() failed");
         else
-            environment_var_assign(env, strdup("PWD"), pwd, true);
+            environment_var_assign_cstring(env, strdup("PWD"), pwd, true);
     }
 
     if (environment_var_get(env, "IFS") == NULL)
-        environment_var_assign(env, strdup("IFS"), strdup("\t\n "), true);
+        environment_var_assign_cstring(env, strdup("IFS"), strdup("\t\n "), true);
 }
 
 static void var_free(struct hash_head *head)
 {
     struct shexec_variable *var = container_of(head, struct shexec_variable, hash);
     free(hash_head_key(head));
-    free(var->value);
+    sh_value_put(var->value);
     free(var);
 }
 
-const char *environment_var_get(struct environment *env, const char *name)
+struct sh_value *environment_var_get(struct environment *env, const char *name)
 {
     struct hash_head *prev = hash_table_find(&env->variables, NULL, name);
     if (prev == NULL)
@@ -91,24 +99,24 @@ const char *environment_var_get(struct environment *env, const char *name)
     return var->value;
 }
 
-void environment_var_assign(struct environment *env, char *name, char *value, bool export)
+void environment_var_assign(struct environment *env, char *name, struct sh_value *value, bool export)
 {
     struct hash_head **insertion_pos;
     struct hash_head *prev = hash_table_find(&env->variables, &insertion_pos, name);
     if (prev) {
         struct shexec_variable *var = container_of(prev, struct shexec_variable, hash);
-        free(var->value);
+        sh_value_put(var->value);
         free(name);
         var->value = value;
         if (export)
-            var->to_export = true;
+            var->exported = true;
         return;
     }
 
     struct shexec_variable *nvar = xmalloc(sizeof(*nvar));
     hash_head_init(&nvar->hash, name);
     nvar->value = value;
-    nvar->to_export = export;
+    nvar->exported = export;
     hash_table_insert(&env->variables, insertion_pos, &nvar->hash);
 }
 

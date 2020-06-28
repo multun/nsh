@@ -74,7 +74,7 @@ int builtin_cd(struct environment *env, struct ex_scope *ex_scope __unused, int 
 
     /* handle the cd to home case */
     if (directory == NULL) {
-        const char *HOME = environment_var_get(env, "HOME");
+        const char *HOME = environment_var_get_cstring(env, "HOME");
         /* step 1 */
         if (HOME == NULL) {
             warnx("%s: HOME not set", argv[0]);
@@ -99,7 +99,7 @@ int builtin_cd(struct environment *env, struct ex_scope *ex_scope __unused, int 
     }
 
     /* CDPATH is just like PATH, but for cd! */
-    const char *CDPATH = environment_var_get(env, "CDPATH");
+    const char *CDPATH = environment_var_get_cstring(env, "CDPATH");
     if (CDPATH) {
         /* for each directory in CDPATH */
         struct pathlist_iter it;
@@ -130,7 +130,7 @@ int builtin_cd(struct environment *env, struct ex_scope *ex_scope __unused, int 
     const char *PWD;
 
 process_curpath:
-    PWD = environment_var_get(env, "PWD");
+    PWD = environment_var_get_cstring(env, "PWD");
 
     /* step 7 */
     if (!options.physical)
@@ -160,7 +160,7 @@ process_curpath:
 
     /* move PWD to OLDPWD */
     if (PWD)
-        environment_var_assign(env, strdup("OLDPWD"), strdup(PWD), true);
+        environment_var_assign(env, strdup("OLDPWD"), &sh_string_create(strdup(PWD))->base, true);
 
     /* compute the path to store back */
     char *newpwd;
@@ -175,7 +175,7 @@ process_curpath:
 
     /* store the new PWD into the environment */
     if (newpwd)
-        environment_var_assign(env, strdup("PWD"), newpwd, true);
+        environment_var_assign(env, strdup("PWD"), &sh_string_create(newpwd)->base, true);
 
     rc = 0;
 cleanup:

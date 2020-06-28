@@ -557,7 +557,7 @@ int builtin_printf(struct environment *env, struct ex_scope *ex_scope __unused, 
 
     /* perform the variable assignment if needed */
     if (dest_var)
-        environment_var_assign(env, strdup(dest_var), evect_data(&result), false);
+        environment_var_assign_cstring(env, strdup(dest_var), evect_data(&result), false);
 
     return 0;
 

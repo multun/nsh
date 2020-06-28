@@ -43,5 +43,6 @@ libshexec_la_SOURCES = \
     redirection.c \
     runtime_error.c \
     subshell.c \
+    value.c \
     while.c \
     wordlist.c

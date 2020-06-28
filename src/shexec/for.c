@@ -20,7 +20,7 @@ static void for_expansion_callback(void *data, char *var_value, struct environme
 
     /* assign the loop variable */
     char *var_name = strdup(shword_buf(for_node->var));
-    environment_var_assign(env, var_name, var_value, false);
+    environment_var_assign_cstring(env, var_name, var_value, false);
 
     struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->context, ex_scope);
     if (setjmp(sub_ex_scope.env)) {

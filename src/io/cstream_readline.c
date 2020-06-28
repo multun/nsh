@@ -10,37 +10,40 @@
 #include <stdlib.h>
 #include <string.h>
 
-static const char *get_ps1(struct context *ctx)
-{
-    const char *res = environment_var_get(ctx->env, "PS1");
-    if (res == NULL)
-        return "nsh> ";
-    return res;
-}
-
-static const char *get_ps2(struct context *ctx)
-{
-    const char *res = environment_var_get(ctx->env, "PS2");
-    if (res == NULL)
-        return "> ";
-    return res;
-}
 
 static char *prompt_get(struct cstream *cs)
 {
     struct context *ctx = cs->context;
-    const char *res = (ctx->line_start ? get_ps1 : get_ps2)(ctx);
-    ctx->line_start = false;
+
+    const char *prompt_var_name;
+    const char *default_prompt;
+    if (ctx->line_start) {
+        prompt_var_name = "PS1";
+        default_prompt = "nsh> ";
+        ctx->line_start = false;
+    } else {
+        prompt_var_name = "PS2";
+        default_prompt = "> ";
+    }
+
+    struct sh_string *unexpanded = environment_var_get_string(ctx->env, prompt_var_name);
+    if (unexpanded == NULL)
+        return strdup(default_prompt);
 
     struct ex_context ex_context;
     struct ex_scope ex_scope = EXCEPTION_SCOPE(&ex_context, NULL);
 
+    sh_string_get(unexpanded);
+
     if (setjmp(ex_scope.env)) {
         /* if an error occurs, use the unexpanded prompt */
-        return strdup(res);
+        sh_string_put(unexpanded);
+        return strdup(default_prompt);
     }
 
-    return expand_nosplit(&cs->line_info, res, EXP_FLAGS_PROMPT, ctx->env, &ex_scope);
+    char *res = expand_nosplit(&cs->line_info, sh_string_data(unexpanded), EXP_FLAGS_PROMPT, ctx->env, &ex_scope);
+    sh_string_put(unexpanded);
+    return res;
 }
 
 static int readline_io_reader_unwrapped(struct cstream_readline *cs)

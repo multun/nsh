@@ -226,7 +226,7 @@ static enum wlexer_op expand_tilde(struct expansion_state *exp_state,
     size_t username_length = end_offset - start_offset;
     if (username_length == 0) {
         /* no username case*/
-        home = environment_var_get(expansion_state_env(exp_state), "HOME");
+        home = environment_var_get_cstring(expansion_state_env(exp_state), "HOME");
     } else {
         /* some username was provided */
         /* add a temporary nul byte (not accounted in size) */
@@ -579,7 +579,7 @@ static void expand_word_callback(struct expansion_callback *callback, struct shw
     expansion_state_init(&exp_state, EXPANSION_QUOTING_UNQUOTED, flags);
     expansion_callback_ctx_init(&exp_state.callback_ctx, callback, env, ex_scope);
     exp_state.line_info = &cs.base.line_info;
-    exp_state.IFS = environment_var_get(env, "IFS");
+    exp_state.IFS = environment_var_get_cstring(env, "IFS");
 
     /* perform the expansion */
     expand(&exp_state, &wlexer, ex_scope);

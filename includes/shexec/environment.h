@@ -3,6 +3,7 @@
 #include "utils/hash_table.h"
 #include "utils/refcnt.h"
 #include "utils/signal_manager.h"
+#include "shexec/value.h"
 
 struct shast_list;
 struct arg_context;
@@ -10,9 +11,10 @@ struct arg_context;
 struct shexec_variable
 {
     struct hash_head hash;
-    bool to_export;
-    char *value;
+    bool exported;
+    struct sh_value *value;
 };
+
 
 /**
 ** \brief the runtime shell environment
@@ -68,6 +70,36 @@ static inline void environment_put(struct environment *env)
 */
 char **environment_array(struct environment *env);
 
-const char *environment_var_get(struct environment *env, const char *name);
+struct sh_value *environment_var_get(struct environment *env, const char *name);
 
-void environment_var_assign(struct environment *env, char *name, char *value, bool export);
+static inline struct sh_string *environment_var_get_string(struct environment *env, const char *name)
+{
+    struct sh_value *res = environment_var_get(env, name);
+    if (res == NULL)
+        return NULL;
+
+    if (!sh_value_is_string(res))
+        return NULL;
+
+    return (struct sh_string*)res;
+}
+
+static inline const char *environment_var_get_cstring(struct environment *env, const char *name)
+{
+    struct sh_string *res = environment_var_get_string(env, name);
+    if (res == NULL)
+        return NULL;
+    return sh_string_data(res);
+}
+
+void environment_var_assign(struct environment *env, char *name, struct sh_value *value, bool export);
+
+static inline void environment_var_assign_cstring(struct environment *env, char *name, char *value, bool export)
+{
+    environment_var_assign(env, name, &sh_string_create(value)->base, export);
+}
+
+static inline void environment_var_assign_const_cstring(struct environment *env, char *name, char *value, bool export)
+{
+    environment_var_assign(env, name, &sh_const_string_create(value)->base, export);
+}
