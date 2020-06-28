@@ -3,4 +3,4 @@
 /**
 ** \brief free an argv array
 */
-void argv_free(char **argv);
+void argv_free(int argc, char *argv[]);

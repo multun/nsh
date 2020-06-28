@@ -38,7 +38,12 @@ static int cmd_fork_exec(struct environment *env, struct ex_scope *ex_scope)
     /* child branch */
     char **penv = environment_array(env);
     execvpe(env->argv[0], env->argv, penv);
-    argv_free(penv);
+
+    /*on failure, free the environment array */
+    for (size_t i = 0; penv[i]; i++)
+        free(penv[i]);
+    free(penv);
+
     clean_err(ex_scope, 125 + errno, "couldn't exec \"%s\"", env->argv[0]);
 }
 
@@ -81,7 +86,7 @@ int cmd_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_sco
     int res = 0;
     struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->context, ex_scope);
     if (setjmp(sub_ex_scope.env)) {
-        argv_free(env->argv);
+        argv_free(env->argc, env->argv);
         env->argc = prev_argc;
         env->argv = prev_argv;
         shraise(ex_scope, NULL);
@@ -91,7 +96,7 @@ int cmd_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_sco
     res = cmd_run_command(env, &sub_ex_scope);
 
     /* cleanup */
-    argv_free(env->argv);
+    argv_free(env->argc, env->argv);
     env->argc = prev_argc;
     env->argv = prev_argv;
     return res;

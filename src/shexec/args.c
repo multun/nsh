@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-void argv_free(char **argv)
+void argv_free(int argc, char *argv[])
 {
-    for (size_t i = 0; argv[i]; i++)
+    for (int i = 0; i < argc; i++)
         free(argv[i]);
     free(argv);
 }

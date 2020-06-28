@@ -130,7 +130,7 @@ static void environment_free(struct refcnt *refcnt)
 {
     struct environment *env = (struct environment *)refcnt;
     free(env->progname);
-    argv_free(env->argv);
+    argv_free(env->argc, env->argv);
     hash_table_map(&env->variables, var_free);
     hash_table_map(&env->functions, function_hash_put);
     hash_table_destroy(&env->variables);
