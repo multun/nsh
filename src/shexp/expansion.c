@@ -431,6 +431,8 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
 
     // convert the value to an integer
     int res = arith_value_to_int(exp_state, &res_val);
+    arith_value_destroy(&res_val);
+
     char print_buf[INT_MAX_CHARS(int) + /* \0 */ 1];
     sprintf(print_buf, "%d", res);
 

@@ -500,7 +500,7 @@ static enum arith_status arith_ternary_left(struct arith_value *left,
 /* ++val style operators */
 
 #define DEFINE_PREFIX_INCRDECR(Name, Op)                                                 \
-    static enum arith_status Name(struct arith_value *res,                               \
+    static enum arith_status Name(struct arith_value *result,                            \
                                   struct arith_token *self __unused,                     \
                                   struct arith_lexer *alexer)                            \
     {                                                                                    \
@@ -511,11 +511,14 @@ static enum arith_status arith_ternary_left(struct arith_value *left,
                                                                                          \
         if (right.type != &arith_type_identifier) {                                      \
             warnx("expected a name as right operand");                                   \
+            arith_token_destroy(&right);                                                 \
             return ARITH_SYNTAX_ERROR;                                                   \
         }                                                                                \
-        int var_int = arith_string_to_int(alexer->exp_state, right.value.data.string);   \
+        /* move the value to the left to re-use arith_assign_return_int */               \
+        *result = right.value;                                                           \
+        int var_int = arith_string_to_int(alexer->exp_state, result->data.string);       \
         Op var_int;                                                                      \
-        return arith_assign_return_int(res, alexer, var_int, var_int);                   \
+        return arith_assign_return_int(result, alexer, var_int, var_int);                \
     }
 
 #define TOKEN_OPERATOR_PREFIX_POSTFIX(NulPrio, LeftPrio, Name, Op, ...)                  \
