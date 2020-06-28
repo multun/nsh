@@ -1,0 +1,7 @@
+{
+  "desc": "redefining a function inside itself, making sure running a function bumps up the refcnt",
+  "stdin": "a() { a() { :; }; echo oops; }\na\n",
+  "stdout": "oops\n",
+  "stderr": "",
+  "retcode": 0
+}

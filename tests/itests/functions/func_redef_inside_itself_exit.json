@@ -1,0 +1,7 @@
+{
+  "desc": "redefining a function inside itself, making sure running a function bumps up the refcnt, then exits to check the error path cleanup",
+  "stdin": "a() { a() { :; }; exit 0; }\na\n",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 0
+}

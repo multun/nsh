@@ -346,6 +346,17 @@ static inline void shast_function_init(struct lexer *lexer, struct shast_functio
     shast_init(&node->base, SHNODE_FUNCTION, lexer);
 }
 
+static inline void shast_function_get(struct shast_function *func)
+{
+    shast_ref_get(&func->base);
+}
+
+static inline void shast_function_put(struct shast_function *func)
+{
+    if (func)
+        shast_ref_put(&func->base);
+}
+
 DEFINE_AST_TYPE(shast_function, SHNODE_FUNCTION)
 
 struct shast_if

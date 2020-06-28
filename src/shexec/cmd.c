@@ -47,14 +47,15 @@ static int cmd_fork_exec(struct environment *env, struct ex_scope *ex_scope)
     clean_err(ex_scope, 125 + errno, "couldn't exec \"%s\"", env->argv[0]);
 }
 
-static int cmd_run_command(struct environment *env, struct ex_scope *ex_scope)
+static int cmd_run_command(struct environment *env, struct ex_scope *ex_scope, struct shast_function * volatile *func)
 {
     /* look for functions */
     struct hash_head *func_hash = hash_table_find(&env->functions, NULL, env->argv[0]);
     if (func_hash)
     {
-        struct shast_function *func = container_of(func_hash, struct shast_function, hash);
-        return ast_exec(env, func->body, ex_scope);
+        *func = container_of(func_hash, struct shast_function, hash);
+        shast_function_get(*func);
+        return ast_exec(env, (*func)->body, ex_scope);
     }
 
     /* look for builtins */
@@ -88,19 +89,24 @@ int cmd_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_sco
     cpvect_push(&new_argv, NULL);
     env->argv = cpvect_data(&new_argv);
 
+    /* if we're running a function, the refcnt has to be dropped on exit */
+    struct shast_function * volatile func = NULL;
+
     /* on exception, free the argument array */
     struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->context, ex_scope);
     if (setjmp(sub_ex_scope.env)) {
         argv_free(env->argc, env->argv);
         env->argc = prev_argc;
         env->argv = prev_argv;
+        shast_function_put(func);
         shraise(ex_scope, NULL);
     }
 
     /* run the command */
-    int rc = cmd_run_command(env, &sub_ex_scope);
+    int rc = cmd_run_command(env, &sub_ex_scope, &func);
 
     /* cleanup */
+    shast_function_put(func);
     argv_free(env->argc, env->argv);
     env->argc = prev_argc;
     env->argv = prev_argv;
