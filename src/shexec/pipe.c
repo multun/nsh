@@ -125,9 +125,11 @@ static int pipeline_enqueue_pipe(struct fd_queue *queue)
 
 int pipeline_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
 {
-    int status;
+    int status = 0;
     struct shast_pipeline *pipe = (struct shast_pipeline *)ast;
     size_t pipeline_size = shast_vect_size(&pipe->children);
+
+    assert(pipeline_size);
 
     /* prepare an array of children PIDs */
     int *children_pids = xcalloc(sizeof(*children_pids), pipeline_size);
