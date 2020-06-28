@@ -151,6 +151,7 @@ char *path_canonicalize(const char *complex_path)
         evect_push_string(&simple_path, component);
         free(component);
     }
+    cpvect_destroy(&components);
 
     /* add a nul byte and remove the trailing /, if there */
     if (simple_path.size > 1 && evect_get(&simple_path, simple_path.size - 1) == '/')
