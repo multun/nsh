@@ -54,7 +54,6 @@ char **environment_array(struct environment *env)
         res[i] = mprintf("%s=%s", hash_head_key(it.cur), sh_string_data(str_value));
         i++;
     }
-    assert(i == env->variables.size);
     return res;
 }
 
