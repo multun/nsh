@@ -41,6 +41,9 @@ struct environment
     // the loop nesting depth
     size_t depth;
 
+    // the function call depth
+    size_t call_depth;
+
     // forked children loose their interactivity
     bool forked;
 

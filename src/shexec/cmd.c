@@ -9,7 +9,9 @@
 #include "shparse/ast.h"
 #include "shexec/args.h"
 #include "shexec/builtins.h"
+#include "shexec/config.h"
 #include "shexec/clean_exit.h"
+#include "shexec/runtime_error.h"
 #include "shexec/environment.h"
 #include "shexec/managed_fork.h"
 #include "utils/hash_table.h"
@@ -47,6 +49,17 @@ static int cmd_fork_exec(struct environment *env, struct ex_scope *ex_scope)
     clean_err(ex_scope, 125 + errno, "couldn't exec \"%s\"", env->argv[0]);
 }
 
+static void function_call_cleanup(struct environment *env, struct shast_function *func)
+{
+    if (func == NULL)
+        return;
+
+    assert(env->call_depth);
+    env->call_depth--;
+    shast_function_put(func);
+}
+
+
 static int cmd_run_command(struct environment *env, struct ex_scope *ex_scope, struct shast_function * volatile *func)
 {
     /* look for functions */
@@ -55,6 +68,13 @@ static int cmd_run_command(struct environment *env, struct ex_scope *ex_scope, s
     {
         *func = container_of(func_hash, struct shast_function, hash);
         shast_function_get(*func);
+        env->call_depth++;
+
+        if (env->call_depth >= MAX_CALL_DEPTH) {
+            warnx("maximum call depth of %d reached", MAX_CALL_DEPTH);
+            runtime_error(ex_scope, 1);
+        }
+
         return ast_exec(env, (*func)->body, ex_scope);
     }
 
@@ -95,10 +115,10 @@ int cmd_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_sco
     /* on exception, free the argument array */
     struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->context, ex_scope);
     if (setjmp(sub_ex_scope.env)) {
+        function_call_cleanup(env, func);
         argv_free(env->argc, env->argv);
         env->argc = prev_argc;
         env->argv = prev_argv;
-        shast_function_put(func);
         shraise(ex_scope, NULL);
     }
 
@@ -106,7 +126,7 @@ int cmd_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_sco
     int rc = cmd_run_command(env, &sub_ex_scope, &func);
 
     /* cleanup */
-    shast_function_put(func);
+    function_call_cleanup(env, func);
     argv_free(env->argc, env->argv);
     env->argc = prev_argc;
     env->argv = prev_argv;
