@@ -1,0 +1,7 @@
+{
+  "desc": "break while splitting a string",
+  "stdin": "a='b  c'\nfor e in $a; do break; done\n",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 0
+}
