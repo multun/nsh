@@ -203,6 +203,9 @@ static int redir_greatand(struct shast_redirection *redir,
     return redir_dup(redir, undo, STDOUT_FILENO);
 }
 
+static int redir_unimplemented(struct shast_redirection *redir,
+                               struct redir_undo *undo);
+
 static const struct redir_meta
 {
     const char *repr;
@@ -213,6 +216,14 @@ static const struct redir_meta
     REDIRECTIONS_APPLY(REDIRECTIONS_LIST)
 #undef REDIRECTIONS_LIST
 };
+
+static int redir_unimplemented(struct shast_redirection *redir,
+                               struct redir_undo *undo __unused)
+{
+    warnx("unimplemented redirection: %s", g_redir_list[redir->type].repr);
+    return 1;
+}
+
 
 int redirection_exec(struct shast_redirection *redir, struct redir_undo *undo)
 {

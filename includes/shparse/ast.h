@@ -146,14 +146,14 @@ static inline void shast_ref_put(struct shast *ast)
 
 #define REDIRECTIONS_APPLY(F)                       \
     F(REDIR_LESS, "<", redir_less)                  \
-    F(REDIR_DLESS, "<<", NULL)                      \
+    F(REDIR_DLESS, "<<", redir_unimplemented)       \
     F(REDIR_GREAT, ">", redir_great)                \
     F(REDIR_DGREAT, ">>", redir_dgreat)             \
     F(REDIR_LESSAND, "<&", redir_lessand)           \
     F(REDIR_GREATAND, ">&", redir_greatand)         \
-    F(REDIR_LESSDASH, "<-", NULL)                   \
+    F(REDIR_LESSDASH, "<-", redir_unimplemented)    \
     F(REDIR_LESSGREAT, "<>", redir_lessgreat)       \
-    F(REDIR_CLOBBER, ">|", NULL)
+    F(REDIR_CLOBBER, ">|", redir_unimplemented)
 
 
 struct shast_redirection
