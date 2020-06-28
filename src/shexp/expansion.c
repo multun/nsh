@@ -1,5 +1,6 @@
 #include "shexec/builtins.h"
 #include "shexec/environment.h"
+#include "shexec/runtime_error.h"
 #include "shexp/expansion.h"
 #include "shlex/variable.h"
 #include "utils/evect.h"
@@ -19,11 +20,6 @@
 
 static void expand_guarded(struct expansion_state *exp_state,
                            struct wlexer *wlexer);
-
-static void __noreturn expansion_raise(struct expansion_state *exp_state)
-{
-    shraise(expansion_state_ex_scope(exp_state), &g_lexer_error);
-}
 
 void __noreturn expansion_error(struct expansion_state *exp_state, const char *fmt, ...)
 {
@@ -416,8 +412,14 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
     };
 
     struct arith_value res_val;
-    if ((rc = arith_parse(&res_val, &alexer, 0)))
-        expansion_raise(exp_state);
+    switch (arith_parse(&res_val, &alexer, 0)) {
+    case ARITH_SYNTAX_ERROR:
+        shraise(expansion_state_ex_scope(exp_state), &g_lexer_error);
+    case ARITH_RUNTIME_ERROR:
+        runtime_error(expansion_state_ex_scope(exp_state), 1);
+    case ARITH_OK:
+        break;
+    }
 
     struct arith_token next_tok;
     if ((rc = arith_lexer_peek(&next_tok, &alexer)))

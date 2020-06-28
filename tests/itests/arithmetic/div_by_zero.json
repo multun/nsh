@@ -1,0 +1,7 @@
+{
+  "desc": "divide by 0",
+  "stdin": "$((0/0))\n",
+  "stdout": "",
+  "stderr": "sh: line 1: 0/0: division by 0 (error token is \"0\")\n",
+  "retcode": 1
+}

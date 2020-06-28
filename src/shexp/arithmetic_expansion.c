@@ -13,24 +13,25 @@ static void arith_lexer_advance(struct arith_lexer *alexer)
     alexer->lookahead.type = NULL;
 }
 
-int arith_lexer_peek(struct arith_token *res, struct arith_lexer *alexer)
+enum arith_status arith_lexer_peek(struct arith_token *res, struct arith_lexer *alexer)
 {
     if (alexer->lookahead.type == NULL) {
-        int rc;
+        enum arith_status rc;
         if ((rc = arith_lex(alexer->exp_state, alexer->cs, &alexer->lookahead)))
             return rc;
     }
 
     *res = alexer->lookahead;
-    return 0;
+    return ARITH_OK;
 }
 
-static int arith_lexer_pop(struct arith_token *res, struct arith_lexer *alexer)
+static enum arith_status arith_lexer_pop(struct arith_token *res,
+                                         struct arith_lexer *alexer)
 {
     if (alexer->lookahead.type != NULL) {
         *res = alexer->lookahead;
         alexer->lookahead.type = NULL;
-        return 0;
+        return ARITH_OK;
     }
 
     return arith_lex(alexer->exp_state, alexer->cs, res);
@@ -44,9 +45,7 @@ static const char *arith_token_repr(struct arith_token *tok)
     return tok->type->name;
 }
 
-
-static int arith_read_name(struct evect *var_name,
-                           struct cstream *cs)
+static enum arith_status arith_read_name(struct evect *var_name, struct cstream *cs)
 {
     int c;
     do {
@@ -60,10 +59,10 @@ static int arith_read_name(struct evect *var_name,
     } while (true);
 
     if (evect_size(var_name) == 0)
-        return 1;
+        return ARITH_SYNTAX_ERROR;
 
     simple_variable_name_finalize(var_name);
-    return 0;
+    return ARITH_OK;
 }
 
 static bool arith_starts_name(char c)
@@ -78,7 +77,8 @@ static arith_t arith_parse_string(const char *str)
     return atoi(str);
 }
 
-static int arith_string_to_int(struct expansion_state *exp_state, char *string)
+static enum arith_status arith_string_to_int(struct expansion_state *exp_state,
+                                             char *string)
 {
     size_t cur_size = expansion_result_size(&exp_state->result);
     if (expand_name(exp_state, string) != 0) {
@@ -105,9 +105,8 @@ int arith_value_to_int(struct expansion_state *exp_state, struct arith_value *va
     }
 }
 
-static int arith_lex_name(struct expansion_state *exp_state,
-                          struct cstream *cs,
-                          struct arith_value *res)
+static enum arith_status arith_lex_name(struct expansion_state *exp_state,
+                                        struct cstream *cs, struct arith_value *res)
 {
     // read the variable name
     struct evect var_name;
@@ -115,23 +114,22 @@ static int arith_lex_name(struct expansion_state *exp_state,
     if (arith_read_name(&var_name, cs) != 0) {
         evect_destroy(&var_name);
         expansion_warning(exp_state, "lonely dollar in expansion");
-        return 1;
+        return ARITH_SYNTAX_ERROR;
     }
 
     res->type = ARITH_VALUE_STRING;
     res->data.string = evect_data(&var_name);
-    return 0;
+    return ARITH_OK;
 }
 
 // this override is perfectly intentionnal :)
 #pragma GCC diagnostic push
 #ifdef __clang__
-#pragma GCC diagnostic ignored "-Winitializer-overrides"
+#    pragma GCC diagnostic ignored "-Winitializer-overrides"
 #else
-#pragma GCC diagnostic ignored "-Woverride-init"
+#    pragma GCC diagnostic ignored "-Woverride-init"
 #endif
-static char operator_start_map[] =
-{
+static char operator_start_map[] = {
 #define X(NulPrio, LeftPrio, Name, TokenType, Op, FirstChar, ...) [FirstChar] = 1,
 #include "operators.defs"
 #undef X
@@ -168,8 +166,8 @@ static int arith_lex_number_base(struct cstream *cs)
     return 16;
 }
 
-static int arith_lex_number(struct expansion_state *exp_state, struct cstream *cs,
-                            struct arith_value *res)
+static enum arith_status arith_lex_number(struct expansion_state *exp_state,
+                                          struct cstream *cs, struct arith_value *res)
 {
     int base = arith_lex_number_base(cs);
     res->type = ARITH_VALUE_INTEGER;
@@ -181,14 +179,15 @@ static int arith_lex_number(struct expansion_state *exp_state, struct cstream *c
 
         int new_digit = parse_digit(c);
         if (new_digit == -1 || new_digit >= base) {
-            expansion_warning(exp_state, "'%c' (0x%x) isn't a valid base %d digit", c, c, base);
-            return 1;
+            expansion_warning(exp_state, "'%c' (0x%x) isn't a valid base %d digit", c, c,
+                              base);
+            return ARITH_SYNTAX_ERROR;
         }
 
         res->data.integer = res->data.integer * base + new_digit;
         cstream_pop(cs);
     }
-    return 0;
+    return ARITH_OK;
 }
 
 // predefine operator types
@@ -198,10 +197,10 @@ static int arith_lex_number(struct expansion_state *exp_state, struct cstream *c
 #undef X
 
 #define DEFINE_INFIX(Name, Op)                                                           \
-    static int Name(struct arith_value *left, struct arith_token *self,                  \
-                    struct arith_lexer *alexer)                                          \
+    static enum arith_status Name(struct arith_value *left, struct arith_token *self,    \
+                                  struct arith_lexer *alexer)                            \
     {                                                                                    \
-        int rc;                                                                          \
+        enum arith_status rc;                                                            \
         int i_left = arith_value_to_int(alexer->exp_state, left);                        \
         arith_value_destroy(left);                                                       \
         struct arith_value right;                                                        \
@@ -210,33 +209,34 @@ static int arith_lex_number(struct expansion_state *exp_state, struct cstream *c
         int i_right = arith_value_to_int(alexer->exp_state, &right);                     \
         arith_value_destroy(&right);                                                     \
         *left = ARITH_VALUE_INT(i_left Op i_right);                                      \
-        return 0;                                                                        \
+        return ARITH_OK;                                                                 \
     }
 
 #define DEFINE_UN(Name, Op)                                                              \
-    static int Name(struct arith_value *res, struct arith_token *self,                   \
-                    struct arith_lexer *alexer)                                          \
+    static enum arith_status Name(struct arith_value *res, struct arith_token *self,     \
+                                  struct arith_lexer *alexer)                            \
     {                                                                                    \
-        int rc;                                                                          \
+        enum arith_status rc;                                                            \
         struct arith_value right;                                                        \
         if ((rc = arith_parse(&right, alexer, self->type->nul_priority)))                \
             return rc;                                                                   \
         int i_right = arith_value_to_int(alexer->exp_state, &right);                     \
         arith_value_destroy(&right);                                                     \
         *res = ARITH_VALUE_INT(Op i_right);                                              \
-        return 0;                                                                        \
+        return ARITH_OK;                                                                 \
     }
 
 // TODO: factor the template to reduce code size
 #define DEFINE_ASSIGN_OP(Name, Op)                                                       \
-    static int Name(struct arith_value *left, struct arith_token *self __unused,         \
-                    struct arith_lexer *alexer)                                          \
+    static enum arith_status Name(struct arith_value *left,                              \
+                                  struct arith_token *self __unused,                     \
+                                  struct arith_lexer *alexer)                            \
     {                                                                                    \
-        int rc;                                                                          \
+        enum arith_status rc;                                                            \
                                                                                          \
         if (left->type != ARITH_VALUE_STRING) {                                          \
             warnx("expected a name as left operand");                                    \
-            return 1;                                                                    \
+            return ARITH_SYNTAX_ERROR;                                                   \
         }                                                                                \
                                                                                          \
         struct arith_value right;                                                        \
@@ -252,22 +252,21 @@ static int arith_lex_number(struct expansion_state *exp_state, struct cstream *c
         var_int Op right_int;                                                            \
         char *new_value = mprintf("%d", var_int);                                        \
         environment_var_assign_cstring(expansion_state_env(alexer->exp_state),           \
-                                       left->data.string, new_value,                     \
-                                       false);                                           \
+                                       left->data.string, new_value, false);             \
         /* don't free the key string, as it is used in the hash table */                 \
         *left = ARITH_VALUE_INT(var_int);                                                \
-        return 0;                                                                        \
+        return ARITH_OK;                                                                 \
     }
 
-static int arith_div_equal_left(struct arith_value *left,
-                                struct arith_token *self __unused,
-                                struct arith_lexer *alexer)
+static enum arith_status arith_div_equal_left(struct arith_value *left,
+                                              struct arith_token *self __unused,
+                                              struct arith_lexer *alexer)
 {
-    int rc;
+    enum arith_status rc;
 
     if (left->type != ARITH_VALUE_STRING) {
         warnx("expected a name as left operand");
-        return 1;
+        return ARITH_SYNTAX_ERROR;
     }
 
     struct arith_value right;
@@ -281,18 +280,17 @@ static int arith_div_equal_left(struct arith_value *left,
 
     if (right_int == 0) {
         expansion_warning(alexer->exp_state, "division by 0");
-        return 1;
+        return ARITH_RUNTIME_ERROR;
     }
 
     int var_int = arith_string_to_int(alexer->exp_state, left->data.string);
     var_int /= right_int;
     char *new_value = mprintf("%d", var_int);
     environment_var_assign_cstring(expansion_state_env(alexer->exp_state),
-                                   left->data.string, new_value,
-                                   false);
+                                   left->data.string, new_value, false);
     /* don't free the key string, as it is used in the hash table */
     *left = ARITH_VALUE_INT(var_int);
-    return 0;
+    return ARITH_OK;
 }
 
 #define TOKEN_OPERATOR_DIV_EQUAL(NulPrio, LeftPrio, Name, Op, ...)                       \
@@ -302,10 +300,11 @@ static int arith_div_equal_left(struct arith_value *left,
         .name = (const char[]){__VA_ARGS__},                                             \
     };
 
-static int arith_div_left(struct arith_value *left, struct arith_token *self,
-                          struct arith_lexer *alexer)
+static enum arith_status arith_div_left(struct arith_value *left,
+                                        struct arith_token *self,
+                                        struct arith_lexer *alexer)
 {
-    int rc;
+    enum arith_status rc;
     int i_left = arith_value_to_int(alexer->exp_state, left);
     arith_value_destroy(left);
     struct arith_value right;
@@ -316,11 +315,11 @@ static int arith_div_left(struct arith_value *left, struct arith_token *self,
 
     if (i_right == 0) {
         expansion_warning(alexer->exp_state, "division by 0");
-        return 1;
+        return ARITH_RUNTIME_ERROR;
     }
 
     *left = ARITH_VALUE_INT(i_left / i_right);
-    return 0;
+    return ARITH_OK;
 }
 
 #define TOKEN_OPERATOR_DIV(NulPrio, LeftPrio, Name, Op, ...)                             \
@@ -365,10 +364,11 @@ static int arith_div_left(struct arith_value *left, struct arith_token *self,
         .name = (const char[]){__VA_ARGS__},                                             \
     };
 
-static int arith_lparen_nul(struct arith_value *res, struct arith_token *self __unused,
-                            struct arith_lexer *alexer)
+static enum arith_status arith_lparen_nul(struct arith_value *res,
+                                          struct arith_token *self __unused,
+                                          struct arith_lexer *alexer)
 {
-    int rc;
+    enum arith_status rc;
     if ((rc = arith_parse(res, alexer, 0)))
         return rc;
 
@@ -380,11 +380,11 @@ static int arith_lparen_nul(struct arith_value *res, struct arith_token *self __
         arith_value_destroy(res);
         // TODO: token detail
         expansion_warning(alexer->exp_state, "unexpected token after lparen expression");
-        return 1;
+        return ARITH_SYNTAX_ERROR;
     }
 
     arith_lexer_advance(alexer);
-    return 0;
+    return ARITH_OK;
 }
 
 #define TOKEN_OPERATOR_GROUP(NulPrio, LeftPrio, Name, Op, ...)                           \
@@ -399,14 +399,15 @@ static int arith_lparen_nul(struct arith_value *res, struct arith_token *self __
         .name = (const char[]){__VA_ARGS__},                                             \
     };
 
-static int arith_equal_left(struct arith_value *left, struct arith_token *self __unused,
-                            struct arith_lexer *alexer)
+static enum arith_status arith_equal_left(struct arith_value *left,
+                                          struct arith_token *self __unused,
+                                          struct arith_lexer *alexer)
 {
-    int rc;
+    enum arith_status rc;
 
     if (left->type != ARITH_VALUE_STRING) {
         expansion_warning(alexer->exp_state, "expected a name as left operand");
-        return 1;
+        return ARITH_SYNTAX_ERROR;
     }
 
     struct arith_value right;
@@ -418,10 +419,11 @@ static int arith_equal_left(struct arith_value *left, struct arith_token *self _
     int res = arith_value_to_int(alexer->exp_state, &right);
     arith_value_destroy(&right);
     char *new_value = mprintf("%d", res);
-    environment_var_assign_cstring(expansion_state_env(alexer->exp_state), left->data.string, new_value, false);
+    environment_var_assign_cstring(expansion_state_env(alexer->exp_state),
+                                   left->data.string, new_value, false);
     // don't free the key string, as it is used in the hash table
     *left = ARITH_VALUE_INT(res);
-    return 0;
+    return ARITH_OK;
 }
 
 #define TOKEN_OPERATOR_ASSIGN(NulPrio, LeftPrio, Name, Op, ...)                          \
@@ -431,10 +433,11 @@ static int arith_equal_left(struct arith_value *left, struct arith_token *self _
         .name = (const char[]){__VA_ARGS__},                                             \
     };
 
-static int arith_ternary_left(struct arith_value *left, struct arith_token *self __unused,
-                              struct arith_lexer *alexer)
+static enum arith_status arith_ternary_left(struct arith_value *left,
+                                            struct arith_token *self __unused,
+                                            struct arith_lexer *alexer)
 {
-    int rc;
+    enum arith_status rc;
     int condition = arith_value_to_int(alexer->exp_state, left);
 
     // parse the true branch
@@ -450,7 +453,7 @@ static int arith_ternary_left(struct arith_value *left, struct arith_token *self
         return rc;
     if (colon_token.type != &arith_type_colon) {
         expansion_warning(alexer->exp_state, "expected a colon");
-        return 1;
+        return ARITH_SYNTAX_ERROR;
     }
 
     // parse the false branch
@@ -461,7 +464,7 @@ static int arith_ternary_left(struct arith_value *left, struct arith_token *self
     arith_value_destroy(&false_branch);
 
     *left = ARITH_VALUE_INT((condition ? true_value : false_value));
-    return 0;
+    return ARITH_OK;
 }
 
 #define TOKEN_OPERATOR_TERNARY(NulPrio, LeftPrio, Name, Op, ...)                         \
@@ -471,15 +474,15 @@ static int arith_ternary_left(struct arith_value *left, struct arith_token *self
         .name = (const char[]){__VA_ARGS__},                                             \
     };
 
-
 // TODO: factor the template to reduce code size
 #define DEFINE_POSTFIX_INCRDECR(Name, Op)                                                \
-    static int Name(struct arith_value *left, struct arith_token *self __unused,         \
-                    struct arith_lexer *alexer)                                          \
+    static enum arith_status Name(struct arith_value *left,                              \
+                                  struct arith_token *self __unused,                     \
+                                  struct arith_lexer *alexer)                            \
     {                                                                                    \
         if (left->type != ARITH_VALUE_STRING) {                                          \
             warnx("expected a name as left operand");                                    \
-            return 1;                                                                    \
+            return ARITH_SYNTAX_ERROR;                                                   \
         }                                                                                \
                                                                                          \
         int var_int = arith_string_to_int(alexer->exp_state, left->data.string);         \
@@ -490,32 +493,32 @@ static int arith_ternary_left(struct arith_value *left, struct arith_token *self
                                        left->data.string, new_value, false);             \
         /* don't free the key string, as it is used in the hash table */                 \
         *left = ARITH_VALUE_INT(old_value);                                              \
-        return 0;                                                                        \
+        return ARITH_OK;                                                                 \
     }
 
 // TODO: factor the template to reduce code size
 #define DEFINE_PREFIX_INCRDECR(Name, Op)                                                 \
-    static int Name(struct arith_value *res, struct arith_token *self __unused,          \
-                    struct arith_lexer *alexer)                                          \
+    static enum arith_status Name(struct arith_value *res,                               \
+                                  struct arith_token *self __unused,                     \
+                                  struct arith_lexer *alexer)                            \
     {                                                                                    \
-        int rc;                                                                          \
+        enum arith_status rc;                                                            \
         struct arith_token right;                                                        \
         if ((rc = arith_lexer_pop(&right, alexer)))                                      \
             return rc;                                                                   \
                                                                                          \
         if (right.type != &arith_type_identifier) {                                      \
             warnx("expected a name as right operand");                                   \
-            return 1;                                                                    \
+            return ARITH_SYNTAX_ERROR;                                                   \
         }                                                                                \
         int var_int = arith_string_to_int(alexer->exp_state, right.value.data.string);   \
         Op var_int;                                                                      \
         char *new_value = mprintf("%d", var_int);                                        \
         environment_var_assign_cstring(expansion_state_env(alexer->exp_state),           \
-                                       right.value.data.string,                          \
-                                       new_value, false);                                \
+                                       right.value.data.string, new_value, false);       \
         /* don't free the key string, as it is used in the hash table */                 \
         *res = ARITH_VALUE_INT(var_int);                                                 \
-        return 0;                                                                        \
+        return ARITH_OK;                                                                 \
     }
 
 #define TOKEN_OPERATOR_PREFIX_POSTFIX(NulPrio, LeftPrio, Name, Op, ...)                  \
@@ -529,33 +532,33 @@ static int arith_ternary_left(struct arith_value *left, struct arith_token *self
         .name = (const char[]){__VA_ARGS__},                                             \
     };
 
-#define X(NulPrio, LeftPrio, Name, TokenType, Op, ...)   \
+#define X(NulPrio, LeftPrio, Name, TokenType, Op, ...)                                   \
     TokenType(NulPrio, LeftPrio, Name, Op, __VA_ARGS__)
 #include "operators.defs"
 #undef X
 
-#define OP_TYPE(Name) arith_type_ ## Name
+#define OP_TYPE(Name) arith_type_##Name
 
-struct arith_operator {
+struct arith_operator
+{
     char *value;
     size_t op_len;
     struct arith_token_type *type;
 };
-static struct arith_operator arith_operators[] =
-{
-#define X(NulPrio, LeftPrio, Name, TokenType, Op, ...)                             \
-    {                                                                                    \
-        .value = (char[]){__VA_ARGS__}, .op_len = sizeof((char[]){__VA_ARGS__}) - 1,     \
-        .type = &OP_TYPE(Name)                                                           \
-    },
+static struct arith_operator arith_operators[] = {
+#define X(NulPrio, LeftPrio, Name, TokenType, Op, ...)                                   \
+    {.value = (char[]){__VA_ARGS__},                                                     \
+     .op_len = sizeof((char[]){__VA_ARGS__}) - 1,                                        \
+     .type = &OP_TYPE(Name)},
 #include "operators.defs"
 #undef X
 };
 
-static const struct arith_operator *find_operator(const char *buf, size_t size, char next_ch)
+static const struct arith_operator *find_operator(const char *buf, size_t size,
+                                                  char next_ch)
 {
     // TODO: handle null bytes
-    for (size_t i = 0; i < sizeof(arith_operators)/sizeof(arith_operators[0]); i++) {
+    for (size_t i = 0; i < sizeof(arith_operators) / sizeof(arith_operators[0]); i++) {
         struct arith_operator *cur_operator = &arith_operators[i];
 
         // skip operators shorter than the current buffer size
@@ -570,8 +573,7 @@ static const struct arith_operator *find_operator(const char *buf, size_t size, 
     return NULL;
 }
 
-static int arith_lex_operator(struct cstream *cs,
-                              struct arith_token *res)
+static enum arith_status arith_lex_operator(struct cstream *cs, struct arith_token *res)
 {
     // TODO: binary search
     const char *data = NULL;
@@ -581,8 +583,7 @@ static int arith_lex_operator(struct cstream *cs,
         if (c == EOF)
             break;
 
-        const struct arith_operator *better_operator =
-            find_operator(data, size, c);
+        const struct arith_operator *better_operator = find_operator(data, size, c);
         if (!better_operator)
             break;
 
@@ -593,11 +594,12 @@ static int arith_lex_operator(struct cstream *cs,
     assert(cur_operator != NULL);
     res->type = cur_operator->type;
     res->value = ARITH_VALUE_UND;
-    return 0;
+    return ARITH_OK;
 }
 
-static int arith_lexer_nul(struct arith_value *res, struct arith_lexer *alexer,
-                           struct arith_token *atoken)
+static enum arith_status arith_lexer_nul(struct arith_value *res,
+                                         struct arith_lexer *alexer,
+                                         struct arith_token *atoken)
 {
     f_arith_handler_nul handler = atoken->type->handle_nul;
     if (handler != NULL)
@@ -608,11 +610,12 @@ static int arith_lexer_nul(struct arith_value *res, struct arith_lexer *alexer,
                       "arithmetic expression",
                       arith_token_repr(atoken));
     arith_token_destroy(atoken);
-    return 1;
+    return ARITH_SYNTAX_ERROR;
 }
 
-static int arith_lexer_left(struct arith_value *res, struct arith_lexer *alexer,
-                            struct arith_token *atoken)
+static enum arith_status arith_lexer_left(struct arith_value *res,
+                                          struct arith_lexer *alexer,
+                                          struct arith_token *atoken)
 {
     f_arith_handler_left handler = atoken->type->handle_left;
     if (handler != NULL)
@@ -621,15 +624,15 @@ static int arith_lexer_left(struct arith_value *res, struct arith_lexer *alexer,
     expansion_warning(alexer->exp_state, "%s isn't an arithmetic operator",
                       arith_token_repr(atoken));
     arith_token_destroy(atoken);
-    return 1;
+    return ARITH_SYNTAX_ERROR;
 }
 
-static int arith_nul_copy_value(
-    struct arith_value *res,
-    struct arith_token *self,
-    struct arith_lexer *alexer __unused) {
+static enum arith_status arith_nul_copy_value(struct arith_value *res,
+                                              struct arith_token *self,
+                                              struct arith_lexer *alexer __unused)
+{
     *res = self->value;
-    return 0;
+    return ARITH_OK;
 }
 
 struct arith_token_type arith_type_integer = {
@@ -649,8 +652,8 @@ struct arith_token_type arith_type_eof = {
     .name = "EOF",
 };
 
-int arith_lex(struct expansion_state *exp_state, struct cstream *cs,
-              struct arith_token *res)
+enum arith_status arith_lex(struct expansion_state *exp_state, struct cstream *cs,
+                            struct arith_token *res)
 {
     // skip spaces
     int c = cstream_peek(cs);
@@ -660,7 +663,7 @@ int arith_lex(struct expansion_state *exp_state, struct cstream *cs,
     if (c == EOF) {
         res->type = &arith_type_eof;
         res->value = ARITH_VALUE_UND;
-        return 0;
+        return ARITH_OK;
     }
 
     if (arith_starts_name(c)) {
@@ -674,13 +677,15 @@ int arith_lex(struct expansion_state *exp_state, struct cstream *cs,
     if (arith_starts_operator(c)) {
         return arith_lex_operator(cs, res);
     }
+
     expansion_warning(exp_state, "unknown character: %c", c);
-    return 1;
+    return ARITH_SYNTAX_ERROR;
 }
 
-int arith_parse(struct arith_value *res, struct arith_lexer *alexer, int parent_priority)
+enum arith_status arith_parse(struct arith_value *res, struct arith_lexer *alexer,
+                              int parent_priority)
 {
-    int rc;
+    enum arith_status rc;
 
     // lex the first token, and call the nul handler
     struct arith_token atoken;
@@ -705,5 +710,5 @@ int arith_parse(struct arith_value *res, struct arith_lexer *alexer, int parent_
             return rc;
     }
 
-    return 0;
+    return ARITH_OK;
 }
