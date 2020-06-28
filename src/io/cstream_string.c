@@ -11,7 +11,8 @@ static int string_io_reader(struct cstream *cs)
     if (!*str)
         return EOF;
 
-    int res = *(str++);
+    /* using an unsigned char is required to avoid sign extension */
+    unsigned char res = *(str++);
     css->string = str;
     return res;
 }

@@ -66,7 +66,8 @@ static int readline_io_reader_unwrapped(struct cstream_readline *cs)
     if (str == NULL)
         return EOF;
 
-    int res = str[cs->line_position];
+    /* using an unsigned char is required to avoid sign extension */
+    unsigned char res = str[cs->line_position];
     if (res == '\0')
         return EOF;
 
