@@ -38,6 +38,9 @@ static inline bool static_ref_put(struct static_refcnt *refcnt)
                                                         \
     void Name ## _put(Struct *item)                     \
     {                                                   \
+        if (!item)                                      \
+            return;                                     \
+                                                        \
         if (static_ref_put(&item->Field))               \
             Free(item);                                 \
     }
