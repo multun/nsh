@@ -1,0 +1,7 @@
+{
+  "desc": "test pre-increment",
+  "stdin": "echo $((++variable))\n",
+  "stdout": "1\n",
+  "stderr": "",
+  "retcode": 0
+}

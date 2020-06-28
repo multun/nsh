@@ -1,0 +1,7 @@
+{
+  "desc": "test the return value of an undefined name",
+  "stdin": "echo $((variable))\n",
+  "stdout": "0\n",
+  "stderr": "",
+  "retcode": 0
+}

@@ -1,0 +1,7 @@
+{
+  "desc": "test post-increment",
+  "stdin": "echo $((variable++))\necho \"$variable\"\n",
+  "stdout": "0\n1\n",
+  "stderr": "",
+  "retcode": 0
+}
