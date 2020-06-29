@@ -46,6 +46,9 @@ char **environment_array(struct environment *env)
         if (var->value == NULL)
             continue;
 
+        if (!var->exported)
+            continue;
+
         struct sh_value *value = var->value;
         if (!sh_value_is_string(value))
             continue;

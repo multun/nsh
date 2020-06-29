@@ -1,0 +1,7 @@
+{
+  "desc": "test that regular variables aren't exported",
+  "stdin": "var=val\n\"$0\" -c 'echo \"$var\"'\nexport var\n\"$0\" -c 'echo \"$var\"'\n",
+  "stdout": "\nval\n",
+  "stderr": "",
+  "retcode": 0
+}
