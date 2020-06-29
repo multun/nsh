@@ -36,9 +36,8 @@ static char **arg_context_extract(int *target_argc, struct arg_context *args)
 
 char **environment_array(struct environment *env)
 {
-    char **res = xmalloc((env->variables.size + 1) * sizeof(*res));
-    res[env->variables.size] = NULL;
-    size_t i = 0;
+    struct cpvect res;
+    cpvect_init(&res, env->variables.size + 1);
     struct hash_table_it it;
     for_each_hash(it, &env->variables)
     {
@@ -54,10 +53,10 @@ char **environment_array(struct environment *env)
             continue;
 
         struct sh_string *str_value = (struct sh_string*)value;
-        res[i] = mprintf("%s=%s", hash_head_key(it.cur), sh_string_data(str_value));
-        i++;
+        cpvect_push(&res, mprintf("%s=%s", hash_head_key(it.cur), sh_string_data(str_value)));
     }
-    return res;
+    cpvect_push(&res, NULL);
+    return cpvect_data(&res);
 }
 
 static void environment_load_variables(struct environment *env)
