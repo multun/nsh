@@ -112,11 +112,12 @@ char *path_canonicalize(const char *complex_path)
             continue;
 
         if (path_component_str_eq(&cmp, "..")) {
-            if (cmp.comp_i == 0)
+            size_t path_size = cpvect_size(&components);
+            if (path_size == 0)
                 goto keep_component;
 
-            const char *prev_cmp = cpvect_get(&components, cmp.comp_i - 1);
-            if (cmp.comp_i == 1 && strcmp(prev_cmp, "/") == 0)
+            const char *prev_cmp = cpvect_get(&components, path_size - 1);
+            if (path_size == 1 && strcmp(prev_cmp, "/") == 0)
                 goto keep_component;
 
             if (strcmp(prev_cmp, "..") == 0)
