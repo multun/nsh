@@ -6,6 +6,8 @@ chroot="$rootdir"/chroot
 
 mkdir -p "$chroot"
 
+sudo mount -t tmpfs -o size=512m tmpfs "$chroot"
+
 mkdir -p "$chroot"/{dev,etc,proc,nix}
 
 touch "$chroot"/etc/resolv.conf
