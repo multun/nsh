@@ -1,0 +1,7 @@
+{
+  "desc": "test the default value of IFS",
+  "stdin": "printf '%s' \"$IFS\"\n",
+  "stdout": " \t\n",
+  "stderr": "",
+  "retcode": 0
+}

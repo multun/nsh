@@ -77,7 +77,7 @@ static void environment_load_variables(struct environment *env)
     }
 
     if (environment_var_get(env, "IFS") == NULL)
-        environment_var_assign_cstring(env, strdup("IFS"), strdup("\t\n "), true);
+        environment_var_assign_cstring(env, strdup("IFS"), strdup(" \t\n"), false);
 }
 
 static void var_free(struct hash_head *head)

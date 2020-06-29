@@ -1,0 +1,7 @@
+{
+  "desc": "IFS shouldn't be exported",
+  "stdin": "IFS=a\n\"$0\" -c 'echo \"$IFS\"'\n",
+  "stdout": " \t\n\n",
+  "stderr": "",
+  "retcode": 0
+}
