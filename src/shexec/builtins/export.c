@@ -49,8 +49,11 @@ static int export_var(struct environment *env, char *raw_export_expr, bool expor
         free(var_name);
         var = container_of(hash, struct shexec_variable, hash);
         var->exported = exported;
-        sh_value_put(var->value);
-        var->value = var_value;
+        /* only replace the value if we have one*/
+        if (var_value) {
+            sh_value_put(var->value);
+            var->value = var_value;
+        }
     }
     return 0;
 }
