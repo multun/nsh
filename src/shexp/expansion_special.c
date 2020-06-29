@@ -23,8 +23,9 @@ static int expand_pid(struct expansion_state *exp_state)
     return 0;
 }
 
-static int expand_star_sep(struct expansion_state *exp_state, char sep)
+static int expand_star(struct expansion_state *exp_state)
 {
+    char sep = exp_state->field_separator_joiner;
     struct environment *env = expansion_state_env(exp_state);
     for (size_t i = 1; env->argv[i]; i++) {
         if (i > 1)
@@ -34,14 +35,6 @@ static int expand_star_sep(struct expansion_state *exp_state, char sep)
     return 0;
 }
 
-static int expand_star(struct expansion_state *exp_state)
-{
-    char sep = ' ';
-    if (exp_state->IFS)
-        sep = exp_state->IFS[0];
-    return expand_star_sep(exp_state, sep);
-}
-
 static int expand_at(struct expansion_state *exp_state)
 {
     // some contexts don't allow splitting (arith expansion, a=something)
@@ -49,7 +42,7 @@ static int expand_at(struct expansion_state *exp_state)
     // sh -c 'IFS=l; a=$*; printf @%s@ "$a"' argv0 a b c
     // sh -c 'IFS=garbage; echo $(($@))' argv0 1 + 2 '*' 3
     if (exp_state->quoting_mode == EXPANSION_QUOTING_NOSPLIT)
-        return expand_star_sep(exp_state, ' ');
+        return expand_star(exp_state);
 
     struct environment *env = expansion_state_env(exp_state);
     for (size_t i = 1; env->argv[i]; i++) {

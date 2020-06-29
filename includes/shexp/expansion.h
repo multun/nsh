@@ -12,6 +12,7 @@
 #include "utils/error.h"
 #include "utils/evect.h"
 #include "shlex/variable.h"
+#include "utils/char_bitset.h"
 
 enum expansion_flags
 {
@@ -61,7 +62,12 @@ struct expansion_state {
     /* a callback to call on each segmented IFS word */
     struct expansion_callback_ctx callback_ctx;
 
-    const char *IFS;
+    /* a bitset of whether a char is in the IFS */
+    struct char_bitset ifs;
+
+    /* the first char of the ifs, used to join arguments with $* */
+    char field_separator_joiner;
+
     struct lineinfo *line_info;
 
     struct expansion_result result;
@@ -161,7 +167,8 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
                                         int flags)
 {
     exp_state->flags = flags;
-    exp_state->IFS = NULL;
+    char_bitset_init(&exp_state->ifs);
+    exp_state->field_separator_joiner = ' ';
     exp_state->line_info = NULL;
     exp_state->space_delimited = false;
     expansion_result_init(&exp_state->result, EXPANSION_DEFAULT_SIZE);
@@ -170,6 +177,18 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
     glob_state_init(&exp_state->glob_state);
     exp_state->scratch_value = NULL;
     variable_name_init(&exp_state->scratch_variable_name, 16); // reasonable variable name size
+}
+
+static inline void expansion_state_set_field_sep(struct expansion_state *exp_state, const char *IFS)
+{
+    if (IFS == NULL)
+        return;
+
+    if (IFS[0])
+        exp_state->field_separator_joiner = IFS[0];
+
+    for (size_t i = 0; IFS[i]; i++)
+        char_bitset_set(&exp_state->ifs, IFS[i], true);
 }
 
 /**

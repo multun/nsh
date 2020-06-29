@@ -60,16 +60,12 @@ enum expansion_sep_type
 
 static enum expansion_sep_type expansion_separator(struct expansion_state *exp_state, char c)
 {
-    if (exp_state->IFS == NULL)
+    if (!char_bitset_get(&exp_state->ifs, c))
         return EXPANSION_SEP_NONE;
 
-    for (const char *sep = exp_state->IFS; *sep; sep++)
-        if (*sep == c) {
-            if (isspace(c))
-                return EXPANSION_SEP_SPACE;
-            return EXPANSION_SEP_REGULAR;
-        }
-    return EXPANSION_SEP_NONE;
+    if (isspace(c))
+        return EXPANSION_SEP_SPACE;
+    return EXPANSION_SEP_REGULAR;
 }
 
 /* push c into the result without going through IFS splitting */
@@ -512,10 +508,6 @@ void expand(struct expansion_state *exp_state,
             struct wlexer *wlexer,
             struct ex_scope *ex_scope)
 {
-    // when IFS is NULL, callback is NULL too.
-    // when isn't not NULL, there must be a callback
-    assert((exp_state->callback_ctx.callback.func == NULL) == (exp_state->IFS == NULL));
-
     /* on exception, free the expansion buffer */
     struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->context, ex_scope);
     if (setjmp(sub_ex_scope.env)) {
@@ -578,7 +570,10 @@ static void expand_word_callback(struct expansion_callback *callback, struct shw
     expansion_state_init(&exp_state, EXPANSION_QUOTING_UNQUOTED, flags);
     expansion_callback_ctx_init(&exp_state.callback_ctx, callback, env, ex_scope);
     exp_state.line_info = &cs.base.line_info;
-    exp_state.IFS = environment_var_get_cstring(env, "IFS");
+
+    /* IFS is reduced into a bitset, as it could be modified during expansion */
+    const char *cur_ifs = environment_var_get_cstring(env, "IFS");
+    expansion_state_set_field_sep(&exp_state, cur_ifs);
 
     /* perform the expansion */
     expand(&exp_state, &wlexer, ex_scope);
