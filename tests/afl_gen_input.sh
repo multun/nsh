@@ -6,8 +6,8 @@ testdir="$(dirname "$0")"
 rootdir="$testdir"/..
 chroot="$rootdir"/chroot
 
-export output_dir="${1:?missing output dir}"
-export cmin_dir="${2:?missing minimized subset dir}"
+export output_dir="${1:-big_in}"
+export cmin_dir="${2:-in}"
 export chroot
 
 mkdir -p -- "${chroot}/${output_dir}" "${chroot}/${cmin_dir}"

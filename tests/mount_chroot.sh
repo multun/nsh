@@ -14,8 +14,6 @@ touch "$chroot"/etc/resolv.conf
 
 for path in /proc \
             /dev \
-            /dev/pts \
-            /dev/ptmx \
             /etc/resolv.conf \
             /nix
 do
