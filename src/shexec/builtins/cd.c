@@ -22,6 +22,7 @@ struct cd_options
 {
     int args_start;
     bool physical;
+    bool previous_dir;
 };
 
 
@@ -30,10 +31,17 @@ static int parse_arguments(struct cd_options *opts, int argc, char *argv[])
     /* parse arguments */
     opts->args_start = 1;
     opts->physical = false;
+    opts->previous_dir = false;
     for (; opts->args_start < argc; opts->args_start++) {
         const char *cur_arg = argv[opts->args_start];
         if (cur_arg[0] != '-')
             break;
+
+        /* stop on cd - */
+        if (cur_arg[1] == '\0') {
+            opts->previous_dir = true;
+            break;
+        }
 
         for (int i = 1; cur_arg[i]; i++) {
             char option = cur_arg[i];
@@ -72,6 +80,13 @@ int builtin_cd(struct environment *env, struct ex_scope *ex_scope __unused, int 
 
     const char *directory = argv[options.args_start];
 
+    char *curpath = NULL;
+
+    if (options.previous_dir) {
+        curpath = strdup(environment_var_get_cstring(env, "OLDPWD"));
+        goto process_curpath;
+    }
+
     /* handle the cd to home case */
     if (directory == NULL) {
         const char *HOME = environment_var_get_cstring(env, "HOME");
@@ -83,8 +98,6 @@ int builtin_cd(struct environment *env, struct ex_scope *ex_scope __unused, int 
         /* step 2 */
         directory = HOME;
     }
-
-    char *curpath = NULL;
 
     /* step 3 */
     if (directory[0] == '/') {
