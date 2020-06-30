@@ -78,4 +78,7 @@ void ATTR(noreturn) sherror(const struct lineinfo *lineinfo, struct ex_scope *ex
 
 void ATTR(noreturn) vsherror(const struct lineinfo *li, struct ex_scope *ex_scope,
                              const struct ex_class *ex_class, const char *format, va_list ap);
+
+void shwarn(const struct lineinfo *li, const char *format, ...);
+
 void vshwarn(const struct lineinfo *li, const char *format, va_list ap);
