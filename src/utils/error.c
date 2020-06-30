@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <err.h>
 
+
 void ATTR(noreturn) shraise(struct ex_scope *ex_scope, const struct ex_class *class)
 {
     if (class)
@@ -15,9 +16,14 @@ void ATTR(noreturn) shraise(struct ex_scope *ex_scope, const struct ex_class *cl
     longjmp(ex_scope->env, 1);
 }
 
+
+void ATTR(noreturn) shreraise(struct ex_scope *ex_scope)
+{
+    shraise(ex_scope, NULL);
+}
+
 void vshwarn(const struct lineinfo *li, const char *format, va_list ap)
 {
-
     fprintf(stderr, "%s: ", program_name);
     lineinfo_print(li, stderr);
     fprintf(stderr, ": ");

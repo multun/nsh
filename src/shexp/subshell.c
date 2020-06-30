@@ -2,16 +2,18 @@
 #include "shexec/clean_exit.h"
 #include "shexec/environment.h"
 #include "shexec/managed_fork.h"
+#include "shexec/runtime_error.h"
 #include "shexp/expansion.h"
 #include "utils/error.h"
 #include "utils/evect.h"
 
-#include <err.h>
+#include <errno.h>
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-static int subshell_child(struct expansion_state *exp_state, char *str)
+
+static int subshell_child(struct expansion_state *exp_state, const char *str)
 {
     struct cstream_string cs;
     cstream_string_init(&cs, str);
@@ -28,20 +30,83 @@ static int subshell_child(struct expansion_state *exp_state, char *str)
     return rc;
 }
 
-static void subshell_parent(struct expansion_state *exp_state, int cfd)
+struct subshell_state
 {
-    FILE *creader = fdopen(cfd, "r");
+    FILE *child_stream;
+    int child_pid;
+    struct ex_scope *parent_scope;
+};
 
-    // newlines are counted on the fly: a counter is increased when a newline is
-    // found. on the next non-newline character, the same number of newlines
-    // will be injected.
+static inline void subshell_state_cleanup(volatile struct subshell_state *state, struct expansion_state *exp_state)
+{
+    fclose(state->child_stream);
 
-    // the accumulated newlines are ignored if there are no more non-newline
-    // characters.
+    /* cleanup the child process */
+    int status;
+    waitpid(state->child_pid, &status, 0);
+
+    /* reset the exception handler */
+    expansion_state_set_ex_scope(exp_state, state->parent_scope);
+}
+
+void expand_subshell(struct expansion_state *exp_state, char *subshell_content)
+{
+    volatile struct subshell_state state;
+    int pipe_fds[2];
+    if (pipe(pipe_fds) < 0) {
+        expansion_warning(exp_state, "pipe() failed: %s", strerror(errno));
+        runtime_error(expansion_state_ex_scope(exp_state), 1);
+    }
+
+    state.child_pid = managed_fork(expansion_state_env(exp_state));
+    if (state.child_pid < 0) {
+        expansion_warning(exp_state, "fork() failed: %s", strerror(errno));
+        runtime_error(expansion_state_ex_scope(exp_state), 1);
+    }
+
+    /* child branch */
+    if (state.child_pid == 0) {
+        /* close the read side of the pipe and plug the write side to STDOUT */
+        close(pipe_fds[0]);
+        dup2(pipe_fds[1], STDOUT_FILENO);
+        close(pipe_fds[1]);
+
+        /* run the subshell and exit */
+        int res = subshell_child(exp_state, subshell_content);
+        free(subshell_content);
+        clean_exit(expansion_state_ex_scope(exp_state), res);
+    }
+
+    /* parent branch */
+    free(subshell_content);
+    close(pipe_fds[1]);
+
+    /* open a buffered reader */
+    state.child_stream = fdopen(pipe_fds[0], "r");
+
+    /* Most of the expansion routines don't need to have exception handlers,
+       as the expansion state can hold everything that needs to be cleaned up.
+       It doesn't quite fit here, so the current exception handler for the expansion
+       is saved, and restored upon function return. */
+    state.parent_scope = expansion_state_ex_scope(exp_state);
+    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(state.parent_scope->context, state.parent_scope);
+    expansion_state_set_ex_scope(exp_state, &sub_ex_scope);
+
+    if (setjmp(sub_ex_scope.env)) {
+        subshell_state_cleanup(&state, exp_state);
+        shreraise(state.parent_scope);
+    }
+
+    /* newlines are counted on the fly: a counter is increased when a newline is
+       found. on the next non-newline character, the same number of newlines
+       will be injected.
+
+       the accumulated newlines are ignored if there are no more non-newline
+       characters. */
 
     size_t newline_count = 0;
     int cur_char;
-    while ((cur_char = fgetc(creader)) != EOF) {
+    while ((cur_char = fgetc(state.child_stream)) != EOF) {
         if (cur_char == '\n') {
             newline_count++;
             continue;
@@ -54,38 +119,5 @@ static void subshell_parent(struct expansion_state *exp_state, int cfd)
         expansion_push_splitable(exp_state, cur_char);
     }
 
-    fclose(creader);
-}
-
-// TODO: handle child exit errors
-void expand_subshell(struct expansion_state *exp_state, char *buf)
-{
-    int pfd[2];
-    // TODO: handle errors
-    if (pipe(pfd) < 0)
-        err(1, "pipe() failed");
-
-    int cpid = managed_fork(expansion_state_env(exp_state));
-    if (cpid < 0)
-        err(1, "fork() failed");
-
-    // child branch
-    if (cpid == 0) {
-        close(pfd[0]);
-        dup2(pfd[1], 1);
-        int res = subshell_child(exp_state, buf);
-        free(buf);
-        close(pfd[1]);
-        clean_exit(expansion_state_ex_scope(exp_state), res);
-    }
-    // parent branch
-    else
-    {
-        free(buf);
-        close(pfd[1]);
-        subshell_parent(exp_state, pfd[0]);
-        close(pfd[0]);
-        int status;
-        waitpid(cpid, &status, 0);
-    }
+    subshell_state_cleanup(&state, exp_state);
 }

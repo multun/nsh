@@ -61,6 +61,12 @@ struct ex_scope
 void ATTR(noreturn) shraise(struct ex_scope *ex_scope, const struct ex_class *class);
 
 /**
+** \fn void shraise(struct ex_scope *ex_scope)
+** \brief re-raises the last thrown exception for the context
+*/
+void ATTR(noreturn) shreraise(struct ex_scope *ex_scope);
+
+/**
 ** \brief prints line information, a message, and exit using shraise
 ** \param lineinfo the line-related metadata
 ** \param ex_scope the exception scope to raise the exception in
