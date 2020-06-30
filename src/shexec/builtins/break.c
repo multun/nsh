@@ -3,25 +3,30 @@
 
 #include "shexec/break.h"
 #include "shexec/builtins.h"
+#include "shexec/runtime_error.h"
 #include "utils/alloc.h"
 
-static int builtin_generic_break(struct environment *env, int argc, char **argv)
+static int builtin_generic_break(struct environment *env,
+                                 struct ex_scope *ex_scope,
+                                 int argc, char **argv)
 {
     if (argc > 2) {
-        fprintf(stderr, "%s: too many arguments\n", argv[0]);
-        return 1;
+        warnx("%s: too many arguments", argv[0]);
+        runtime_error(ex_scope, 1);
     }
 
-    if (!env->depth)
-        return 0;
+    if (!env->depth) {
+        warnx("%s: only meaningful in a loop", argv[0]);
+        runtime_error(ex_scope, 1);
+    }
 
     if (argc < 2)
         env->break_count = 1;
     else {
         unsigned long int res = strtoul(argv[1], NULL, 10);
         if (res == ULONG_MAX || res == 0) {
-            fprintf(stderr, "%s: invalid break count \"%s\"\n", argv[0], argv[1]);
-            return 1;
+            warnx("%s: `%s': invalid break count", argv[0], argv[1]);
+            runtime_error(ex_scope, 1);
         }
 
         /* clamp to INT_MAX to make the convertion safe */
@@ -44,7 +49,7 @@ int builtin_break(struct environment *env, struct ex_scope *ex_scope,
                   int argc, char **argv)
 {
     int rc;
-    if ((rc = builtin_generic_break(env, argc, argv)) >= 0)
+    if ((rc = builtin_generic_break(env, ex_scope, argc, argv)) >= 0)
         return rc;
     shraise(ex_scope, &g_ex_break);
 }
@@ -53,7 +58,7 @@ int builtin_continue(struct environment *env, struct ex_scope *ex_scope,
                      int argc, char **argv)
 {
     int rc;
-    if ((rc = builtin_generic_break(env, argc, argv)) >= 0)
+    if ((rc = builtin_generic_break(env, ex_scope, argc, argv)) >= 0)
         return rc;
     shraise(ex_scope, &g_ex_continue);
 }
