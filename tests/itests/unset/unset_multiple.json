@@ -1,0 +1,7 @@
+{
+  "desc": "unset multiple variables at once",
+  "stdin": "export a=42\nb=41\n\"$0\" -c 'echo \"$a $b\"'\nunset a b\n\"$0\" -c 'echo \"$a $b\"'\necho \"$a $b\"\n",
+  "stdout": "42 \n \n \n",
+  "stderr": "",
+  "retcode": 0
+}

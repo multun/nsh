@@ -16,7 +16,8 @@
     F(history)                                                                           \
     F(printf)                                                                            \
     F(shopt)                                                                             \
-    F(source)
+    F(source)                                                                            \
+    F(unset)
 
 #define BUILTINS_DECLARE(Name)                                                           \
     int builtin_##Name(struct environment *env, struct ex_scope *ex_scope, int argc, char **argv);

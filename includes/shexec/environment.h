@@ -16,6 +16,14 @@ struct shexec_variable
 };
 
 
+static inline void shexec_variable_destroy(struct shexec_variable *var)
+{
+    free(hash_head_key(&var->hash));
+    sh_value_put(var->value);
+}
+
+
+
 /**
 ** \brief the runtime shell environment
 */

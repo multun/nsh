@@ -1,0 +1,7 @@
+{
+  "desc": "unset should work without parameters, and nothing",
+  "stdin": "unset\n",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 0
+}

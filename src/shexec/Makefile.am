@@ -30,6 +30,7 @@ libshexec_la_SOURCES = \
     builtins/printf.c \
     builtins/shopt.c \
     builtins/source.c \
+    builtins/unset.c \
     case.c \
     clean_exit.c \
     cmd.c \
