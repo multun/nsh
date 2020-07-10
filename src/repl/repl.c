@@ -83,6 +83,9 @@ enum repl_action repl_eof(struct repl_result *res, struct context *ctx)
     /* check for EOF with the above context */
     cstream_set_ex_scope(ctx->cs, &ex_scope);
     if (cstream_eof(ctx->cs)) {
+        /* if interactive, print the exit message */
+        if (context_interactive(ctx))
+            printf("exit\n");
         res->status = REPL_OK;
         return REPL_ACTION_STOP;
     }
