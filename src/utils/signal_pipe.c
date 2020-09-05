@@ -1,4 +1,5 @@
 #include "utils/signal_pipe.h"
+#include "utils/attr.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -11,7 +12,7 @@ static struct signal_pipe state = SIGNAL_PIPE_INIT;
 
 static inline void sig_warn(const char *msg)
 {
-    write(STDERR_FILENO, msg, strlen(msg));
+    int __unused res = write(STDERR_FILENO, msg, strlen(msg));
 }
 
 
