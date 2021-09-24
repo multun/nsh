@@ -32,9 +32,15 @@ static struct hash_head **head_tab_insertpos(struct hash_table *table, const cha
 
 static void hash_table_insert_noincr(struct hash_head **insertion_point, struct hash_head *head)
 {
+    // initialize the new node
     head->next = *insertion_point;
     head->prev = insertion_point;
-    *insertion_point = head;
+
+    // link the previous node to the new node
+    *head->prev = head;
+    // link the next node, if any, to the new node
+    if (head->next)
+        head->next->prev = &head->next;
 }
 
 static void expand_table(struct hash_table *htable)
@@ -84,6 +90,7 @@ struct hash_head *hash_table_find(struct hash_table *htab, struct hash_head ***i
 void hash_table_insert(struct hash_table *htab, struct hash_head **insertion_point, struct hash_head *head)
 {
     htab->size++;
+    hash_table_check(htab);
     hash_table_insert_noincr(insertion_point, head);
     hash_table_check(htab);
 }
@@ -92,7 +99,13 @@ void hash_table_remove(struct hash_table *htab, struct hash_head *head)
 {
     assert(htab->size > 0);
     htab->size--;
+
+    // link the previous node the the next one
     *head->prev = head->next;
+    // link the next node, if any, to the previous one
+    if (head->next)
+        head->next->prev = head->prev;
+
     head->prev = NULL;
     head->next = NULL;
     hash_table_check(htab);

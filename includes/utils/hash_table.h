@@ -54,7 +54,7 @@ static inline void hash_table_check(struct hash_table *table)
         struct hash_head **prev = &table->tab[i];
         for (struct hash_head *cur = *prev; cur; prev = &cur->next, cur = cur->next)
         {
-            assert(cur->prev = prev);
+            assert(cur->prev == prev);
             assert(cur->hash_key == hash_table_hash(cur->key));
         }
     }
