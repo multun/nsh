@@ -46,4 +46,5 @@ libshexec_la_SOURCES = \
     subshell.c \
     value.c \
     while.c \
-    wordlist.c
+    wordlist.c \
+    shopt.c

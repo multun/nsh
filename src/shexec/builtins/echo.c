@@ -4,7 +4,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "cli/shopt.h"
 #include "shexec/builtins.h"
 #include "utils/evect.h"
 #include "utils/parsing.h"
@@ -149,10 +148,10 @@ static void echo_print(const char *c, int opt)
     }
 }
 
-int builtin_echo(struct environment *env __unused, struct ex_scope *ex_scope __unused, int argc, char **argv)
+int builtin_echo(struct environment *env, struct ex_scope *ex_scope __unused, int argc, char **argv)
 {
     int options = 0;
-    if (g_shopts[SHOPT_XPG_ECHO])
+    if (env->shopts[SHOPT_XPG_ECHO])
         options = SHECHO_ESC;
 
     int options_end = parse_options(&options, argv);

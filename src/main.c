@@ -1,4 +1,3 @@
-#include "cli/cmdopts.h"
 #include "repl/repl.h"
 
 #include <locale.h>
@@ -8,9 +7,9 @@
 **
 ** nsh could be divided into seven main components:
 **    - utils, a general toolbox
-**    - cli, the command line parsing toolkit
 **    - io, the base IO abstractions
 **    - shlex, the shell lexer
+**    - shwlex, a low level word lexer used by shlex
 **    - shparse, the shell parser
 **    - shexp, the expression expansion toolkit
 **    - shexec, the shell AST evaluation module
@@ -20,8 +19,7 @@
 ** by clicking the links above.
 **
 **  Here is a basic overview of what appends:
-**   - the \ref cmdopts_parse "cli module" parses the arguments,
-**     stores the options and shopts
+**   - the command line arguments are parsed
 **   - the io layer \ref cstream_dispatch_init "creates a stream" based
 **     on the arguments
 **   - a lexer \ref lexer_create "is configured" to call the just configured
@@ -46,10 +44,9 @@ int main(int argc, char *argv[])
     int rc;
 
     /* parse the arguments */
-    int cmdstart = cmdopts_parse(argc, argv);
-    if (cmdstart < 0)
-        return CMDOPTS_STATUS(cmdstart);
-    struct arg_context arg_cont = ARG_CONTEXT(argc, cmdstart, argv);
+    struct arg_context arg_cont;
+    if ((rc = cmdopts_parse(&arg_cont, argc, argv)) != 0)
+        return rc;
 
     /* load the configured locale */
     setlocale(LC_ALL, "");

@@ -11,10 +11,24 @@
 #include <stdbool.h>
 
 /**
-** \brief detailsribes the interpreted command line of the program
+** \brief what kind of source the user provided
+** \details by default, read from stdin, which is a file
+*/
+enum shsrc
+{
+    SHSRC_FILE = 0,
+    SHSRC_COMMAND = 1,
+};
+
+
+/**
+** \brief describes the interpreted command line of the program
 */
 struct arg_context
 {
+    int argc;
+    char **argv;
+
     // the index of the program name inside the array.
     // may not be 0 in case -c is used
     int progname_ind;
@@ -22,15 +36,29 @@ struct arg_context
     // the index of the first positional argument
     int argc_base;
 
-    int argc;
-    char **argv;
+    // was the norc option passed?
+    int norc;
+
+    // the source to read data from.
+    // the underlying type is enum shsrc, but it's an
+    // int to comply with getopt
+    enum shsrc src;
+
+    // the command, as passed to -c, or NULL
+    const char *command;
+
+    // all shopts
+    bool shopts[SHOPT_COUNT];
 };
 
-#define ARG_CONTEXT(Argc, ArgcBase, Argv)                                                \
-    (struct arg_context)                                                                      \
-    {                                                                                    \
-        .progname_ind = 0, .argc = (Argc), .argc_base = (ArgcBase), .argv = (Argv)       \
-    }
+/**
+** \brief parse command line options
+** \return if negative, the parsing failed and the expected
+**   return code is -(retcode + 1). otherwise, the index of
+**   the first non-option argument is returned
+*/
+int cmdopts_parse(struct arg_context *res, int argc, char *argv[]);
+
 
 /**
 ** \brief describes the current context of the read eval loop

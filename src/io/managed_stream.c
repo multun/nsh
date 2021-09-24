@@ -1,8 +1,6 @@
 #include "io/managed_stream.h"
 #include "io/cstream.h"
 #include "repl/repl.h"
-#include "cli/cmdopts.h"
-#include "repl/repl.h"
 #include "utils/alloc.h"
 
 #include <err.h>
@@ -34,9 +32,9 @@ int cstream_file_setup(FILE **file, const char *path, bool missing_ok)
 
 static int cstream_dispatch_init_unwrapped(struct cstream **cs, struct arg_context *arg_cont, int remaining_argc)
 {
-    if (g_cmdopts.src == SHSRC_COMMAND) {
+    if (arg_cont->src == SHSRC_COMMAND) {
         struct cstream_string *res = zalloc(sizeof(*res));
-        cstream_string_init(res, g_cmdopts.command);
+        cstream_string_init(res, arg_cont->command);
         res->base.line_info = LINEINFO("<command line>", NULL);
         *cs = &res->base;
         return 0;

@@ -146,6 +146,7 @@ struct environment *environment_create(struct arg_context *arg_cont)
     signal_manager_init(&env->sigman);
     env->argv = arg_context_extract(&env->argc, arg_cont);
     env->progname = strdup(arg_cont->argv[arg_cont->progname_ind]);
+    memcpy(env->shopts, arg_cont->shopts, sizeof(arg_cont->shopts));
     hash_table_init(&env->variables, 10);
     hash_table_init(&env->functions, 10);
     env->code = 0;

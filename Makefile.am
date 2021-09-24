@@ -7,7 +7,6 @@ ACLOCAL_AMFLAGS = -I m4
 bin_PROGRAMS = nsh
 
 SUBDIRS = \
-    src/cli \
     src/io \
     src/repl \
     src/shexec \
@@ -35,7 +34,6 @@ nsh_LDADD = \
     src/repl/librepl.la \
     src/shparse/libparse.la \
     src/shexec/libshexec.la \
-    src/cli/libcli.la \
     src/shlex/libshlex.la \
     src/shexp/libshexp.la \
     src/shwlex/libshwlex.la \

@@ -1,8 +1,7 @@
 #include "io/keyboard_interrupt.h"
-#include "cli/cmdopts.h"
-#include "cli/shopt.h"
 #include "repl/history.h"
 #include "repl/repl.h"
+#include "shexec/shopt.h"
 #include "shexec/clean_exit.h"
 #include "shexec/runtime_error.h"
 #include "shlex/lexer.h"
@@ -33,16 +32,12 @@ static enum repl_action handle_repl_exception(struct repl_result *res, struct co
     if (ex_context->class != &g_parser_error && ex_context->class != &g_lexer_error)
         errx(2, "received an unknown exception");
 
-    // syntax errors don't have the same return code inside and outside of the REPL
-    // $ (
-    // > bash: syntax error: unexpected end of file
-    // $ echo $?
-    // 2
-    // $ bash -c '('
-    // bash: -c: line 1: syntax error: unexpected end of file
-    // $ echo $?
-
-    ctx->env->code = g_cmdopts.src == SHSRC_COMMAND ? 1 : 2;
+    // with bash, syntax errors don't always yield the same error code
+    // bash -c '('; echo $?       -> 1
+    // echo '(' | bash; echo $?   -> 2
+    // INTERACTIVE ) THEN echo $?'-> 2
+    // we just ignore this madness
+    ctx->env->code = 2;
 
 exception_continue_if_interactive:
     /* continue if the repl is interactive */
@@ -126,7 +121,7 @@ void repl(struct repl_result *res, struct context *ctx)
 
         if (ctx->ast != NULL) {
             /* pretty-print the ast */
-            if (g_shopts[SHOPT_AST_PRINT]) {
+            if (ctx->env->shopts[SHOPT_AST_PRINT]) {
                 FILE *f = fopen("nsh_ast.dot", "w+");
                 ast_print(f, ctx->ast);
                 fclose(f);

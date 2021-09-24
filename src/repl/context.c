@@ -1,4 +1,3 @@
-#include "cli/cmdopts.h"
 #include "io/cstream.h"
 #include "repl/history.h"
 #include "repl/repl.h"
@@ -65,7 +64,7 @@ bool context_init(int *rc, struct context *ctx, struct cstream *cs, struct arg_c
     context_from_env(ctx, cs, env);
     environment_put(env);
 
-    if (ctx->cs->interactive && !g_cmdopts.norc && context_load_all_rc(ctx)) {
+    if (ctx->cs->interactive && !arg_ctx->norc && context_load_all_rc(ctx)) {
         *rc = ctx->env->code;
         return true;
     }

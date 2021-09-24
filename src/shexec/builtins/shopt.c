@@ -3,83 +3,101 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "cli/shopt.h"
 #include "shexec/builtins.h"
 #include "utils/evect.h"
 
-enum shopt_options
+enum shopt_action
 {
-    SHOPT_OPT_QUIET,
-    SHOPT_OPT_SET,
-    SHOPT_OPT_UNSET,
-    SHOPT_OPT_COUNT,
+    SHOPT_ACTION_PRINT = 0,
+    SHOPT_ACTION_SET = 1,
+    SHOPT_ACTION_UNSET = 2,
 };
 
-typedef bool t_shopt_options[SHOPT_OPT_COUNT];
 
-#define SHOPT_OPT_DEFAULT                                                                \
-    {                                                                                    \
-        0,                                                                               \
+struct shopt_options
+{
+    bool quiet;
+    enum shopt_action action;
+    int pos_args_start;
+};
+
+
+static bool parse_builtin_shopt_opt(struct shopt_options *res, int argc, char **argv)
+{
+    memset(res, 0, sizeof(*res));
+
+    int i = 1;
+    for (; i < argc; i++) {
+        char *cur_arg = argv[i];
+        if (cur_arg[0] != '-')
+            break;
+
+        if (strlen(cur_arg) != 2) {
+            warnx("shopt: invalid argument: %s", cur_arg);
+            return false;
+        }
+
+        switch (cur_arg[1]) {
+        case 'q':
+            res->quiet = true;
+            break;
+        case 's':
+            res->action = SHOPT_ACTION_SET;
+            break;
+        case 'u':
+            res->action = SHOPT_ACTION_UNSET;
+            break;
+        default:
+            warnx("shopt: invalid argument: %s", cur_arg);
+            return false;
+        }
     }
 
-static bool parse_builtin_shopt_opt(t_shopt_options opts, char **argv, int *index)
-{
-    for (; argv[*index] && *(argv[*index]) == '-'; (*index)++)
-        if (!strcmp(argv[*index], "-q"))
-            opts[SHOPT_OPT_QUIET] = false;
-        else if (!strcmp(argv[*index], "-s")) {
-            if (opts[SHOPT_OPT_UNSET]) {
-                warnx("shopt: can not set and unset");
-                return false;
-            }
-            opts[SHOPT_OPT_SET] = true;
-        } else if (!strcmp(argv[*index], "-u")) {
-            if (opts[SHOPT_OPT_SET]) {
-                warnx("shopt: can not set and unset");
-                return false;
-            }
-            opts[SHOPT_OPT_UNSET] = true;
-        } else
-            return false;
+    res->pos_args_start = i;
     return true;
 }
 
-static void print_shopt(t_shopt_options opts, int argc, char **argv, int index)
+static void print_shopt(struct environment *env, int index)
 {
-    if (opts[SHOPT_OPT_QUIET])
-        return;
-
-    if (index != argc)
-        for (; index < argc; index++)
-            printf("%s\t%s\n", argv[index],
-                   g_shopts[shopt_from_string(argv[index])] ? "on" : "off");
-    else
-        for (size_t i = 0; i < SHOPT_COUNT; i++)
-            if ((g_shopts[i] && (opts[SHOPT_OPT_SET] || !opts[SHOPT_OPT_UNSET]))
-                || (!g_shopts[i] && (!opts[SHOPT_OPT_SET] || opts[SHOPT_OPT_UNSET])))
-                printf("%s\t%s\n", string_from_shopt(i), g_shopts[i] ? "on" : "off");
+    const char *name = string_from_shopt(index);
+    bool value = env->shopts[index];
+    printf("%s\t%s\n", name, value ? "on" : "off");
 }
 
-int builtin_shopt(struct environment *env __unused, struct ex_scope *ex_scope __unused, int argc, char **argv)
+static void print_shopts(struct environment *env, struct shopt_options *options, int argc, char **argv)
 {
-    t_shopt_options opt = SHOPT_OPT_DEFAULT;
+    if (options->quiet)
+        return;
 
-    int index = 1;
-    if (!parse_builtin_shopt_opt(opt, argv, &index))
+    if (options->pos_args_start != argc) {
+        for (int i = options->pos_args_start; i < argc; i++)
+            print_shopt(env, shopt_from_string(argv[i]));
+    } else {
+        // by default, print the status of all options
+        for (size_t i = 0; i < SHOPT_COUNT; i++)
+            print_shopt(env, i);
+    }
+}
+
+int builtin_shopt(struct environment *env, struct ex_scope *ex_scope __unused, int argc, char **argv)
+{
+    struct shopt_options opt;
+    if (!parse_builtin_shopt_opt(&opt, argc, argv))
         return 2;
 
-    for (int i = index; i < argc; i++)
+    for (int i = opt.pos_args_start; i < argc; i++)
         if (shopt_from_string(argv[i]) == SHOPT_COUNT) {
             warnx("shopt: %s: invalid shell option name", argv[i]);
             return 1;
         }
 
-    if (argc == index || (!opt[1] && !opt[2])) {
-        print_shopt(opt, argc, argv, index);
+    if (opt.action == SHOPT_ACTION_PRINT) {
+        print_shopts(env, &opt, argc, argv);
         return 0;
     }
 
-    for (; index < argc; index++)
-        g_shopts[shopt_from_string(argv[index])] = opt[1];
+    bool value = opt.action == SHOPT_ACTION_SET;
+    for (int i = opt.pos_args_start; i < argc; i++)
+        env->shopts[shopt_from_string(argv[i])] = value;
     return 0;
 }

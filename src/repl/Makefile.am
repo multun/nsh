@@ -7,6 +7,7 @@ librepl_la_SOURCES = \
     $(TOP_INCL)/repl/repl.h \
     context.c \
     history.c \
-    repl.c
+    repl.c \
+    cmdopts.c
 
 librepl_la_LIBADD = -lreadline

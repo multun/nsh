@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <err.h>
 
-#include "cli/shopt.h"
 #include "shexec/environment.h"
 #include "shexp/expansion.h"
 #include "shlex/variable.h"
@@ -156,13 +155,18 @@ static int special_var_lookup(struct expansion_state *exp_state, const char *var
 static int expand_shopt(struct expansion_state *exp_state)
 {
     bool first = true;
-    for (size_t i = 0; i < SHOPT_COUNT; i++)
-        if (g_shopts[i]) {
-            if (!first)
-                expansion_push_splitable(exp_state, ':');
-            expansion_push_splitable_string(exp_state, string_from_shopt(i));
+    struct environment *env = expansion_state_env(exp_state);
+    for (size_t i = 0; i < SHOPT_COUNT; i++) {
+        if (!env->shopts[i])
+            continue;
+
+        if (!first) {
+            expansion_push_splitable(exp_state, ':');
             first = false;
         }
+
+        expansion_push_splitable_string(exp_state, string_from_shopt(i));
+    }
     return 0;
 }
 

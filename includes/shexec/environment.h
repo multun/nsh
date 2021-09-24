@@ -1,9 +1,12 @@
 #pragma once
 
+#include <stdbool.h>
+
 #include "utils/hash_table.h"
 #include "utils/refcnt.h"
 #include "utils/signal_manager.h"
 #include "shexec/value.h"
+#include "shexec/shopt.h"
 
 struct shast_list;
 struct arg_context;
@@ -35,6 +38,7 @@ struct environment
 
     struct hash_table variables;
     struct hash_table functions;
+    bool shopts[SHOPT_COUNT];
 
     // the progname is distinct from the arguments, for example
     // when running functions

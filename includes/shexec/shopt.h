@@ -1,6 +1,8 @@
 #pragma once
 
 #include <stddef.h>
+#include <stdbool.h>
+
 
 #define SHOPTS_APPLY(F)                                                                  \
     F(AST_PRINT, "ast_print")                                                            \
@@ -14,6 +16,7 @@
 
 #define SHOPT_ENUMIZE(EName, Repr) SHOPT_##EName,
 
+
 enum shopt
 {
     SHOPTS_APPLY(SHOPT_ENUMIZE)
@@ -22,7 +25,6 @@ enum shopt
     SHOPT_COUNT,
 };
 
-extern int g_shopts[SHOPT_COUNT];
 
 /**
 ** \brief returns the shopt enum value from its string representation

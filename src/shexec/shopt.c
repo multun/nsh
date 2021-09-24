@@ -1,13 +1,14 @@
-#include "cli/shopt.h"
+#include "shexec/shopt.h"
 
 #include <stddef.h>
 #include <string.h>
 
-int g_shopts[SHOPT_COUNT];
 
 #define STRING_LIST(Enum, StrRepr) StrRepr,
 
+
 static const char *g_shopt_tab[SHOPT_COUNT] = {SHOPTS_APPLY(STRING_LIST)};
+
 
 enum shopt shopt_from_string(const char *str)
 {
