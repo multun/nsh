@@ -7,6 +7,8 @@ libparse_la_SOURCES = \
     $(TOP_INCL)/shparse/parse.h \
     $(TOP_INCL)/shparse/parser_error.h \
     $(TOP_INCL)/shparse/wordlist.h \
+    ast_print.c \
+    ast_free.c \
     parse.c \
     parse_case.c \
     parse_command.c \

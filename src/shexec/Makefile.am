@@ -15,8 +15,6 @@ libshexec_la_SOURCES = \
     args.c \
     assignment.c \
     ast_exec.c \
-    ast_free.c \
-    ast_print.c \
     block.c \
     bool_op.c \
     break.c \
@@ -26,7 +24,6 @@ libshexec_la_SOURCES = \
     builtins/echo.c \
     builtins/exit.c \
     builtins/export.c \
-    builtins/history.c \
     builtins/printf.c \
     builtins/shopt.c \
     builtins/source.c \
@@ -47,4 +44,20 @@ libshexec_la_SOURCES = \
     value.c \
     while.c \
     wordlist.c \
-    shopt.c
+    shopt.c \
+    $(TOP_INCL)/shexec/arithmetic_expansion.h \
+    $(TOP_INCL)/shexec/expansion.h \
+    $(TOP_INCL)/shexec/expansion_callback.h \
+    $(TOP_INCL)/shexec/expansion_result.h \
+    $(TOP_INCL)/shexec/glob.h \
+    expansion/arithmetic_expansion.c \
+    expansion/expansion.c \
+    expansion/expansion_special.c \
+    expansion/glob.c \
+    expansion/operators.defs \
+    expansion/operators.py \
+    expansion/prompt.c \
+    expansion/subshell.c \
+    context.c \
+    repl.c \
+    history.c

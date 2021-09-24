@@ -1,5 +1,5 @@
-#include "repl/repl.h"
-#include "shexec/builtins.h"
+#include "shexec/repl.h"
+#include "shexec/environment.h"
 #include "shexec/clean_exit.h"
 #include "utils/alloc.h"
 

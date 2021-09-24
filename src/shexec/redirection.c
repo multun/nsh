@@ -252,26 +252,3 @@ int redirection_op_cancel(struct redir_undo_op *undo_op)
     }
     abort();
 }
-
-static void redirection_print(FILE *f, struct shast_redirection *redir)
-{
-    void *id = redir;
-
-    if (redir->type >= ARR_SIZE(g_redir_list))
-        abort();
-
-    const char *redir_name = g_redir_list[redir->type].repr;
-
-    fprintf(f, "\"%p\" [label=\"%d %s %s\"];\n", id, redir->left, redir_name,
-            shword_buf(redir->right));
-}
-
-void redir_vect_print(FILE *f, struct redir_vect *vect, void *id)
-{
-    for (size_t i = 0; i < redir_vect_size(vect); i++)
-    {
-        struct shast_redirection *redir = redir_vect_get(vect, i);
-        redirection_print(f, redir);
-        fprintf(f, "\"%p\" -> \"%p\";\n", id, (void*)redir);
-    }
-}

@@ -19,7 +19,8 @@ AC_CONFIG_HEADERS([includes/gen/config.h])
 AC_CONFIG_FILES([Makefile src/shlex/Makefile src/io/Makefile
                  src/shparse/Makefile src/utils/Makefile
                  src/shexec/Makefile
-                 src/repl/Makefile src/shexp/Makefile
-                 src/shwlex/Makefile])
+                 src/repl/Makefile
+                 src/shwlex/Makefile
+                 src/nsh/Makefile])
 
 AC_OUTPUT

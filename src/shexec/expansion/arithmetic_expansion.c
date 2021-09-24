@@ -1,6 +1,6 @@
 #include "shlex/variable.h"
-#include "shexp/expansion.h"
-#include "shexp/arithmetic_expansion.h"
+#include "shexec/expansion.h"
+#include "shexec/arithmetic_expansion.h"
 #include "utils/mprintf.h"
 #include "utils/parsing.h"
 

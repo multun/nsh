@@ -5,10 +5,8 @@
 #include <err.h>
 
 #include "shparse/ast.h"
-#include "repl/repl.h"
+#include "shexec/repl.h"
 #include "shexec/args.h"
-#include "shexec/builtin_cd.h"
-#include "shexec/builtins.h"
 #include "shexec/environment.h"
 #include "shlex/variable.h"
 #include "utils/alloc.h"

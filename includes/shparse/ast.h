@@ -164,6 +164,7 @@ struct shast_redirection
 #define REDIRECTIONS_ENUM(EName, Repr, Func) EName,
         REDIRECTIONS_APPLY(REDIRECTIONS_ENUM)
 #undef REDIRECTIONS_ENUM
+        REDIR_COUNT,
     } type; /**< the type of redirection */
     int left; /**< the io number */
     struct shword *right; /**< the redirection destination */

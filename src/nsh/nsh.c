@@ -1,6 +1,8 @@
-#include "repl/repl.h"
+#include "managed_stream.h"
+#include "shexec/repl.h"
 
 #include <locale.h>
+#include <readline/history.h>
 
 /**
 ** \mainpage Introduction
@@ -39,6 +41,14 @@
 **
 */
 
+BUILTINS_DECLARE(history)
+
+static f_builtin find_builtin_with_history(const char *name) {
+    if (strcmp(name, "history") == 0)
+        return builtin_history;
+    return find_default_builtin(name);
+}
+
 int main(int argc, char *argv[])
 {
     int rc;
@@ -61,6 +71,9 @@ int main(int argc, char *argv[])
     /* initialize the context the repl will work with */
     if (context_init(&rc, &cont, cs, &arg_cont))
         goto err_context;
+
+    cont.env->find_builtin = find_builtin_with_history;
+    cont.add_history = add_history;
 
     /* run the repl */
     struct repl_result repl_res;

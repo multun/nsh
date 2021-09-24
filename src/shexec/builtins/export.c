@@ -1,8 +1,8 @@
 #include <err.h>
 #include <string.h>
 
-#include "shexec/builtins.h"
-#include "shexp/expansion.h"
+#include "shexec/environment.h"
+#include "shexec/expansion.h"
 #include "shlex/variable.h"
 #include "utils/alloc.h"
 #include "utils/macros.h"

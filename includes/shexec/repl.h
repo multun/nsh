@@ -1,7 +1,6 @@
 #pragma once
 
 #include "io/cstream.h"
-#include "io/managed_stream.h"
 #include "shexec/environment.h"
 #include "shlex/lexer.h"
 #include "utils/error.h"
@@ -74,6 +73,8 @@ struct context
     bool line_start;
 
     struct evect line_buffer;
+
+    void (*add_history)(const char *command);
 
     // the currently processed ast
     struct shast *ast;

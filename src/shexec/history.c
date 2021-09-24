@@ -1,4 +1,4 @@
-#include "repl/history.h"
+#include "shexec/history.h"
 #include "utils/pathutils.h"
 
 #include <fcntl.h>
@@ -8,7 +8,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <err.h>
-#include <readline/history.h>
 
 FILE *history_open(void)
 {
@@ -70,7 +69,8 @@ void history_update(struct context *ctx)
         evect_push(cmd_vect, '\0');
 
     /* use readline_history */
-    add_history(cmd_vect->data);
+    if (ctx->add_history)
+        ctx->add_history(cmd_vect->data);
 
     if (fputs(cmd_vect->data, ctx->history) == EOF) {
         warnx("couldn't update history, closing history file");

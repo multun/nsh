@@ -1,6 +1,6 @@
 #include "io/keyboard_interrupt.h"
-#include "repl/history.h"
-#include "repl/repl.h"
+#include "shexec/history.h"
+#include "shexec/repl.h"
 #include "shexec/shopt.h"
 #include "shexec/clean_exit.h"
 #include "shexec/runtime_error.h"

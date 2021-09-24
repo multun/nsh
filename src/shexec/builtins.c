@@ -1,4 +1,4 @@
-#include "shexec/builtins.h"
+#include "shexec/environment.h"
 #include "utils/macros.h"
 
 #include <stddef.h>
@@ -12,7 +12,7 @@ static const struct
     f_builtin func;
 } g_builtins_tab[] = {BUILTINS_APPLY(BUILTINS_TAB)};
 
-f_builtin builtin_search(const char *name)
+f_builtin find_default_builtin(const char *name)
 {
     for (size_t i = 0; i < ARR_SIZE(g_builtins_tab); i++)
         if (!strcmp(name, g_builtins_tab[i].name))

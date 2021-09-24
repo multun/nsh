@@ -25,18 +25,13 @@ static inline bool static_ref_put(struct static_refcnt *refcnt)
 }
 
 
-#define STATIC_REF_DECLARE(Struct, Name)        \
-    void Name ## _get(Struct*);                 \
-    void Name ## _put(Struct*);
-
-
-#define STATIC_REF_DEFINE(Struct, Name, Field, Free)    \
-    void Name ## _get(Struct *item)                     \
+#define STATIC_REFCNT_DEFINE(Struct, Name, Field, Free)    \
+    static inline void Name ## _get(Struct *item)       \
     {                                                   \
         static_ref_get(&item->Field);                   \
     }                                                   \
                                                         \
-    void Name ## _put(Struct *item)                     \
+    static inline void Name ## _put(Struct *item)       \
     {                                                   \
         if (!item)                                      \
             return;                                     \

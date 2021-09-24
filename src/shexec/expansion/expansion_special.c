@@ -5,7 +5,7 @@
 #include <err.h>
 
 #include "shexec/environment.h"
-#include "shexp/expansion.h"
+#include "shexec/expansion.h"
 #include "shlex/variable.h"
 #include "utils/alloc.h"
 #include "utils/evect.h"

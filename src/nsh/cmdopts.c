@@ -6,7 +6,7 @@
 #include <libgen.h>
 #include <string.h>
 
-#include "repl/repl.h"
+#include "shexec/repl.h"
 #include "shexec/shopt.h"
 #include "gen/config.h"
 

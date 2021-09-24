@@ -6,12 +6,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "shexec/builtins.h"
+#include "shexec/environment.h"
 #include "utils/alloc.h"
 #include "utils/mprintf.h"
 #include "utils/hash_table.h"
 #include "shlex/variable.h"
-#include "shexec/builtin_cd.h"
 #include "utils/strutils.h"
 #include "utils/pathutils.h"
 #include "utils/cpvect.h"

@@ -4,7 +4,7 @@
 #include <sys/types.h>
 
 #include "shparse/ast.h"
-#include "shexp/expansion.h"
+#include "shexec/expansion.h"
 #include "shlex/variable.h"
 #include "utils/alloc.h"
 

@@ -54,7 +54,10 @@ struct sh_string *sh_const_string_create(char *str);
 
 struct sh_string *sh_string_create(char *str);
 
-STATIC_REF_DECLARE(struct sh_value, sh_value)
+void sh_value_free(struct sh_value *shval);
+
+STATIC_REFCNT_DEFINE(struct sh_value, sh_value, refcnt, sh_value_free)
+
 
 static inline void sh_string_get(struct sh_string *str)
 {

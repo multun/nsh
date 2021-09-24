@@ -1,5 +1,5 @@
-#include "repl/history.h"
-#include "shexec/builtins.h"
+#include "shexec/history.h"
+#include "shexec/environment.h"
 #include "utils/alloc.h"
 
 #include <stdio.h>

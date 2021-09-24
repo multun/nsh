@@ -1,4 +1,4 @@
-#include "io/readline_wrapped.h"
+#include "readline_wrapped.h"
 #include "io/keyboard_interrupt.h"
 #include "utils/attr.h"
 

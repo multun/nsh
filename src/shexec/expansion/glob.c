@@ -5,10 +5,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "shexp/expansion.h"
-#include "shexp/expansion_callback.h"
-#include "shexp/expansion_result.h"
-#include "shexp/glob.h"
+#include "shexec/expansion.h"
+#include "shexec/expansion_callback.h"
+#include "shexec/expansion_result.h"
+#include "shexec/glob.h"
 #include "utils/error.h"
 #include "utils/alloc.h"
 

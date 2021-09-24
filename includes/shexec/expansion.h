@@ -1,9 +1,9 @@
 #pragma once
 
 #include "shexec/environment.h"
-#include "shexp/expansion_result.h"
-#include "shexp/expansion_callback.h"
-#include "shexp/glob.h"
+#include "shexec/expansion_result.h"
+#include "shexec/expansion_callback.h"
+#include "shexec/glob.h"
 #include "shparse/wordlist.h"
 #include "shwlex/wlexer.h"
 #include "utils/attr.h"

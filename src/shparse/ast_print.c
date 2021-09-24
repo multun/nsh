@@ -240,6 +240,36 @@ void case_print(FILE *f, struct shast *ast)
     }
 }
 
+
+const char *redir_names[] = {
+#define F(EName, Repr, Function) Repr,
+    REDIRECTIONS_APPLY(F)
+#undef F
+};
+
+static void redirection_print(FILE *f, struct shast_redirection *redir)
+{
+    void *id = redir;
+
+    if (redir->type >= REDIR_COUNT)
+        abort();
+
+    const char *redir_name = redir_names[redir->type];
+
+    fprintf(f, "\"%p\" [label=\"%d %s %s\"];\n", id, redir->left, redir_name,
+            shword_buf(redir->right));
+}
+
+void redir_vect_print(FILE *f, struct redir_vect *vect, void *id)
+{
+    for (size_t i = 0; i < redir_vect_size(vect); i++)
+    {
+        struct shast_redirection *redir = redir_vect_get(vect, i);
+        redirection_print(f, redir);
+        fprintf(f, "\"%p\" -> \"%p\";\n", id, (void*)redir);
+    }
+}
+
 #define AST_PRINT_UTILS(EnumName, Name) \
     [EnumName] = Name ## _print,
 static void (*ast_print_utils[])(FILE *f, struct shast *ast) =

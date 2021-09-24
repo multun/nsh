@@ -4,7 +4,7 @@
 #include "shparse/ast.h"
 #include "shexec/break.h"
 #include "shexec/environment.h"
-#include "shexp/expansion.h"
+#include "shexec/expansion.h"
 #include "utils/alloc.h"
 
 

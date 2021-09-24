@@ -1,14 +1,13 @@
-#include "shexec/builtins.h"
 #include "shexec/environment.h"
 #include "shexec/runtime_error.h"
-#include "shexp/expansion.h"
+#include "shexec/expansion.h"
 #include "utils/evect.h"
 #include "utils/strutils.h"
 #include "shwlex/wlexer.h"
 #include "shlex/lexer.h"
 #include "shlex/variable.h"
-#include "shexp/arithmetic_expansion.h"
-#include "shexp/glob.h"
+#include "shexec/arithmetic_expansion.h"
+#include "shexec/glob.h"
 
 #include <assert.h>
 #include <err.h>

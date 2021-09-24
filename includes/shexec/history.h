@@ -1,6 +1,6 @@
 #pragma once
 
-#include "repl/repl.h"
+#include "shexec/repl.h"
 
 #include <stdio.h>
 

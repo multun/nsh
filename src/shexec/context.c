@@ -1,6 +1,6 @@
 #include "io/cstream.h"
-#include "repl/history.h"
-#include "repl/repl.h"
+#include "shexec/history.h"
+#include "shexec/repl.h"
 #include "shexec/environment.h"
 #include "utils/pathutils.h"
 #include "shparse/ast.h"

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "utils/evect.h"
-#include "shexp/expansion.h"
+#include "shexec/expansion.h"
 
 #include <stdbool.h>
 

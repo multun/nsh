@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "shexec/builtins.h"
+#include "shexec/environment.h"
 #include "utils/evect.h"
 #include "utils/parsing.h"
 #include "utils/strutils.h"

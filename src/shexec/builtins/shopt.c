@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "shexec/builtins.h"
+#include "shexec/environment.h"
 #include "utils/evect.h"
 
 enum shopt_action

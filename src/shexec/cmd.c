@@ -8,7 +8,6 @@
 
 #include "shparse/ast.h"
 #include "shexec/args.h"
-#include "shexec/builtins.h"
 #include "shexec/config.h"
 #include "shexec/clean_exit.h"
 #include "shexec/runtime_error.h"
@@ -79,10 +78,9 @@ static int cmd_run_command(struct environment *env, struct ex_scope *ex_scope, s
     }
 
     /* look for builtins */
-    f_builtin builtin = builtin_search(env->argv[0]);
+    f_builtin builtin = env->find_builtin(env->argv[0]);
     if (builtin)
         return builtin_exec(env, ex_scope, builtin);
-
     /* no function or builtin found, fork and exec */
     return cmd_fork_exec(env, ex_scope);
 }

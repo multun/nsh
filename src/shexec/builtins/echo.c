@@ -4,7 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "shexec/builtins.h"
+#include "shexec/environment.h"
 #include "utils/evect.h"
 #include "utils/parsing.h"
 

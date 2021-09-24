@@ -12,7 +12,7 @@ static void sh_string_free(struct sh_string *string)
 }
 
 
-static void sh_value_free(struct sh_value *shval)
+void sh_value_free(struct sh_value *shval)
 {
     switch (shval->type) {
     case SH_VALUE_STRING:
@@ -25,9 +25,6 @@ static void sh_value_free(struct sh_value *shval)
 
     free(shval);
 }
-
-
-STATIC_REF_DEFINE(struct sh_value, sh_value, refcnt, sh_value_free)
 
 
 struct sh_string *sh_string_create(char *str)

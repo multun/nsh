@@ -1,9 +1,9 @@
-#include "repl/repl.h"
+#include "shexec/repl.h"
 #include "shexec/clean_exit.h"
 #include "shexec/environment.h"
 #include "shexec/managed_fork.h"
 #include "shexec/runtime_error.h"
-#include "shexp/expansion.h"
+#include "shexec/expansion.h"
 #include "utils/error.h"
 #include "utils/evect.h"
 

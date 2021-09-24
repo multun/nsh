@@ -2,7 +2,7 @@
 #include <limits.h>
 
 #include "shexec/break.h"
-#include "shexec/builtins.h"
+#include "shexec/environment.h"
 #include "shexec/runtime_error.h"
 #include "utils/alloc.h"
 

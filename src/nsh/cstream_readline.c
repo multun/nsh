@@ -1,10 +1,10 @@
 #include "io/cstream.h"
-#include "io/readline_wrapped.h"
-#include "repl/repl.h"
+#include "readline_wrapped.h"
+#include "shexec/repl.h"
 #include "shlex/variable.h"
 #include "utils/alloc.h"
 #include "utils/macros.h"
-#include "shexp/expansion.h"
+#include "shexec/expansion.h"
 
 #include <stdio.h>
 #include <stdlib.h>
