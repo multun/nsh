@@ -8,7 +8,7 @@
 
 #include "shexec/repl.h"
 #include "shexec/shopt.h"
-#include "gen/config.h"
+#include "config.h"
 
 
 static void print_help(char *pname)
