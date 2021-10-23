@@ -10,10 +10,13 @@ nsh_sources = [
 cc = meson.get_compiler('c')
 readline_dep = cc.find_library('readline', required: true)
 
+conf_data = configuration_data()
+conf_data.set_quoted('VERSION', meson.project_version())
+configure_file(output: 'config.h', configuration : conf_data)
+
 nsh = executable(
     'nsh',
     nsh_sources,
-    c_args: ['-DVERSION="@0@"'.format(meson.project_version())],
     install: true,
     link_with: [nsh_exec, nsh_io, nsh_utils],
     include_directories: nsh_headers,
