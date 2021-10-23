@@ -17,5 +17,6 @@ utils_sources = [
 nsh_utils = library(
     'utils',
     utils_sources,
+    install: true,
     include_directories: nsh_headers,
 )

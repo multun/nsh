@@ -46,6 +46,7 @@ exec_sources = [
 nsh_exec = library(
     'exec',
     exec_sources,
+    install: true,
     include_directories: nsh_headers,
     link_with: [nsh_utils, nsh_io, nsh_parser, nsh_wlexer, nsh_lexer],
 )

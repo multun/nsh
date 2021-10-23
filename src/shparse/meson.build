@@ -17,6 +17,7 @@ parser_sources = [
 nsh_parser = library(
     'parser',
     parser_sources,
+    install: true,
     include_directories: nsh_headers,
     link_with: [nsh_utils, nsh_io, nsh_lexer],
 )

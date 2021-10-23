@@ -11,6 +11,7 @@ readline_dep = cc.find_library('readline', required: true)
 nsh_io = library(
     'io',
     io_sources,
+    install: true,
     include_directories: nsh_headers,
     link_with: nsh_utils,
     dependencies: [readline_dep],

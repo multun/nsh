@@ -16,6 +16,7 @@ configure_file(output: 'config.h', configuration : conf_data)
 nsh_interactive = library(
     'interactive',
     interactive_sources,
+    install: true,
     include_directories: nsh_headers,
     link_with: [nsh_exec, nsh_io, nsh_utils],
     dependencies: [readline_dep],
