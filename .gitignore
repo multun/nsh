@@ -1,8 +1,9 @@
-# EDITOR
+# EDITORS
 *.swp
 *~
 \#*\#
 .\#*
+.vscode
 
 # BIN
 *.o
