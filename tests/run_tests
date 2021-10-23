@@ -56,9 +56,7 @@ def _test_parser():
     paa('-q', '--quiet', action='store_true',
         help='Don\'t display diffs on failed tests')
 
-    paa('target', nargs='?', default=str(tests_path.parent / 'nsh'),
-        help='hosts to run tests on')
-
+    paa('target', help='hosts to run tests on')
     return parser
 
 

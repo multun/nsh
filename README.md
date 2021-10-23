@@ -11,19 +11,12 @@ meson setup builddir
 meson compile -C builddir
 ```
 
-To install:
+Installing is done using `meson install` (you probably shouldn't use this command directly unless you know what you're doing).
+
+# Running tests
 
 ```sh
-meson install -C build --destdir DESTINATION_DIRECTORY
-```
-
-
-# Testing
-
-```sh
-make check
-# or
-tests/check.py -q
+tests/run_tests -q builddir/nsh
 ```
 
 
