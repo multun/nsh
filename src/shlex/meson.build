@@ -7,10 +7,16 @@ lexer_sources = [
     'tok.c',
 ]
 
-nsh_lexer = library(
+lexer_api = include_directories('api')
+lexer_lib = library(
     'lexer',
     lexer_sources,
     install: true,
-    include_directories: nsh_headers,
-    link_with: [nsh_utils, nsh_io, nsh_wlexer],
+    include_directories: lexer_api,
+    dependencies: [nsh_utils, nsh_io, nsh_wlexer],
+)
+
+nsh_lexer = declare_dependency(
+    include_directories: lexer_api,
+    link_with: lexer_lib,
 )

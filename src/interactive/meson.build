@@ -13,11 +13,16 @@ conf_data = configuration_data()
 conf_data.set_quoted('VERSION', meson.project_version())
 configure_file(output: 'config.h', configuration : conf_data)
 
-nsh_interactive = library(
+interactive_api = include_directories('api')
+interactive_lib = library(
     'interactive',
     interactive_sources,
     install: true,
-    include_directories: nsh_headers,
-    link_with: [nsh_exec, nsh_io, nsh_utils],
-    dependencies: [readline_dep],
+    include_directories: interactive_api,
+    dependencies: [nsh_exec, nsh_utils, nsh_io, readline_dep],
+)
+
+nsh_interactive = declare_dependency(
+    include_directories: interactive_api,
+    link_with: interactive_lib,
 )

@@ -10,8 +10,6 @@ add_global_arguments(
     language: 'c'
 )
 
-nsh_headers = include_directories('includes')
-
 subdir('src/utils')
 subdir('src/io')
 subdir('src/shwlex')
@@ -24,9 +22,14 @@ nsh = executable(
     'nsh',
     'src/nsh.c',
     install: true,
-    link_with: [nsh_interactive, nsh_exec, nsh_io],
-    include_directories: nsh_headers,
-    dependencies: [readline_dep],
+    # TODO: try to remove the nsh_utils dep, which is indirect
+    dependencies: [
+        nsh_utils,
+        nsh_io,
+        nsh_interactive,
+        nsh_exec,
+        readline_dep,
+    ],
 )
 
 if get_option('doc')

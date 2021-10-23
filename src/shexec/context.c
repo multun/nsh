@@ -3,7 +3,7 @@
 #include "shexec/repl.h"
 #include "shexec/environment.h"
 #include "utils/pathutils.h"
-#include "shparse/ast.h"
+#include "shexec/ast_exec.h"
 #include "shexec/clean_exit.h"
 
 #include <pwd.h>

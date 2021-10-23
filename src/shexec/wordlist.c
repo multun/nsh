@@ -1,4 +1,4 @@
-#include "shparse/wordlist.h"
+#include "shexec/ast_exec.h"
 #include "shexec/args.h"
 #include "shexec/environment.h"
 #include "shexec/expansion.h"

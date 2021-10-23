@@ -1,4 +1,3 @@
-#include "shexec/clean_exit.h"
 #include "shlex/lexer.h"
 #include "shlex/variable.h"
 #include "shwlex/wlexer.h"

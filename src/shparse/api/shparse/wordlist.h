@@ -2,8 +2,8 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdlib.h>
 
-#include "shexec/environment.h"
 #include "utils/error.h"
 #include "utils/pvect.h"
 #include "utils/cpvect.h"
@@ -38,16 +38,6 @@ static inline char *wordlist_get_str(struct wordlist *wl, size_t i)
 {
     return shword_buf(wordlist_get(wl, i));
 }
-
-
-/**
-** \brief generate from a wordlist a table of arguments
-** \param wl the wordlist
-** \param env the current environment
-** \return argc
-**/
-void wordlist_expand(struct cpvect *res, struct wordlist *wl,
-                     struct environment *env, struct ex_scope *ex_scope);
 
 /**
 ** \brief free a wordlist

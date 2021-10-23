@@ -16,7 +16,6 @@ exec_sources = [
     'builtins/source.c',
     'builtins/unset.c',
     'case.c',
-    'clean_exit.c',
     'cmd.c',
     'environment.c',
     'for.c',
@@ -41,12 +40,19 @@ exec_sources = [
     'context.c',
     'repl.c',
     'history.c',
+    'clean_exit.c',
 ]
 
-nsh_exec = library(
+exec_api = include_directories('api')
+exec_lib = library(
     'exec',
     exec_sources,
     install: true,
-    include_directories: nsh_headers,
-    link_with: [nsh_utils, nsh_io, nsh_parser, nsh_wlexer, nsh_lexer],
+    include_directories: exec_api,
+    dependencies: [nsh_utils, nsh_io, nsh_wlexer, nsh_parser, nsh_lexer],
+)
+
+nsh_exec = declare_dependency(
+    include_directories: [exec_api, parser_api, lexer_api, wlexer_api],
+    link_with: exec_lib,
 )

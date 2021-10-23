@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "shparse/ast.h"
+#include "shexec/ast_exec.h"
 #include "utils/macros.h"
 #include "shexec/execution.h"
 #include "utils/strutils.h"

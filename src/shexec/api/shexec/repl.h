@@ -2,7 +2,6 @@
 
 #include "io/cstream.h"
 #include "shexec/environment.h"
-#include "shlex/lexer.h"
 #include "utils/error.h"
 #include "shparse/ast.h"
 #include "shexec/clean_exit.h"

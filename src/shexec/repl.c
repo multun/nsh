@@ -1,4 +1,5 @@
 #include "io/keyboard_interrupt.h"
+#include "shexec/ast_exec.h"
 #include "shexec/history.h"
 #include "shexec/repl.h"
 #include "shexec/shopt.h"

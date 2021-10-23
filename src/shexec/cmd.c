@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "shparse/ast.h"
+#include "shexec/ast_exec.h"
 #include "shexec/args.h"
 #include "shexec/config.h"
 #include "shexec/clean_exit.h"

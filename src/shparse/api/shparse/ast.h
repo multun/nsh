@@ -1,8 +1,8 @@
 #pragma once
 
-#include "shexec/environment.h"
 #include "shlex/lexer.h"
 #include "utils/alloc.h"
+#include "utils/hash_table.h"
 #include "utils/error.h"
 #include "utils/lineinfo.h"
 #include "wordlist.h"
@@ -28,15 +28,17 @@
     F(SHNODE_FUNCTION, function)            \
     F(SHNODE_BLOCK, block)
 
+enum shnode_type
+{
+    AST_TYPE_APPLY(DECLARE_AST_TYPE_ENUM)
+};
+
 /**
 ** \brief represent an Abstract Syntax Tree (AST).
 **/
 struct shast
 {
-    enum shnode_type
-    {
-        AST_TYPE_APPLY(DECLARE_AST_TYPE_ENUM)
-    } type; /**< type of node */
+    enum shnode_type type; /**< type of node */
 
     /* a reference counting field, needed for functions and the job
     ** control's command pretty-printing.
@@ -53,14 +55,10 @@ struct shast
 #define DECLARE_AST_PRINT_UTILS(EnumName, Name) \
     void Name ## _print(FILE *f, struct shast *ast);
 
-#define DECLARE_AST_EXEC_UTILS(EnumName, Name) \
-    int Name ## _exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope);
-
 #define DECLARE_AST_FREE_UTILS(EnumName, Name) \
     void Name ## _free(struct shast *ast);
 
 AST_TYPE_APPLY(DECLARE_AST_PRINT_UTILS)
-AST_TYPE_APPLY(DECLARE_AST_EXEC_UTILS)
 AST_TYPE_APPLY(DECLARE_AST_FREE_UTILS)
 
 #define GVECT_NAME shast_vect
@@ -109,13 +107,6 @@ void ast_print_rec(FILE *f, struct shast *ast);
 void ast_print(FILE *f, struct shast *ast);
 
 /**
-** \brief execute the tree
-** \param env the current environment
-** \param ast the tree
-**/
-int ast_exec(struct environment*env, struct shast *ast, struct ex_scope *ex_scope);
-
-/**
 ** \brief The ast refcount free callback
 ** \param refcnt the refcnt field of the tree
 **/
@@ -156,16 +147,18 @@ static inline void shast_ref_put(struct shast *ast)
     F(REDIR_CLOBBER, ">|", redir_unimplemented)
 
 
+enum redir_type
+{
+    REDIR_NONE = 0,
+#define REDIRECTIONS_ENUM(EName, Repr, Func) EName,
+    REDIRECTIONS_APPLY(REDIRECTIONS_ENUM)
+#undef REDIRECTIONS_ENUM
+    REDIR_COUNT,
+};
+
 struct shast_redirection
 {
-    enum redir_type
-    {
-        REDIR_NONE = 0,
-#define REDIRECTIONS_ENUM(EName, Repr, Func) EName,
-        REDIRECTIONS_APPLY(REDIRECTIONS_ENUM)
-#undef REDIRECTIONS_ENUM
-        REDIR_COUNT,
-    } type; /**< the type of redirection */
+    enum redir_type type; /**< the type of redirection */
     int left; /**< the io number */
     struct shword *right; /**< the redirection destination */
 };
@@ -198,7 +191,6 @@ struct shast_assignment
 #undef GVECT_TYPE
 
 void assign_vect_print(FILE *f, struct assign_vect *vect, void *parent);
-void assignment_exec(struct environment *env, struct shast_assignment *ast, struct ex_scope *ex_scope);
 
 static inline void shast_assignment_free(struct shast_assignment *assign)
 {
@@ -226,14 +218,16 @@ static inline void shast_block_init(struct lexer *lexer,
 
 DEFINE_AST_TYPE(shast_block, SHNODE_BLOCK)
 
+enum bool_type
+{
+    BOOL_OR,
+    BOOL_AND,
+};
+ 
 struct shast_bool_op
 {
     struct shast base;
-    enum bool_type
-    {
-        BOOL_OR,
-        BOOL_AND,
-    } type; /**< the type of operator */
+    enum bool_type type; /**< the type of operator */
     struct shast *left; /**< the first operand */
     struct shast *right; /**< the second operand */
 };

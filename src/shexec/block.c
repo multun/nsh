@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <err.h>
 
-#include "shparse/ast.h"
+#include "shexec/ast_exec.h"
 #include "shexec/environment.h"
 #include "shexec/execution.h"
 

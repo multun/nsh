@@ -14,9 +14,15 @@ utils_sources = [
     'xalloc.c',
 ]
 
-nsh_utils = library(
+utils_api = include_directories('api')
+utils_lib = library(
     'utils',
     utils_sources,
     install: true,
-    include_directories: nsh_headers,
+    include_directories: utils_api,
+)
+
+nsh_utils = declare_dependency(
+    link_with: utils_lib,
+    include_directories: utils_api,
 )

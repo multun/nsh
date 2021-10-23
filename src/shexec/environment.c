@@ -4,7 +4,7 @@
 #include <limits.h>
 #include <err.h>
 
-#include "shparse/ast.h"
+#include "shexec/ast_exec.h"
 #include "shexec/repl.h"
 #include "shexec/args.h"
 #include "shexec/environment.h"

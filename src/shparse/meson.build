@@ -14,10 +14,17 @@ parser_sources = [
     'ast_free.c',
 ]
 
-nsh_parser = library(
+parser_api = include_directories('api')
+parser_lib = library(
     'parser',
     parser_sources,
     install: true,
-    include_directories: nsh_headers,
-    link_with: [nsh_utils, nsh_io, nsh_lexer],
+    include_directories: parser_api,
+    # TODO: remove wlexer
+    dependencies: [nsh_wlexer, nsh_lexer, nsh_utils, nsh_io],
+)
+
+nsh_parser = declare_dependency(
+    include_directories: [parser_api, lexer_api, wlexer_api],
+    link_with: parser_lib,
 )
