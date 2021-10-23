@@ -8,7 +8,8 @@ interpreter. It can execute commands, perform IO redirections and more.
 
 ```sh
 meson setup builddir
-meson compile -C builddir
+meson compile -C builddir  # or ninja -C builddir
+builddir/nsh -c 'echo "Hello world!"'
 ```
 
 Installing is done using `meson install` (you probably shouldn't use this command directly unless you know what you're doing).
@@ -17,4 +18,15 @@ Installing is done using `meson install` (you probably shouldn't use this comman
 
 ```sh
 tests/run_tests -q builddir/nsh
+```
+
+# Building documentation
+
+```sh
+# enable documentation support
+meson setup -Ddoc=true builddir  # --reconfigure might be needed
+# build the documentation
+meson compile -C builddir doxygen_doc
+# open the documentation in the browser
+xdg-open builddir/doxygen_doc/index.html
 ```

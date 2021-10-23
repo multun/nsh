@@ -1,0 +1,6 @@
+option(
+	'doc',
+	type: 'boolean',
+	value: false,
+	description: 'Generate documentation'
+)

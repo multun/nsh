@@ -28,3 +28,7 @@ nsh = executable(
     include_directories: nsh_headers,
     dependencies: [readline_dep],
 )
+
+if get_option('doc')
+	subdir('doc')
+endif
