@@ -18,15 +18,3 @@ Installing is done using `meson install` (you probably shouldn't use this comman
 ```sh
 tests/run_tests -q builddir/nsh
 ```
-
-
-# Usage
-
-```sh
-nsh [--norc] [--token-print | --ast-print] [ -c COMMAND | FILE ]
-```
-
-For extended usage information, see
-```sh
-man doc/nsh.1
-```
