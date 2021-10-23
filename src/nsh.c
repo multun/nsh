@@ -1,4 +1,4 @@
-#include "managed_stream.h"
+#include "interactive/managed_stream.h"
 #include "shexec/repl.h"
 
 #include <locale.h>

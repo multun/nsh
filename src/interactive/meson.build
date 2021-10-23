@@ -1,5 +1,4 @@
-nsh_sources = [
-    'nsh.c',
+interactive_sources = [
     'cstream_readline.c',
     'managed_stream.c',
     'builtin_history.c',
@@ -14,11 +13,10 @@ conf_data = configuration_data()
 conf_data.set_quoted('VERSION', meson.project_version())
 configure_file(output: 'config.h', configuration : conf_data)
 
-nsh = executable(
-    'nsh',
-    nsh_sources,
-    install: true,
-    link_with: [nsh_exec, nsh_io, nsh_utils],
+nsh_interactive = library(
+    'interactive',
+    interactive_sources,
     include_directories: nsh_headers,
+    link_with: [nsh_exec, nsh_io, nsh_utils],
     dependencies: [readline_dep],
 )

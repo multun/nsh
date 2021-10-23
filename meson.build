@@ -18,4 +18,13 @@ subdir('src/shwlex')
 subdir('src/shlex')
 subdir('src/shparse')
 subdir('src/shexec')
-subdir('src/nsh')
+subdir('src/interactive')
+
+nsh = executable(
+    'nsh',
+    'src/nsh.c',
+    install: true,
+    link_with: [nsh_interactive, nsh_exec, nsh_io],
+    include_directories: nsh_headers,
+    dependencies: [readline_dep],
+)
