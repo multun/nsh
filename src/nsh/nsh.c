@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     /* load the configured locale */
     setlocale(LC_ALL, "");
 
-    struct context cont;
+    struct repl cont;
 
     /* initialize IO */
     struct cstream *cs;
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
         goto err_cstream;
 
     /* initialize the context the repl will work with */
-    if (context_init(&rc, &cont, cs, &arg_cont))
+    if (repl_init(&rc, &cont, cs, &arg_cont))
         goto err_context;
 
     cont.env->find_builtin = find_builtin_with_history;
@@ -77,11 +77,11 @@ int main(int argc, char *argv[])
 
     /* run the repl */
     struct repl_result repl_res;
-    repl(&repl_res, &cont);
+    repl_run(&repl_res, &cont);
     rc = repl_status(&cont);
 
     /* cleanup */
-    context_destroy(&cont);
+    repl_destroy(&cont);
 err_context:
     cstream_destroy(cs);
     free(cs);

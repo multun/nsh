@@ -8,7 +8,7 @@
 #include "utils/lineinfo.h"
 
 struct cstream;
-struct context;
+struct repl;
 
 /**
 ** \brief A pointer to a function able to read from a specific stream type
@@ -52,7 +52,7 @@ struct cstream
 
     // the context the stream runs in. This is useful for getting the prompt,
     // as well as the aliasing context
-    struct context *context;
+    struct repl *context;
 
     // the line-related informations, updated on each read
     struct lineinfo line_info;

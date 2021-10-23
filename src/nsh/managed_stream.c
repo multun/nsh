@@ -49,7 +49,7 @@ static int cstream_dispatch_init_unwrapped(struct cstream **cs, struct cli_optio
     return 0;
 }
 
-int cstream_dispatch_init(struct context *context, struct cstream **cs, struct cli_options *arg_cont)
+int cstream_dispatch_init(struct repl *context, struct cstream **cs, struct cli_options *arg_cont)
 {
     int remaining_argc = arg_cont->argc - arg_cont->argc_base;
 

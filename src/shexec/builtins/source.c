@@ -20,17 +20,17 @@ static int source_file(struct ex_scope *ex_scope, struct environment *env, char 
     struct cstream_file cs;
     cstream_file_init(&cs, file, true);
 
-    struct context ctx;
-    context_from_env(&ctx, &cs.base, env);
+    struct repl ctx;
+    repl_init_from_env(&ctx, &cs.base, env);
 
     struct repl_result repl_res;
-    repl(&repl_res, &ctx);
+    repl_run(&repl_res, &ctx);
     rc = repl_status(&ctx);
 
     if (repl_called_exit(&repl_res))
         clean_exit(ex_scope, rc);
 
-    context_destroy(&ctx);
+    repl_destroy(&ctx);
     cstream_destroy(&cs.base);
     return rc;
 }

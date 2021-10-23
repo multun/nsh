@@ -13,7 +13,7 @@
 
 static bool context_load_rc(struct environment *env, const char *path, const char *source)
 {
-    struct context ctx;
+    struct repl ctx;
 
     FILE *file = fopen(path, "r");
     int res;
@@ -25,19 +25,19 @@ static bool context_load_rc(struct environment *env, const char *path, const cha
     cs.base.line_info = LINEINFO(source, NULL);
     cs.base.context = &ctx;
 
-    context_from_env(&ctx, &cs.base, env);
+    repl_init_from_env(&ctx, &cs.base, env);
 
     struct repl_result repl_res;
-    repl(&repl_res, &ctx);
+    repl_run(&repl_res, &ctx);
 
-    context_destroy(&ctx);
+    repl_destroy(&ctx);
     cstream_destroy(ctx.cs);
 
     /* exiting in an rc file causes the shell to exit */
     return repl_called_exit(&repl_res);
 }
 
-static bool context_load_all_rc(struct context *ctx)
+static bool context_load_all_rc(struct repl *ctx)
 {
     const char global_rc[] = "/etc/nshrc";
     if (context_load_rc(ctx->env, global_rc, global_rc))
@@ -49,7 +49,7 @@ static bool context_load_all_rc(struct context *ctx)
     return should_exit;
 }
 
-void context_from_env(struct context *ctx, struct cstream *cs, struct environment *env)
+void repl_init_from_env(struct repl *ctx, struct cstream *cs, struct environment *env)
 {
     memset(ctx, 0, sizeof(*ctx));
     ctx->cs = cs;
@@ -58,10 +58,10 @@ void context_from_env(struct context *ctx, struct cstream *cs, struct environmen
     environment_get(env);
 }
 
-bool context_init(int *rc, struct context *ctx, struct cstream *cs, struct cli_options *arg_ctx)
+bool repl_init(int *rc, struct repl *ctx, struct cstream *cs, struct cli_options *arg_ctx)
 {
     struct environment *env = environment_create(arg_ctx);
-    context_from_env(ctx, cs, env);
+    repl_init_from_env(ctx, cs, env);
     environment_put(env);
 
     if (ctx->cs->interactive && !arg_ctx->norc && context_load_all_rc(ctx)) {
@@ -73,24 +73,24 @@ bool context_init(int *rc, struct context *ctx, struct cstream *cs, struct cli_o
     return false;
 }
 
-void context_destroy(struct context *ctx)
+void repl_destroy(struct repl *ctx)
 {
     history_destroy(ctx);
     lexer_free(ctx->lexer);
     environment_put(ctx->env);
-    context_drop_ast(ctx);
+    repl_drop_ast(ctx);
 }
 
-void context_reset(struct context *ctx)
+void repl_reset(struct repl *ctx)
 {
     ctx->line_start = true;
     cstream_reset(ctx->cs);
     lexer_reset(ctx->lexer);
     evect_reset(&ctx->line_buffer);
-    context_drop_ast(ctx);
+    repl_drop_ast(ctx);
 }
 
-void context_drop_ast(struct context *ctx)
+void repl_drop_ast(struct repl *ctx)
 {
     if (!ctx->ast)
         return;

@@ -25,9 +25,9 @@ FILE *history_open(void)
     return ret;
 }
 
-void history_init(struct context *ctx)
+void history_init(struct repl *ctx)
 {
-    /* do not use context_interactive, we don't care about
+    /* do not use repl_is_interactive, we don't care about
        forked processes removing interactivity */
     if (!ctx->cs->interactive) {
         ctx->history = NULL;
@@ -39,11 +39,11 @@ void history_init(struct context *ctx)
     ctx->history = history_open();
 }
 
-void history_update(struct context *ctx)
+void history_update(struct repl *ctx)
 {
-    /* use context_interactive, as we don't want forked
+    /* use repl_is_interactive, as we don't want forked
        processes to log their commands */
-    if (!context_interactive(ctx))
+    if (!repl_is_interactive(ctx))
         return;
 
     struct evect *cmd_vect = &ctx->line_buffer;
@@ -80,9 +80,9 @@ void history_update(struct context *ctx)
         evect_reset(cmd_vect);
 }
 
-void history_destroy(struct context *ctx)
+void history_destroy(struct repl *ctx)
 {
-    /* do not use context_interactive, we don't care about
+    /* do not use repl_is_interactive, we don't care about
        forked processes removing interactivity */
     if (!ctx->cs->interactive)
         return;

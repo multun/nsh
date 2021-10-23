@@ -17,7 +17,7 @@ enum repl_action
     REPL_ACTION_CONTINUE,
 };
 
-static enum repl_action handle_repl_exception(struct repl_result *res, struct context *ctx, struct ex_context *ex_context)
+static enum repl_action handle_repl_exception(struct repl_result *res, struct repl *ctx, struct ex_context *ex_context)
 {
     if (ex_context->class == &g_clean_exit) {
         ctx->env->code = ex_context->retcode;
@@ -41,7 +41,7 @@ static enum repl_action handle_repl_exception(struct repl_result *res, struct co
 
 exception_continue_if_interactive:
     /* continue if the repl is interactive */
-    if (context_interactive(ctx))
+    if (repl_is_interactive(ctx))
         return REPL_ACTION_CONTINUE;
 
 exception_stop:
@@ -51,7 +51,7 @@ exception_stop:
 }
 
 
-enum repl_action repl_eof(struct repl_result *res, struct context *ctx)
+enum repl_action repl_eof(struct repl_result *res, struct repl *ctx)
 {
     struct ex_context ex_context;
     struct ex_scope ex_scope = EXCEPTION_SCOPE(&ex_context, NULL);
@@ -65,7 +65,7 @@ enum repl_action repl_eof(struct repl_result *res, struct context *ctx)
         ctx->env->code = ex_context.retcode;
 
         /* just stop if not interactive */
-        if (!context_interactive(ctx)) {
+        if (!repl_is_interactive(ctx)) {
             res->status = REPL_OK;
             return REPL_ACTION_STOP;
         }
@@ -79,7 +79,7 @@ enum repl_action repl_eof(struct repl_result *res, struct context *ctx)
     cstream_set_ex_scope(ctx->cs, &ex_scope);
     if (cstream_eof(ctx->cs)) {
         /* if interactive, print the exit message */
-        if (context_interactive(ctx))
+        if (repl_is_interactive(ctx))
             printf("exit\n");
         res->status = REPL_OK;
         return REPL_ACTION_STOP;
@@ -89,7 +89,7 @@ enum repl_action repl_eof(struct repl_result *res, struct context *ctx)
 }
 
 
-void repl(struct repl_result *res, struct context *ctx)
+void repl_run(struct repl_result *res, struct repl *ctx)
 {
     struct ex_context ex_context;
     struct ex_scope ex_scope = EXCEPTION_SCOPE(&ex_context, NULL);
@@ -111,7 +111,7 @@ void repl(struct repl_result *res, struct context *ctx)
                 break;
 
             /* when an interactive non-fatal interupt occurs, cleanup temporary data (tokens, buffers, ...) */
-            context_reset(ctx);
+            repl_reset(ctx);
 
             /* restart all over again */
             continue;
@@ -134,7 +134,7 @@ void repl(struct repl_result *res, struct context *ctx)
             ctx->env->code = ast_exec(ctx->env, ctx->ast, &ex_scope);
 
             /* drop the AST reference */
-            context_drop_ast(ctx);
+            repl_drop_ast(ctx);
         }
 
         /* reset the error handler */

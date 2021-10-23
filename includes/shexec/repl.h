@@ -62,7 +62,7 @@ int parse_cli_options(struct cli_options *res, int argc, char *argv[]);
 /**
 ** \brief describes the current context of the read eval loop
 */
-struct context
+struct repl
 {
     // the runtime environment, such as functions and variables
     struct environment *env;
@@ -89,9 +89,9 @@ struct context
     FILE *history;
 };
 
-static inline int repl_status(const struct context *ctx)
+static inline int repl_status(const struct repl *repl)
 {
-    return ctx->env->code;
+    return repl->env->code;
 }
 
 /**
@@ -99,23 +99,23 @@ static inline int repl_status(const struct context *ctx)
 **   Interactive contexts restart on keyboard interupts and append to history.
 ** \param ctx the runtime context
 */
-static inline bool context_interactive(struct context *ctx)
+static inline bool repl_is_interactive(struct repl *repl)
 {
-    return ctx->cs->interactive && !ctx->env->forked;
+    return repl->cs->interactive && !repl->env->forked;
 }
 
 /**
 ** \brief drop the refence to the AST, if the context holds one
 ** \param ctx the runtime context
 */
-void context_drop_ast(struct context *ctx);
+void repl_drop_ast(struct repl *ctx);
 
 
 /**
 ** \brief reset temporary state, and get the context ready for a new repl round
 ** \param ctx the runtime context
 */
-void context_reset(struct context *ctx);
+void repl_reset(struct repl *ctx);
 
 
 enum repl_status
@@ -143,7 +143,7 @@ static inline bool repl_called_exit(const struct repl_result *repl_res)
 ** \brief runs shell command from an already setup context
 ** \param ctx a runtime context
 */
-void repl(struct repl_result *res, struct context *ctx);
+void repl_run(struct repl_result *res, struct repl *ctx);
 
 /**
 ** \brief initializes a context from command line arguments
@@ -155,11 +155,11 @@ void repl(struct repl_result *res, struct context *ctx);
 ** \param arg_cont the arguments to read from
 ** \returns whether the program should exit
 */
-bool context_init(int *rc, struct context *cont, struct cstream *cs, struct cli_options *arg_cont);
-void context_from_env(struct context *cont, struct cstream *cs, struct environment *env);
+bool repl_init(int *rc, struct repl *cont, struct cstream *cs, struct cli_options *arg_cont);
+void repl_init_from_env(struct repl *cont, struct cstream *cs, struct environment *env);
 
 /**
 ** \brief destroys an exiting context and all the ressources allocated
 **   by its init twin
 */
-void context_destroy(struct context *cont);
+void repl_destroy(struct repl *cont);

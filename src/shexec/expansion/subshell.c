@@ -19,13 +19,13 @@ static int subshell_child(struct expansion_state *exp_state, const char *str)
     cstream_string_init(&cs, str);
     cs.base.line_info = LINEINFO("<subshell>", exp_state->line_info);
 
-    struct context ctx;
-    context_from_env(&ctx, &cs.base, expansion_state_env(exp_state));
+    struct repl ctx;
+    repl_init_from_env(&ctx, &cs.base, expansion_state_env(exp_state));
 
     struct repl_result repl_res;
-    repl(&repl_res, &ctx);
+    repl_run(&repl_res, &ctx);
     int rc = repl_status(&ctx);
-    context_destroy(&ctx);
+    repl_destroy(&ctx);
     cstream_destroy(&cs.base);
     return rc;
 }

@@ -13,7 +13,7 @@
 
 static char *prompt_get(struct cstream *cs)
 {
-    struct context *ctx = cs->context;
+    struct repl *ctx = cs->context;
 
     const char *prompt_var_name;
     const char *default_prompt;
