@@ -37,8 +37,3 @@ For extended usage information, see
 ```sh
 man doc/nsh.1
 ```
-
-
-# Continuous integration
-
-A buildbot configuration is available at `tests/master.cfg`
