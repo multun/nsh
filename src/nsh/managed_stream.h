@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-struct arg_context;
+struct cli_options;
 
 /**
 ** \brief initializes a stream according to a command line and a context
@@ -15,4 +15,4 @@ struct arg_context;
 **    if non zero, the program shall exit
 */
 int cstream_dispatch_init(struct context *context, struct cstream **cs,
-                          struct arg_context *arg_cont);
+                          struct cli_options *arg_cont);

@@ -23,7 +23,7 @@ enum shsrc
 /**
 ** \brief describes the interpreted command line of the program
 */
-struct arg_context
+struct cli_options
 {
     int argc;
     char **argv;
@@ -56,7 +56,7 @@ struct arg_context
 **   return code is -(retcode + 1). otherwise, the index of
 **   the first non-option argument is returned
 */
-int cmdopts_parse(struct arg_context *res, int argc, char *argv[]);
+int parse_cli_options(struct cli_options *res, int argc, char *argv[]);
 
 
 /**
@@ -117,13 +117,17 @@ void context_drop_ast(struct context *ctx);
 */
 void context_reset(struct context *ctx);
 
+
+enum repl_status
+{
+    REPL_OK = 0,
+    REPL_EXCEPTION = 1,
+};
+
+
 struct repl_result
 {
-    enum repl_status
-    {
-        REPL_OK = 0,
-        REPL_EXCEPTION,
-    } status;
+    enum repl_status status;
 
     /* the class of the exception that stopped the loop, if any */
     const struct ex_class *exception_class;
@@ -151,7 +155,7 @@ void repl(struct repl_result *res, struct context *ctx);
 ** \param arg_cont the arguments to read from
 ** \returns whether the program should exit
 */
-bool context_init(int *rc, struct context *cont, struct cstream *cs, struct arg_context *arg_cont);
+bool context_init(int *rc, struct context *cont, struct cstream *cs, struct cli_options *arg_cont);
 void context_from_env(struct context *cont, struct cstream *cs, struct environment *env);
 
 /**

@@ -9,7 +9,7 @@
 #include "shexec/shopt.h"
 
 struct shast_list;
-struct arg_context;
+struct cli_options;
 
 struct shexec_variable
 {
@@ -101,7 +101,7 @@ struct environment
 ** \param arg_cont the command line arguments to read from
 ** \return a newly allocated environment
 */
-struct environment *environment_create(struct arg_context *arg_cont);
+struct environment *environment_create(struct cli_options *arg_cont);
 
 static inline void environment_get(struct environment *env)
 {

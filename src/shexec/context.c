@@ -58,7 +58,7 @@ void context_from_env(struct context *ctx, struct cstream *cs, struct environmen
     environment_get(env);
 }
 
-bool context_init(int *rc, struct context *ctx, struct cstream *cs, struct arg_context *arg_ctx)
+bool context_init(int *rc, struct context *ctx, struct cstream *cs, struct cli_options *arg_ctx)
 {
     struct environment *env = environment_create(arg_ctx);
     context_from_env(ctx, cs, env);

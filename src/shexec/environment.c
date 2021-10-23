@@ -16,7 +16,7 @@
 #include "utils/safe_syscalls.h"
 
 
-static char **arg_context_extract(int *target_argc, struct arg_context *args)
+static char **arg_context_extract(int *target_argc, struct cli_options *args)
 {
     int arguments_count = args->argc - args->argc_base;
     // don't forget $0 in the total argument count
@@ -137,7 +137,7 @@ static void environment_free(struct refcnt *refcnt)
     free(env);
 }
 
-struct environment *environment_create(struct arg_context *arg_cont)
+struct environment *environment_create(struct cli_options *arg_cont)
 {
     struct environment *env = zalloc(sizeof(*env));
     ref_init(&env->refcnt, environment_free);

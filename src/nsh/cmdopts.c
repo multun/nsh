@@ -19,7 +19,7 @@ static void print_help(char *pname)
     free(base);
 }
 
-static bool handle_shopt(struct arg_context *res, bool val, const char *str)
+static bool handle_shopt(struct cli_options *res, bool val, const char *str)
 {
     enum shopt cur_shopt = shopt_from_string(str);
     if (cur_shopt == SHOPT_COUNT) {
@@ -30,7 +30,7 @@ static bool handle_shopt(struct arg_context *res, bool val, const char *str)
     return false;
 }
 
-int cmdopts_parse(struct arg_context *res, int argc, char *argv[])
+int parse_cli_options(struct cli_options *res, int argc, char *argv[])
 {
     memset(res, 0, sizeof(*res));
     res->argc = argc;

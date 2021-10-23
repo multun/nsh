@@ -10,7 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 
-static int cstream_dispatch_init_unwrapped(struct cstream **cs, struct arg_context *arg_cont, int remaining_argc)
+static int cstream_dispatch_init_unwrapped(struct cstream **cs, struct cli_options *arg_cont, int remaining_argc)
 {
     if (arg_cont->src == SHSRC_COMMAND) {
         struct cstream_string *res = zalloc(sizeof(*res));
@@ -49,7 +49,7 @@ static int cstream_dispatch_init_unwrapped(struct cstream **cs, struct arg_conte
     return 0;
 }
 
-int cstream_dispatch_init(struct context *context, struct cstream **cs, struct arg_context *arg_cont)
+int cstream_dispatch_init(struct context *context, struct cstream **cs, struct cli_options *arg_cont)
 {
     int remaining_argc = arg_cont->argc - arg_cont->argc_base;
 

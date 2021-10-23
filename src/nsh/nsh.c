@@ -54,8 +54,8 @@ int main(int argc, char *argv[])
     int rc;
 
     /* parse the arguments */
-    struct arg_context arg_cont;
-    if ((rc = cmdopts_parse(&arg_cont, argc, argv)) != 0)
+    struct cli_options arg_cont;
+    if ((rc = parse_cli_options(&arg_cont, argc, argv)) != 0)
         return rc;
 
     /* load the configured locale */
