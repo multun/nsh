@@ -6,23 +6,15 @@ interpreter. It can execute commands, perform IO redirections and more.
 
 # Building
 
-The project uses autotools as its build system. As such, it supports most of the
-features of this framework.
-
-
 ```sh
-./autogen.sh
-./configure
-make
+meson setup builddir
+meson compile -C builddir
 ```
 
-
-# Installing
-
-Once the project is built, run:
+To install:
 
 ```sh
-make install
+meson install -C build --destdir DESTINATION_DIRECTORY
 ```
 
 

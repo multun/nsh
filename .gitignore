@@ -18,28 +18,7 @@
 __pycache__
 *.pyc
 
-# AUTOTOOLS
-Makefile
-aclocal.m4
-/config.*
-/configure
-/depcomp
-/install-sh
-/missing
-/my-bittorrent
-/stamp-h1
-/compile
-/m4
-/.libs
-/ar-lib
-/libtool
-/ltmain.sh
-*.cache
-*.deps
-*.dirstamp
-*.in
-*.lo
-*.la
-*.tar.gz
 
-/includes/gen
+# BUILD
+
+/*build*
