@@ -1,8 +1,7 @@
 # Introduction
 
-nsh, also known as dish, is a work in progress POSIX shell command language
-interpreter. It can execute commands, perform IO redirections and more.
-
+nsh is a work in progress POSIX shell command language interpreter. 
+It can execute commands, perform IO redirections and more.
 
 # Building
 
