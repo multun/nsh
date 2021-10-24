@@ -5,6 +5,7 @@
 
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdarg.h>
 #include <stdio.h>
 
 /**
@@ -36,7 +37,6 @@ struct exception_context
 **   the parent scope can be used to go up the stack, and the exception context
 **   can store information about the exception being thrown.
 */
-
 struct exception_catcher
 {
     struct exception_catcher *father;
