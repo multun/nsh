@@ -21,9 +21,7 @@ nsh = executable(
     'nsh',
     'src/nsh.c',
     install: true,
-    # TODO: try to remove the nsh_utils dep, which is indirect
     dependencies: [
-        nsh_utils,
         nsh_io,
         nsh_interactive,
         nsh_exec,

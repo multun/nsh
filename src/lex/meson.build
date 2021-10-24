@@ -9,15 +9,16 @@ lexer_sources = [
 ]
 
 lex_api = include_directories('api', is_system: true)
+lex_api_includes = utils_api_includes + [lex_api]
 lex_lib = library(
     'nsh_lex',
     lexer_sources,
     install: true,
-    include_directories: lex_api,
+    include_directories: lex_api_includes,
     dependencies: [nsh_utils, nsh_io],
 )
 
 nsh_lex = declare_dependency(
-    include_directories: lex_api,
+    include_directories: lex_api_includes,
     link_with: lex_lib,
 )

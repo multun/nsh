@@ -15,15 +15,21 @@ parser_sources = [
 ]
 
 parse_api = include_directories('api', is_system: true)
+parse_api_includes = (
+    lex_api_includes +
+    utils_api_includes +
+    io_api_includes +
+    [parse_api]
+)
 parse_lib = library(
     'nsh_parse',
     parser_sources,
     install: true,
-    include_directories: parse_api,
+    include_directories: parse_api_includes,
     dependencies: [nsh_lex, nsh_utils, nsh_io],
 )
 
 nsh_parse = declare_dependency(
-    include_directories: [parse_api, lex_api],
+    include_directories: parse_api_includes,
     link_with: parse_lib,
 )

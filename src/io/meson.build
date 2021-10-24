@@ -9,15 +9,16 @@ cc = meson.get_compiler('c')
 readline_dep = cc.find_library('readline', required: true)
 
 io_api = include_directories('api', is_system: true)
+io_api_includes = utils_api_includes + [io_api]
 io_lib = library(
     'nsh_io',
     io_sources,
     install: true,
-    include_directories: io_api,
+    include_directories: io_api_includes,
     dependencies: [nsh_utils, readline_dep],
 )
 
 nsh_io = declare_dependency(
-    include_directories: io_api,
+    include_directories: io_api_includes,
     link_with: io_lib,
 )
