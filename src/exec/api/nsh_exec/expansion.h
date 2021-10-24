@@ -9,7 +9,7 @@
 #include <nsh_utils/attr.h>
 #include <nsh_utils/attr.h>
 #include <nsh_utils/cpvect.h>
-#include <nsh_utils/error.h>
+#include <nsh_utils/exception.h>
 #include <nsh_utils/evect.h>
 #include <nsh_lex/variable.h>
 #include <nsh_utils/char_bitset.h>
@@ -26,22 +26,22 @@ enum expansion_flags
 /**
 ** \brief expands a string
 ** \param env the environment used within the expansion
-** \param ex_scope the exception scope to work with
+** \param catcher the exception scope to work with
 ** \return a malloc allocated expanded string
 */
-char *expand_nosplit(struct lineinfo *line_info, const char *str, int flags, struct environment *env, struct ex_scope *ex_scope);
+char *expand_nosplit(struct lineinfo *line_info, const char *str, int flags, struct environment *env, struct exception_catcher *catcher);
 
 struct expansion_state;
 struct expansion_result;
 
 void expand(struct expansion_state *exp_state,
             struct wlexer *wlexer,
-            struct ex_scope *ex_scope);
+            struct exception_catcher *catcher);
 
 
-void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags, struct environment *env, struct ex_scope *ex_scope);
+void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags, struct environment *env, struct exception_catcher *catcher);
 
-void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, int flags, struct environment *env, struct ex_scope *ex_scope);
+void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, int flags, struct environment *env, struct exception_catcher *catcher);
 
 enum expansion_quoting {
     // split on IFS
@@ -100,9 +100,9 @@ struct expansion_state {
     struct variable_name scratch_variable_name;
 };
 
-static inline struct ex_scope *expansion_state_ex_scope(struct expansion_state *exp_state)
+static inline struct exception_catcher *expansion_state_catcher(struct expansion_state *exp_state)
 {
-    return exp_state->callback_ctx.ex_scope;
+    return exp_state->callback_ctx.catcher;
 }
 
 static inline struct environment *expansion_state_env(struct expansion_state *exp_state)
@@ -110,10 +110,10 @@ static inline struct environment *expansion_state_env(struct expansion_state *ex
     return exp_state->callback_ctx.env;
 }
 
-static inline void expansion_state_set_ex_scope(struct expansion_state *exp_state,
-                                                struct ex_scope *ex_scope)
+static inline void expansion_state_set_catcher(struct expansion_state *exp_state,
+                                                struct exception_catcher *catcher)
 {
-    exp_state->callback_ctx.ex_scope = ex_scope;
+    exp_state->callback_ctx.catcher = catcher;
 }
 
 static inline void expansion_state_destroy(struct expansion_state *exp_state)

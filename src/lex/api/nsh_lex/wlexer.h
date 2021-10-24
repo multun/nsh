@@ -55,9 +55,9 @@ struct wlexer
     struct wtoken lookahead;
 };
 
-static inline void wlexer_set_ex_scope(struct wlexer *wlex, struct ex_scope *ex_scope)
+static inline void wlexer_set_catcher(struct wlexer *wlex, struct exception_catcher *catcher)
 {
-    cstream_set_ex_scope(wlex->cs, ex_scope);
+    cstream_set_catcher(wlex->cs, catcher);
 }
 
 static inline struct lineinfo *wlexer_line_info(struct wlexer *wlexer)

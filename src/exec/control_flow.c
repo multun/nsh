@@ -13,22 +13,22 @@
 #include "break.h"
 
 
-int if_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
+int if_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
 {
     struct shast_if *if_node = (struct shast_if *)ast;
-    int cond = ast_exec(env, if_node->condition, ex_scope);
+    int cond = ast_exec(env, if_node->condition, catcher);
     if (!cond)
-        return ast_exec(env, if_node->branch_true, ex_scope);
+        return ast_exec(env, if_node->branch_true, catcher);
     else if (if_node->branch_false)
-        return ast_exec(env, if_node->branch_false, ex_scope);
+        return ast_exec(env, if_node->branch_false, catcher);
     return 0;
 }
 
 
-int case_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
+int case_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
 {
     struct shast_case *case_node = (struct shast_case *)ast;
-    char *case_var = expand_nosplit(&case_node->base.line_info, shword_buf(case_node->var), 0, env, ex_scope);
+    char *case_var = expand_nosplit(&case_node->base.line_info, shword_buf(case_node->var), 0, env, catcher);
     for (size_t case_i = 0; case_i < case_item_vect_size(&case_node->cases); case_i++) {
         struct shast_case_item *case_item = case_item_vect_get(&case_node->cases, case_i);
         for (size_t i = 0; i < wordlist_size(&case_item->pattern); i++)
@@ -38,7 +38,7 @@ int case_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_sc
                 continue;
 
             free(case_var);
-            return ast_exec(env, case_item->action, ex_scope);
+            return ast_exec(env, case_item->action, catcher);
         }
     }
     free(case_var);
@@ -47,22 +47,22 @@ int case_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_sc
 
 
 /* break and continue are implemented as builtins, which raise exceptions */
-struct ex_class g_ex_break;
-struct ex_class g_ex_continue;
+struct exception_type g_ex_break;
+struct exception_type g_ex_continue;
 
 
 static int builtin_generic_break(struct environment *env,
-                                 struct ex_scope *ex_scope,
+                                 struct exception_catcher *catcher,
                                  int argc, char **argv)
 {
     if (argc > 2) {
         warnx("%s: too many arguments", argv[0]);
-        runtime_error(ex_scope, 1);
+        runtime_error(catcher, 1);
     }
 
     if (env->depth == 0) {
         warnx("%s: only meaningful in a loop", argv[0]);
-        runtime_error(ex_scope, 1);
+        runtime_error(catcher, 1);
     }
 
     if (argc < 2)
@@ -71,7 +71,7 @@ static int builtin_generic_break(struct environment *env,
         unsigned long int res = strtoul(argv[1], NULL, 10);
         if (res == ULONG_MAX || res == 0) {
             warnx("%s: `%s': invalid break count", argv[0], argv[1]);
-            runtime_error(ex_scope, 1);
+            runtime_error(catcher, 1);
         }
 
         /* clamp to INT_MAX to make the convertion safe */
@@ -91,21 +91,21 @@ static int builtin_generic_break(struct environment *env,
 }
 
 
-int builtin_break(struct environment *env, struct ex_scope *ex_scope,
+int builtin_break(struct environment *env, struct exception_catcher *catcher,
                   int argc, char **argv)
 {
     int rc;
-    if ((rc = builtin_generic_break(env, ex_scope, argc, argv)) >= 0)
+    if ((rc = builtin_generic_break(env, catcher, argc, argv)) >= 0)
         return rc;
-    shraise(ex_scope, &g_ex_break);
+    shraise(catcher, &g_ex_break);
 }
 
 
-int builtin_continue(struct environment *env, struct ex_scope *ex_scope,
+int builtin_continue(struct environment *env, struct exception_catcher *catcher,
                      int argc, char **argv)
 {
     int rc;
-    if ((rc = builtin_generic_break(env, ex_scope, argc, argv)) >= 0)
+    if ((rc = builtin_generic_break(env, catcher, argc, argv)) >= 0)
         return rc;
-    shraise(ex_scope, &g_ex_continue);
+    shraise(catcher, &g_ex_continue);
 }

@@ -7,7 +7,7 @@
 #include <nsh_exec/runtime_error.h>
 #include <nsh_lex/lexer.h>
 #include <nsh_parse/parse.h>
-#include <nsh_utils/error.h>
+#include <nsh_utils/exception.h>
 
 #include <err.h>
 
@@ -18,7 +18,7 @@ enum repl_action
     REPL_ACTION_CONTINUE,
 };
 
-static enum repl_action handle_repl_exception(struct repl_result *res, struct repl *ctx, struct ex_context *ex_context)
+static enum repl_action handle_repl_exception(struct repl_result *res, struct repl *ctx, struct exception_context *ex_context)
 {
     if (ex_context->class == &g_clean_exit) {
         ctx->env->code = ex_context->retcode;
@@ -54,16 +54,16 @@ exception_stop:
 
 enum repl_action repl_eof(struct repl_result *res, struct repl *ctx)
 {
-    struct ex_context ex_context;
-    struct ex_scope ex_scope = EXCEPTION_SCOPE(&ex_context, NULL);
+    struct exception_context exception_context;
+    struct exception_catcher exception_catcher = EXCEPTION_CATCHER(&exception_context, NULL);
 
     /* handle keyboard interupts in initial EOF check */
-    if (setjmp(ex_scope.env)) {
-        if (ex_context.class != &g_keyboard_interrupt)
+    if (setjmp(exception_catcher.env)) {
+        if (exception_context.class != &g_keyboard_interrupt)
             errx(2, "received an unknown exception in EOF check");
 
         /* propagate the status code from the exception to the repl */
-        ctx->env->code = ex_context.retcode;
+        ctx->env->code = exception_context.retcode;
 
         /* just stop if not interactive */
         if (!repl_is_interactive(ctx)) {
@@ -77,7 +77,7 @@ enum repl_action repl_eof(struct repl_result *res, struct repl *ctx)
     }
 
     /* check for EOF with the above context */
-    cstream_set_ex_scope(ctx->cs, &ex_scope);
+    cstream_set_catcher(ctx->cs, &exception_catcher);
     if (cstream_eof(ctx->cs)) {
         /* if interactive, print the exit message */
         if (repl_is_interactive(ctx))
@@ -85,15 +85,15 @@ enum repl_action repl_eof(struct repl_result *res, struct repl *ctx)
         res->status = REPL_OK;
         return REPL_ACTION_STOP;
     }
-    cstream_set_ex_scope(ctx->cs, NULL);
+    cstream_set_catcher(ctx->cs, NULL);
     return REPL_ACTION_NONE;
 }
 
 
 void repl_run(struct repl_result *res, struct repl *ctx)
 {
-    struct ex_context ex_context;
-    struct ex_scope ex_scope = EXCEPTION_SCOPE(&ex_context, NULL);
+    struct exception_context exception_context;
+    struct exception_catcher exception_catcher = EXCEPTION_CATCHER(&exception_context, NULL);
 
     while (true) {
         ctx->line_start = true;
@@ -106,9 +106,9 @@ void repl_run(struct repl_result *res, struct repl *ctx)
             break;
 
          /* parse and execute */
-        if (setjmp(ex_scope.env)) {
+        if (setjmp(exception_catcher.env)) {
             /* decide whether to stop running the repl */
-            if (handle_repl_exception(res, ctx, &ex_context) == REPL_ACTION_STOP)
+            if (handle_repl_exception(res, ctx, &exception_context) == REPL_ACTION_STOP)
                 break;
 
             /* when an interactive non-fatal interupt occurs, cleanup temporary data (tokens, buffers, ...) */
@@ -118,7 +118,7 @@ void repl_run(struct repl_result *res, struct repl *ctx)
             continue;
         }
 
-        parse(&ctx->ast, ctx->lexer, &ex_scope);
+        parse(&ctx->ast, ctx->lexer, &exception_catcher);
 
         if (ctx->ast != NULL) {
             /* pretty-print the ast */
@@ -132,14 +132,14 @@ void repl_run(struct repl_result *res, struct repl *ctx)
             history_update(ctx);
 
             /* execute the parsed AST */
-            ctx->env->code = ast_exec(ctx->env, ctx->ast, &ex_scope);
+            ctx->env->code = ast_exec(ctx->env, ctx->ast, &exception_catcher);
 
             /* drop the AST reference */
             repl_drop_ast(ctx);
         }
 
         /* reset the error handler */
-        cstream_set_ex_scope(ctx->cs, NULL);
+        cstream_set_catcher(ctx->cs, NULL);
 
         /* prepare the lexer to handle a new line, forgetting all the remaining tokens
          TODO: check whether is it needed, and document the reason */
@@ -147,6 +147,6 @@ void repl_run(struct repl_result *res, struct repl *ctx)
     }
 
     /* reset the error handler */
-    cstream_set_ex_scope(ctx->cs, NULL);
+    cstream_set_catcher(ctx->cs, NULL);
     return;
 }

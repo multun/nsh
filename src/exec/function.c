@@ -5,7 +5,7 @@
 #include <nsh_utils/hash_table.h>
 
 
-int function_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope __unused)
+int function_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher __unused)
 {
     struct shast_function *function = (struct shast_function *)ast;
     char *function_name = hash_head_key(&function->hash);

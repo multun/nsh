@@ -69,13 +69,13 @@ struct cstream
     // an error context, which is only needed in a very specific case:
     // when a readline stream gets a keyboard interupt.
     // in all other cases, this can be NULL.
-    struct ex_scope *ex_scope;
+    struct exception_catcher *catcher;
 };
 
 
-static inline void cstream_set_ex_scope(struct cstream *cs, struct ex_scope *ex_scope)
+static inline void cstream_set_catcher(struct cstream *cs, struct exception_catcher *catcher)
 {
-    cs->ex_scope = ex_scope;
+    cs->catcher = catcher;
 }
 
 static inline void cstream_check(struct cstream *cs) {

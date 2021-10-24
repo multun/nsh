@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include <nsh_utils/error.h>
+#include <nsh_utils/exception.h>
 #include <nsh_utils/pvect.h>
 #include <nsh_utils/cpvect.h>
 

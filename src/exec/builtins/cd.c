@@ -61,7 +61,7 @@ static int parse_arguments(struct cd_options *opts, int argc, char *argv[])
 }
 
 
-int builtin_cd(struct environment *env, struct ex_scope *ex_scope __unused, int argc, char *argv[])
+int builtin_cd(struct environment *env, struct exception_catcher *catcher __unused, int argc, char *argv[])
 {
     /* The standard cd algorithm is way more complicated than you'd think.
        It's probably implemented wrong, but it least it isn't too unreadable.

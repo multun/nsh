@@ -20,22 +20,22 @@
 */
 
 
-static void assignment_exec(struct environment *env, struct shast_assignment *assign, struct ex_scope *ex_scope)
+static void assignment_exec(struct environment *env, struct shast_assignment *assign, struct exception_catcher *catcher)
 {
     char *name = strdup(assign->name);
-    char *value = expand_nosplit(&assign->line_info, assign->value, EXP_FLAGS_ASSIGNMENT, env, ex_scope);
+    char *value = expand_nosplit(&assign->line_info, assign->value, EXP_FLAGS_ASSIGNMENT, env, catcher);
     environment_var_assign(env, name, &sh_string_create(value)->base, false);
 }
 
 
-int block_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
+int block_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
 {
     int rc;
     struct shast_block *block = (struct shast_block *)ast;
 
     // perform variable assignments
     for (size_t i = 0; i < assign_vect_size(&block->assigns); i++)
-        assignment_exec(env, assign_vect_get(&block->assigns, i), ex_scope);
+        assignment_exec(env, assign_vect_get(&block->assigns, i), catcher);
 
     // perform redirections
     struct redir_undo_stack undo_stack = UNDO_STACK_INIT;
@@ -54,25 +54,25 @@ int block_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_s
             redir_undo_stack_push(&undo_stack, &cur_undo, undo_i);
     }
 
-    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->context, ex_scope);
-    if (setjmp(sub_ex_scope.env)) {
+    struct exception_catcher sub_catcher = EXCEPTION_CATCHER(catcher->context, catcher);
+    if (setjmp(sub_catcher.env)) {
         // on exceptions, undo redirections and re-raise
         redir_undo_stack_cancel(&undo_stack);
-        shraise(ex_scope, NULL);
+        shraise(catcher, NULL);
     }
 
     // run the command block and undo redirections
-    rc = ast_exec(env, block->command, &sub_ex_scope);
+    rc = ast_exec(env, block->command, &sub_catcher);
     redir_undo_stack_cancel(&undo_stack);
     return rc;
 }
 
 
-int list_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
+int list_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
 {
     struct shast_list *list = (struct shast_list *)ast;
     int res = 0;
     for (size_t i = 0; i < shast_vect_size(&list->commands); i++)
-        res = ast_exec(env, shast_vect_get(&list->commands, i), ex_scope);
+        res = ast_exec(env, shast_vect_get(&list->commands, i), catcher);
     return res;
 }

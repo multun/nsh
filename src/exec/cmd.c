@@ -22,38 +22,38 @@
 
 // this function is here to free the expanded array in case the expansion fails
 static void wordlist_expand(struct cpvect *res, struct wordlist *wl,
-                            struct environment *env, struct ex_scope *ex_scope)
+                            struct environment *env, struct exception_catcher *catcher)
 {
     cpvect_init(res, wordlist_size(wl) + 1);
 
     /* on exception, free the result array */
-    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->context, ex_scope);
-    if (setjmp(sub_ex_scope.env)) {
+    struct exception_catcher sub_catcher = EXCEPTION_CATCHER(catcher->context, catcher);
+    if (setjmp(sub_catcher.env)) {
         /* free the result vector elements */
         for (size_t i = 0; i < cpvect_size(res); i++)
             free(cpvect_get(res, i));
         cpvect_destroy(res);
-        shraise(ex_scope, NULL);
+        shraise(catcher, NULL);
     }
 
     /* expand the argument list */
-    expand_wordlist(res, wl, 0, env, &sub_ex_scope);
+    expand_wordlist(res, wl, 0, env, &sub_catcher);
 }
 
 
-static int builtin_exec(struct environment *env, struct ex_scope *ex_scope, f_builtin builtin)
+static int builtin_exec(struct environment *env, struct exception_catcher *catcher, f_builtin builtin)
 {
-    int res = builtin(env, ex_scope, env->argc, env->argv);
+    int res = builtin(env, catcher, env->argc, env->argv);
     fflush(stdout);
     return res;
 }
 
-static int cmd_fork_exec(struct environment *env, struct ex_scope *ex_scope)
+static int cmd_fork_exec(struct environment *env, struct exception_catcher *catcher)
 {
     int status;
     pid_t pid = managed_fork(env);
     if (pid < 0)
-        clean_err(ex_scope, errno, "cmd_exec: error while forking");
+        clean_err(catcher, errno, "cmd_exec: error while forking");
 
     /* parent branch */
     if (pid != 0) {
@@ -70,7 +70,7 @@ static int cmd_fork_exec(struct environment *env, struct ex_scope *ex_scope)
         free(penv[i]);
     free(penv);
 
-    clean_err(ex_scope, 125 + errno, "couldn't exec \"%s\"", env->argv[0]);
+    clean_err(catcher, 125 + errno, "couldn't exec \"%s\"", env->argv[0]);
 }
 
 static void function_call_cleanup(struct environment *env, struct shast_function *func)
@@ -84,7 +84,7 @@ static void function_call_cleanup(struct environment *env, struct shast_function
 }
 
 
-static int cmd_run_command(struct environment *env, struct ex_scope *ex_scope, struct shast_function * volatile *func)
+static int cmd_run_command(struct environment *env, struct exception_catcher *catcher, struct shast_function * volatile *func)
 {
     /* look for functions */
     struct hash_head *func_hash = hash_table_find(&env->functions, NULL, env->argv[0]);
@@ -96,21 +96,21 @@ static int cmd_run_command(struct environment *env, struct ex_scope *ex_scope, s
 
         if (env->call_depth >= MAX_CALL_DEPTH) {
             warnx("maximum call depth of %d reached", MAX_CALL_DEPTH);
-            runtime_error(ex_scope, 1);
+            runtime_error(catcher, 1);
         }
 
-        return ast_exec(env, (*func)->body, ex_scope);
+        return ast_exec(env, (*func)->body, catcher);
     }
 
     /* look for builtins */
     f_builtin builtin = env->find_builtin(env->argv[0]);
     if (builtin)
-        return builtin_exec(env, ex_scope, builtin);
+        return builtin_exec(env, catcher, builtin);
     /* no function or builtin found, fork and exec */
-    return cmd_fork_exec(env, ex_scope);
+    return cmd_fork_exec(env, catcher);
 }
 
-int cmd_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
+int cmd_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
 {
     struct shast_cmd *command = (struct shast_cmd*)ast;
     struct wordlist *wl = &command->arguments;
@@ -119,7 +119,7 @@ int cmd_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_sco
 
     /* expand the arguments array */
     struct cpvect new_argv;
-    wordlist_expand(&new_argv, wl, env, ex_scope);
+    wordlist_expand(&new_argv, wl, env, catcher);
 
     /* when the array didn't expand to anything, there's no command to run */
     if (cpvect_size(&new_argv) == 0) {
@@ -136,17 +136,17 @@ int cmd_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_sco
     struct shast_function * volatile func = NULL;
 
     /* on exception, free the argument array */
-    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(ex_scope->context, ex_scope);
-    if (setjmp(sub_ex_scope.env)) {
+    struct exception_catcher sub_catcher = EXCEPTION_CATCHER(catcher->context, catcher);
+    if (setjmp(sub_catcher.env)) {
         function_call_cleanup(env, func);
         argv_free(env->argc, env->argv);
         env->argc = prev_argc;
         env->argv = prev_argv;
-        shraise(ex_scope, NULL);
+        shraise(catcher, NULL);
     }
 
     /* run the command */
-    int rc = cmd_run_command(env, &sub_ex_scope, &func);
+    int rc = cmd_run_command(env, &sub_catcher, &func);
 
     /* cleanup */
     function_call_cleanup(env, func);

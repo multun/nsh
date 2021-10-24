@@ -148,7 +148,7 @@ static void echo_print(const char *c, int opt)
     }
 }
 
-int builtin_echo(struct environment *env, struct ex_scope *ex_scope __unused, int argc, char **argv)
+int builtin_echo(struct environment *env, struct exception_catcher *catcher __unused, int argc, char **argv)
 {
     int options = 0;
     if (env->shopts[SHOPT_XPG_ECHO])

@@ -8,6 +8,7 @@
 #include <nsh_exec/value.h>
 #include <nsh_exec/shopt.h>
 
+
 struct shast_list;
 struct cli_options;
 
@@ -44,9 +45,9 @@ struct environment;
     F(unset)
 
 #define BUILTINS_DECLARE(Name)                                                           \
-    int builtin_##Name(struct environment *env, struct ex_scope *ex_scope, int argc, char **argv);
+    int builtin_##Name(struct environment *env, struct exception_catcher *catcher, int argc, char **argv);
 
-typedef int (*f_builtin)(struct environment *env, struct ex_scope *ex_scope, int argc, char **argv);
+typedef int (*f_builtin)(struct environment *env, struct exception_catcher *catcher, int argc, char **argv);
 
 BUILTINS_APPLY(BUILTINS_DECLARE)
 

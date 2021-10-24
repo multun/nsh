@@ -9,7 +9,7 @@
 #include <fcntl.h>
 #include <string.h>
 
-static int source_file(struct ex_scope *ex_scope, struct environment *env, char *path)
+static int source_file(struct exception_catcher *catcher, struct environment *env, char *path)
 {
     int rc;
     FILE *file;
@@ -28,19 +28,19 @@ static int source_file(struct ex_scope *ex_scope, struct environment *env, char 
     rc = repl_status(&ctx);
 
     if (repl_called_exit(&repl_res))
-        clean_exit(ex_scope, rc);
+        clean_exit(catcher, rc);
 
     repl_destroy(&ctx);
     cstream_destroy(&cs.base);
     return rc;
 }
 
-int builtin_source(struct environment *env, struct ex_scope *ex_scope, int argc, char **argv)
+int builtin_source(struct environment *env, struct exception_catcher *catcher, int argc, char **argv)
 {
     if (argc > 2) {
         warnx("source: missing source");
         return 1;
     }
 
-    return !!source_file(ex_scope, env, argv[1]);
+    return !!source_file(catcher, env, argv[1]);
 }

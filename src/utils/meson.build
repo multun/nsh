@@ -1,5 +1,5 @@
 utils_sources = [
-    'error.c',
+    'exception.c',
     'evect.c',
     'hash_table.c',
     'lineinfo.c',
@@ -14,7 +14,7 @@ utils_sources = [
     'xalloc.c',
 ]
 
-utils_api = include_directories('api')
+utils_api = include_directories('api', is_system: true)
 utils_lib = library(
     'utils',
     utils_sources,

@@ -12,7 +12,7 @@
 ** \details this is nothing more than a link time constant.
 **   the reserved field is required for the structure to be valid
 */
-struct ex_class
+struct exception_type
 {
     // this structure isn't useful for anything but to use the
     // linker as a way to differentiate exceptions
@@ -24,9 +24,9 @@ struct ex_class
 ** \details this structure is required in order to store some information
 **   about the current error context
 */
-struct ex_context
+struct exception_context
 {
-    const struct ex_class *class;
+    const struct exception_type *class;
     int retcode;
 };
 
@@ -37,47 +37,47 @@ struct ex_context
 **   can store information about the exception being thrown.
 */
 
-struct ex_scope
+struct exception_catcher
 {
-    struct ex_scope *father;
+    struct exception_catcher *father;
     jmp_buf env;
-    struct ex_context *context;
+    struct exception_context *context;
 };
 
-#define EXCEPTION_SCOPE(Man, Father)                                                     \
-    (struct ex_scope)                                                                    \
+#define EXCEPTION_CATCHER(Man, Father)                                                   \
+    (struct exception_catcher)                                                           \
     {                                                                                    \
         .context = (Man),                                                                \
         .father = (Father)                                                               \
     }
 
 /**
-** \fn void shraise(struct ex_scope *ex_scope, const struct ex_class *class)
+** \fn void shraise(struct exception_catcher *catcher, const struct exception_type *class)
 ** \brief raise an exception
 ** \details uses longjmp to go to the exception handler
-** \param ex_scope the exception scope to raise into
+** \param catcher the exception scope to raise into
 ** \param class the exception class to raise
 */
-void ATTR(noreturn) shraise(struct ex_scope *ex_scope, const struct ex_class *class);
+void ATTR(noreturn) shraise(struct exception_catcher *catcher, const struct exception_type *class);
 
 /**
-** \fn void shraise(struct ex_scope *ex_scope)
+** \fn void shraise(struct exception_catcher *catcher)
 ** \brief re-raises the last thrown exception for the context
 */
-void ATTR(noreturn) shreraise(struct ex_scope *ex_scope);
+void ATTR(noreturn) shreraise(struct exception_catcher *catcher);
 
 /**
 ** \brief prints line information, a message, and exit using shraise
 ** \param lineinfo the line-related metadata
-** \param ex_scope the exception scope to raise the exception in
-** \param ex_class the exception class being thrown
+** \param catcher the exception scope to raise the exception in
+** \param exception_type the exception class being thrown
 ** \param format the error message's format string
 */
-void ATTR(noreturn) sherror(const struct lineinfo *lineinfo, struct ex_scope *ex_scope,
-                            const struct ex_class *ex_class, const char *format, ...);
+void ATTR(noreturn) sherror(const struct lineinfo *lineinfo, struct exception_catcher *catcher,
+                            const struct exception_type *exception_type, const char *format, ...);
 
-void ATTR(noreturn) vsherror(const struct lineinfo *li, struct ex_scope *ex_scope,
-                             const struct ex_class *ex_class, const char *format, va_list ap);
+void ATTR(noreturn) vsherror(const struct lineinfo *li, struct exception_catcher *catcher,
+                             const struct exception_type *exception_type, const char *format, va_list ap);
 
 void shwarn(const struct lineinfo *li, const char *format, ...);
 

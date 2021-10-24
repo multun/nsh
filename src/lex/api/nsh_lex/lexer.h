@@ -6,7 +6,7 @@
 
 #include <nsh_io/cstream.h>
 #include <nsh_utils/attr.h>
-#include <nsh_utils/error.h>
+#include <nsh_utils/exception.h>
 #include <nsh_utils/evect.h>
 #include <nsh_lex/lexer_error.h>
 #include <nsh_lex/wlexer.h>
@@ -64,9 +64,9 @@ struct lexer
     struct token *head;
     /* the toplevel word lexer */
     struct wlexer wlexer;
-    /* using a global per lexer ex_scope avoids passing it around all functions
+    /* using a global per lexer catcher avoids passing it around all functions
      * inside the lexer, which doesn't create new contexts anyway */
-    struct ex_scope *ex_scope;
+    struct exception_catcher *catcher;
 };
 
 static inline struct lineinfo *lexer_line_info(struct lexer *lexer)
@@ -117,22 +117,22 @@ void lexer_reset(struct lexer *lexer);
 /**
 ** \brief peeks a token without removing it from the stack
 ** \param lexer the lexer to peek at
-** \param ex_scope the error context
+** \param catcher the error context
 ** \return the next token to be read
 */
-struct token *lexer_peek(struct lexer *lexer, struct ex_scope *ex_scope);
+struct token *lexer_peek(struct lexer *lexer, struct exception_catcher *catcher);
 
 /**
 ** \brief peeks a token and removes it from the stack
 ** \param lexer the lexer to pop from
-** \param ex_scope the error context
+** \param catcher the error context
 ** \return the next token
 */
-struct token *lexer_pop(struct lexer *lexer, struct ex_scope *ex_scope);
+struct token *lexer_pop(struct lexer *lexer, struct exception_catcher *catcher);
 
-static inline void lexer_discard(struct lexer *lexer, struct ex_scope *ex_scope)
+static inline void lexer_discard(struct lexer *lexer, struct exception_catcher *catcher)
 {
-    tok_free(lexer_pop(lexer, ex_scope), true);
+    tok_free(lexer_pop(lexer, catcher), true);
 }
 
 /**
@@ -141,15 +141,15 @@ static inline void lexer_discard(struct lexer *lexer, struct ex_scope *ex_scope)
 ** \param lexer the lexer to peek at
 ** \param tok the token to peek after
 */
-struct token *lexer_peek_at(struct lexer *lexer, struct token *tok, struct ex_scope *ex_scope);
+struct token *lexer_peek_at(struct lexer *lexer, struct token *tok, struct exception_catcher *catcher);
 
 /**
 ** \brief read a word lexer stream and shove it into a string
 ** \details this is needed to parse and run subshells
-** \param ex_scope the error context
+** \param catcher the error context
 ** \param wlexer word lexer to pull words from
 */
-char *lexer_lex_string(struct ex_scope *ex_scope, struct wlexer *wlexer);
+char *lexer_lex_string(struct exception_catcher *catcher, struct wlexer *wlexer);
 
 static inline bool token_type_keyword(enum token_type type)
 {

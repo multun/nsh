@@ -9,7 +9,7 @@
 #include <nsh_exec/expansion_callback.h>
 #include <nsh_exec/expansion_result.h>
 #include <nsh_exec/glob.h>
-#include <nsh_utils/error.h>
+#include <nsh_utils/exception.h>
 #include <nsh_utils/alloc.h>
 
 enum glob_tok_type

@@ -3,7 +3,7 @@
 #include <nsh_lex/lexer.h>
 #include <nsh_utils/alloc.h>
 #include <nsh_utils/hash_table.h>
-#include <nsh_utils/error.h>
+#include <nsh_utils/exception.h>
 #include <nsh_utils/lineinfo.h>
 #include "wordlist.h"
 #include <nsh_utils/refcnt.h>

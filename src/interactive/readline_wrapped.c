@@ -40,7 +40,7 @@ static void process_line(char *line)
     rl_callback_handler_remove();
 }
 
-static void check_interrupt(struct ex_scope *ex_scope)
+static void check_interrupt(struct exception_catcher *catcher)
 {
     if (!ctrl_c)
         return;
@@ -53,11 +53,11 @@ static void check_interrupt(struct ex_scope *ex_scope)
     rl_done = 1;
     rl_callback_handler_remove();
     fputs("^C\n", stderr);
-    ex_scope->context->retcode = 128 + SIGINT;
-    shraise(ex_scope, &g_keyboard_interrupt);
+    catcher->context->retcode = 128 + SIGINT;
+    shraise(catcher, &g_keyboard_interrupt);
 }
 
-char *readline_wrapped(struct ex_scope *ex_scope, char *prompt)
+char *readline_wrapped(struct exception_catcher *catcher, char *prompt)
 {
     int rc;
 
@@ -75,7 +75,7 @@ char *readline_wrapped(struct ex_scope *ex_scope, char *prompt)
                 continue;
 
             if (errno == EINTR) {
-                check_interrupt(ex_scope);
+                check_interrupt(catcher);
                 continue;
             }
 
@@ -87,7 +87,7 @@ char *readline_wrapped(struct ex_scope *ex_scope, char *prompt)
             readline_called_back = false;
             return readline_result;
         }
-        check_interrupt(ex_scope);
+        check_interrupt(catcher);
     }
 }
 

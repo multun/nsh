@@ -9,18 +9,18 @@
 #include <stdio.h>
 #include <sys/wait.h>
 
-int subshell_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
+int subshell_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
 {
     struct shast_subshell *subshell = (struct shast_subshell *)ast;
 
     int cpid = managed_fork(env);
     if (cpid == -1) {
         shwarn(&subshell->base.line_info, "fork() failed: %s", strerror(errno));
-        runtime_error(ex_scope, 1);
+        runtime_error(catcher, 1);
     }
 
     if (cpid == 0)
-        clean_exit(ex_scope, ast_exec(env, subshell->action, ex_scope));
+        clean_exit(catcher, ast_exec(env, subshell->action, catcher));
 
 
     int status;

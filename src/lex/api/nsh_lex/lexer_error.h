@@ -1,5 +1,5 @@
 #pragma once
 
-#include <nsh_utils/error.h>
+#include <nsh_utils/exception.h>
 
-extern struct ex_class g_lexer_error;
+extern struct exception_type g_lexer_error;

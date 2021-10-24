@@ -348,7 +348,7 @@ char integer_sign_prefix(enum sign_policy policy, bool negative)
 }
 
 
-int builtin_printf(struct environment *env, struct ex_scope *ex_scope __unused, int argc, char *argv[])
+int builtin_printf(struct environment *env, struct exception_catcher *catcher __unused, int argc, char *argv[])
 {
     if (argc < /* {"printf", "stuff"} */ 2)
         return printf_help(argv);

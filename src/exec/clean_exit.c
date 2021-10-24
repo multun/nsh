@@ -5,38 +5,38 @@
 #include <errno.h>
 #include <stdarg.h>
 
-struct ex_class g_clean_exit;
+struct exception_type g_clean_exit;
 
-void ATTR(noreturn) clean_err(struct ex_scope *ex_scope, int retcode, const char *fmt, ...)
+void ATTR(noreturn) clean_err(struct exception_catcher *catcher, int retcode, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
 
     vwarn(fmt, ap);
-    clean_exit(ex_scope, retcode);
+    clean_exit(catcher, retcode);
 
     va_end(ap);
 }
 
-void ATTR(noreturn) clean_errx(struct ex_scope *ex_scope, int retcode, const char *fmt, ...)
+void ATTR(noreturn) clean_errx(struct exception_catcher *catcher, int retcode, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
 
     vwarnx(fmt, ap);
-    clean_exit(ex_scope, retcode);
+    clean_exit(catcher, retcode);
 
     va_end(ap);
 }
 
-void ATTR(noreturn) clean_exit(struct ex_scope *ex_scope, int retcode)
+void ATTR(noreturn) clean_exit(struct exception_catcher *catcher, int retcode)
 {
-    ex_scope->context->retcode = retcode;
-    shraise(ex_scope, &g_clean_exit);
+    catcher->context->retcode = retcode;
+    shraise(catcher, &g_clean_exit);
 }
 
 
-int builtin_exit(struct environment *env, struct ex_scope *ex_scope, int argc, char **argv)
+int builtin_exit(struct environment *env, struct exception_catcher *catcher, int argc, char **argv)
 {
     if (!env)
         warnx("exit: missing context elements");
@@ -55,5 +55,5 @@ int builtin_exit(struct environment *env, struct ex_scope *ex_scope, int argc, c
     } else
         rc = env->code;
 
-    clean_exit(ex_scope, rc);
+    clean_exit(catcher, rc);
 }

@@ -30,16 +30,16 @@ f_builtin find_default_builtin(const char *name)
 
 static int (*ast_exec_utils[])(struct environment *env,
                                struct shast *ast,
-                               struct ex_scope *ex_scope) =
+                               struct exception_catcher *catcher) =
 {
     AST_TYPE_APPLY(AST_EXEC_UTILS)
 };
 
-int ast_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
+int ast_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
 {
     if (ast) {
         //printf("executing an asynchronous node\n");
-        env->code = ast_exec_utils[ast->type](env, ast, ex_scope);
+        env->code = ast_exec_utils[ast->type](env, ast, catcher);
     } else
         env->code = 0;
     return env->code;

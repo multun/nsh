@@ -30,19 +30,19 @@ static char *prompt_get(struct cstream *cs)
     if (unexpanded == NULL)
         return strdup(default_prompt);
 
-    struct ex_context ex_context;
-    struct ex_scope ex_scope = EXCEPTION_SCOPE(&ex_context, NULL);
+    struct exception_context exception_context;
+    struct exception_catcher exception_catcher = EXCEPTION_CATCHER(&exception_context, NULL);
 
     sh_string_get(unexpanded);
 
-    if (setjmp(ex_scope.env)) {
+    if (setjmp(exception_catcher.env)) {
         /* if an error occurs, use the unexpanded prompt */
         char *res = strdup(sh_string_data(unexpanded));
         sh_string_put(unexpanded);
         return res;
     }
 
-    char *res = expand_nosplit(&cs->line_info, sh_string_data(unexpanded), EXP_FLAGS_PROMPT, ctx->env, &ex_scope);
+    char *res = expand_nosplit(&cs->line_info, sh_string_data(unexpanded), EXP_FLAGS_PROMPT, ctx->env, &exception_catcher);
     sh_string_put(unexpanded);
     return res;
 }
@@ -53,7 +53,7 @@ static int readline_io_reader_unwrapped(struct cstream_readline *cs)
 
     if (!str) {
         char *prompt = prompt_get(&cs->base);
-        str = cs->current_line = readline_wrapped(cs->base.ex_scope, prompt);
+        str = cs->current_line = readline_wrapped(cs->base.catcher, prompt);
         cs->line_position = 0;
     }
 

@@ -2,7 +2,7 @@
 
 #include <nsh_io/cstream.h>
 #include <nsh_exec/environment.h>
-#include <nsh_utils/error.h>
+#include <nsh_utils/exception.h>
 #include <nsh_parse/ast.h>
 #include <nsh_exec/clean_exit.h>
 
@@ -129,7 +129,7 @@ struct repl_result
     enum repl_status status;
 
     /* the class of the exception that stopped the loop, if any */
-    const struct ex_class *exception_class;
+    const struct exception_type *exception_class;
 };
 
 static inline bool repl_called_exit(const struct repl_result *repl_res)

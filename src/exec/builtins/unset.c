@@ -5,7 +5,7 @@
 #include <string.h>
 
 
-int builtin_unset(struct environment *env, struct ex_scope *ex_scope __unused, int argc, char **argv)
+int builtin_unset(struct environment *env, struct exception_catcher *catcher __unused, int argc, char **argv)
 {
     for (int i = 1; i < argc; i++) {
         const char *var_name = argv[i];

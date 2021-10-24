@@ -123,7 +123,7 @@ static int pipeline_enqueue_pipe(struct fd_queue *queue)
     return 0;
 }
 
-int pipeline_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
+int pipeline_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
 {
     int status = 0;
     struct shast_pipeline *pipe = (struct shast_pipeline *)ast;
@@ -164,9 +164,9 @@ int pipeline_exec(struct environment *env, struct shast *ast, struct ex_scope *e
             int res = pipeline_setup_child(&queue);
             if (res == 0) {
                 struct shast *ast = shast_vect_get(&pipe->children, child_i);
-                res = ast_exec(env, ast, ex_scope);
+                res = ast_exec(env, ast, catcher);
             }
-            clean_exit(ex_scope, res);
+            clean_exit(catcher, res);
             abort();
         }
 
@@ -204,6 +204,6 @@ runtime_error:
     }
     free(children_pids);
 
-    ex_scope->context->retcode = status;
-    shraise(ex_scope, &g_runtime_error);
+    catcher->context->retcode = status;
+    shraise(catcher, &g_runtime_error);
 }

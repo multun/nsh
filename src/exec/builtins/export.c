@@ -7,10 +7,10 @@
 #include <nsh_utils/alloc.h>
 #include <nsh_utils/macros.h>
 
-static int export_var(struct environment *env, char *raw_export_expr, bool exported, struct ex_scope *ex_scope)
+static int export_var(struct environment *env, char *raw_export_expr, bool exported, struct exception_catcher *catcher)
 {
     // expand the variable name
-    char *export_expr = expand_nosplit(NULL, raw_export_expr, 0, env, ex_scope);
+    char *export_expr = expand_nosplit(NULL, raw_export_expr, 0, env, catcher);
     char *var_sep = strchr(export_expr, '=');
     char *var_name_end = var_sep;
     if (var_name_end == NULL)
@@ -81,7 +81,7 @@ static void export_print(struct environment *env)
     }
 }
 
-int builtin_export(struct environment *env, struct ex_scope *ex_scope, int argc, char **argv)
+int builtin_export(struct environment *env, struct exception_catcher *catcher, int argc, char **argv)
 {
     int res = 0;
     bool print = true;
@@ -91,7 +91,7 @@ int builtin_export(struct environment *env, struct ex_scope *ex_scope, int argc,
             exported = false;
         else if (strcmp("-p", argv[i])) {
             print = false;
-            res |= export_var(env, argv[i], exported, ex_scope);
+            res |= export_var(env, argv[i], exported, catcher);
         }
     }
     if (print)

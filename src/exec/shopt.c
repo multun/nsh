@@ -104,7 +104,7 @@ static void print_shopts(struct environment *env, struct shopt_options *options,
     }
 }
 
-int builtin_shopt(struct environment *env, struct ex_scope *ex_scope __unused, int argc, char **argv)
+int builtin_shopt(struct environment *env, struct exception_catcher *catcher __unused, int argc, char **argv)
 {
     struct shopt_options opt;
     if (!parse_builtin_shopt_opt(&opt, argc, argv))

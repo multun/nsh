@@ -4,7 +4,7 @@
 #include <nsh_exec/managed_fork.h>
 #include <nsh_exec/runtime_error.h>
 #include <nsh_exec/expansion.h>
-#include <nsh_utils/error.h>
+#include <nsh_utils/exception.h>
 #include <nsh_utils/evect.h>
 
 #include <errno.h>
@@ -34,7 +34,7 @@ struct subshell_state
 {
     FILE *child_stream;
     int child_pid;
-    struct ex_scope *parent_scope;
+    struct exception_catcher *parent_scope;
 };
 
 static inline void subshell_state_cleanup(volatile struct subshell_state *state, struct expansion_state *exp_state)
@@ -46,7 +46,7 @@ static inline void subshell_state_cleanup(volatile struct subshell_state *state,
     waitpid(state->child_pid, &status, 0);
 
     /* reset the exception handler */
-    expansion_state_set_ex_scope(exp_state, state->parent_scope);
+    expansion_state_set_catcher(exp_state, state->parent_scope);
 }
 
 void expand_subshell(struct expansion_state *exp_state, char *subshell_content)
@@ -55,13 +55,13 @@ void expand_subshell(struct expansion_state *exp_state, char *subshell_content)
     int pipe_fds[2];
     if (pipe(pipe_fds) < 0) {
         expansion_warning(exp_state, "pipe() failed: %s", strerror(errno));
-        runtime_error(expansion_state_ex_scope(exp_state), 1);
+        runtime_error(expansion_state_catcher(exp_state), 1);
     }
 
     state.child_pid = managed_fork(expansion_state_env(exp_state));
     if (state.child_pid < 0) {
         expansion_warning(exp_state, "fork() failed: %s", strerror(errno));
-        runtime_error(expansion_state_ex_scope(exp_state), 1);
+        runtime_error(expansion_state_catcher(exp_state), 1);
     }
 
     /* child branch */
@@ -74,7 +74,7 @@ void expand_subshell(struct expansion_state *exp_state, char *subshell_content)
         /* run the subshell and exit */
         int res = subshell_child(exp_state, subshell_content);
         free(subshell_content);
-        clean_exit(expansion_state_ex_scope(exp_state), res);
+        clean_exit(expansion_state_catcher(exp_state), res);
     }
 
     /* parent branch */
@@ -88,11 +88,11 @@ void expand_subshell(struct expansion_state *exp_state, char *subshell_content)
        as the expansion state can hold everything that needs to be cleaned up.
        It doesn't quite fit here, so the current exception handler for the expansion
        is saved, and restored upon function return. */
-    state.parent_scope = expansion_state_ex_scope(exp_state);
-    struct ex_scope sub_ex_scope = EXCEPTION_SCOPE(state.parent_scope->context, state.parent_scope);
-    expansion_state_set_ex_scope(exp_state, &sub_ex_scope);
+    state.parent_scope = expansion_state_catcher(exp_state);
+    struct exception_catcher sub_catcher = EXCEPTION_CATCHER(state.parent_scope->context, state.parent_scope);
+    expansion_state_set_catcher(exp_state, &sub_catcher);
 
-    if (setjmp(sub_ex_scope.env)) {
+    if (setjmp(sub_catcher.env)) {
         subshell_state_cleanup(&state, exp_state);
         shreraise(state.parent_scope);
     }
