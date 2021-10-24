@@ -6,7 +6,6 @@
 #include <nsh_lex/wlexer.h>
 #include <nsh_lex/lexer.h>
 #include <nsh_lex/variable.h>
-#include <nsh_exec/arithmetic_expansion.h>
 #include <nsh_exec/glob.h>
 
 #include <assert.h>
@@ -14,6 +13,8 @@
 #include <errno.h>
 #include <pwd.h>
 #include <stdarg.h>
+
+#include "arithmetic_expansion.h"
 
 
 static void expand_guarded(struct expansion_state *exp_state,

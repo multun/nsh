@@ -4,3 +4,10 @@ option(
 	value: false,
 	description: 'Generate documentation'
 )
+
+option(
+	'max_call_depth',
+	type: 'integer',
+	min: 0,
+	value: 200,
+)

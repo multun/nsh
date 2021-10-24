@@ -1,35 +1,23 @@
 exec_sources = [
-    'args.c',
-    'assignment.c',
     'ast_exec.c',
     'block.c',
     'bool_op.c',
-    'break.c',
-    'builtins.c',
-    'builtins/break.c',
     'builtins/cd.c',
     'builtins/echo.c',
-    'builtins/exit.c',
     'builtins/export.c',
     'builtins/printf.c',
-    'builtins/shopt.c',
     'builtins/source.c',
     'builtins/unset.c',
-    'case.c',
     'cmd.c',
     'environment.c',
-    'for.c',
     'function.c',
-    'if.c',
-    'list.c',
     'managed_fork.c',
     'pipe.c',
     'redirection.c',
     'runtime_error.c',
     'subshell.c',
     'value.c',
-    'while.c',
-    'wordlist.c',
+    'loops.c',
     'shopt.c',
     'expansion/arithmetic_expansion.c',
     'expansion/expansion.c',
@@ -37,11 +25,17 @@ exec_sources = [
     'expansion/glob.c',
     'expansion/prompt.c',
     'expansion/subshell.c',
-    'context.c',
+    'repl_state.c',
     'repl.c',
     'history.c',
     'clean_exit.c',
+    'control_flow.c',
 ]
+
+conf_data = configuration_data()
+conf_data.set('MAX_CALL_DEPTH', get_option('max_call_depth'))
+configure_file(output: 'config.h', configuration : conf_data)
+
 
 exec_api = include_directories('api', is_system: true)
 exec_lib = library(

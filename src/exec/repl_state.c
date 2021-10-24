@@ -11,7 +11,7 @@
 #include <string.h>
 #include <unistd.h>
 
-static bool context_load_rc(struct environment *env, const char *path, const char *source)
+static bool load_rc(struct environment *env, const char *path, const char *source)
 {
     struct repl ctx;
 
@@ -37,14 +37,14 @@ static bool context_load_rc(struct environment *env, const char *path, const cha
     return repl_called_exit(&repl_res);
 }
 
-static bool context_load_all_rc(struct repl *ctx)
+static bool load_all_rc(struct repl *ctx)
 {
     const char global_rc[] = "/etc/nshrc";
-    if (context_load_rc(ctx->env, global_rc, global_rc))
+    if (load_rc(ctx->env, global_rc, global_rc))
         return true;
 
     char *rc_path = home_suffix("/.nshrc");
-    bool should_exit = context_load_rc(ctx->env, rc_path, "~/.nshrc");
+    bool should_exit = load_rc(ctx->env, rc_path, "~/.nshrc");
     free(rc_path);
     return should_exit;
 }
@@ -64,7 +64,7 @@ bool repl_init(int *rc, struct repl *ctx, struct cstream *cs, struct cli_options
     repl_init_from_env(ctx, cs, env);
     environment_put(env);
 
-    if (ctx->cs->interactive && !arg_ctx->norc && context_load_all_rc(ctx)) {
+    if (ctx->cs->interactive && !arg_ctx->norc && load_all_rc(ctx)) {
         *rc = ctx->env->code;
         return true;
     }

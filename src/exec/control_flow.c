@@ -1,10 +1,55 @@
-#include <err.h>
-#include <limits.h>
-
-#include <nsh_exec/break.h>
+#include <nsh_exec/ast_exec.h>
+#include <nsh_exec/expansion.h>
 #include <nsh_exec/environment.h>
 #include <nsh_exec/runtime_error.h>
 #include <nsh_utils/alloc.h>
+
+#include <err.h>
+#include <limits.h>
+#include <stdio.h>
+#include <string.h>
+#include <fnmatch.h>
+
+#include "break.h"
+
+
+int if_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
+{
+    struct shast_if *if_node = (struct shast_if *)ast;
+    int cond = ast_exec(env, if_node->condition, ex_scope);
+    if (!cond)
+        return ast_exec(env, if_node->branch_true, ex_scope);
+    else if (if_node->branch_false)
+        return ast_exec(env, if_node->branch_false, ex_scope);
+    return 0;
+}
+
+
+int case_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
+{
+    struct shast_case *case_node = (struct shast_case *)ast;
+    char *case_var = expand_nosplit(&case_node->base.line_info, shword_buf(case_node->var), 0, env, ex_scope);
+    for (size_t case_i = 0; case_i < case_item_vect_size(&case_node->cases); case_i++) {
+        struct shast_case_item *case_item = case_item_vect_get(&case_node->cases, case_i);
+        for (size_t i = 0; i < wordlist_size(&case_item->pattern); i++)
+        {
+            char *pattern = shword_buf(wordlist_get(&case_item->pattern, i));
+            if (fnmatch(pattern, case_var, 0) != 0)
+                continue;
+
+            free(case_var);
+            return ast_exec(env, case_item->action, ex_scope);
+        }
+    }
+    free(case_var);
+    return 0;
+}
+
+
+/* break and continue are implemented as builtins, which raise exceptions */
+struct ex_class g_ex_break;
+struct ex_class g_ex_continue;
+
 
 static int builtin_generic_break(struct environment *env,
                                  struct ex_scope *ex_scope,
@@ -15,7 +60,7 @@ static int builtin_generic_break(struct environment *env,
         runtime_error(ex_scope, 1);
     }
 
-    if (!env->depth) {
+    if (env->depth == 0) {
         warnx("%s: only meaningful in a loop", argv[0]);
         runtime_error(ex_scope, 1);
     }
@@ -45,6 +90,7 @@ static int builtin_generic_break(struct environment *env,
     return -1;
 }
 
+
 int builtin_break(struct environment *env, struct ex_scope *ex_scope,
                   int argc, char **argv)
 {
@@ -53,6 +99,7 @@ int builtin_break(struct environment *env, struct ex_scope *ex_scope,
         return rc;
     shraise(ex_scope, &g_ex_break);
 }
+
 
 int builtin_continue(struct environment *env, struct ex_scope *ex_scope,
                      int argc, char **argv)

@@ -3,6 +3,8 @@
 #include <nsh_parse/ast.h>
 #include <nsh_utils/pvect.h>
 #include <nsh_utils/signal_manager.h>
+#include <termios.h>
+
 
 struct process
 {

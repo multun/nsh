@@ -1,11 +1,13 @@
 #include <nsh_lex/variable.h>
 #include <nsh_exec/expansion.h>
-#include <nsh_exec/arithmetic_expansion.h>
 #include <nsh_utils/mprintf.h>
 #include <nsh_utils/parsing.h>
 
 #include <string.h>
 #include <err.h>
+
+#include "arithmetic_expansion.h"
+
 
 static void arith_lexer_advance(struct arith_lexer *alexer)
 {

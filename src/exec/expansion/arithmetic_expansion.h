@@ -12,14 +12,16 @@ enum arith_status
     ARITH_RUNTIME_ERROR = 2,
 };
 
+enum arith_value_type
+{
+    ARITH_VALUE_UNDEFINED,
+    ARITH_VALUE_INTEGER,
+    ARITH_VALUE_STRING,
+};
+
 struct arith_value
 {
-    enum arith_value_type
-    {
-        ARITH_VALUE_UNDEFINED,
-        ARITH_VALUE_INTEGER,
-        ARITH_VALUE_STRING,
-    } type;
+    enum arith_value_type type;
 
     union
     {

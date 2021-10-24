@@ -6,7 +6,6 @@
 
 #include <nsh_exec/ast_exec.h>
 #include <nsh_exec/repl.h>
-#include <nsh_exec/args.h>
 #include <nsh_exec/environment.h>
 #include <nsh_lex/variable.h>
 #include <nsh_utils/alloc.h>
@@ -14,6 +13,8 @@
 #include <nsh_utils/macros.h>
 #include <nsh_utils/mprintf.h>
 #include <nsh_utils/safe_syscalls.h>
+
+#include "args.h"
 
 
 static char **arg_context_extract(int *target_argc, struct cli_options *args)
