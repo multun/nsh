@@ -2,13 +2,11 @@ project(
     'nsh',
     'c',
     version: '0.1',
-    license: 'MIT'
+    license: 'MIT',
 )
 
-add_global_arguments(
-    ['-D_GNU_SOURCE', '-D_POSIX_C_SOURCE=200809L'],
-    language: 'c'
-)
+cflags = ['-D_GNU_SOURCE', '-D_POSIX_C_SOURCE=200809L']
+add_project_arguments(cflags, language: 'c')
 
 subdir('src/utils')
 subdir('src/io')

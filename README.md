@@ -1,6 +1,6 @@
 # Introduction
 
-nsh is a work in progress POSIX shell command language interpreter. 
+nsh is a work in progress POSIX shell command language interpreter.
 It can execute commands, perform IO redirections and more.
 
 # Building
@@ -28,4 +28,12 @@ meson setup -Ddoc=true builddir  # --reconfigure might be needed
 meson compile -C builddir doxygen_doc
 # open the documentation in the browser
 xdg-open builddir/doxygen_doc/index.html
+```
+
+# Debugging
+
+```
+meson setup --buildtype=debug --werror --warnlevel=3 debugbuild
+meson compile -C debugbuild
+gdb -arg debugbuild/nsh -c 'echo test'
 ```
