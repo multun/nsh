@@ -13,22 +13,22 @@
 #include "cstream_readline.h"
 
 
-static char *prompt_get(struct cstream *cs)
+static char *prompt_get(struct cstream_readline *cs)
 {
-    struct repl *ctx = cs->context;
+    struct repl *repl = cs->repl;
 
     const char *prompt_var_name;
     const char *default_prompt;
-    if (ctx->line_start) {
+    if (repl->line_start) {
         prompt_var_name = "PS1";
         default_prompt = "nsh> ";
-        ctx->line_start = false;
+        repl->line_start = false;
     } else {
         prompt_var_name = "PS2";
         default_prompt = "> ";
     }
 
-    struct sh_string *unexpanded = environment_var_get_string(ctx->env, prompt_var_name);
+    struct sh_string *unexpanded = environment_var_get_string(repl->env, prompt_var_name);
     if (unexpanded == NULL)
         return strdup(default_prompt);
 
@@ -44,7 +44,7 @@ static char *prompt_get(struct cstream *cs)
         return res;
     }
 
-    char *res = expand_nosplit(&cs->line_info, sh_string_data(unexpanded), EXP_FLAGS_PROMPT, ctx->env, &exception_catcher);
+    char *res = expand_nosplit(&cs->base.line_info, sh_string_data(unexpanded), EXP_FLAGS_PROMPT, repl->env, &exception_catcher);
     sh_string_put(unexpanded);
     return res;
 }
@@ -54,7 +54,7 @@ static int readline_io_reader_unwrapped(struct cstream_readline *cs)
     char *str = cs->current_line;
 
     if (!str) {
-        char *prompt = prompt_get(&cs->base);
+        char *prompt = prompt_get(cs);
         str = cs->current_line = readline_wrapped(cs->base.catcher, prompt);
         cs->line_position = 0;
     }
@@ -82,7 +82,7 @@ static int readline_io_reader(struct cstream *base_cs)
     struct cstream_readline *cs = (struct cstream_readline *)base_cs;
     int res = readline_io_reader_unwrapped(cs);
     if (res != EOF)
-        evect_push(&cs->base.context->line_buffer, res);
+        evect_push(&cs->repl->line_buffer, res);
     return res;
 }
 
@@ -107,9 +107,10 @@ struct io_backend io_readline_backend = {
     .reset = readline_io_reset,
 };
 
-void cstream_readline_init(struct cstream_readline *cs)
+void cstream_readline_init(struct cstream_readline *cs, struct repl *repl)
 {
     cstream_init(&cs->base, &io_readline_backend, true);
+    cs->repl = repl;
     cs->base.line_info = LINEINFO("<tty>", NULL);
     readline_wrapped_setup();
 }

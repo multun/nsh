@@ -23,7 +23,6 @@ static bool load_rc(struct environment *env, const char *path, const char *sourc
     struct cstream_file cs;
     cstream_file_init(&cs, file, true);
     cs.base.line_info = LINEINFO(source, NULL);
-    cs.base.context = &ctx;
 
     repl_init_from_env(&ctx, &cs.base, env);
 

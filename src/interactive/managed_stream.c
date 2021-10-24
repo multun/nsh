@@ -13,8 +13,18 @@
 #include "cstream_readline.h"
 
 
-static int cstream_dispatch_init_unwrapped(struct cstream **cs, struct cli_options *arg_cont, int remaining_argc)
+int cstream_dispatch_init(struct repl *repl, struct cstream **cs, struct cli_options *arg_cont)
 {
+    int remaining_argc = arg_cont->argc - arg_cont->argc_base;
+
+    // if there are remaining arguments after options parsing,
+    // set the program name to the first argument and higher the base
+    if (remaining_argc) {
+        arg_cont->progname_ind = arg_cont->argc_base;
+        arg_cont->argc_base++;
+    }
+
+    // if the user passed -c, read from the given string
     if (arg_cont->src == SHSRC_COMMAND) {
         struct cstream_string *res = zalloc(sizeof(*res));
         cstream_string_init(res, arg_cont->command);
@@ -23,6 +33,7 @@ static int cstream_dispatch_init_unwrapped(struct cstream **cs, struct cli_optio
         return 0;
     }
 
+    // if the user provided a file name (and maybe arguments), read the file
     if (remaining_argc) {
         char *program_name = arg_cont->argv[arg_cont->progname_ind];
         FILE *file;
@@ -37,37 +48,19 @@ static int cstream_dispatch_init_unwrapped(struct cstream **cs, struct cli_optio
         return 0;
     }
 
+    // if the input is interactive, use readline
     if (isatty(STDIN_FILENO)) {
         struct cstream_readline *res = zalloc(sizeof(*res));
-        cstream_readline_init(res);
+        cstream_readline_init(res, repl);
         res->base.line_info = LINEINFO("<interactive input>", NULL);
         *cs = &res->base;
         return 0;
     }
 
+    // otherwise, read stdin in a non-interactive way
     struct cstream_file *res = zalloc(sizeof(*res));
     cstream_file_init(res, stdin, false);
     res->base.line_info = LINEINFO("<stdin>", NULL);
     *cs = &res->base;
-    return 0;
-}
-
-int cstream_dispatch_init(struct repl *context, struct cstream **cs, struct cli_options *arg_cont)
-{
-    int remaining_argc = arg_cont->argc - arg_cont->argc_base;
-
-    // if there are remaining arguments after options parsing,
-    // set the program name to the first argument and higher the base
-    if (remaining_argc) {
-        arg_cont->progname_ind = arg_cont->argc_base;
-        arg_cont->argc_base++;
-    }
-
-    int errcode = cstream_dispatch_init_unwrapped(cs, arg_cont, remaining_argc);
-    if (errcode != 0)
-        return errcode;
-
-    (*cs)->context = context;
-    cstream_check(*cs);
     return 0;
 }
