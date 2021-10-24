@@ -1,5 +1,7 @@
 #include <nsh_interactive/managed_stream.h>
+#include <nsh_interactive/cli.h>
 #include <nsh_exec/repl.h>
+
 
 #include <locale.h>
 #include <readline/history.h>
@@ -59,27 +61,27 @@ int main(int argc, char *argv[])
     /* load the configured locale */
     setlocale(LC_ALL, "");
 
-    struct repl cont;
+    struct repl repl;
 
     /* initialize IO */
     struct cstream *cs;
-    if ((rc = cstream_dispatch_init(&cont, &cs, &arg_cont)))
+    if ((rc = cstream_dispatch_init(&repl, &cs, &arg_cont)))
         goto err_cstream;
 
     /* initialize the context the repl will work with */
-    if (repl_init(&rc, &cont, cs, &arg_cont))
+    if (repl_init(&rc, &repl, cs, &arg_cont))
         goto err_context;
 
-    cont.env->find_builtin = find_builtin_with_history;
-    cont.add_history = add_history;
+    repl.env->find_builtin = find_builtin_with_history;
+    repl.add_history = add_history;
 
     /* run the repl */
     struct repl_result repl_res;
-    repl_run(&repl_res, &cont);
-    rc = repl_status(&cont);
+    repl_run(&repl_res, &repl);
+    rc = repl_status(&repl);
 
     /* cleanup */
-    repl_destroy(&cont);
+    repl_destroy(&repl);
 err_context:
     cstream_destroy(cs);
     free(cs);

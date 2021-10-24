@@ -49,14 +49,6 @@ struct cli_options
     bool shopts[SHOPT_COUNT];
 };
 
-/**
-** \brief parse command line options
-** \return if negative, the parsing failed and the expected
-**   return code is -(retcode + 1). otherwise, the index of
-**   the first non-option argument is returned
-*/
-int parse_cli_options(struct cli_options *res, int argc, char *argv[]);
-
 
 /**
 ** \brief describes the current context of the read eval loop

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <nsh_io/cstream.h>
+#include <nsh_exec/repl.h>
 
 #include <stdio.h>
 
-struct cli_options;
 
 /**
 ** \brief initializes a stream according to a command line and a context
@@ -14,5 +14,4 @@ struct cli_options;
 ** \return the status code of the operation.
 **    if non zero, the program shall exit
 */
-int cstream_dispatch_init(struct repl *context, struct cstream **cs,
-                          struct cli_options *arg_cont);
+int cstream_dispatch_init(struct repl *context, struct cstream **cs, struct cli_options *arg_cont);
