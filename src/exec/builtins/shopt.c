@@ -3,8 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "shexec/environment.h"
-#include "utils/evect.h"
+#include <nsh_exec/environment.h>
+#include <nsh_utils/evect.h>
 
 enum shopt_action
 {

@@ -1,8 +1,8 @@
 #include <stdbool.h>
 
-#include "shparse/parse.h"
-#include "shlex/print.h"
-#include "utils/error.h"
+#include <nsh_parse/parse.h>
+#include <nsh_lex/print.h>
+#include <nsh_utils/error.h>
 
 static void for_word_loop(struct wordlist *target, struct lexer *lexer, struct ex_scope *ex_scope)
 {

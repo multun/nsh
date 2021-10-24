@@ -6,15 +6,15 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "shexec/ast_exec.h"
-#include "shexec/args.h"
-#include "shexec/config.h"
-#include "shexec/clean_exit.h"
-#include "shexec/runtime_error.h"
-#include "shexec/environment.h"
-#include "shexec/managed_fork.h"
-#include "utils/hash_table.h"
-#include "utils/macros.h"
+#include <nsh_exec/ast_exec.h>
+#include <nsh_exec/args.h>
+#include <nsh_exec/config.h>
+#include <nsh_exec/clean_exit.h>
+#include <nsh_exec/runtime_error.h>
+#include <nsh_exec/environment.h>
+#include <nsh_exec/managed_fork.h>
+#include <nsh_utils/hash_table.h>
+#include <nsh_utils/macros.h>
 
 static int builtin_exec(struct environment *env, struct ex_scope *ex_scope, f_builtin builtin)
 {

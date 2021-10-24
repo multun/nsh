@@ -1,8 +1,8 @@
 #include <stdio.h>
 
-#include "utils/macros.h"
-#include "shexec/ast_exec.h"
-#include "utils/hash_table.h"
+#include <nsh_utils/macros.h>
+#include <nsh_exec/ast_exec.h>
+#include <nsh_utils/hash_table.h>
 
 
 int function_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope __unused)

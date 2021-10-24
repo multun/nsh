@@ -1,5 +1,5 @@
-#include "shexec/expansion.h"
-#include "shexec/ast_exec.h"
+#include <nsh_exec/expansion.h>
+#include <nsh_exec/ast_exec.h>
 
 #include <stdio.h>
 #include <string.h>

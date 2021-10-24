@@ -14,7 +14,7 @@ parser_sources = [
     'ast_free.c',
 ]
 
-parser_api = include_directories('api')
+parser_api = include_directories('api', is_system: true)
 parser_lib = library(
     'parser',
     parser_sources,

@@ -1,5 +1,5 @@
-#include "shexec/environment.h"
-#include "utils/macros.h"
+#include <nsh_exec/environment.h>
+#include <nsh_utils/macros.h>
 
 #include <stddef.h>
 #include <string.h>

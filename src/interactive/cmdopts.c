@@ -6,8 +6,8 @@
 #include <libgen.h>
 #include <string.h>
 
-#include "shexec/repl.h"
-#include "shexec/shopt.h"
+#include <nsh_exec/repl.h>
+#include <nsh_exec/shopt.h>
 #include "config.h"
 
 

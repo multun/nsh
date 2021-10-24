@@ -1,4 +1,4 @@
-#include "shexec/shopt.h"
+#include <nsh_exec/shopt.h>
 
 #include <stddef.h>
 #include <string.h>

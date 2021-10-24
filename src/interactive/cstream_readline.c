@@ -1,10 +1,10 @@
-#include "io/cstream.h"
+#include <nsh_io/cstream.h>
 #include "readline_wrapped.h"
-#include "shexec/repl.h"
-#include "shlex/variable.h"
-#include "utils/alloc.h"
-#include "utils/macros.h"
-#include "shexec/expansion.h"
+#include <nsh_exec/repl.h>
+#include <nsh_lex/variable.h>
+#include <nsh_utils/alloc.h>
+#include <nsh_utils/macros.h>
+#include <nsh_exec/expansion.h>
 
 #include <stdio.h>
 #include <stdlib.h>

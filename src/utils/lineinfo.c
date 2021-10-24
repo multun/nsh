@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "utils/lineinfo.h"
+#include <nsh_utils/lineinfo.h>
 
 void lineinfo_print(const struct lineinfo *li, FILE *stream)
 {

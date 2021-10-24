@@ -1,8 +1,8 @@
 #include <err.h>
 
-#include "shexec/environment.h"
-#include "shexec/clean_exit.h"
-#include "utils/alloc.h"
+#include <nsh_exec/environment.h>
+#include <nsh_exec/clean_exit.h>
+#include <nsh_utils/alloc.h>
 
 int builtin_exit(struct environment *env, struct ex_scope *ex_scope, int argc, char **argv)
 {

@@ -1,6 +1,6 @@
 #include "readline_wrapped.h"
-#include "io/keyboard_interrupt.h"
-#include "utils/attr.h"
+#include <nsh_io/keyboard_interrupt.h>
+#include <nsh_utils/attr.h>
 
 #include <err.h>
 #include <errno.h>

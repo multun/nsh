@@ -1,4 +1,4 @@
-#include "utils/alloc.h"
+#include <nsh_utils/alloc.h>
 
 #include <err.h>
 #include <stdlib.h>

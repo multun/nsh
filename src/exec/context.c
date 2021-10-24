@@ -1,10 +1,10 @@
-#include "io/cstream.h"
-#include "shexec/history.h"
-#include "shexec/repl.h"
-#include "shexec/environment.h"
-#include "utils/pathutils.h"
-#include "shexec/ast_exec.h"
-#include "shexec/clean_exit.h"
+#include <nsh_io/cstream.h>
+#include <nsh_exec/history.h>
+#include <nsh_exec/repl.h>
+#include <nsh_exec/environment.h>
+#include <nsh_utils/pathutils.h>
+#include <nsh_exec/ast_exec.h>
+#include <nsh_exec/clean_exit.h>
 
 #include <pwd.h>
 #include <stdbool.h>

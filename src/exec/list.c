@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "shexec/ast_exec.h"
+#include <nsh_exec/ast_exec.h>
 
 
 int list_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)

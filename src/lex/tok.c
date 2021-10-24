@@ -1,5 +1,5 @@
-#include "shlex/lexer.h"
-#include "utils/alloc.h"
+#include <nsh_lex/lexer.h>
+#include <nsh_utils/alloc.h>
 
 #include <stdlib.h>
 #include <string.h>

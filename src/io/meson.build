@@ -8,7 +8,7 @@ io_sources = [
 cc = meson.get_compiler('c')
 readline_dep = cc.find_library('readline', required: true)
 
-io_api = include_directories('api')
+io_api = include_directories('api', is_system: true)
 io_lib = library(
     'io',
     io_sources,

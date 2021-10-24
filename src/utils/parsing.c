@@ -1,4 +1,4 @@
-#include "utils/parsing.h"
+#include <nsh_utils/parsing.h>
 #include <stdint.h>
 
 // the field is zero if the char doesn't map to anything, 1 + value otherwise

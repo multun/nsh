@@ -1,7 +1,7 @@
-#include "shexec/repl.h"
-#include "shexec/environment.h"
-#include "shexec/clean_exit.h"
-#include "utils/alloc.h"
+#include <nsh_exec/repl.h>
+#include <nsh_exec/environment.h>
+#include <nsh_exec/clean_exit.h>
+#include <nsh_utils/alloc.h>
 
 
 #include <err.h>

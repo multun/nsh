@@ -4,13 +4,13 @@
 #include <unistd.h>
 #include <err.h>
 
-#include "shexec/environment.h"
-#include "shexec/expansion.h"
-#include "shlex/variable.h"
-#include "utils/alloc.h"
-#include "utils/evect.h"
-#include "utils/mprintf.h"
-#include "utils/strutils.h"
+#include <nsh_exec/environment.h>
+#include <nsh_exec/expansion.h>
+#include <nsh_lex/variable.h>
+#include <nsh_utils/alloc.h>
+#include <nsh_utils/evect.h>
+#include <nsh_utils/mprintf.h>
+#include <nsh_utils/strutils.h>
 
 
 static int expand_pid(struct expansion_state *exp_state)

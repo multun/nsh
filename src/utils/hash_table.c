@@ -4,8 +4,8 @@
 #include <string.h>
 #include <assert.h>
 
-#include "utils/alloc.h"
-#include "utils/hash_table.h"
+#include <nsh_utils/alloc.h>
+#include <nsh_utils/hash_table.h>
 
 #define RESIZE_GROWTH 2
 #define RESIZE_TRIGGER 0.75

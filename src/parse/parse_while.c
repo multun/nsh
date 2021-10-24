@@ -1,6 +1,6 @@
-#include "shparse/parse.h"
-#include "shlex/print.h"
-#include "utils/alloc.h"
+#include <nsh_parse/parse.h>
+#include <nsh_lex/print.h>
+#include <nsh_utils/alloc.h>
 
 void parse_rule_while(struct shast **res, struct lexer *lexer, struct ex_scope *ex_scope)
 {

@@ -1,6 +1,6 @@
-#include "shexec/history.h"
-#include "shexec/environment.h"
-#include "utils/alloc.h"
+#include <nsh_exec/history.h>
+#include <nsh_exec/environment.h>
+#include <nsh_utils/alloc.h>
 
 #include <stdio.h>
 #include <readline/history.h>

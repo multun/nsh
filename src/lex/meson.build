@@ -8,7 +8,7 @@ lexer_sources = [
     'wlexer.c',
 ]
 
-lexer_api = include_directories('api')
+lexer_api = include_directories('api', is_system: true)
 lexer_lib = library(
     'lexer',
     lexer_sources,

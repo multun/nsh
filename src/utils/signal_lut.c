@@ -1,5 +1,5 @@
-#include "utils/signal_lut.h"
-#include "utils/signal_pipe.h"
+#include <nsh_utils/signal_lut.h>
+#include <nsh_utils/signal_pipe.h>
 
 #include <stdio.h>
 

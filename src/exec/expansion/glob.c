@@ -5,12 +5,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "shexec/expansion.h"
-#include "shexec/expansion_callback.h"
-#include "shexec/expansion_result.h"
-#include "shexec/glob.h"
-#include "utils/error.h"
-#include "utils/alloc.h"
+#include <nsh_exec/expansion.h>
+#include <nsh_exec/expansion_callback.h>
+#include <nsh_exec/expansion_result.h>
+#include <nsh_exec/glob.h>
+#include <nsh_utils/error.h>
+#include <nsh_utils/alloc.h>
 
 enum glob_tok_type
 {

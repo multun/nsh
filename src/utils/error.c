@@ -1,6 +1,6 @@
-#include "utils/alloc.h"
-#include "utils/error.h"
-#include "utils/progname.h"
+#include <nsh_utils/alloc.h>
+#include <nsh_utils/error.h>
+#include <nsh_utils/progname.h>
 
 #include <assert.h>
 #include <stdarg.h>

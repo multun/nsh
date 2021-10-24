@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#include "utils/alloc.h"
-#include "utils/mprintf.h"
+#include <nsh_utils/alloc.h>
+#include <nsh_utils/mprintf.h>
 
 
 char *mprintf(const char *fmt, ...)

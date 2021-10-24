@@ -4,16 +4,16 @@
 #include <limits.h>
 #include <err.h>
 
-#include "shexec/ast_exec.h"
-#include "shexec/repl.h"
-#include "shexec/args.h"
-#include "shexec/environment.h"
-#include "shlex/variable.h"
-#include "utils/alloc.h"
-#include "utils/hash_table.h"
-#include "utils/macros.h"
-#include "utils/mprintf.h"
-#include "utils/safe_syscalls.h"
+#include <nsh_exec/ast_exec.h>
+#include <nsh_exec/repl.h>
+#include <nsh_exec/args.h>
+#include <nsh_exec/environment.h>
+#include <nsh_lex/variable.h>
+#include <nsh_utils/alloc.h>
+#include <nsh_utils/hash_table.h>
+#include <nsh_utils/macros.h>
+#include <nsh_utils/mprintf.h>
+#include <nsh_utils/safe_syscalls.h>
 
 
 static char **arg_context_extract(int *target_argc, struct cli_options *args)

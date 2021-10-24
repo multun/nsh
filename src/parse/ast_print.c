@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "shparse/ast.h"
+#include <nsh_parse/ast.h>
 
 static inline void print_id(FILE *f, void *node)
 {

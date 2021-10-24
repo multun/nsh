@@ -1,11 +1,11 @@
-#include "shexec/repl.h"
-#include "shexec/clean_exit.h"
-#include "shexec/environment.h"
-#include "shexec/managed_fork.h"
-#include "shexec/runtime_error.h"
-#include "shexec/expansion.h"
-#include "utils/error.h"
-#include "utils/evect.h"
+#include <nsh_exec/repl.h>
+#include <nsh_exec/clean_exit.h>
+#include <nsh_exec/environment.h>
+#include <nsh_exec/managed_fork.h>
+#include <nsh_exec/runtime_error.h>
+#include <nsh_exec/expansion.h>
+#include <nsh_utils/error.h>
+#include <nsh_utils/evect.h>
 
 #include <errno.h>
 #include <string.h>

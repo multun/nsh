@@ -1,8 +1,8 @@
-#include "shexec/ast_exec.h"
-#include "utils/hash_table.h"
-#include "shexec/clean_exit.h"
-#include "shexec/managed_fork.h"
-#include "shexec/runtime_error.h"
+#include <nsh_exec/ast_exec.h>
+#include <nsh_utils/hash_table.h>
+#include <nsh_exec/clean_exit.h>
+#include <nsh_exec/managed_fork.h>
+#include <nsh_exec/runtime_error.h>
 
 #include <err.h>
 #include <errno.h>

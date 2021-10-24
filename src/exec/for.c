@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "shexec/ast_exec.h"
-#include "shexec/break.h"
-#include "shexec/environment.h"
-#include "shexec/expansion.h"
-#include "utils/alloc.h"
+#include <nsh_exec/ast_exec.h>
+#include <nsh_exec/break.h>
+#include <nsh_exec/environment.h>
+#include <nsh_exec/expansion.h>
+#include <nsh_utils/alloc.h>
 
 
 struct for_data {

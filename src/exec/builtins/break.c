@@ -1,10 +1,10 @@
 #include <err.h>
 #include <limits.h>
 
-#include "shexec/break.h"
-#include "shexec/environment.h"
-#include "shexec/runtime_error.h"
-#include "utils/alloc.h"
+#include <nsh_exec/break.h>
+#include <nsh_exec/environment.h>
+#include <nsh_exec/runtime_error.h>
+#include <nsh_utils/alloc.h>
 
 static int builtin_generic_break(struct environment *env,
                                  struct ex_scope *ex_scope,

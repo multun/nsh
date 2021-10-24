@@ -13,7 +13,7 @@ conf_data = configuration_data()
 conf_data.set_quoted('VERSION', meson.project_version())
 configure_file(output: 'config.h', configuration : conf_data)
 
-interactive_api = include_directories('api')
+interactive_api = include_directories('api', is_system: true)
 interactive_lib = library(
     'interactive',
     interactive_sources,

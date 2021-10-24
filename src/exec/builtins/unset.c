@@ -1,5 +1,5 @@
-#include "shexec/environment.h"
-#include "shlex/variable.h"
+#include <nsh_exec/environment.h>
+#include <nsh_lex/variable.h>
 
 #include <err.h>
 #include <string.h>

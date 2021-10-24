@@ -5,11 +5,11 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "shexec/ast_exec.h"
-#include "shexec/clean_exit.h"
-#include "shexec/managed_fork.h"
-#include "shexec/runtime_error.h"
-#include "utils/safe_syscalls.h"
+#include <nsh_exec/ast_exec.h>
+#include <nsh_exec/clean_exit.h>
+#include <nsh_exec/managed_fork.h>
+#include <nsh_exec/runtime_error.h>
+#include <nsh_utils/safe_syscalls.h>
 
 
 /* The way file descriptors are chained in a pipeline looks like that:

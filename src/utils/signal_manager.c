@@ -1,6 +1,6 @@
-#include "utils/signal_manager.h"
-#include "utils/signal_list.h"
-#include "utils/macros.h"
+#include <nsh_utils/signal_manager.h>
+#include <nsh_utils/signal_list.h>
+#include <nsh_utils/macros.h>
 
 #include <unistd.h>
 

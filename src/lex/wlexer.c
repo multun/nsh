@@ -1,4 +1,4 @@
-#include "shlex/wlexer.h"
+#include <nsh_lex/wlexer.h>
 
 #include <assert.h>
 #include <string.h>

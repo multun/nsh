@@ -1,4 +1,4 @@
-#include "utils/evect.h"
+#include <nsh_utils/evect.h>
 
 #define GVECT_NAME evect
 #define GVECT_TYPE char

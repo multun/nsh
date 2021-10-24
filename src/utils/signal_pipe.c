@@ -1,5 +1,5 @@
-#include "utils/signal_pipe.h"
-#include "utils/attr.h"
+#include <nsh_utils/signal_pipe.h>
+#include <nsh_utils/attr.h>
 
 #include <errno.h>
 #include <fcntl.h>

@@ -1,8 +1,8 @@
-#include "shexec/ast_exec.h"
-#include "shexec/args.h"
-#include "shexec/environment.h"
-#include "shexec/expansion.h"
-#include "utils/alloc.h"
+#include <nsh_exec/ast_exec.h>
+#include <nsh_exec/args.h>
+#include <nsh_exec/environment.h>
+#include <nsh_exec/expansion.h>
+#include <nsh_utils/alloc.h>
 
 #include <stdlib.h>
 

@@ -1,5 +1,5 @@
-#include "shexec/value.h"
-#include "utils/alloc.h"
+#include <nsh_exec/value.h>
+#include <nsh_utils/alloc.h>
 
 #include <assert.h>
 #include <stdlib.h>

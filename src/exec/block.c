@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <err.h>
 
-#include "shexec/ast_exec.h"
-#include "shexec/environment.h"
-#include "shexec/execution.h"
+#include <nsh_exec/ast_exec.h>
+#include <nsh_exec/environment.h>
+#include <nsh_exec/execution.h>
 
 int block_exec(struct environment *env, struct shast *ast, struct ex_scope *ex_scope)
 {

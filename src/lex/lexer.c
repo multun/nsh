@@ -1,9 +1,9 @@
-#include "shlex/lexer.h"
-#include "shlex/variable.h"
-#include "shlex/wlexer.h"
-#include "utils/alloc.h"
-#include "utils/attr.h"
-#include "utils/macros.h"
+#include <nsh_lex/lexer.h>
+#include <nsh_lex/variable.h>
+#include <nsh_lex/wlexer.h>
+#include <nsh_utils/alloc.h>
+#include <nsh_utils/attr.h>
+#include <nsh_utils/macros.h>
 
 #include <assert.h>
 #include <ctype.h>
@@ -52,7 +52,7 @@ static bool is_only_digits(struct token *tok)
 
 static const char *g_keywords[] = {
 #define X(Type, Val) Val,
-#include "shlex/keywords.defs"
+#include <nsh_lex/keywords.defs>
 #undef X
 };
 

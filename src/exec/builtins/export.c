@@ -1,11 +1,11 @@
 #include <err.h>
 #include <string.h>
 
-#include "shexec/environment.h"
-#include "shexec/expansion.h"
-#include "shlex/variable.h"
-#include "utils/alloc.h"
-#include "utils/macros.h"
+#include <nsh_exec/environment.h>
+#include <nsh_exec/expansion.h>
+#include <nsh_lex/variable.h>
+#include <nsh_utils/alloc.h>
+#include <nsh_utils/macros.h>
 
 static int export_var(struct environment *env, char *raw_export_expr, bool exported, struct ex_scope *ex_scope)
 {

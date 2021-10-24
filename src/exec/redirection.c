@@ -6,10 +6,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "shexec/ast_exec.h"
-#include "utils/macros.h"
-#include "shexec/execution.h"
-#include "utils/strutils.h"
+#include <nsh_exec/ast_exec.h>
+#include <nsh_utils/macros.h>
+#include <nsh_exec/execution.h>
+#include <nsh_utils/strutils.h>
 
 static int fd_copy(int fd)
 {

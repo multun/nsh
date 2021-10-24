@@ -1,5 +1,5 @@
-#include "io/cstream.h"
-#include "utils/alloc.h"
+#include <nsh_io/cstream.h>
+#include <nsh_utils/alloc.h>
 
 #include <stdio.h>
 

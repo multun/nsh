@@ -1,6 +1,6 @@
-#include "shexec/expansion.h"
-#include "utils/parsing.h"
-#include "utils/pathutils.h"
+#include <nsh_exec/expansion.h>
+#include <nsh_utils/parsing.h>
+#include <nsh_utils/pathutils.h>
 
 #include <err.h>
 #include <limits.h>

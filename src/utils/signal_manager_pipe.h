@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils/signal_manager.h"
+#include <nsh_utils/signal_manager.h>
 
 
 struct signal_manager_pipe

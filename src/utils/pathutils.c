@@ -1,6 +1,6 @@
-#include "utils/pathutils.h"
-#include "utils/cpvect.h"
-#include "utils/mprintf.h"
+#include <nsh_utils/pathutils.h>
+#include <nsh_utils/cpvect.h>
+#include <nsh_utils/mprintf.h>
 
 #include <pwd.h>
 #include <stdlib.h>

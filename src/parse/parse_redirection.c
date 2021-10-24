@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "shparse/parse.h"
+#include <nsh_parse/parse.h>
 
 static void negate_ast(struct shast **ast, struct lexer *lexer, bool neg)
 {

@@ -1,7 +1,7 @@
-#include "interactive/managed_stream.h"
-#include "io/cstream.h"
-#include "shexec/repl.h"
-#include "utils/alloc.h"
+#include <nsh_interactive/managed_stream.h>
+#include <nsh_io/cstream.h>
+#include <nsh_exec/repl.h>
+#include <nsh_utils/alloc.h>
 
 #include <err.h>
 #include <errno.h>

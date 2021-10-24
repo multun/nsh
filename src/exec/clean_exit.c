@@ -1,4 +1,4 @@
-#include "shexec/clean_exit.h"
+#include <nsh_exec/clean_exit.h>
 
 #include <err.h>
 #include <errno.h>

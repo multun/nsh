@@ -1,4 +1,4 @@
-#include "utils/alloc.h"
+#include <nsh_utils/alloc.h>
 #include <stdlib.h>
 
 void GVECT_FNAME(init)(struct GVECT_NAME *vect, size_t capacity)

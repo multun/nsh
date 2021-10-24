@@ -1,13 +1,13 @@
-#include "io/keyboard_interrupt.h"
-#include "shexec/ast_exec.h"
-#include "shexec/history.h"
-#include "shexec/repl.h"
-#include "shexec/shopt.h"
-#include "shexec/clean_exit.h"
-#include "shexec/runtime_error.h"
-#include "shlex/lexer.h"
-#include "shparse/parse.h"
-#include "utils/error.h"
+#include <nsh_io/keyboard_interrupt.h>
+#include <nsh_exec/ast_exec.h>
+#include <nsh_exec/history.h>
+#include <nsh_exec/repl.h>
+#include <nsh_exec/shopt.h>
+#include <nsh_exec/clean_exit.h>
+#include <nsh_exec/runtime_error.h>
+#include <nsh_lex/lexer.h>
+#include <nsh_parse/parse.h>
+#include <nsh_utils/error.h>
 
 #include <err.h>
 

@@ -1,9 +1,9 @@
 #include <assert.h>
 #include <string.h>
 
-#include "shparse/parse.h"
-#include "utils/alloc.h"
-#include "shlex/print.h"
+#include <nsh_parse/parse.h>
+#include <nsh_utils/alloc.h>
+#include <nsh_lex/print.h>
 
 static void parse_assignment(struct assign_vect *vect, struct lexer *lexer, struct ex_scope *ex_scope)
 {

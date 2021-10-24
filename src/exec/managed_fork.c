@@ -1,5 +1,5 @@
-#include "shexec/managed_fork.h"
-#include "utils/signal_manager.h"
+#include <nsh_exec/managed_fork.h>
+#include <nsh_utils/signal_manager.h>
 
 
 pid_t managed_fork(struct environment *env)

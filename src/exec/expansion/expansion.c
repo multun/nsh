@@ -1,13 +1,13 @@
-#include "shexec/environment.h"
-#include "shexec/runtime_error.h"
-#include "shexec/expansion.h"
-#include "utils/evect.h"
-#include "utils/strutils.h"
-#include "shlex/wlexer.h"
-#include "shlex/lexer.h"
-#include "shlex/variable.h"
-#include "shexec/arithmetic_expansion.h"
-#include "shexec/glob.h"
+#include <nsh_exec/environment.h>
+#include <nsh_exec/runtime_error.h>
+#include <nsh_exec/expansion.h>
+#include <nsh_utils/evect.h>
+#include <nsh_utils/strutils.h>
+#include <nsh_lex/wlexer.h>
+#include <nsh_lex/lexer.h>
+#include <nsh_lex/variable.h>
+#include <nsh_exec/arithmetic_expansion.h>
+#include <nsh_exec/glob.h>
 
 #include <assert.h>
 #include <err.h>

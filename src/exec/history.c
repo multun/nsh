@@ -1,5 +1,5 @@
-#include "shexec/history.h"
-#include "utils/pathutils.h"
+#include <nsh_exec/history.h>
+#include <nsh_utils/pathutils.h>
 
 #include <fcntl.h>
 #include <pwd.h>

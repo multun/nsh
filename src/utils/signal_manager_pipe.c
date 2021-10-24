@@ -1,6 +1,6 @@
-#include "utils/signal_lut.h"
-#include "utils/signal_manager.h"
-#include "utils/signal_pipe.h"
+#include <nsh_utils/signal_lut.h>
+#include <nsh_utils/signal_manager.h>
+#include <nsh_utils/signal_pipe.h>
 
 #include <err.h>
 #include <string.h>

@@ -1,5 +1,5 @@
-#include "shlex/lexer.h"
-#include "utils/macros.h"
+#include <nsh_lex/lexer.h>
+#include <nsh_utils/macros.h>
 
 #include <assert.h>
 #include <ctype.h>
@@ -12,7 +12,7 @@ static const struct sh_operator
     enum token_type type;
 } g_operators[] = {
 #define X(TokName, Value) {Value, sizeof(Value) - 1, TokName},
-#include "shlex/operators.defs"
+#include <nsh_lex/operators.defs>
 #undef X
 };
 

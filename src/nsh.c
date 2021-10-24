@@ -1,5 +1,5 @@
-#include "interactive/managed_stream.h"
-#include "shexec/repl.h"
+#include <nsh_interactive/managed_stream.h>
+#include <nsh_exec/repl.h>
 
 #include <locale.h>
 #include <readline/history.h>

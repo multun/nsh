@@ -1,8 +1,8 @@
-#include "shlex/variable.h"
-#include "shexec/expansion.h"
-#include "shexec/arithmetic_expansion.h"
-#include "utils/mprintf.h"
-#include "utils/parsing.h"
+#include <nsh_lex/variable.h>
+#include <nsh_exec/expansion.h>
+#include <nsh_exec/arithmetic_expansion.h>
+#include <nsh_utils/mprintf.h>
+#include <nsh_utils/parsing.h>
 
 #include <string.h>
 #include <err.h>

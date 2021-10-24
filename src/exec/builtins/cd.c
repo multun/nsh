@@ -6,15 +6,15 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "shexec/environment.h"
-#include "utils/alloc.h"
-#include "utils/mprintf.h"
-#include "utils/hash_table.h"
-#include "shlex/variable.h"
-#include "utils/strutils.h"
-#include "utils/pathutils.h"
-#include "utils/cpvect.h"
-#include "utils/safe_syscalls.h"
+#include <nsh_exec/environment.h>
+#include <nsh_utils/alloc.h>
+#include <nsh_utils/mprintf.h>
+#include <nsh_utils/hash_table.h>
+#include <nsh_lex/variable.h>
+#include <nsh_utils/strutils.h>
+#include <nsh_utils/pathutils.h>
+#include <nsh_utils/cpvect.h>
+#include <nsh_utils/safe_syscalls.h>
 
 
 struct cd_options

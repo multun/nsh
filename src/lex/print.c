@@ -1,12 +1,12 @@
-#include "shlex/lexer.h"
-#include "shlex/print.h"
-#include "utils/macros.h"
+#include <nsh_lex/lexer.h>
+#include <nsh_lex/print.h>
+#include <nsh_utils/macros.h>
 
 
 static const char *g_token_type_tab[] =
 {
 #define X(TokName, Value) #TokName,
-#include "shlex/tokens.defs"
+#include <nsh_lex/tokens.defs>
 #undef X
 };
 

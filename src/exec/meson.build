@@ -43,7 +43,7 @@ exec_sources = [
     'clean_exit.c',
 ]
 
-exec_api = include_directories('api')
+exec_api = include_directories('api', is_system: true)
 exec_lib = library(
     'exec',
     exec_sources,

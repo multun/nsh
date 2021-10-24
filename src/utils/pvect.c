@@ -1,4 +1,4 @@
-#include "utils/pvect.h"
+#include <nsh_utils/pvect.h>
 
 #define GVECT_NAME pvect
 #define GVECT_TYPE void *

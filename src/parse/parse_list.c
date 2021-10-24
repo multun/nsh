@@ -1,7 +1,7 @@
 #include <stdbool.h>
 
-#include "shparse/parse.h"
-#include "utils/alloc.h"
+#include <nsh_parse/parse.h>
+#include <nsh_utils/alloc.h>
 
 
 static bool compound_list_block_end(const struct token *tok)

@@ -1,6 +1,6 @@
-#include "utils/alloc.h"
-#include "shparse/parse.h"
-#include "shlex/print.h"
+#include <nsh_utils/alloc.h>
+#include <nsh_parse/parse.h>
+#include <nsh_lex/print.h>
 #include <string.h>
 
 struct shword *parse_word(struct lexer *lexer, struct ex_scope *ex_scope)

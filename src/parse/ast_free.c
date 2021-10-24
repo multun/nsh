@@ -1,5 +1,5 @@
-#include "shparse/ast.h"
-#include "utils/macros.h"
+#include <nsh_parse/ast.h>
+#include <nsh_utils/macros.h>
 
 void if_free(struct shast *ast)
 {

@@ -4,9 +4,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "shexec/environment.h"
-#include "utils/evect.h"
-#include "utils/parsing.h"
+#include <nsh_exec/environment.h>
+#include <nsh_utils/evect.h>
+#include <nsh_utils/parsing.h>
 
 enum shecho_opt
 {

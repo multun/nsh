@@ -3,10 +3,10 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "shparse/ast.h"
-#include "shexec/expansion.h"
-#include "shlex/variable.h"
-#include "utils/alloc.h"
+#include <nsh_parse/ast.h>
+#include <nsh_exec/expansion.h>
+#include <nsh_lex/variable.h>
+#include <nsh_utils/alloc.h>
 
 void assignment_exec(struct environment *env, struct shast_assignment *assign, struct ex_scope *ex_scope)
 {
