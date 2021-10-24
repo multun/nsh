@@ -95,6 +95,16 @@ void cstream_init(struct cstream *cs, struct io_backend *backend, bool interacti
 void cstream_destroy(struct cstream *cs);
 
 /**
+** \brief destructs and deallocates a stream
+** \param cs the struct to destroy and free
+*/
+static inline void cstream_free(struct cstream *cs)
+{
+    cstream_destroy(cs);
+    free(cs);
+}
+
+/**
 ** \brief peek a character from a stream
 ** \details returns without removing the next character of the stream
 **   the second call in a row to peek always returns the same character

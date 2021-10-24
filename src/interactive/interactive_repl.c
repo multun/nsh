@@ -1,7 +1,8 @@
-#include <nsh_interactive/managed_stream.h>
 #include <nsh_io/cstream.h>
 #include <nsh_exec/repl.h>
 #include <nsh_utils/alloc.h>
+#include <nsh_interactive/interactive_repl.h>
+#include <readline/history.h>
 
 #include <err.h>
 #include <errno.h>
@@ -63,4 +64,37 @@ int cstream_dispatch_init(struct repl *repl, struct cstream **cs, struct cli_opt
     res->base.line_info = LINEINFO("<stdin>", NULL);
     *cs = &res->base;
     return 0;
+}
+
+
+BUILTINS_DECLARE(history)
+
+
+static f_builtin find_builtin_with_history(const char *name) {
+    if (strcmp(name, "history") == 0)
+        return builtin_history;
+    return find_default_builtin(name);
+}
+
+
+int interactive_repl_init(struct repl *repl, struct cli_options *options, struct cstream **cs)
+{
+    int rc;
+
+   /* initialize IO */
+    if ((rc = cstream_dispatch_init(repl, cs, options)))
+        goto err_cstream;
+
+    /* initialize the context the repl will work with */
+    if (repl_init(&rc, repl, *cs, options))
+        goto err_context;
+
+    repl->env->find_builtin = find_builtin_with_history;
+    repl->add_history = add_history;
+    return 0;
+
+err_context:
+    cstream_free(*cs);
+err_cstream:
+    return rc;
 }

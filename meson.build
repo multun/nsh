@@ -27,7 +27,6 @@ nsh = executable(
         nsh_io,
         nsh_interactive,
         nsh_exec,
-        readline_dep,
     ],
 )
 

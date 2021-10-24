@@ -1,9 +1,9 @@
 interactive_sources = [
     'cstream_readline.c',
-    'managed_stream.c',
     'builtin_history.c',
     'readline_wrapped.c',
-    'cmdopts.c',
+    'interactive_repl.c',
+    'parse_cli_options.c',
 ]
 
 cc = meson.get_compiler('c')

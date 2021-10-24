@@ -8,6 +8,8 @@
 
 #include <nsh_exec/repl.h>
 #include <nsh_exec/shopt.h>
+#include <nsh_interactive/cli.h>
+
 #include "config.h"
 
 

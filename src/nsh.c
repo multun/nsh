@@ -1,10 +1,9 @@
-#include <nsh_interactive/managed_stream.h>
+#include <nsh_interactive/interactive_repl.h>
 #include <nsh_interactive/cli.h>
 #include <nsh_exec/repl.h>
 
-
 #include <locale.h>
-#include <readline/history.h>
+
 
 /**
 ** \mainpage Introduction
@@ -41,39 +40,24 @@
 **
 */
 
-BUILTINS_DECLARE(history)
-
-static f_builtin find_builtin_with_history(const char *name) {
-    if (strcmp(name, "history") == 0)
-        return builtin_history;
-    return find_default_builtin(name);
-}
 
 int main(int argc, char *argv[])
 {
     int rc;
 
     /* parse the arguments */
-    struct cli_options arg_cont;
-    if ((rc = parse_cli_options(&arg_cont, argc, argv)) != 0)
+    struct cli_options options;
+    if ((rc = parse_cli_options(&options, argc, argv)) != 0)
         return rc;
 
     /* load the configured locale */
     setlocale(LC_ALL, "");
 
+    /* initialize the repl and io backend */
     struct repl repl;
-
-    /* initialize IO */
     struct cstream *cs;
-    if ((rc = cstream_dispatch_init(&repl, &cs, &arg_cont)))
-        goto err_cstream;
-
-    /* initialize the context the repl will work with */
-    if (repl_init(&rc, &repl, cs, &arg_cont))
-        goto err_context;
-
-    repl.env->find_builtin = find_builtin_with_history;
-    repl.add_history = add_history;
+    if ((rc = interactive_repl_init(&repl, &options, &cs)))
+        return rc;
 
     /* run the repl */
     struct repl_result repl_res;
@@ -82,9 +66,6 @@ int main(int argc, char *argv[])
 
     /* cleanup */
     repl_destroy(&repl);
-err_context:
-    cstream_destroy(cs);
-    free(cs);
-err_cstream:
+    cstream_free(cs);
     return rc;
 }
