@@ -12,9 +12,9 @@ add_global_arguments(
 
 subdir('src/utils')
 subdir('src/io')
-subdir('src/shlex')
-subdir('src/shparse')
-subdir('src/shexec')
+subdir('src/lex')
+subdir('src/parse')
+subdir('src/exec')
 subdir('src/interactive')
 
 nsh = executable(
