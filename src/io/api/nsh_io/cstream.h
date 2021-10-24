@@ -130,6 +130,5 @@ static inline void cstream_reset(struct cstream *cs)
         cs->backend->reset(cs);
 }
 
-#include <nsh_io/cstream_readline.h>
 #include <nsh_io/cstream_file.h>
 #include <nsh_io/cstream_string.h>

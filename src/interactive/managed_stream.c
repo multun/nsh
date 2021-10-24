@@ -10,6 +10,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "cstream_readline.h"
+
+
 static int cstream_dispatch_init_unwrapped(struct cstream **cs, struct cli_options *arg_cont, int remaining_argc)
 {
     if (arg_cont->src == SHSRC_COMMAND) {

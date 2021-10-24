@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "cstream_readline.h"
+
 
 static char *prompt_get(struct cstream *cs)
 {
