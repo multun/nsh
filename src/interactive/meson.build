@@ -15,7 +15,7 @@ configure_file(output: 'config.h', configuration : conf_data)
 
 interactive_api = include_directories('api', is_system: true)
 interactive_lib = library(
-    'interactive',
+    'nsh_interactive',
     interactive_sources,
     install: true,
     include_directories: interactive_api,

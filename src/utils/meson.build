@@ -16,7 +16,7 @@ utils_sources = [
 
 utils_api = include_directories('api', is_system: true)
 utils_lib = library(
-    'utils',
+    'nsh_utils',
     utils_sources,
     install: true,
     include_directories: utils_api,

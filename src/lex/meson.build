@@ -8,16 +8,16 @@ lexer_sources = [
     'wlexer.c',
 ]
 
-lexer_api = include_directories('api', is_system: true)
-lexer_lib = library(
-    'lexer',
+lex_api = include_directories('api', is_system: true)
+lex_lib = library(
+    'nsh_lex',
     lexer_sources,
     install: true,
-    include_directories: lexer_api,
+    include_directories: lex_api,
     dependencies: [nsh_utils, nsh_io],
 )
 
-nsh_lexer = declare_dependency(
-    include_directories: lexer_api,
-    link_with: lexer_lib,
+nsh_lex = declare_dependency(
+    include_directories: lex_api,
+    link_with: lex_lib,
 )

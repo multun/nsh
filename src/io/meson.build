@@ -10,7 +10,7 @@ readline_dep = cc.find_library('readline', required: true)
 
 io_api = include_directories('api', is_system: true)
 io_lib = library(
-    'io',
+    'nsh_io',
     io_sources,
     install: true,
     include_directories: io_api,

@@ -39,14 +39,14 @@ configure_file(output: 'config.h', configuration : conf_data)
 
 exec_api = include_directories('api', is_system: true)
 exec_lib = library(
-    'exec',
+    'nsh_exec',
     exec_sources,
     install: true,
     include_directories: exec_api,
-    dependencies: [nsh_utils, nsh_io, nsh_parser, nsh_lexer],
+    dependencies: [nsh_utils, nsh_io, nsh_parse, nsh_lex],
 )
 
 nsh_exec = declare_dependency(
-    include_directories: [exec_api, parser_api, lexer_api],
+    include_directories: [exec_api, parse_api, lex_api],
     link_with: exec_lib,
 )
