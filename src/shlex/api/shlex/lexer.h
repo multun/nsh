@@ -9,7 +9,7 @@
 #include "utils/error.h"
 #include "utils/evect.h"
 #include "shlex/lexer_error.h"
-#include "shwlex/wlexer.h"
+#include "shlex/wlexer.h"
 
 #define TOK_BUF_MIN_SIZE 10
 

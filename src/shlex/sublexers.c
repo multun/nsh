@@ -1,6 +1,6 @@
 #include "shlex/lexer.h"
 #include "shlex/variable.h"
-#include "shwlex/wlexer.h"
+#include "shlex/wlexer.h"
 #include "utils/alloc.h"
 #include "utils/attr.h"
 #include "utils/macros.h"

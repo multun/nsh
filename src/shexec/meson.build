@@ -49,10 +49,10 @@ exec_lib = library(
     exec_sources,
     install: true,
     include_directories: exec_api,
-    dependencies: [nsh_utils, nsh_io, nsh_wlexer, nsh_parser, nsh_lexer],
+    dependencies: [nsh_utils, nsh_io, nsh_parser, nsh_lexer],
 )
 
 nsh_exec = declare_dependency(
-    include_directories: [exec_api, parser_api, lexer_api, wlexer_api],
+    include_directories: [exec_api, parser_api, lexer_api],
     link_with: exec_lib,
 )

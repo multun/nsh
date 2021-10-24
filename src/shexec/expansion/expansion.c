@@ -3,7 +3,7 @@
 #include "shexec/expansion.h"
 #include "utils/evect.h"
 #include "utils/strutils.h"
-#include "shwlex/wlexer.h"
+#include "shlex/wlexer.h"
 #include "shlex/lexer.h"
 #include "shlex/variable.h"
 #include "shexec/arithmetic_expansion.h"

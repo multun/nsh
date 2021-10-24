@@ -11,9 +11,7 @@
 **    - utils, a general toolbox
 **    - io, the base IO abstractions
 **    - shlex, the shell lexer
-**    - shwlex, a low level word lexer used by shlex
 **    - shparse, the shell parser
-**    - shexp, the expression expansion toolkit
 **    - shexec, the shell AST evaluation module
 **    - repl, the main program loop
 **

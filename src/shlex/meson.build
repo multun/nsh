@@ -5,6 +5,7 @@ lexer_sources = [
     'sublexers.c',
     'sublexer_regular.c',
     'tok.c',
+    'wlexer.c',
 ]
 
 lexer_api = include_directories('api')
@@ -13,7 +14,7 @@ lexer_lib = library(
     lexer_sources,
     install: true,
     include_directories: lexer_api,
-    dependencies: [nsh_utils, nsh_io, nsh_wlexer],
+    dependencies: [nsh_utils, nsh_io],
 )
 
 nsh_lexer = declare_dependency(

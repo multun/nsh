@@ -12,7 +12,6 @@ add_global_arguments(
 
 subdir('src/utils')
 subdir('src/io')
-subdir('src/shwlex')
 subdir('src/shlex')
 subdir('src/shparse')
 subdir('src/shexec')

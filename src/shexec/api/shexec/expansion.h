@@ -5,7 +5,7 @@
 #include "shexec/expansion_callback.h"
 #include "shexec/glob.h"
 #include "shparse/wordlist.h"
-#include "shwlex/wlexer.h"
+#include "shlex/wlexer.h"
 #include "utils/attr.h"
 #include "utils/attr.h"
 #include "utils/cpvect.h"
