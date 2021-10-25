@@ -17,12 +17,17 @@
           };
         };
         defaultPackage = packages.nsh;
-        apps.hello = flake-utils.lib.mkApp { drv = packages.nzh; };
+        apps.nsh = flake-utils.lib.mkApp { drv = packages.nsh; };
         defaultApp = apps.nsh;
-        shell = pkgs.mkShell {
+        devShell = pkgs.mkShell {
             inputsFrom = [ packages.nsh ];
-            hardeningDisable = [ "fortify" ];
-            packages = [ pkgs.doxygen pkgs.gdb pkgs.afl pkgs.valgrind ];
+            packages = [
+              pkgs.python3
+              pkgs.doxygen
+              pkgs.gdb
+              pkgs.afl
+              pkgs.valgrind
+            ];
         };
       }
     );
