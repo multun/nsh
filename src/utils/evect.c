@@ -2,7 +2,7 @@
 
 #define GVECT_NAME evect
 #define GVECT_TYPE char
-#include "gvect.defs"
+#include <nsh_utils/gvect.defs>
 
 void evect_push_string(struct evect *vect, const char *str) {
     for (; *str; str++)

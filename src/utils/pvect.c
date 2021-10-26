@@ -2,4 +2,4 @@
 
 #define GVECT_NAME pvect
 #define GVECT_TYPE void *
-#include "gvect.defs"
+#include <nsh_utils/gvect.defs>
