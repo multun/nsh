@@ -9,7 +9,7 @@
 enum wtoken_type
 {
     // used as a placeholder
-    WTOK_UNKNOWN,
+    WTOK_UNKNOWN = 0,
 
     // various single chars
     WTOK_SQUOTE,
@@ -66,11 +66,6 @@ static inline void wlexer_set_catcher(struct wlexer *wlex, struct exception_catc
 static inline struct lineinfo *wlexer_line_info(struct wlexer *wlexer)
 {
     return &wlexer->cs->line_info;
-}
-
-static inline bool wlexer_in_arith(struct wlexer *wlexer)
-{
-    return wlexer->mode == MODE_ARITH || wlexer->mode == MODE_ARITH_GROUP;
 }
 
 static inline bool wlexer_has_lookahead(const struct wlexer *wlex)

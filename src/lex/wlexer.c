@@ -1,4 +1,5 @@
 #include <nsh_lex/wlexer.h>
+#include <nsh_utils/macros.h>
 
 #include <assert.h>
 #include <string.h>
@@ -53,181 +54,131 @@ void wlexer_push(const struct wtoken *res, struct wlexer *lex)
     return;
 }
 
-static bool is_dquoted_escape_special(int next_char)
+
+struct wlexer_rule
 {
-    switch (next_char) {
-    case '$':
-    case '`':
-    case '"':
-    case '\\':
-        return true;
-    default:
-        return false;
+    char pattern[4];
+    enum wtoken_type type;
+    enum wlexer_mode valid_modes;
+};
+
+
+#define EXP_MODES ~MODE_SINGLE_QUOTED
+static struct wlexer_rule rules[] = {
+    { "'",   WTOK_SQUOTE,    ~MODE_DOUBLE_QUOTED },
+    { "`",   WTOK_BTICK,     ~MODE_SINGLE_QUOTED },
+    { "\"",  WTOK_DQUOTE,    ~MODE_SINGLE_QUOTED },
+    { "}",   WTOK_EXP_CLOSE, MODE_EXPANSION },
+    { "${",  WTOK_EXP_OPEN,       EXP_MODES },
+    { "$((", WTOK_ARITH_OPEN,     EXP_MODES },
+    { "))",  WTOK_ARITH_CLOSE,    MODE_ARITH },
+    { "$(",  WTOK_EXP_SUBSH_OPEN, EXP_MODES },
+    { ")",   WTOK_EXP_SUBSH_CLOSE, MODE_EXP_SUBSHELL },
+    { "(",   WTOK_ARITH_GROUP_OPEN, MODE_ARITH | MODE_ARITH_GROUP },
+    { ")",   WTOK_ARITH_GROUP_CLOSE, MODE_ARITH_GROUP },
+    { "(",   WTOK_SUBSH_OPEN,  MODE_UNQUOTED | MODE_SUBSHELL | MODE_EXP_SUBSHELL },
+    { ")",   WTOK_SUBSH_CLOSE, MODE_UNQUOTED | MODE_SUBSHELL },
+};
+
+
+static bool char_starts_rule(enum wlexer_mode mode, char c)
+{
+    for (size_t i = 0; i < ARR_SIZE(rules); i++) {
+        if (!(rules[i].valid_modes & mode))
+            continue;
+        if (rules[i].pattern[0] == c)
+            return true;
     }
+    return false;
 }
 
-static bool is_significant(struct wlexer *lex, int ch)
+
+static bool match_rule(struct wtoken *tok, struct wlexer *lex, struct wlexer_rule *rule)
 {
-    switch (ch) {
-    case '(':
-        switch (lex->mode) {
-        case MODE_EXP_SUBSHELL:
-        case MODE_SUBSHELL:
-        case MODE_ARITH:
-        case MODE_ARITH_GROUP:
-        case MODE_UNQUOTED:
+    if (!(rule->valid_modes & lex->mode))
+        return false;
+
+    for (int i = 0; ; i++) {
+        // if the end of the pattern is reached, it matched
+        unsigned char pat_char = rule->pattern[i];
+        if (pat_char == '\0')
             return true;
-        default:
-            return false;
-        }
-    case '"':
-        switch (lex->mode) {
-        case MODE_SINGLE_QUOTED:
-        case MODE_ARITH:
-        case MODE_ARITH_GROUP:
-            return false;
-        default:
-            return true;
-        }
-    case '\'':
-        return lex->mode != MODE_DOUBLE_QUOTED;
-    case '`':
-        return lex->mode != MODE_SINGLE_QUOTED;
-    case '\\':
-        // TODO: MODE_EXPANSION specific handling
-        switch (lex->mode) {
-        case MODE_SINGLE_QUOTED:
-            return false;
-        case MODE_ARITH:
-            if (cstream_peek(lex->cs) == '"')
+
+        // if there are no more characters in the buffer,
+        // only pull the next character if it matches
+        if (tok->ch[i] == '\0') {
+            assert(i < 4);
+            int next_char = cstream_peek(lex->cs);
+            if (next_char == EOF)
                 return false;
-            /* fall through */
-        case MODE_DOUBLE_QUOTED:
-            return is_dquoted_escape_special(cstream_peek(lex->cs));
-        default:
-            return true;
+            if (next_char != pat_char)
+                return false;
+            tok->ch[i] = cstream_pop(lex->cs);
         }
-    case '$':
-        return lex->mode != MODE_SINGLE_QUOTED;
-    case '}':
-        return lex->mode == MODE_EXPANSION;
-    default:
-        return false;
+
+        if (tok->ch[i] != pat_char)
+            return false;
     }
 }
 
-static int wtok_single_type(struct wlexer *lex, int ch)
+static void wlexer_lex_escape(struct wtoken *res, struct wlexer *lex)
 {
-    switch (ch) {
-    case '(':
-        if (wlexer_in_arith(lex))
-            return WTOK_ARITH_GROUP_OPEN;
-        return WTOK_SUBSH_OPEN;
-    case '"':
-        return WTOK_DQUOTE;
-    case '\'':
-        return WTOK_SQUOTE;
-    case '`':
-        return WTOK_BTICK;
-    case '\\':
-        return WTOK_ESCAPE;
-    case '}':
-        return WTOK_EXP_CLOSE;
-    default:
-        return WTOK_UNKNOWN;
-    }
-}
-
-static void wlexer_lex_dollar(struct wtoken *res, struct wlexer *lex)
-{
-    int ch = cstream_peek(lex->cs);
-
     if (lex->mode == MODE_SINGLE_QUOTED)
-        goto wtok_regular;
-
-    if (ch == '{') {
-        res->ch[1] = cstream_pop(lex->cs);
-        res->type = WTOK_EXP_OPEN;
-        return;
-    }
-
-    if (ch != '(')
-        goto wtok_regular;
-
-    res->ch[1] = cstream_pop(lex->cs);
-    ch = cstream_peek(lex->cs);
-    if (ch == '(') {
-        res->ch[2] = cstream_pop(lex->cs);
-        res->type = WTOK_ARITH_OPEN;
-    } else
-        res->type = WTOK_EXP_SUBSH_OPEN;
-
-    return;
-
-wtok_regular:
-    res->type = WTOK_REGULAR;
-    return;
-}
-
-static void wlexer_lex_closing_paren(struct wtoken *res, struct wlexer *lex)
-{
-    // the type of a right paren is context dependant.
-    // if we're not in a subshell or we're in arith mode
-    // and there's only a single paren, it's just a regular
-    // token.
-    if (lex->mode == MODE_ARITH_GROUP)
-        res->type = WTOK_ARITH_GROUP_CLOSE;
-    else if (lex->mode == MODE_EXP_SUBSHELL)
-        res->type = WTOK_EXP_SUBSH_CLOSE;
-    else if (lex->mode == MODE_SUBSHELL)
-        res->type = WTOK_SUBSH_CLOSE;
-    else if (lex->mode == MODE_ARITH) {
-        int ch = cstream_peek(lex->cs);
-        if (ch != ')')
-            goto regular;
-
-        res->ch[1] = cstream_pop(lex->cs);
-        res->type = WTOK_ARITH_CLOSE;
-        return;
-    } else
         goto regular;
 
-    return;
+    // "A <backslash> that is not quoted shall preserve the literal value of
+    // the following character, with the exception of a <newline>"
+    // skipping newlines is done in the lexer
+    if (lex->mode == MODE_UNQUOTED)
+        goto escape;
+
+    int next_char = cstream_peek(lex->cs);
+    if (next_char == EOF)
+        // TODO: raise an error when this occurs
+        goto escape;
+
+    if (next_char == '\\')
+        goto escape;
+
+    if (char_starts_rule(lex->mode, next_char))
+        goto escape;
 
 regular:
     res->type = WTOK_REGULAR;
+    return;
+
+escape:
+    res->type = WTOK_ESCAPE;
     return;
 }
 
 static void wlexer_lex(struct wtoken *res, struct wlexer *lex)
 {
     memset(res->ch, 0, sizeof(res->ch));
+    res->type = WTOK_UNKNOWN;
 
-    int ch = cstream_pop(lex->cs);
-    if (ch == EOF) {
+    res->ch[0] = cstream_pop(lex->cs);
+
+    if (res->ch[0] == EOF) {
         res->type = WTOK_EOF;
         return;
     }
 
-    res->ch[0] = ch;
-
-    if (is_significant(lex, ch)) {
-        res->type = wtok_single_type(lex, ch);
-        if (res->type != WTOK_UNKNOWN)
-            return;
-    }
-
-    switch (ch) {
-    case '$':
-        wlexer_lex_dollar(res, lex);
-        break;
-    case ')':
-        wlexer_lex_closing_paren(res, lex);
-        break;
-    default:
-        res->type = WTOK_REGULAR;
+    if (res->ch[0] == '\\') {
+        wlexer_lex_escape(res, lex);
+        assert(res->type != WTOK_UNKNOWN);
         return;
     }
+
+    for (size_t i = 0; i < ARR_SIZE(rules); i++) {
+        struct wlexer_rule *cur_rule = &rules[i];
+        if (match_rule(res, lex, cur_rule)) {
+            res->type = cur_rule->type;
+            return;
+        }
+    }
+
+    res->type = WTOK_REGULAR;
 }
 
 

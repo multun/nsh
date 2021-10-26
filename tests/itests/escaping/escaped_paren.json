@@ -1,0 +1,7 @@
+{
+  "desc": "An escaped parenthesis",
+  "stdin": "echo -n \\)",
+  "stdout": ")",
+  "stderr": "",
+  "retcode": 0
+}
