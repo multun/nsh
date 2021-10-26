@@ -1,5 +1,6 @@
 #include <nsh_lex/wlexer.h>
 #include <nsh_utils/macros.h>
+#include <nsh_utils/logging.h>
 
 #include <assert.h>
 #include <string.h>
@@ -158,28 +159,42 @@ static void wlexer_lex(struct wtoken *res, struct wlexer *lex)
     memset(res->ch, 0, sizeof(res->ch));
     res->type = WTOK_UNKNOWN;
 
-    res->ch[0] = cstream_pop(lex->cs);
-
-    if (res->ch[0] == EOF) {
+    int c = cstream_pop(lex->cs);
+    if (c == EOF) {
         res->type = WTOK_EOF;
-        return;
+        goto lexing_done;
     }
+    res->ch[0] = c;
 
     if (res->ch[0] == '\\') {
         wlexer_lex_escape(res, lex);
         assert(res->type != WTOK_UNKNOWN);
-        return;
+        goto lexing_done;
     }
 
     for (size_t i = 0; i < ARR_SIZE(rules); i++) {
         struct wlexer_rule *cur_rule = &rules[i];
         if (match_rule(res, lex, cur_rule)) {
             res->type = cur_rule->type;
-            return;
+            goto lexing_done;
         }
     }
 
     res->type = WTOK_REGULAR;
+lexing_done:
+    nsh_debug("wtoken { type: %-10s repr: '%s' }", wtoken_type_to_string(res->type), wtoken_repr_data(res));
+}
+
+
+const char *wtoken_repr_data(struct wtoken *tok)
+{
+    if (tok->type == WTOK_UNKNOWN)
+        return "<unknown>";
+    if (tok->type == WTOK_EOF)
+        return "<EOF>";
+    if (tok->type == WTOK_REGULAR && tok->ch[0] == '\n')
+        return "<newline>";
+    return tok->ch;
 }
 
 

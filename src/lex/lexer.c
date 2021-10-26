@@ -4,6 +4,8 @@
 #include <nsh_utils/alloc.h>
 #include <nsh_utils/attr.h>
 #include <nsh_utils/macros.h>
+#include <nsh_utils/logging.h>
+#include <nsh_lex/print.h>
 
 #include <assert.h>
 #include <ctype.h>
@@ -122,6 +124,15 @@ static void lexer_type_token(struct lexer *lexer, struct token *tok)
         tok->type = search_type;
 }
 
+static const char *tok_repr(struct token *tok)
+{
+    if (tok->type == TOK_NEWLINE)
+        return "<newline>";
+    if (tok->type == TOK_EOF)
+        return "<EOF>";
+    return tok_buf(tok);
+}
+
 static void lexer_lex(struct token **tres, struct lexer *lexer, struct exception_catcher *catcher)
 {
     // the lexer and the IO stream both have their own global error contexts
@@ -133,6 +144,8 @@ static void lexer_lex(struct token **tres, struct lexer *lexer, struct exception
     tok_push(res, '\0');
 
     lexer_type_token(lexer, res);
+
+    nsh_info("token { type: %-10s repr: '%s' }", token_type_to_string(res->type), tok_repr(res));
 }
 
 char *lexer_lex_string(struct exception_catcher *catcher, struct wlexer *wlexer)
