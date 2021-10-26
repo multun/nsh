@@ -74,6 +74,7 @@ static struct wlexer_rule rules[] = {
     { "))",  WTOK_ARITH_CLOSE,    MODE_ARITH },
     { "$(",  WTOK_EXP_SUBSH_OPEN, EXP_MODES },
     { ")",   WTOK_EXP_SUBSH_CLOSE, MODE_EXP_SUBSHELL },
+    { "$",   WTOK_VARIABLE,            EXP_MODES },
     { "(",   WTOK_ARITH_GROUP_OPEN, MODE_ARITH | MODE_ARITH_GROUP },
     { ")",   WTOK_ARITH_GROUP_CLOSE, MODE_ARITH_GROUP },
     { "(",   WTOK_SUBSH_OPEN,  MODE_UNQUOTED | MODE_SUBSHELL | MODE_EXP_SUBSHELL },

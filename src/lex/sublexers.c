@@ -220,9 +220,21 @@ static enum wlexer_op sublexer_arith_group_close(struct lexer *lexer __unused,
     return LEXER_OP_RETURN;
 }
 
+static enum wlexer_op sublexer_variable(struct lexer *lexer __unused,
+                                   struct wlexer *wlexer __unused,
+                                   struct token *token,
+                                   struct wtoken *wtoken)
+{
+    wtoken_push(token, wtoken);
+    return LEXER_OP_CONTINUE;
+}
+
+
+
 sublexer sublexers[] = {
     [WTOK_EOF] = sublexer_eof,
     [WTOK_REGULAR] = sublexer_regular,
+    [WTOK_VARIABLE] = sublexer_variable,
     [WTOK_SQUOTE] = sublexer_squote,
     [WTOK_DQUOTE] = sublexer_dquote,
     [WTOK_BTICK] = sublexer_btick,

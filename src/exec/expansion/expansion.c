@@ -235,14 +235,10 @@ static enum wlexer_op expand_tilde(struct expansion_state *exp_state,
     return LEXER_OP_CONTINUE;
 }
 
-
 static enum wlexer_op expand_regular(struct expansion_state *exp_state,
                                      struct wlexer *wlexer,
                                      struct wtoken *wtoken)
 {
-    if (wlexer->mode != MODE_SINGLE_QUOTED && wtoken->ch[0] == '$')
-        return expand_variable(exp_state, wlexer, wtoken);
-
     /* handle special meaning of regular characters */
     switch (wtoken->ch[0]) {
     case '~':
@@ -472,6 +468,7 @@ static enum wlexer_op expand_arith_group_close(struct expansion_state *exp_state
 static f_expander expanders[] = {
     [WTOK_EOF] = expand_eof,
     [WTOK_REGULAR] = expand_regular,
+    [WTOK_VARIABLE] = expand_variable,
     [WTOK_SQUOTE] = expand_squote,
     [WTOK_DQUOTE] = expand_dquote,
     [WTOK_BTICK] = expand_btick,

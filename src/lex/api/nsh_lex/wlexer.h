@@ -19,6 +19,7 @@ enum wtoken_type
     WTOK_DQUOTE,  // "
     WTOK_BTICK,   // `
 
+    WTOK_VARIABLE,          // $
     WTOK_EXP_SUBSH_OPEN,    // $(
     WTOK_EXP_SUBSH_CLOSE,   // )
     WTOK_SUBSH_OPEN,        // (
