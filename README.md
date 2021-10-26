@@ -33,7 +33,7 @@ xdg-open builddir/doxygen_doc/index.html
 # Debugging
 
 ```
-meson setup --buildtype=debug --werror --warnlevel=3 debugbuild
+meson setup --buildtype=debug --werror -Db_sanitize=address debugbuild
 meson compile -C debugbuild
 gdb -arg debugbuild/nsh -c 'echo test'
 ```
