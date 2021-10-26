@@ -8,3 +8,7 @@
 
 #define container_of(ptr, type, member)			\
     (void *)((char *)(ptr) - offsetof(type, member))
+
+
+#define XSTRINGIFY(s) STRINGIFY(s)
+#define STRINGIFY(s) #s

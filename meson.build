@@ -31,10 +31,12 @@ nsh = executable(
     'nsh',
     'src/nsh.c',
     install: true,
+    c_args: ['-DNSH_LOG_DOMAIN=nsh'],
     dependencies: [
         nsh_io,
         nsh_interactive,
         nsh_exec,
+        nsh_utils,
     ],
 )
 

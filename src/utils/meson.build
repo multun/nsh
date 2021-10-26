@@ -12,6 +12,7 @@ utils_sources = [
     'signal_manager.c',
     'signal_pipe.c',
     'xalloc.c',
+    'logging.c',
 ]
 
 utils_api = include_directories('api', is_system: true)
@@ -20,6 +21,7 @@ utils_lib = library(
     'nsh_utils',
     utils_sources,
     install: true,
+    c_args: ['-DNSH_LOG_DOMAIN=utils'],
     include_directories: utils_api_includes,
 )
 

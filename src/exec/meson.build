@@ -49,6 +49,7 @@ exec_lib = library(
     'nsh_exec',
     exec_sources,
     install: true,
+    c_args: ['-DNSH_LOG_DOMAIN=exec'],
     include_directories: exec_api_includes,
     dependencies: [nsh_utils, nsh_io, nsh_parse, nsh_lex],
 )

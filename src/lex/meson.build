@@ -14,6 +14,7 @@ lex_lib = library(
     'nsh_lex',
     lexer_sources,
     install: true,
+    c_args: ['-DNSH_LOG_DOMAIN=lex'],
     include_directories: lex_api_includes,
     dependencies: [nsh_utils, nsh_io],
 )

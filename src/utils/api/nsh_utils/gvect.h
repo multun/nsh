@@ -79,6 +79,11 @@ static inline GVECT_TYPE GVECT_FNAME(get)(struct GVECT_NAME *vect, size_t i)
     return vect->data[i];
 }
 
+static inline GVECT_TYPE *GVECT_FNAME(at)(struct GVECT_NAME *vect, size_t i)
+{
+    return &vect->data[i];
+}
+
 static inline GVECT_TYPE *GVECT_FNAME(last)(struct GVECT_NAME *vect)
 {
     return &vect->data[vect->size - 1];

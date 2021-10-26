@@ -1,7 +1,7 @@
 #include <nsh_interactive/interactive_repl.h>
 #include <nsh_interactive/cli.h>
 #include <nsh_exec/repl.h>
-
+#include <nsh_utils/logging.h>
 #include <locale.h>
 
 
@@ -44,6 +44,9 @@
 int main(int argc, char *argv[])
 {
     int rc;
+    nsh_log_setup_environ();
+
+    nsh_debug("starting up");
 
     /* parse the arguments */
     struct cli_options options;
@@ -67,5 +70,6 @@ int main(int argc, char *argv[])
     /* cleanup */
     repl_destroy(&repl);
     cstream_free(cs);
+    nsh_log_teardown();
     return rc;
 }

@@ -19,6 +19,7 @@ interactive_lib = library(
     'nsh_interactive',
     interactive_sources,
     install: true,
+    c_args: ['-DNSH_LOG_DOMAIN=interactive'],
     include_directories: interactive_api,
     dependencies: [nsh_exec, nsh_utils, nsh_io, readline_dep],
 )

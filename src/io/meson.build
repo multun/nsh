@@ -14,6 +14,7 @@ io_lib = library(
     'nsh_io',
     io_sources,
     install: true,
+    c_args: ['-DNSH_LOG_DOMAIN=io'],
     include_directories: io_api_includes,
     dependencies: [nsh_utils, readline_dep],
 )

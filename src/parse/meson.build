@@ -25,6 +25,7 @@ parse_lib = library(
     'nsh_parse',
     parser_sources,
     install: true,
+    c_args: ['-DNSH_LOG_DOMAIN=parse'],
     include_directories: parse_api_includes,
     dependencies: [nsh_lex, nsh_utils, nsh_io],
 )
