@@ -10,25 +10,25 @@ enum wtoken_type
 {
     // used as a placeholder
     WTOK_UNKNOWN = 0,
+    WTOK_REGULAR, // a simple character
+    WTOK_ESCAPE,  // <backslash>
+    WTOK_EOF,     // models the end of file
 
     // various single chars
-    WTOK_SQUOTE,
-    WTOK_DQUOTE,
-    WTOK_BTICK,
-    WTOK_ESCAPE,
-    WTOK_EOF,
+    WTOK_SQUOTE,  // '
+    WTOK_DQUOTE,  // "
+    WTOK_BTICK,   // `
 
-    WTOK_EXP_SUBSH_OPEN,
-    WTOK_EXP_SUBSH_CLOSE, // single char
-    WTOK_SUBSH_OPEN, // single char
-    WTOK_SUBSH_CLOSE, // single char
-    WTOK_ARITH_OPEN,
-    WTOK_ARITH_CLOSE,
-    WTOK_ARITH_GROUP_OPEN,
-    WTOK_ARITH_GROUP_CLOSE,
-    WTOK_EXP_OPEN,
-    WTOK_EXP_CLOSE, // single char
-    WTOK_REGULAR, // single char
+    WTOK_EXP_SUBSH_OPEN,    // $(
+    WTOK_EXP_SUBSH_CLOSE,   // )
+    WTOK_SUBSH_OPEN,        // (
+    WTOK_SUBSH_CLOSE,       // )
+    WTOK_ARITH_OPEN,        // $((
+    WTOK_ARITH_CLOSE,       // ))
+    WTOK_ARITH_GROUP_OPEN,  // (
+    WTOK_ARITH_GROUP_CLOSE, // )
+    WTOK_EXP_OPEN,          // ${
+    WTOK_EXP_CLOSE,         // }
 };
 
 struct wtoken
