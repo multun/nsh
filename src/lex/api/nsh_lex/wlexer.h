@@ -6,52 +6,55 @@
 #include <nsh_io/cstream.h>
 #include <nsh_utils/attr.h>
 
+enum wtoken_type
+{
+    // used as a placeholder
+    WTOK_UNKNOWN,
+
+    // various single chars
+    WTOK_SQUOTE,
+    WTOK_DQUOTE,
+    WTOK_BTICK,
+    WTOK_ESCAPE,
+    WTOK_EOF,
+
+    WTOK_EXP_SUBSH_OPEN,
+    WTOK_EXP_SUBSH_CLOSE, // single char
+    WTOK_SUBSH_OPEN, // single char
+    WTOK_SUBSH_CLOSE, // single char
+    WTOK_ARITH_OPEN,
+    WTOK_ARITH_CLOSE,
+    WTOK_ARITH_GROUP_OPEN,
+    WTOK_ARITH_GROUP_CLOSE,
+    WTOK_EXP_OPEN,
+    WTOK_EXP_CLOSE, // single char
+    WTOK_REGULAR, // single char
+};
+
 struct wtoken
 {
     char ch[4];
-
-    enum wtoken_type
-    {
-        // used as a placeholder
-        WTOK_UNKNOWN,
-
-        // various single chars
-        WTOK_SQUOTE,
-        WTOK_DQUOTE,
-        WTOK_BTICK,
-        WTOK_ESCAPE,
-        WTOK_EOF,
-
-        WTOK_EXP_SUBSH_OPEN,
-        WTOK_EXP_SUBSH_CLOSE, // single char
-        WTOK_SUBSH_OPEN, // single char
-        WTOK_SUBSH_CLOSE, // single char
-        WTOK_ARITH_OPEN,
-        WTOK_ARITH_CLOSE,
-        WTOK_ARITH_GROUP_OPEN,
-        WTOK_ARITH_GROUP_CLOSE,
-        WTOK_EXP_OPEN,
-        WTOK_EXP_CLOSE, // single char
-        WTOK_REGULAR, // single char
-    } type;
+    enum wtoken_type type;
 };
+
+enum wlexer_mode
+{
+    MODE_UNQUOTED = 1,
+    MODE_SINGLE_QUOTED = 2,
+    MODE_DOUBLE_QUOTED = 4,
+    MODE_EXP_SUBSHELL = 8, // $()
+    MODE_SUBSHELL = 16, // ()
+    MODE_ARITH = 32,// $(( ))
+    MODE_ARITH_GROUP = 64, // $(( .. () .. ))
+    MODE_EXPANSION = 128, // ${}
+};
+
+#define WLEXER_ARITH_MODES (MODE_ARITH | MODE_ARITH_GROUP)
 
 struct wlexer
 {
     struct cstream *cs;
-    enum wlexer_mode
-    {
-        MODE_UNQUOTED = 0,
-        MODE_SINGLE_QUOTED,
-        MODE_DOUBLE_QUOTED,
-        MODE_EXP_SUBSHELL, // $()
-        MODE_SUBSHELL, // ()
-        MODE_ARITH,// $(( ))
-        MODE_ARITH_GROUP, // $(( .. () .. ))
-        MODE_EXPANSION, // ${}
-    } mode;
-
-    // lookahead buffer
+    enum wlexer_mode mode;
     struct wtoken lookahead;
 };
 
