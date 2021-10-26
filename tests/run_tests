@@ -6,9 +6,11 @@ import difflib
 import tempfile
 import json
 
+from enum import Enum
 from collections import namedtuple
 from argparse import ArgumentParser
 from pathlib import Path
+from dataclasses import dataclass
 
 
 tests_path = Path(__file__).resolve().parent
@@ -19,33 +21,36 @@ command_san = ['valgrind', '-q', '--error-exitcode=100',
                '--leak-check=full', '--show-leak-kinds=all', '--']
 
 
-TIMEOUT_DEFAULT = 2
+DEFAULT_TIMEOUT = 2
 
 
 _isatty = sys.stdout.isatty()
 
 
-def highlight(string, status=False, bold=False):
+class Color(Enum):
+    RED = "31"
+    GREEN = "32"
+    BLUE = "34"  # 94 is bright blue
+
+
+def highlight(string, color: Color, bold=False):
     if not _isatty:
         return string
-    attr = ['32' if status else '31']
+    color_code = color.value
     if bold:
-        attr.append('1')
-    return '\x1b[{}m{}\x1b[0m'.format(';'.join(attr), string)
+        color_code += ';1'
+    return f"\x1b[{color_code}m{string}\x1b[0m"
 
 
 def _test_parser():
     parser = ArgumentParser(description='Runs the nsh test suite')
     paa = parser.add_argument
 
-    paa('-t', '--timeout', action='store', type=int, default=TIMEOUT_DEFAULT,
+    paa('-t', '--timeout', action='store', type=int, default=DEFAULT_TIMEOUT,
         help='Define the maximum time a test can run for, in seconds')
 
-    paa('-l', '--list', action='store_true',
-        help='List all available modules')
-
-    paa('-c', '--category', action='store', default=None,
-        help='Only run the specified category')
+    paa('-l', '--list-tests', action='store_true',
+        help='List all tests')
 
     paa('-s', '--sanity', action='store_true',
         help='Run the test suite with sanity checks')
@@ -60,52 +65,67 @@ def _test_parser():
     return parser
 
 
-class TestResult():
-    @classmethod
-    def from_dict(self, d):
+@dataclass
+class TestResult:
+    stdout: bytes
+    stderr: bytes
+    retcode: int
+
+    @staticmethod
+    def from_dict(d):
         return TestResult(d['stdout'].encode('utf-8'),
                           d['stderr'].encode('utf-8'),
-                          str(d['retcode']))
+                          int(d['retcode']))
 
-    @classmethod
-    def from_proc(self, d):
-        return TestResult(d.stdout, d.stderr, str(d.returncode))
+    @staticmethod
+    def from_proc(proc):
+        return TestResult(
+            proc.stdout,
+            proc.stderr,
+            int(proc.returncode)
+        )
 
-    def __init__(self, stdout, stderr, retcode):
-        self.stdout = stdout
-        self.stderr = stderr
-        self.retcode = retcode
 
+@dataclass
+class Test:
+    name: str
+    path: Path
+    is_disabled: bool
+    description: str
+    stdin: str
+    expected: TestResult
 
-class Test():
-    def __init__(self, path):
-        self.path = path
-        self.name = path.stem
-        test_dict = json.loads(path.read_bytes().decode('utf-8'))
-        self.description = test_dict['desc']
-        self.stdin = test_dict['stdin']
-        self.expected = TestResult.from_dict(test_dict)
+    @staticmethod
+    def from_path(path):
+        data = json.loads(path.read_text())
+        is_disabled = data.pop("is_disabled", False)
+        return Test(
+            path.stem,
+            path,
+            is_disabled,
+            data.pop("desc"),
+            data.pop("stdin"),
+            TestResult.from_dict(data)
+        )
 
 
 def discover_suite(suite_path):
-    return [Test(tpath)
-            for tpath in suite_path.glob('*.json') if tpath.is_file()]
+    return [Test.from_path(tpath)
+            for tpath in suite_path.glob('*.json')
+            if tpath.is_file()]
 
 
-def should_run(args, cat):
-    return args.category is None or cat.name == args.category
+def discover_tests(options):
+    for suite_path in ipath.iterdir():
+        if not suite_path.is_dir():
+            continue
+        yield (suite_path, discover_suite(suite_path))
 
 
-def discover_integration_tests(args):
-    return [(suite_path, discover_suite(suite_path))
-            for suite_path in ipath.iterdir()
-            if suite_path.is_dir() and should_run(args, suite_path)]
-
-
-def run_process(conf, args, stdin):
+def run_process(conf, options, stdin):
     try:
         with tempfile.TemporaryDirectory() as tempdir:
-            proc = subprocess.run(args, input=stdin,
+            proc = subprocess.run(options, input=stdin,
                                   timeout=conf.timeout, cwd=tempdir,
                                   stderr=subprocess.PIPE,
                                   stdout=subprocess.PIPE)
@@ -114,42 +134,44 @@ def run_process(conf, args, stdin):
         return None
 
 
-def diffio(mine, ref):
-    res = difflib.diff_bytes(difflib.unified_diff, [mine], [ref],
-                             fromfile=b"nsh", tofile=b"ref")
-    return '\n'.join(b.decode('unicode_escape') for b in res)
+def diff_bytes_repr(result, expected):
+    bytes_diff = difflib.diff_bytes(
+        difflib.unified_diff,
+        [result], [expected],
+        fromfile=b"result", tofile=b"expected",
+        lineterm=b"",
+    )
+    return b"\n".join(bytes_diff).decode('raw_unicode_escape')
 
 
-Comparison = namedtuple('Comparison', ['name', 'obj'])
+@dataclass
+class Mismatch:
+    name: str
+    error_message: str
 
 
-def compare_results(pa, pb):
-    if pa is None:
-        return [Comparison('timeout', 'timeout expired')]
+def compare_results(result, expected):
+    if result is None:
+        return [Mismatch('timeout', 'timed out')]
 
-    def diff_pair(pair):
-        return diffio(*pair)
+    mismatches = []
 
-    def get_pair(attr):
-        return map(lambda s: getattr(s, attr), (pa, pb))
+    stdout_diff = diff_bytes_repr(result.stdout, expected.stdout)
+    if stdout_diff:
+        mismatches.append(Mismatch("stdout", stdout_diff))
 
-    def compare_stream(stream):
-        return Comparison(stream, diff_pair(get_pair(stream)))
+    if bool(result.stderr) != bool(expected.stderr):
+        def decs(p):
+            return 'wrote' if p.stderr else 'did not write'
+        mismatches.append(Mismatch('stderr', (
+            f'tested program {decs(result)} on stderr, '
+            f'whereas reference {decs(expected)}'
+        )))
 
-    res = [compare_stream('stdout')]
-    stderr_diff = bool(pa.stderr) != bool(pb.stderr)
-
-    def decs(p):
-        return 'wrote' if p.stderr else 'did not write'
-
-    stderr_msg = (f'tested program {decs(pa)} on stderr, '
-                  f'whereas reference {decs(pb)}') if stderr_diff else ''
-
-    res.append(Comparison('stderr', stderr_msg))
-    retcode_res = '' if pa.retcode == pb.retcode \
-                  else f'{pa.retcode} != {pb.retcode}'
-    res.append(Comparison('return code', retcode_res))
-    return res
+    if result.retcode != expected.retcode:
+        retcode_message = f"expected {expected.retcode}, got {result.retcode}"
+        mismatches.append(Mismatch('return code', retcode_message))
+    return mismatches
 
 
 def gen_command(conf):
@@ -162,34 +184,61 @@ def gen_command(conf):
 def run_test(conf, test):
     stdin = test.stdin.encode('utf-8')
     cmd = gen_command(conf)
-    return compare_results(run_process(conf, cmd, stdin), test.expected)
+    result = run_process(conf, cmd, stdin)
+    return compare_results(result, test.expected)
 
 
-def format_test(conf, test):
-    print(f'Currently running {test.name}...', end='')
-    res = run_test(args, test)
-    success = not any(comp.obj for comp in res)
-    prefix = "\x1b[2K\r" if _isatty else '\n'
-    tag = highlight('[OK]' if success else '[KO]', success, True)
-    print(f"{prefix}{tag}\t{test.name}")
-    if not success and not conf.quiet:
-        print(f"\n\t### {test.description}\n")
-        for comp in (comp for comp in res if comp.obj):
-            failmsg = f'>>> mismatched {comp.name} <<<'
-            print(highlight(failmsg, False, True))
-            print(highlight('<' * len(failmsg), False, True))
-            print(highlight(comp.obj, success, True))
+def print_result_header(test, mismatches):
+    if test.is_disabled:
+        tag = "[DISABLED]"
+        color = Color.BLUE
+    elif mismatches:
+        tag = "[KO]"
+        color = Color.RED
+    else:
+        tag = "[OK]"
+        color = Color.GREEN
+    colored_tag = highlight(tag, color, True)
+    print(f"{colored_tag}\t{test.name}")
+
+
+def log_test(conf, test, mismatches):
+    print_result_header(test, mismatches)
+
+    if not mismatches or conf.quiet or test.is_disabled:
+        return
+
+    # print a detailed error
+    print(f"\n\t### {test.description}\n")
+    for mismatch in mismatches:
+        print(highlight(f'>>> mismatched {mismatch.name} <<<', Color.RED, True))
+        print(mismatch.error_message)
+        print()
+
+
+clear_line = "\x1b[2K\r" if _isatty else '\n'
+
+
+def process_test(options, test):
+    print(f'Running {test.name}...', end='')
+    mismatches = run_test(options, test)
+    print(clear_line, end='')
+    log_test(options, test, mismatches)
 
 
 if __name__ == '__main__':
-    args = _test_parser().parse_args()
-    args.target = str(Path(args.target).resolve())
-    tests = discover_integration_tests(args)
-    if args.list:
-        for suite_name in (suite.name for suite, _ in tests):
-            print(suite_name)
+    options = _test_parser().parse_args()
+    options.target = str(Path(options.target).resolve())
+    tests = list(discover_tests(options))
+
+    if options.list_tests:
+        for suite, suite_tests in tests:
+            print(f"{suite.name}:")
+            for test in suite_tests:
+                print(f"  - {test.name}")
         exit(0)
+
     for suite_path, suite_tests in tests:
-        print(f'\n\t>> {highlight(suite_path.name, True, False)} <<', end='\n\n')
+        print(f'\n\t>> {highlight(suite_path.name, Color.GREEN, False)} <<', end='\n\n')
         for test in suite_tests:
-            format_test(args, test)
+            process_test(options, test)
