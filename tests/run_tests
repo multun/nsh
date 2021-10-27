@@ -219,11 +219,12 @@ def log_test(conf, test, mismatches):
 clear_line = "\x1b[2K\r" if _isatty else '\n'
 
 
-def process_test(options, test):
+def process_test(options, test) -> int:
     print(f'Running {test.name}...', end='')
     mismatches = run_test(options, test)
     print(clear_line, end='')
     log_test(options, test, mismatches)
+    return len(mismatches)
 
 
 if __name__ == '__main__':
@@ -238,7 +239,9 @@ if __name__ == '__main__':
                 print(f"  - {test.name}")
         exit(0)
 
+    total_mismatches = 0
     for suite_path, suite_tests in tests:
         print(f'\n\t>> {highlight(suite_path.name, Color.GREEN, False)} <<', end='\n\n')
         for test in suite_tests:
-            process_test(options, test)
+            total_mismatches += process_test(options, test)
+    exit(bool(total_mismatches))
