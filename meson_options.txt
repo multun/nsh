@@ -11,3 +11,17 @@ option(
 	min: 0,
 	value: 200,
 )
+
+option(
+	'force_check',
+	type: 'boolean',
+	value: false,
+	description: 'always run the testsuite'
+)
+
+option(
+	'check_args',
+	type: 'array',
+	description: 'Pass arguments to the test runner',
+	value: []
+)

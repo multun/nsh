@@ -40,6 +40,19 @@ nsh = executable(
     ],
 )
 
+test_runner = meson.source_root() / 'tests/run_tests'
+check = custom_target(
+		'check',
+		command: [test_runner, nsh] + get_option('check_args'),
+        console: true,  # otherwise, the output is captured and nothing works
+        # setting -Dforce_check=true forces the tests to run on built
+        build_by_default: get_option('force_check'),
+        # this rule doesn't actually output a file called check,
+        # but it doesn't matter as the rule is always built
+		output: 'check',
+        build_always_stale: true,
+)
+
 if get_option('doc')
 	subdir('doc')
 endif
