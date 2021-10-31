@@ -2,7 +2,7 @@
 
 #include <nsh_lex/lexer.h>
 #include <nsh_utils/alloc.h>
-#include <nsh_utils/hash_table.h>
+#include <nsh_utils/hashmap.h>
 #include <nsh_utils/exception.h>
 #include <nsh_utils/lineinfo.h>
 #include "wordlist.h"
@@ -223,7 +223,7 @@ enum bool_type
     BOOL_OR,
     BOOL_AND,
 };
- 
+
 struct shast_bool_op
 {
     struct shast base;
@@ -332,7 +332,7 @@ DEFINE_AST_TYPE(shast_for, SHNODE_FOR)
 struct shast_function
 {
     struct shast base;
-    struct hash_head hash;
+    struct hashmap_item hash;
     struct shast *body; /**< the function body */
 };
 

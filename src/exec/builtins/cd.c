@@ -9,7 +9,7 @@
 #include <nsh_exec/environment.h>
 #include <nsh_utils/alloc.h>
 #include <nsh_utils/mprintf.h>
-#include <nsh_utils/hash_table.h>
+#include <nsh_utils/hashmap.h>
 #include <nsh_lex/variable.h>
 #include <nsh_utils/strutils.h>
 #include <nsh_utils/pathutils.h>

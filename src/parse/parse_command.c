@@ -91,7 +91,7 @@ void parse_funcdec(struct shast **res, struct lexer *lexer, struct exception_cat
 {
     struct shast_function *func = shast_function_attach(res, lexer);
     struct token *word = lexer_pop(lexer, catcher);
-    hash_head_init(&func->hash, tok_buf(word));
+    hashmap_item_init(&func->hash, tok_buf(word));
     tok_free(word, false);
     parser_consume(lexer, TOK_LPAR, catcher);
     parser_consume(lexer, TOK_RPAR, catcher);

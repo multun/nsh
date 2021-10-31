@@ -110,7 +110,7 @@ void for_free(struct shast *ast)
 void function_free(struct shast *ast)
 {
     struct shast_function *func = (struct shast_function *)ast;
-    free(hash_head_key(&func->hash));
+    free(func->hash.key);
     shast_ref_put(func->body);
     free(func);
 }

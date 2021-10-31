@@ -2,7 +2,7 @@
 
 #include <stdbool.h>
 
-#include <nsh_utils/hash_table.h>
+#include <nsh_utils/hashmap.h>
 #include <nsh_utils/refcnt.h>
 #include <nsh_utils/signal_manager.h>
 #include <nsh_exec/value.h>
@@ -14,7 +14,7 @@ struct cli_options;
 
 struct shexec_variable
 {
-    struct hash_head hash;
+    struct hashmap_item hash;
     bool exported;
     struct sh_value *value;
 };
@@ -22,7 +22,7 @@ struct shexec_variable
 
 static inline void shexec_variable_destroy(struct shexec_variable *var)
 {
-    free(hash_head_key(&var->hash));
+    free(var->hash.key);
     sh_value_put(var->value);
 }
 
@@ -70,8 +70,8 @@ struct environment
 
     f_builtin (*find_builtin)(const char *name);
 
-    struct hash_table variables;
-    struct hash_table functions;
+    struct hashmap variables;
+    struct hashmap functions;
     bool shopts[SHOPT_COUNT];
 
     // the progname is distinct from the arguments, for example

@@ -4,6 +4,7 @@
 #include <nsh_exec/environment.h>
 #include <nsh_exec/expansion.h>
 #include <nsh_lex/variable.h>
+#include <nsh_utils/hashmap_iterators.h>
 #include <nsh_utils/alloc.h>
 #include <nsh_utils/macros.h>
 
@@ -34,15 +35,15 @@ static int export_var(struct environment *env, char *raw_export_expr, bool expor
     free(export_expr);
 
     struct shexec_variable *var;
-    struct hash_head **insertion_pos;
-    struct hash_head *hash = hash_table_find(&env->variables, &insertion_pos, var_name);
+    struct hashmap_item **insertion_pos;
+    struct hashmap_item *hash = hashmap_find(&env->variables, &insertion_pos, var_name);
     if (hash == NULL)
     {
         var = zalloc(sizeof(*var));
-        hash_head_init(&var->hash, var_name);
+        hashmap_item_init(&var->hash, var_name);
         var->exported = exported;
         var->value = var_value;
-        hash_table_insert(&env->variables, insertion_pos, &var->hash);
+        hashmap_insert(&env->variables, insertion_pos, &var->hash);
     }
     else
     {
@@ -61,14 +62,14 @@ static int export_var(struct environment *env, char *raw_export_expr, bool expor
 
 static void export_print(struct environment *env)
 {
-    struct hash_table_it it;
+    struct hashmap_it it;
     for_each_hash(it, &env->variables)
     {
         struct shexec_variable *var = container_of(it.cur, struct shexec_variable, hash);
         if (!var->exported)
             continue;
 
-        const char *var_name = hash_head_key(&var->hash);
+        const char *var_name = var->hash.key;
         if (var->value) {
             struct sh_value *value = var->value;
             if (!sh_value_is_string(value))

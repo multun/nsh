@@ -106,7 +106,7 @@ void pipeline_print(FILE *f, struct shast *ast)
 void function_print(FILE *f, struct shast *ast)
 {
     struct shast_function *function = (struct shast_function *)ast;
-    print_node(f, function, hash_head_key(&function->hash));
+    print_node(f, function, function->hash.key);
     ast_print_rec(f, function->body);
     print_rel(f, function, function->body, NULL);
 }

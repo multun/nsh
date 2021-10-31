@@ -16,14 +16,14 @@ int builtin_unset(struct environment *env, struct exception_catcher *catcher __u
             return 1;
         }
 
-        struct hash_head *variable_head = hash_table_find(&env->variables, NULL, var_name);
+        struct hashmap_item *variable_head = hashmap_find(&env->variables, NULL, var_name);
 
         /* unsetting already unset variables is fine, is just does nothing */
         if (variable_head == NULL)
             continue;
 
         /* remove the variable from the hash map */
-        hash_table_remove(&env->variables, variable_head);
+        hashmap_remove(&env->variables, variable_head);
 
         /* destroy the variable */
         struct shexec_variable *variable = container_of(variable_head, struct shexec_variable, hash);

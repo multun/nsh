@@ -12,7 +12,7 @@
 #include <nsh_exec/environment.h>
 #include <nsh_exec/managed_fork.h>
 #include <nsh_exec/expansion.h>
-#include <nsh_utils/hash_table.h>
+#include <nsh_utils/hashmap.h>
 #include <nsh_utils/macros.h>
 
 
@@ -87,7 +87,7 @@ static void function_call_cleanup(struct environment *env, struct shast_function
 static int cmd_run_command(struct environment *env, struct exception_catcher *catcher, struct shast_function * volatile *func)
 {
     /* look for functions */
-    struct hash_head *func_hash = hash_table_find(&env->functions, NULL, env->argv[0]);
+    struct hashmap_item *func_hash = hashmap_find(&env->functions, NULL, env->argv[0]);
     if (func_hash)
     {
         *func = container_of(func_hash, struct shast_function, hash);

@@ -1,7 +1,7 @@
 utils_sources = [
     'exception.c',
     'evect.c',
-    'hash_table.c',
+    'hashmap.c',
     'lineinfo.c',
     'mprintf.c',
     'parsing.c',
