@@ -9,34 +9,12 @@
 #include <unistd.h>
 #include <err.h>
 
-FILE *history_open(void)
+
+void history_init(struct repl *ctx, FILE *history_file)
 {
-    char *history_path = home_suffix("/.nsh_history");
-    FILE *ret = fopen(history_path, "a+");
-    free(history_path);
-
-    if (!ret) {
-        warnx("couldn't open history file");
-        return NULL;
-    }
-
-    if (ret && fcntl(fileno(ret), F_SETFD, FD_CLOEXEC) < 0)
-        warn("couldn't set CLOEXEC on history file");
-    return ret;
-}
-
-void history_init(struct repl *ctx)
-{
-    /* do not use repl_is_interactive, we don't care about
-       forked processes removing interactivity */
-    if (!ctx->cs->interactive) {
-        ctx->history = NULL;
-        return;
-    }
-
     // TODO: make this configurable
     evect_init(&ctx->line_buffer, 100);
-    ctx->history = history_open();
+    ctx->history = history_file;
 }
 
 void history_update(struct repl *ctx)
@@ -80,6 +58,10 @@ void history_update(struct repl *ctx)
         evect_reset(cmd_vect);
 }
 
+/**
+** \brief Cleans up the history context.
+**        This function can be called even if history_init wasn't
+*/
 void history_destroy(struct repl *ctx)
 {
     /* do not use repl_is_interactive, we don't care about
@@ -87,6 +69,8 @@ void history_destroy(struct repl *ctx)
     if (!ctx->cs->interactive)
         return;
 
+    // calling this function is fine because
+    // it doesn't do anything if size + data are null
     evect_destroy(&ctx->line_buffer);
 
     if (ctx->history) {

@@ -138,7 +138,7 @@ static void environment_free(struct refcnt *refcnt)
     free(env);
 }
 
-struct environment *environment_create(struct cli_options *arg_cont)
+struct environment *environment_load(struct cli_options *arg_cont)
 {
     struct environment *env = zalloc(sizeof(*env));
     ref_init(&env->refcnt, environment_free);

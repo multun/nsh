@@ -1,11 +1,29 @@
 #include <nsh_exec/history.h>
 #include <nsh_exec/environment.h>
 #include <nsh_utils/alloc.h>
+#include <nsh_utils/pathutils.h>
 
 #include <stdio.h>
 #include <readline/history.h>
 #include <err.h>
 #include <string.h>
+#include <fcntl.h>
+
+FILE *history_open(void)
+{
+    char *history_path = home_suffix("/.nsh_history");
+    FILE *ret = fopen(history_path, "a+");
+    free(history_path);
+
+    if (!ret) {
+        warnx("couldn't open history file");
+        return NULL;
+    }
+
+    if (ret && fcntl(fileno(ret), F_SETFD, FD_CLOEXEC) < 0)
+        warn("couldn't set CLOEXEC on history file");
+    return ret;
+}
 
 static int history_format(struct environment *env)
 {

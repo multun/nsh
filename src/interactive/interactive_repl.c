@@ -3,77 +3,77 @@
 #include <nsh_utils/alloc.h>
 #include <nsh_interactive/interactive_repl.h>
 #include <readline/history.h>
+#include <nsh_exec/history.h>
+#include <nsh_utils/pathutils.h>
 
-#include <err.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-
-#include "cstream_readline.h"
-
-
-int cstream_dispatch_init(struct repl *repl, struct cstream **cs, struct cli_options *arg_cont)
-{
-    int remaining_argc = arg_cont->argc - arg_cont->argc_base;
-
-    // if there are remaining arguments after options parsing,
-    // set the program name to the first argument and higher the base
-    if (remaining_argc) {
-        arg_cont->progname_ind = arg_cont->argc_base;
-        arg_cont->argc_base++;
-    }
-
-    // if the user passed -c, read from the given string
-    if (arg_cont->src == SHSRC_COMMAND) {
-        struct cstream_string *res = zalloc(sizeof(*res));
-        cstream_string_init(res, arg_cont->command);
-        res->base.line_info = LINEINFO("<command line>", NULL);
-        *cs = &res->base;
-        return 0;
-    }
-
-    // if the user provided a file name (and maybe arguments), read the file
-    if (remaining_argc) {
-        char *program_name = arg_cont->argv[arg_cont->progname_ind];
-        FILE *file;
-        int errcode;
-        if ((errcode = cstream_file_setup(&file, program_name, false)))
-            return errcode;
-
-        struct cstream_file *res = zalloc(sizeof(*res));
-        cstream_file_init(res, file, true);
-        res->base.line_info = LINEINFO(program_name, NULL);
-        *cs = &res->base;
-        return 0;
-    }
-
-    // if the input is interactive, use readline
-    if (isatty(STDIN_FILENO)) {
-        struct cstream_readline *res = zalloc(sizeof(*res));
-        cstream_readline_init(res, repl);
-        res->base.line_info = LINEINFO("<interactive input>", NULL);
-        *cs = &res->base;
-        return 0;
-    }
-
-    // otherwise, read stdin in a non-interactive way
-    struct cstream_file *res = zalloc(sizeof(*res));
-    cstream_file_init(res, stdin, false);
-    res->base.line_info = LINEINFO("<stdin>", NULL);
-    *cs = &res->base;
-    return 0;
-}
-
-
-BUILTINS_DECLARE(history)
+#include "cstream_dispatch.h"
+#include "history.h"
 
 
 static f_builtin find_builtin_with_history(const char *name) {
     if (strcmp(name, "history") == 0)
         return builtin_history;
     return find_default_builtin(name);
+}
+
+
+static bool load_rc(struct environment *env, const char *path, const char *source)
+{
+    struct repl ctx;
+
+    FILE *file = fopen(path, "r");
+    int res;
+    if ((res = cstream_file_setup(&file, path, true)))
+        return 0; // not being able to load an rc file is ok
+
+    struct cstream_file cs;
+    cstream_file_init(&cs, file, true);
+    cs.base.line_info = LINEINFO(source, NULL);
+
+    repl_init(&ctx, &cs.base, env);
+
+    struct repl_result repl_res;
+    repl_run(&repl_res, &ctx);
+
+    repl_destroy(&ctx);
+    cstream_destroy(ctx.cs);
+
+    /* exiting in an rc file causes the shell to exit */
+    return repl_called_exit(&repl_res);
+}
+
+static bool load_all_rc(struct repl *ctx)
+{
+    const char global_rc[] = "/etc/nshrc";
+    if (load_rc(ctx->env, global_rc, global_rc))
+        return true;
+
+    char *rc_path = home_suffix("/.nshrc");
+    bool should_exit = load_rc(ctx->env, rc_path, "~/.nshrc");
+    free(rc_path);
+    return should_exit;
+}
+
+
+static bool repl_load(int *rc, struct repl *ctx, struct cstream *cs, struct cli_options *arg_ctx)
+{
+    struct environment *env = environment_load(arg_ctx);
+    repl_init(ctx, cs, env);
+    environment_put(env);
+
+    // skip loading RC files and setting up the history
+    // if the shell isn't interactive
+    if (!ctx->cs->interactive)
+        return false;
+
+    // if loading the RC files failed, return the status code of the repl
+    if (!arg_ctx->norc && load_all_rc(ctx)) {
+        *rc = ctx->env->code;
+        return true;
+    }
+
+    history_init(ctx, history_open());
+    return false;
 }
 
 
@@ -86,7 +86,7 @@ int interactive_repl_init(struct repl *repl, struct cli_options *options, struct
         goto err_cstream;
 
     /* initialize the context the repl will work with */
-    if (repl_init(&rc, repl, *cs, options))
+    if (repl_load(&rc, repl, *cs, options))
         goto err_context;
 
     repl->env->find_builtin = find_builtin_with_history;

@@ -102,7 +102,7 @@ struct environment
 ** \param arg_cont the command line arguments to read from
 ** \return a newly allocated environment
 */
-struct environment *environment_create(struct cli_options *arg_cont);
+struct environment *environment_load(struct cli_options *arg_cont);
 
 static inline void environment_get(struct environment *env)
 {

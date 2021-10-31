@@ -4,6 +4,7 @@ interactive_sources = [
     'readline_wrapped.c',
     'interactive_repl.c',
     'parse_cli_options.c',
+    'cstream_dispatch.c',
 ]
 
 cc = meson.get_compiler('c')

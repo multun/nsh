@@ -137,20 +137,13 @@ static inline bool repl_called_exit(const struct repl_result *repl_res)
 void repl_run(struct repl_result *res, struct repl *ctx);
 
 /**
-** \brief initializes a context from command line arguments
-** \details this routine also loads rc files, which may fork and exit, thus
-**   explaining why this function may require the program to exit
-** \param rc the expected return code
-** \param cont the context to initialize
-** \param cs the cstream to read from during dotfiles evaluation
-** \param arg_cont the arguments to read from
-** \returns whether the program should exit
-*/
-bool repl_init(int *rc, struct repl *cont, struct cstream *cs, struct cli_options *arg_cont);
-void repl_init_from_env(struct repl *cont, struct cstream *cs, struct environment *env);
-
-/**
 ** \brief destroys an exiting context and all the ressources allocated
 **   by its init twin
 */
 void repl_destroy(struct repl *cont);
+
+
+/**
+** \brief initializes the repl
+*/
+void repl_init(struct repl *ctx, struct cstream *cs, struct environment *env);

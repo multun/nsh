@@ -20,7 +20,7 @@ static int subshell_child(struct expansion_state *exp_state, const char *str)
     cs.base.line_info = LINEINFO("<subshell>", exp_state->line_info);
 
     struct repl ctx;
-    repl_init_from_env(&ctx, &cs.base, expansion_state_env(exp_state));
+    repl_init(&ctx, &cs.base, expansion_state_env(exp_state));
 
     struct repl_result repl_res;
     repl_run(&repl_res, &ctx);

@@ -21,7 +21,7 @@ static int source_file(struct exception_catcher *catcher, struct environment *en
     cstream_file_init(&cs, file, true);
 
     struct repl ctx;
-    repl_init_from_env(&ctx, &cs.base, env);
+    repl_init(&ctx, &cs.base, env);
 
     struct repl_result repl_res;
     repl_run(&repl_res, &ctx);

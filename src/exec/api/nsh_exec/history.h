@@ -5,17 +5,9 @@
 #include <stdio.h>
 
 /**
-** \brief opens the history file
-** \return a handler to the history file
-*/
-FILE *history_open(void);
-
-/**
 ** \brief initializes the history context
-** \details depending on the context, it may either initialize the history
-**   handler or do nothing
 */
-void history_init(struct repl *ctx);
+void history_init(struct repl *ctx, FILE *history_file);
 
 /**
 ** \brief updates the history

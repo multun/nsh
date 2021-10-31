@@ -13,6 +13,10 @@
 #include "cstream_readline.h"
 
 
+static const char default_unset_ps1[] = "nsh$ ";
+static const char default_unset_ps2[] = "> ";
+
+
 static char *prompt_get(struct cstream_readline *cs)
 {
     struct repl *repl = cs->repl;
@@ -21,11 +25,11 @@ static char *prompt_get(struct cstream_readline *cs)
     const char *default_prompt;
     if (repl->line_start) {
         prompt_var_name = "PS1";
-        default_prompt = "nsh> ";
+        default_prompt = default_unset_ps1;
         repl->line_start = false;
     } else {
         prompt_var_name = "PS2";
-        default_prompt = "> ";
+        default_prompt = default_unset_ps2;
     }
 
     struct sh_string *unexpanded = environment_var_get_string(repl->env, prompt_var_name);
