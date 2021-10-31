@@ -1,7 +1,0 @@
-{
-    "desc": "Redirect stdout to some fd in a subshell and back again",
-    "stdin": "(echo test >&3) 3>&1",
-    "stdout": "test\n",
-    "stderr": "",
-    "retcode": 0
-  }

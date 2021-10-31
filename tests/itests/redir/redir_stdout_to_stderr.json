@@ -1,0 +1,7 @@
+{
+    "desc": "Redirect stderr to stdout, without printing anything on stderr",
+    "stdin": "echo test 1>&2",
+    "stdout": "",
+    "stderr": "test\n",
+    "retcode": 0
+  }

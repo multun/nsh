@@ -1,0 +1,7 @@
+{
+    "desc": "Redirect stdout to some file in a subshell and back again",
+    "stdin": "(echo test 1>&3) 3>out; echo file:; cat out",
+    "stdout": "file:\ntest\n",
+    "stderr": "",
+    "retcode": 0
+  }
