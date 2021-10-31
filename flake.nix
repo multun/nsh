@@ -20,6 +20,10 @@
         apps.nsh = flake-utils.lib.mkApp { drv = packages.nsh; };
         defaultApp = apps.nsh;
         devShell = pkgs.mkShell {
+            # toolchain hardening injects unwanted compiler flags.
+            # fortify injects -O2 along with -D_FORTIFY_SOURCE=2,
+            # which breaks the debugging experience
+            hardeningDisable = [ "all" ];
             inputsFrom = [ packages.nsh ];
             packages = [
               pkgs.python3
