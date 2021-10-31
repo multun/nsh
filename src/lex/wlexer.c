@@ -142,8 +142,18 @@ static void wlexer_lex_escape(struct wtoken *res, struct wlexer *lex)
     if (next_char == '\\')
         goto escape;
 
-    if (char_starts_rule(lex->mode, next_char))
-        goto escape;
+    // backticked sections have weird escaping rules
+    if (lex->mode == MODE_BTICK) {
+        // Within the backquoted style of command substitution,
+        // <backslash> shall retain its literal meaning, except
+        // when followed by: '$', '`', or <backslash>
+        if (next_char == '$' || next_char == '`')
+            goto escape;
+    } else {
+        if (char_starts_rule(lex->mode, next_char))
+            goto escape;
+    }
+
 
 regular:
     res->type = WTOK_REGULAR;
@@ -151,6 +161,7 @@ regular:
 
 escape:
     res->type = WTOK_ESCAPE;
+    res->ch[1] = cstream_pop(lex->cs);
     return;
 }
 
@@ -194,6 +205,8 @@ const char *wtoken_repr_data(struct wtoken *tok)
         return "<EOF>";
     if (tok->type == WTOK_REGULAR && tok->ch[0] == '\n')
         return "<newline>";
+    if (tok->type == WTOK_ESCAPE && tok->ch[1] == '\n')
+        return "<escaped newline>";
     return tok->ch;
 }
 
@@ -235,7 +248,8 @@ const char *wtoken_type_to_string(enum wtoken_type type)
         return "expansion close";
     case WTOK_REGULAR:
         return "regular";
-    default:
-        abort();
+    case WTOK_VARIABLE:
+        return "variable";
     }
+    abort();
 }

@@ -309,17 +309,23 @@ static enum wlexer_op expand_btick(struct expansion_state *exp_state,
 {
     struct evect btick_content;
     evect_init(&btick_content, 32); // hopefuly sane default :(
-    struct wlexer_btick_state btick_state = WLEXER_BTICK_INIT;
-    WLEXER_BTICK_FOR(&btick_state, wtoken) {
+    while (true) {
         memset(wtoken, 0, sizeof(*wtoken));
         wlexer_pop(wtoken, wlexer);
-        // discard the final backtick
         if (wtoken->type == WTOK_EOF)
             expansion_error(exp_state, "unexpected EOF in ` section, during expansion");
-        if (wlexer_btick_escaped(&btick_state))
-            continue;
+
+        // discard the final backtick
         if (wtoken->type == WTOK_BTICK)
             break;
+
+        // inside a bticked section, escaped characters get unescaped
+        // so their special meaning is restored inside the subshell
+        if (wtoken->type == WTOK_ESCAPE) {
+            evect_push(&btick_content, wtoken->ch[1]);
+            continue;
+        }
+
         evect_push_string(&btick_content, wtoken->ch);
     }
 
@@ -332,12 +338,10 @@ static enum wlexer_op expand_btick(struct expansion_state *exp_state,
 static enum wlexer_op expand_escape(struct expansion_state *exp_state,
                                     struct wlexer *wlexer, struct wtoken *wtoken __unused)
 {
-    // clearing characters isn't safe if
-    // the wlexer has some cached tokens
-    assert(!wlexer_has_lookahead(wlexer));
-    int ch = cstream_pop(wlexer->cs);
-    if (ch == EOF)
-        expansion_error(exp_state, "unexpected EOF in escape, during expansion");
+    // escapes have a special meaning inside backticks, but this is direcly
+    // handled inside expand_btick
+
+    int ch = wtoken->ch[1];
 
     /* handle PS1 / PS2 escapes */
     if ((exp_state->flags & EXP_FLAGS_PROMPT)) {

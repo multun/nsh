@@ -41,13 +41,14 @@ struct wtoken
 enum wlexer_mode
 {
     MODE_UNQUOTED = 1,
-    MODE_SINGLE_QUOTED = 2,
-    MODE_DOUBLE_QUOTED = 4,
-    MODE_EXP_SUBSHELL = 8, // $()
-    MODE_SUBSHELL = 16, // ()
-    MODE_ARITH = 32,// $(( ))
-    MODE_ARITH_GROUP = 64, // $(( .. () .. ))
-    MODE_EXPANSION = 128, // ${}
+    MODE_SINGLE_QUOTED = 2, // 'test'
+    MODE_DOUBLE_QUOTED = 4, // "test"
+    MODE_EXP_SUBSHELL = 8,  // $(echo a)
+    MODE_SUBSHELL = 16,     // (echo a)
+    MODE_ARITH = 32,        // $((1 + 1))
+    MODE_ARITH_GROUP = 64,  // $(( .. (1 + 2) .. ))
+    MODE_EXPANSION = 128,   // ${a}
+    MODE_BTICK = 256,       // `echo a`
 };
 
 #define WLEXER_ARITH_MODES (MODE_ARITH | MODE_ARITH_GROUP)
@@ -117,35 +118,6 @@ void wlexer_discard(struct wlexer *lex);
 void wlexer_pop(struct wtoken *res, struct wlexer *lex);
 void wlexer_push(const struct wtoken *res, struct wlexer *lex);
 
-struct wlexer_btick_state {
-    bool ran;
-    bool escape;
-};
-
-#define WLEXER_BTICK_INIT { .ran = false, .escape = false }
-
-static inline bool wlexer_btick_cond(struct wlexer_btick_state *state, struct wtoken *wtok)
-{
-    if (!state->ran)
-        return true;
-
-    if (state->escape)
-        state->escape = false;
-    else if (wtok->type == WTOK_ESCAPE)
-        state->escape = true;
-    else if (wtok->type == WTOK_BTICK)
-        return false;
-    return true;
-}
-
-
-static inline bool wlexer_btick_escaped(struct wlexer_btick_state *state)
-{
-    return state->escape;
-}
-
-#define WLEXER_BTICK_FOR(State, WTok)                                                    \
-    for (; wlexer_btick_cond((State), (WTok)); (State)->ran = true)
 
 const char *wtoken_type_to_string(enum wtoken_type);
 const char *wtoken_repr_data(struct wtoken *tok);

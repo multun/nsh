@@ -49,32 +49,23 @@ static enum wlexer_op sublexer_btick(struct lexer *lexer __unused, struct wlexer
                                      struct token *token, struct wtoken *wtok)
 {
     wtoken_push(token, wtok);
-    struct wlexer_btick_state btick_state = WLEXER_BTICK_INIT;
-    WLEXER_BTICK_FOR(&btick_state, wtok) {
+    // escaping is directly handled by the word lexer
+    do {
         memset(wtok, 0, sizeof(*wtok));
         wlexer_pop(wtok, wlexer);
         if (wtok->type == WTOK_EOF)
             lexer_err(lexer, "unexpected EOF in ` section");
-        evect_push(&token->str, wtok->ch[0]);
-    }
+        evect_push_string(&token->str, wtok->ch);
+    } while (wtok->type != WTOK_BTICK);
     return LEXER_OP_CONTINUE;
 }
 
-static enum wlexer_op sublexer_escape(struct lexer *lexer __unused, struct wlexer *wlexer,
-                                     struct token *token, struct wtoken *wtoken __unused)
+static enum wlexer_op sublexer_escape(struct lexer *lexer __unused, struct wlexer *wlexer __unused,
+                                     struct token *token, struct wtoken *wtoken)
 {
-    // clearing characters isn't safe if
-    // the wlexer has some cached tokens
-    assert(!wlexer_has_lookahead(wlexer));
-    int ch = cstream_pop(wlexer->cs);
-    if (ch == EOF)
-        lexer_err(lexer, "unexpected EOF in escape");
-
-    // don't push carriage returns
-    if (ch != '\n') {
-        evect_push(&token->str, '\\');
-        evect_push(&token->str, ch);
-    }
+    // ignore escaped carriage returns
+    if (wtoken->ch[1] != '\n')
+        evect_push_string(&token->str, wtoken->ch);
     return LEXER_OP_CONTINUE;
 }
 
