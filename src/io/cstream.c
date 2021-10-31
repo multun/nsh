@@ -1,6 +1,6 @@
 #include <nsh_io/cstream.h>
 #include <nsh_utils/alloc.h>
-
+#include <nsh_utils/logging.h>
 #include <stdlib.h>
 
 void cstream_init(struct cstream *cs, struct io_backend *backend, bool interactive)
@@ -20,7 +20,10 @@ bool cstream_eof(struct cstream *cs)
 
 static inline int cstream_get(struct cstream *cs)
 {
-    return cs->backend->reader(cs);
+    nsh_trace("started reading...");
+    int c = cs->backend->reader(cs);
+    nsh_debug("read `%c' (%d)", c, c);
+    return c;
 }
 
 int cstream_peek(struct cstream *cs)
