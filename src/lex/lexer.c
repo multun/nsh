@@ -44,9 +44,9 @@ int lexer_lex_untyped(struct token *token, struct wlexer *wlexer,
     }
 }
 
-static bool is_only_digits(struct token *tok)
+static bool is_only_digits(struct token *tok, size_t tok_len)
 {
-    for (size_t i = 0; i < tok_size(tok); i++)
+    for (size_t i = 0; i < tok_len; i++)
         if (!isdigit(tok_buf(tok)[i]))
             return false;
     return true;
@@ -91,7 +91,7 @@ static void lexer_type_token(struct lexer *lexer, struct token *tok)
         if (tok_buf(tok)[i] == '\0')
             lexer_err(lexer, "no input NUL bytes are allowed");
 
-    if (is_only_digits(tok)) {
+    if (is_only_digits(tok, tok_len)) {
         struct wtoken next_tok;
         wlexer_peek(&next_tok, &lexer->wlexer);
         int ch = next_tok.ch[0];
