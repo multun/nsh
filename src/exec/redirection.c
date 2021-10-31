@@ -13,7 +13,8 @@
 
 static int fd_copy(int fd)
 {
-    int copy = dup(fd);
+    // store the copied fd somewhere inaccessible
+    int copy = fcntl(fd, F_DUPFD, 10);
     if (copy == -1)
         return copy;
 
@@ -146,14 +147,8 @@ static int redir_lessgreat(struct shast_redirection *redir,
 // [n]>&-
 static int redir_close(struct redir_undo *undo, int fd)
 {
-    int copy = fd_copy(fd);
-    if (copy == -1)
-    {
-        warn("close failed");
-        return 1;
-    }
-    if (close(fd) == -1)
-    {
+    int copy = fd_move_away(fd);
+    if (copy == -1) {
         warn("close failed");
         return 1;
     }
@@ -174,15 +169,15 @@ static int redir_dup(struct shast_redirection *redir,
         return redir_close(undo, left);
 
     int right;
-    if (parse_int(shword_buf(redir->right), &right))
-    {
+    if (parse_int(shword_buf(redir->right), &right)) {
         warn("couldn't parse redirection");
         return 1;
     }
 
+    // make a save of the left file descriptor
     int left_copy = fd_copy(left);
-    if (dup2(right, left) == -1)
-    {
+    // duplicate the right fd into the left one (that's why a save was made)
+    if (dup2(right, left) == -1) {
         warnx("%s: Bad file descriptor", shword_buf(redir->right));
         return 1;
     }
