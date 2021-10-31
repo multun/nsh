@@ -87,7 +87,7 @@ static void redir_undo_plan_restore(struct redir_undo *undo, int src, int dst)
     // if the copy is -1, plan a close instead
     if (src == -1)
     {
-        redir_undo_plan_close(undo, src);
+        redir_undo_plan_close(undo, dst);
         return;
     }
 
