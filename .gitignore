@@ -20,5 +20,5 @@ __pycache__
 
 
 # BUILD
-
 /*build*
+/.pre-commit-config.yaml
