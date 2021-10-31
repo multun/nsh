@@ -45,23 +45,32 @@ static const char *level_strings[] = {
 };
 
 
+#define BRIGHT_BLUE "\x1b[94m"
+#define CYAN "\x1b[36m"
+#define GREEN "\x1b[32m"
+#define YELLOW "\x1b[33m"
+#define RED "\x1b[31m"
+#define MAGENTA "\x1b[35m"
+#define GRAY "\x1b[90m"
+#define RESET "\x1b[0m"
+
 static const char *level_colors[] = {
-    "\x1b[94m", "\x1b[36m", "\x1b[32m", "\x1b[33m", "\x1b[31m", "\x1b[35m"
+    BRIGHT_BLUE, CYAN, GREEN, YELLOW, RED, MAGENTA
 };
 
 static void log_header_simple(struct log_event *ev, FILE *fp)
 {
     fprintf(
-        fp, "%-5s %s:%d: ",
-        level_strings[ev->level], ev->file, ev->line);
+        fp, "%-7d %-5s %s:%d: ",
+        getpid(), level_strings[ev->level], ev->file, ev->line);
 }
 
 
 static void log_header_color(struct log_event *ev, FILE *fp)
 {
     fprintf(
-        fp, "%s%-5s\x1b[0m \x1b[90m%s:%d:\x1b[0m ",
-        level_colors[ev->level], level_strings[ev->level],
+        fp, GRAY"%-7d %s%-5s"RESET" "GRAY"%s:%d:"RESET" ",
+        getpid(), level_colors[ev->level], level_strings[ev->level],
         ev->file, ev->line);
 }
 
