@@ -54,6 +54,16 @@ static bool load_all_rc(struct repl *ctx)
     return should_exit;
 }
 
+// these escaped are used by terminal emulators to get the title of the window
+#define WINDOW_TITLE_START "\\[\\e]0;"
+#define WINDOW_TITLE_END "\\a\\]"
+#define ANSI_GRAY "\\[\\033[1;90m\\]"
+#define ANSI_RESET "\\[\\033[0m\\]"
+static const char default_ps1[] = {
+    WINDOW_TITLE_START "\\u@\\h: \\w" WINDOW_TITLE_END
+    ANSI_GRAY "[\\u@\\h:\\w]\\$ " ANSI_RESET
+};
+
 
 static bool repl_load(int *rc, struct repl *ctx, struct cstream *cs, struct cli_options *arg_ctx)
 {
@@ -65,6 +75,9 @@ static bool repl_load(int *rc, struct repl *ctx, struct cstream *cs, struct cli_
     // if the shell isn't interactive
     if (!ctx->cs->interactive)
         return false;
+
+    // settup the default PS1 (if running in the interactive mode)
+    environment_var_assign_const_cstring(env, strdup("PS1"), default_ps1, false);
 
     // if loading the RC files failed, return the status code of the repl
     if (!arg_ctx->norc && load_all_rc(ctx)) {

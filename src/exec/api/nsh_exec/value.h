@@ -2,14 +2,20 @@
 
 #include <nsh_utils/static_refcnt.h>
 
+enum sh_value_type
+{
+    SH_VALUE_STRING = 0,
+    SH_VALUE_CONST_STRING = 1,
+};
+
+/**
+** This structure isn't really required for now,
+** but will come in handy when arrays will be supported.
+*/
 struct sh_value
 {
     struct static_refcnt refcnt;
-    enum sh_value_type
-    {
-        SH_VALUE_STRING = 0,
-        SH_VALUE_CONST_STRING = 1,
-    } type;
+    enum sh_value_type type;
 };
 
 static inline bool sh_value_is_string(struct sh_value *val)
@@ -37,7 +43,7 @@ static inline void sh_value_init(struct sh_value *shval, enum sh_value_type type
 struct sh_string
 {
     struct sh_value base;
-    /* __str shouldn't be modified by the user */
+    /* __str shouldn't be modified by the user: it might be const */
     char *__str;
 };
 
@@ -50,7 +56,7 @@ static inline const char *sh_string_data(struct sh_string *shstr)
     return shstr->__str;
 }
 
-struct sh_string *sh_const_string_create(char *str);
+struct sh_string *sh_const_string_create(const char *str);
 
 struct sh_string *sh_string_create(char *str);
 

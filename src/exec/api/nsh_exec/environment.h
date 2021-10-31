@@ -148,7 +148,7 @@ static inline void environment_var_assign_cstring(struct environment *env, char 
     environment_var_assign(env, name, &sh_string_create(value)->base, export);
 }
 
-static inline void environment_var_assign_const_cstring(struct environment *env, char *name, char *value, bool export)
+static inline void environment_var_assign_const_cstring(struct environment *env, char *name, const char *value, bool export)
 {
     environment_var_assign(env, name, &sh_const_string_create(value)->base, export);
 }

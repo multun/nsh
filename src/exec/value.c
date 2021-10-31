@@ -36,10 +36,11 @@ struct sh_string *sh_string_create(char *str)
 }
 
 
-struct sh_string *sh_const_string_create(char *str)
+struct sh_string *sh_const_string_create(const char *str)
 {
     struct sh_string *res = zalloc(sizeof(*res));
     sh_value_init(&res->base, SH_VALUE_CONST_STRING);
-    res->__str = str;
+    // this is safe because we never free it nor touch it
+    res->__str = (char *)str;
     return res;
 }
