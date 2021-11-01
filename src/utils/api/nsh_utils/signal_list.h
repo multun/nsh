@@ -10,7 +10,8 @@ typedef unsigned char signum_t;
 #define MAX_SIGNAL_NUMBER 64
 
 
-struct signal_list {
+struct signal_list
+{
     size_t count;
     sigset_t sigset;
     signum_t signals[MAX_SIGNAL_NUMBER];

@@ -23,7 +23,7 @@
 ** When a signal is not expected anymore by the application, the signal_disabled callback is called.
 */
 
-typedef void (*signal_manager_callback_f)(void*, int signal);
+typedef void (*signal_manager_callback_f)(void *, int signal);
 
 struct signal_manager
 {
@@ -45,12 +45,15 @@ struct signal_handler
     struct list_head __list;
     struct signal_manager *sigman;
     int signal;
-    void (*handle)(struct exception_catcher *catcher, struct signal_handler*);
-    void (*remove)(struct signal_handler*);
+    void (*handle)(struct exception_catcher *catcher, struct signal_handler *);
+    void (*remove)(struct signal_handler *);
 };
 
 extern void signal_manager_init(struct signal_manager *sigman);
-extern void signal_manager_setup_handler(struct signal_manager *sigman, struct signal_handler *handler, int signal, bool head_handler);
-extern void signal_manager_dispatch(struct signal_manager *sigman, struct exception_catcher *catcher, int signal);
+extern void signal_manager_setup_handler(struct signal_manager *sigman,
+                                         struct signal_handler *handler, int signal,
+                                         bool head_handler);
+extern void signal_manager_dispatch(struct signal_manager *sigman,
+                                    struct exception_catcher *catcher, int signal);
 extern void signal_handler_del(struct signal_handler *handler);
 extern pid_t signal_manager_fork(struct signal_manager *sigman);

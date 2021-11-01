@@ -30,7 +30,8 @@ struct glob_pattern
     const char *meta;
 };
 
-enum glob_status glob_match(struct glob_pattern *pattern, size_t i, const char *string, int flags);
+enum glob_status glob_match(struct glob_pattern *pattern, size_t i, const char *string,
+                            int flags);
 
 struct glob_path_element
 {

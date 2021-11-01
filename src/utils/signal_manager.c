@@ -22,7 +22,9 @@ static struct list_head *handler_list_get(struct signal_manager *sigman, int sig
     return &sigman->signal_handlers[signal];
 }
 
-void signal_manager_setup_handler(struct signal_manager *sigman, struct signal_handler *handler, int signal, bool head_handler)
+void signal_manager_setup_handler(struct signal_manager *sigman,
+                                  struct signal_handler *handler, int signal,
+                                  bool head_handler)
 {
     struct list_head *handler_list = handler_list_get(sigman, signal);
     handler->signal = signal;
@@ -33,13 +35,15 @@ void signal_manager_setup_handler(struct signal_manager *sigman, struct signal_h
         sigman->signal_enabled(sigman->hook_state, signal);
 }
 
-void signal_manager_dispatch(struct signal_manager *sigman, struct exception_catcher *catcher, int signal)
+void signal_manager_dispatch(struct signal_manager *sigman,
+                             struct exception_catcher *catcher, int signal)
 {
     struct list_head *handler_list = handler_list_get(sigman, signal);
 
     struct signal_handler *handler;
     struct signal_handler *tmp;
-    list_for_each_entry_safe(handler, tmp, handler_list, struct signal_handler, __list) {
+    list_for_each_entry_safe(handler, tmp, handler_list, struct signal_handler, __list)
+    {
         handler->handle(catcher, handler);
     }
 }

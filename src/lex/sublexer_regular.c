@@ -45,8 +45,8 @@ static const struct sh_operator *find_simple_operator(int c)
 }
 
 static enum wlexer_op word_breaker_space(struct lexer *lexer __unused,
-                                        struct wlexer *wlexer __unused,
-                                        struct token *token, struct wtoken *wtoken)
+                                         struct wlexer *wlexer __unused,
+                                         struct token *token, struct wtoken *wtoken)
 {
     if (!isblank(wtoken->ch[0]))
         return LEXER_OP_FALLTHROUGH;
@@ -62,8 +62,8 @@ static enum wlexer_op word_breaker_operator(struct lexer *lexer __unused,
                                             struct wlexer *wlexer, struct token *token,
                                             struct wtoken *wtoken)
 {
-    const struct sh_operator *cur_operator= find_simple_operator(wtoken->ch[0]);
-    if (cur_operator== NULL)
+    const struct sh_operator *cur_operator = find_simple_operator(wtoken->ch[0]);
+    if (cur_operator == NULL)
         return LEXER_OP_FALLTHROUGH;
 
     if (tok_size(token) != 0)
@@ -87,8 +87,8 @@ static enum wlexer_op word_breaker_operator(struct lexer *lexer __unused,
 }
 
 static enum wlexer_op word_breaker_newline(struct lexer *lexer __unused,
-                                          struct wlexer *wlexer __unused,
-                                          struct token *token, struct wtoken *wtoken)
+                                           struct wlexer *wlexer __unused,
+                                           struct token *token, struct wtoken *wtoken)
 {
     int ch = wtoken->ch[0];
     if (ch != '\n')
@@ -103,8 +103,8 @@ static enum wlexer_op word_breaker_newline(struct lexer *lexer __unused,
 }
 
 static enum wlexer_op word_breaker_comment(struct lexer *lexer __unused,
-                                          struct wlexer *wlexer, struct token *token,
-                                          struct wtoken *wtoken)
+                                           struct wlexer *wlexer, struct token *token,
+                                           struct wtoken *wtoken)
 {
     if (wtoken->ch[0] != '#')
         return LEXER_OP_FALLTHROUGH;
@@ -125,8 +125,8 @@ static enum wlexer_op word_breaker_comment(struct lexer *lexer __unused,
 }
 
 static enum wlexer_op word_breaker_regular(struct lexer *lexer __unused,
-                                          struct wlexer *wlexer __unused,
-                                          struct token *token, struct wtoken *wtoken)
+                                           struct wlexer *wlexer __unused,
+                                           struct token *token, struct wtoken *wtoken)
 {
     // otherwise it's just a regular word
     wtoken_push(token, wtoken);
@@ -135,8 +135,8 @@ static enum wlexer_op word_breaker_regular(struct lexer *lexer __unused,
 
 // only break unquoted words
 static enum wlexer_op word_breaker_quoting(struct lexer *lexer __unused,
-                                          struct wlexer *wlexer, struct token *token,
-                                          struct wtoken *wtoken)
+                                           struct wlexer *wlexer, struct token *token,
+                                           struct wtoken *wtoken)
 {
     if (wlexer->mode == MODE_UNQUOTED)
         return LEXER_OP_FALLTHROUGH;
@@ -151,7 +151,7 @@ static sublexer word_breakers[] = {
 };
 
 enum wlexer_op sublexer_regular(struct lexer *lexer, struct wlexer *wlexer,
-                               struct token *token, struct wtoken *wtoken)
+                                struct token *token, struct wtoken *wtoken)
 {
     for (size_t i = 0; i < ARR_SIZE(word_breakers); i++) {
         enum wlexer_op op = word_breakers[i](lexer, wlexer, token, wtoken);

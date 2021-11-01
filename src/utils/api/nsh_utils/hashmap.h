@@ -59,15 +59,16 @@ static inline void hashmap_item_init(struct hashmap_item *head, char *key)
 ** \return pointer to node
 */
 struct hashmap_item *hashmap_find(struct hashmap *htab,
-                               struct hashmap_item ***insertion_point,
-                               const char *key);
+                                  struct hashmap_item ***insertion_point,
+                                  const char *key);
 
 /**
 ** \brief add an entry at the given location
 ** \param insertion_point where to insert
 ** \param head the element to insert
 */
-void hashmap_insert(struct hashmap *htab, struct hashmap_item **insertion_point, struct hashmap_item *head);
+void hashmap_insert(struct hashmap *htab, struct hashmap_item **insertion_point,
+                    struct hashmap_item *head);
 
 /**
 ** \brief remove the given item from the hash table

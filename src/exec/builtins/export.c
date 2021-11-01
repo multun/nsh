@@ -8,7 +8,8 @@
 #include <nsh_utils/alloc.h>
 #include <nsh_utils/macros.h>
 
-static int export_var(struct environment *env, char *raw_export_expr, bool exported, struct exception_catcher *catcher)
+static int export_var(struct environment *env, char *raw_export_expr, bool exported,
+                      struct exception_catcher *catcher)
 {
     // expand the variable name
     char *export_expr = expand_nosplit(NULL, raw_export_expr, 0, env, catcher);
@@ -20,8 +21,7 @@ static int export_var(struct environment *env, char *raw_export_expr, bool expor
     // validate the variable name
     size_t var_name_len = var_name_end - export_expr;
 
-    if (variable_name_check_string(export_expr, var_name_len) != 0)
-    {
+    if (variable_name_check_string(export_expr, var_name_len) != 0) {
         warnx("export: invalid identifier");
         free(export_expr);
         return 1;
@@ -37,16 +37,13 @@ static int export_var(struct environment *env, char *raw_export_expr, bool expor
     struct shexec_variable *var;
     struct hashmap_item **insertion_pos;
     struct hashmap_item *hash = hashmap_find(&env->variables, &insertion_pos, var_name);
-    if (hash == NULL)
-    {
+    if (hash == NULL) {
         var = zalloc(sizeof(*var));
         hashmap_item_init(&var->hash, var_name);
         var->exported = exported;
         var->value = var_value;
         hashmap_insert(&env->variables, insertion_pos, &var->hash);
-    }
-    else
-    {
+    } else {
         free(var_name);
         var = container_of(hash, struct shexec_variable, hash);
         var->exported = exported;
@@ -74,15 +71,15 @@ static void export_print(struct environment *env)
             struct sh_value *value = var->value;
             if (!sh_value_is_string(value))
                 continue;
-            struct sh_string *string = (struct sh_string*)value;
+            struct sh_string *string = (struct sh_string *)value;
             printf("export %s=\"%s\"\n", var_name, sh_string_data(string));
-        }
-        else
+        } else
             printf("export %s\n", var_name);
     }
 }
 
-int builtin_export(struct environment *env, struct exception_catcher *catcher, int argc, char **argv)
+int builtin_export(struct environment *env, struct exception_catcher *catcher, int argc,
+                   char **argv)
 {
     int res = 0;
     bool print = true;

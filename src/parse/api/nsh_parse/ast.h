@@ -14,18 +14,18 @@
 
 #define DECLARE_AST_TYPE_ENUM(EnumName, Name) EnumName,
 
-#define AST_TYPE_APPLY(F)                   \
-    F(SHNODE_CMD, cmd)                      \
-    F(SHNODE_IF, if)                        \
-    F(SHNODE_FOR, for)                      \
-    F(SHNODE_WHILE, while)                  \
-    F(SHNODE_PIPELINE, pipeline)            \
-    F(SHNODE_CASE, case)                    \
-    F(SHNODE_BOOL_OP, bool_op)              \
-    F(SHNODE_NEGATE, negate)                \
-    F(SHNODE_LIST, list)                    \
-    F(SHNODE_SUBSHELL, subshell)            \
-    F(SHNODE_FUNCTION, function)            \
+#define AST_TYPE_APPLY(F)                                                                \
+    F(SHNODE_CMD, cmd)                                                                   \
+    F(SHNODE_IF, if)                                                                     \
+    F(SHNODE_FOR, for)                                                                   \
+    F(SHNODE_WHILE, while)                                                               \
+    F(SHNODE_PIPELINE, pipeline)                                                         \
+    F(SHNODE_CASE, case)                                                                 \
+    F(SHNODE_BOOL_OP, bool_op)                                                           \
+    F(SHNODE_NEGATE, negate)                                                             \
+    F(SHNODE_LIST, list)                                                                 \
+    F(SHNODE_SUBSHELL, subshell)                                                         \
+    F(SHNODE_FUNCTION, function)                                                         \
     F(SHNODE_BLOCK, block)
 
 enum shnode_type
@@ -52,11 +52,10 @@ struct shast
     struct lineinfo line_info;
 };
 
-#define DECLARE_AST_PRINT_UTILS(EnumName, Name) \
-    void Name ## _print(FILE *f, struct shast *ast);
+#define DECLARE_AST_PRINT_UTILS(EnumName, Name)                                          \
+    void Name##_print(FILE *f, struct shast *ast);
 
-#define DECLARE_AST_FREE_UTILS(EnumName, Name) \
-    void Name ## _free(struct shast *ast);
+#define DECLARE_AST_FREE_UTILS(EnumName, Name) void Name##_free(struct shast *ast);
 
 AST_TYPE_APPLY(DECLARE_AST_PRINT_UTILS)
 AST_TYPE_APPLY(DECLARE_AST_FREE_UTILS)
@@ -74,22 +73,20 @@ static inline struct shast **shast_vect_tail_slot(struct shast_vect *vect)
 }
 
 
-
-#define DEFINE_AST_TYPE(Name, TypeVal)                                  \
-    static inline struct Name *Name##_create(struct lexer *lexer)       \
-    {                                                                   \
-        struct Name *res = xcalloc(sizeof(*res), 1);                    \
-        Name##_init(lexer, res);                                        \
-        return res;                                                     \
-    }                                                                   \
-                                                                        \
-    static inline struct Name *Name##_attach(struct shast **slot,       \
-                                             struct lexer *lexer)       \
-    {                                                                   \
-        struct Name *res = Name##_create(lexer);                        \
-        if (slot)                                                       \
-            *slot = &res->base;                                         \
-        return res;                                                     \
+#define DEFINE_AST_TYPE(Name, TypeVal)                                                   \
+    static inline struct Name *Name##_create(struct lexer *lexer)                        \
+    {                                                                                    \
+        struct Name *res = xcalloc(sizeof(*res), 1);                                     \
+        Name##_init(lexer, res);                                                         \
+        return res;                                                                      \
+    }                                                                                    \
+                                                                                         \
+    static inline struct Name *Name##_attach(struct shast **slot, struct lexer *lexer)   \
+    {                                                                                    \
+        struct Name *res = Name##_create(lexer);                                         \
+        if (slot)                                                                        \
+            *slot = &res->base;                                                          \
+        return res;                                                                      \
     }
 
 /**
@@ -113,7 +110,8 @@ void ast_print(FILE *f, struct shast *ast);
 void ast_ref_free(struct refcnt *refcnt);
 
 
-static inline void shast_init(struct shast *ast, enum shnode_type type, struct lexer *lexer)
+static inline void shast_init(struct shast *ast, enum shnode_type type,
+                              struct lexer *lexer)
 {
     ast->type = type;
     ast->async = false;
@@ -135,15 +133,15 @@ static inline void shast_ref_put(struct shast *ast)
     ref_put(&ast->refcnt);
 }
 
-#define REDIRECTIONS_APPLY(F)                       \
-    F(REDIR_LESS, "<", redir_less)                  \
-    F(REDIR_DLESS, "<<", redir_unimplemented)       \
-    F(REDIR_GREAT, ">", redir_great)                \
-    F(REDIR_DGREAT, ">>", redir_dgreat)             \
-    F(REDIR_LESSAND, "<&", redir_lessand)           \
-    F(REDIR_GREATAND, ">&", redir_greatand)         \
-    F(REDIR_LESSDASH, "<-", redir_unimplemented)    \
-    F(REDIR_LESSGREAT, "<>", redir_lessgreat)       \
+#define REDIRECTIONS_APPLY(F)                                                            \
+    F(REDIR_LESS, "<", redir_less)                                                       \
+    F(REDIR_DLESS, "<<", redir_unimplemented)                                            \
+    F(REDIR_GREAT, ">", redir_great)                                                     \
+    F(REDIR_DGREAT, ">>", redir_dgreat)                                                  \
+    F(REDIR_LESSAND, "<&", redir_lessand)                                                \
+    F(REDIR_GREATAND, ">&", redir_greatand)                                              \
+    F(REDIR_LESSDASH, "<-", redir_unimplemented)                                         \
+    F(REDIR_LESSGREAT, "<>", redir_lessgreat)                                            \
     F(REDIR_CLOBBER, ">|", redir_unimplemented)
 
 
@@ -153,7 +151,7 @@ enum redir_type
 #define REDIRECTIONS_ENUM(EName, Repr, Func) EName,
     REDIRECTIONS_APPLY(REDIRECTIONS_ENUM)
 #undef REDIRECTIONS_ENUM
-    REDIR_COUNT,
+        REDIR_COUNT,
 };
 
 struct shast_redirection
@@ -208,8 +206,7 @@ struct shast_block
 };
 
 
-static inline void shast_block_init(struct lexer *lexer,
-                                    struct shast_block *node)
+static inline void shast_block_init(struct lexer *lexer, struct shast_block *node)
 {
     shast_init(&node->base, SHNODE_BLOCK, lexer);
     redir_vect_init(&node->redirs, 4);
@@ -244,8 +241,7 @@ static inline const char *bool_op_to_string(enum bool_type type)
     }
 }
 
-static inline void shast_bool_op_init(struct lexer *lexer,
-                                      struct shast_bool_op *node)
+static inline void shast_bool_op_init(struct lexer *lexer, struct shast_bool_op *node)
 {
     shast_init(&node->base, SHNODE_BOOL_OP, lexer);
 }
@@ -258,8 +254,7 @@ struct shast_negate
     struct shast *child;
 };
 
-static inline void shast_negate_init(struct lexer *lexer,
-                                     struct shast_negate *node)
+static inline void shast_negate_init(struct lexer *lexer, struct shast_negate *node)
 {
     shast_init(&node->base, SHNODE_NEGATE, lexer);
 }

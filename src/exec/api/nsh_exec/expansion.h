@@ -29,21 +29,25 @@ enum expansion_flags
 ** \param catcher the exception scope to work with
 ** \return a malloc allocated expanded string
 */
-char *expand_nosplit(struct lineinfo *line_info, const char *str, int flags, struct environment *env, struct exception_catcher *catcher);
+char *expand_nosplit(struct lineinfo *line_info, const char *str, int flags,
+                     struct environment *env, struct exception_catcher *catcher);
 
 struct expansion_state;
 struct expansion_result;
 
-void expand(struct expansion_state *exp_state,
-            struct wlexer *wlexer,
+void expand(struct expansion_state *exp_state, struct wlexer *wlexer,
             struct exception_catcher *catcher);
 
 
-void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags, struct environment *env, struct exception_catcher *catcher);
+void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags,
+                     struct environment *env, struct exception_catcher *catcher);
 
-void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, int flags, struct environment *env, struct exception_catcher *catcher);
+void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl,
+                              int flags, struct environment *env,
+                              struct exception_catcher *catcher);
 
-enum expansion_quoting {
+enum expansion_quoting
+{
     // split on IFS
     EXPANSION_QUOTING_UNQUOTED = 0,
     // don't split on IFS, but split on $@
@@ -55,7 +59,8 @@ enum expansion_quoting {
 /**
 ** \brief the expansion context
 */
-struct expansion_state {
+struct expansion_state
+{
     /* the expansion settings */
     int flags;
 
@@ -100,7 +105,8 @@ struct expansion_state {
     struct variable_name scratch_variable_name;
 };
 
-static inline struct exception_catcher *expansion_state_catcher(struct expansion_state *exp_state)
+static inline struct exception_catcher *
+expansion_state_catcher(struct expansion_state *exp_state)
 {
     return exp_state->callback_ctx.catcher;
 }
@@ -111,7 +117,7 @@ static inline struct environment *expansion_state_env(struct expansion_state *ex
 }
 
 static inline void expansion_state_set_catcher(struct expansion_state *exp_state,
-                                                struct exception_catcher *catcher)
+                                               struct exception_catcher *catcher)
 {
     exp_state->callback_ctx.catcher = catcher;
 }
@@ -140,8 +146,9 @@ static inline bool expansion_is_quoted(struct expansion_state *exp_state)
     return !expansion_is_unquoted(exp_state);
 }
 
-__unused_result static inline enum expansion_quoting expansion_switch_quoting(
-    struct expansion_state *exp_state, enum expansion_quoting new_mode)
+__unused_result static inline enum expansion_quoting
+expansion_switch_quoting(struct expansion_state *exp_state,
+                         enum expansion_quoting new_mode)
 {
     enum expansion_quoting old_mode = exp_state->quoting_mode;
     exp_state->quoting_mode = new_mode;
@@ -163,8 +170,7 @@ static inline void expansion_state_reset_data(struct expansion_state *exp_state)
 }
 
 static inline void expansion_state_init(struct expansion_state *exp_state,
-                                        enum expansion_quoting quoting_mode,
-                                        int flags)
+                                        enum expansion_quoting quoting_mode, int flags)
 {
     exp_state->flags = flags;
     char_bitset_init(&exp_state->ifs);
@@ -176,10 +182,12 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
     exp_state->allow_empty_word = false;
     glob_state_init(&exp_state->glob_state);
     exp_state->scratch_value = NULL;
-    variable_name_init(&exp_state->scratch_variable_name, 16); // reasonable variable name size
+    variable_name_init(&exp_state->scratch_variable_name,
+                       16); // reasonable variable name size
 }
 
-static inline void expansion_state_set_field_sep(struct expansion_state *exp_state, const char *IFS)
+static inline void expansion_state_set_field_sep(struct expansion_state *exp_state,
+                                                 const char *IFS)
 {
     if (IFS == NULL)
         return;
@@ -196,7 +204,8 @@ static inline void expansion_state_set_field_sep(struct expansion_state *exp_sta
 ** \param exp_state the expansion state
 */
 void expand_subshell(struct expansion_state *exp_state, char *buf);
-enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state, struct wlexer *wlexer, char c);
+enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
+                                    struct wlexer *wlexer, char c);
 
 int expand_name(struct expansion_state *exp_state, const char *var);
 

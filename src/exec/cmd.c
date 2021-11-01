@@ -41,7 +41,8 @@ static void wordlist_expand(struct cpvect *res, struct wordlist *wl,
 }
 
 
-static int builtin_exec(struct environment *env, struct exception_catcher *catcher, f_builtin builtin)
+static int builtin_exec(struct environment *env, struct exception_catcher *catcher,
+                        f_builtin builtin)
 {
     int res = builtin(env, catcher, env->argc, env->argv);
     fflush(stdout);
@@ -84,12 +85,12 @@ static void function_call_cleanup(struct environment *env, struct shast_function
 }
 
 
-static int cmd_run_command(struct environment *env, struct exception_catcher *catcher, struct shast_function * volatile *func)
+static int cmd_run_command(struct environment *env, struct exception_catcher *catcher,
+                           struct shast_function *volatile *func)
 {
     /* look for functions */
     struct hashmap_item *func_hash = hashmap_find(&env->functions, NULL, env->argv[0]);
-    if (func_hash)
-    {
+    if (func_hash) {
         *func = container_of(func_hash, struct shast_function, hash);
         shast_function_get(*func);
         env->call_depth++;
@@ -110,9 +111,10 @@ static int cmd_run_command(struct environment *env, struct exception_catcher *ca
     return cmd_fork_exec(env, catcher);
 }
 
-int cmd_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
+int cmd_exec(struct environment *env, struct shast *ast,
+             struct exception_catcher *catcher)
 {
-    struct shast_cmd *command = (struct shast_cmd*)ast;
+    struct shast_cmd *command = (struct shast_cmd *)ast;
     struct wordlist *wl = &command->arguments;
     int volatile prev_argc = env->argc;
     char **volatile prev_argv = env->argv;
@@ -133,7 +135,7 @@ int cmd_exec(struct environment *env, struct shast *ast, struct exception_catche
     env->argv = cpvect_data(&new_argv);
 
     /* if we're running a function, the refcnt has to be dropped on exit */
-    struct shast_function * volatile func = NULL;
+    struct shast_function *volatile func = NULL;
 
     /* on exception, free the argument array */
     struct exception_catcher sub_catcher = EXCEPTION_CATCHER(catcher->context, catcher);

@@ -24,7 +24,8 @@ static bool compound_list_block_end(const struct token *tok)
 }
 
 
-static bool parse_compound_list_end(struct shast *prev_ast, struct lexer *lexer, struct exception_catcher *catcher)
+static bool parse_compound_list_end(struct shast *prev_ast, struct lexer *lexer,
+                                    struct exception_catcher *catcher)
 {
     /* stop if there's no command separator */
     const struct token *tok = lexer_peek(lexer, catcher);
@@ -45,7 +46,8 @@ static bool parse_compound_list_end(struct shast *prev_ast, struct lexer *lexer,
 }
 
 
-void parse_compound_list(struct shast **res, struct lexer *lexer, struct exception_catcher *catcher)
+void parse_compound_list(struct shast **res, struct lexer *lexer,
+                         struct exception_catcher *catcher)
 {
     /* start by parsing a pipeline, and stopping right away if we can */
     parse_newlines(lexer, catcher);
@@ -67,7 +69,8 @@ void parse_compound_list(struct shast **res, struct lexer *lexer, struct excepti
 }
 
 
-static bool parse_list_end(struct shast *prev_ast, struct lexer *lexer, struct exception_catcher *catcher)
+static bool parse_list_end(struct shast *prev_ast, struct lexer *lexer,
+                           struct exception_catcher *catcher)
 {
     const struct token *tok = lexer_peek(lexer, catcher);
     if (tok_is(tok, TOK_AND)) {
@@ -90,7 +93,8 @@ static bool parse_list_end(struct shast *prev_ast, struct lexer *lexer, struct e
 }
 
 
-void parse_list(struct shast **res, struct lexer *lexer, struct exception_catcher *catcher)
+void parse_list(struct shast **res, struct lexer *lexer,
+                struct exception_catcher *catcher)
 {
     /* start by parsing a pipeline, and stopping right away if we can */
     parse_and_or(res, lexer, catcher);

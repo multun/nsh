@@ -107,7 +107,8 @@ char *path_canonicalize(const char *complex_path)
     cpvect_init(&components, 6);
 
     struct path_component cmp;
-    for (path_component_init(&cmp, complex_path); path_component_valid(&cmp); path_component_next(&cmp)) {
+    for (path_component_init(&cmp, complex_path); path_component_valid(&cmp);
+         path_component_next(&cmp)) {
         if (path_component_str_eq(&cmp, "."))
             continue;
 
@@ -175,7 +176,8 @@ size_t path_count_components(const char *path)
 {
     size_t count = 0;
     struct path_component cmp;
-    for (path_component_init(&cmp, path); path_component_valid(&cmp); path_component_next(&cmp))
+    for (path_component_init(&cmp, path); path_component_valid(&cmp);
+         path_component_next(&cmp))
         count++;
     return count;
 }
@@ -184,7 +186,8 @@ size_t path_count_components(const char *path)
 const char *path_skip_components(const char *path, size_t count)
 {
     struct path_component cmp;
-    for (path_component_init(&cmp, path); path_component_valid(&cmp); path_component_next(&cmp)) {
+    for (path_component_init(&cmp, path); path_component_valid(&cmp);
+         path_component_next(&cmp)) {
         if (cmp.comp_i == count)
             return cmp.data;
     }

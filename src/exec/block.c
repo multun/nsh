@@ -20,15 +20,18 @@
 */
 
 
-static void assignment_exec(struct environment *env, struct shast_assignment *assign, struct exception_catcher *catcher)
+static void assignment_exec(struct environment *env, struct shast_assignment *assign,
+                            struct exception_catcher *catcher)
 {
     char *name = strdup(assign->name);
-    char *value = expand_nosplit(&assign->line_info, assign->value, EXP_FLAGS_ASSIGNMENT, env, catcher);
+    char *value = expand_nosplit(&assign->line_info, assign->value, EXP_FLAGS_ASSIGNMENT,
+                                 env, catcher);
     environment_var_assign(env, name, &sh_string_create(value)->base, false);
 }
 
 
-int block_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
+int block_exec(struct environment *env, struct shast *ast,
+               struct exception_catcher *catcher)
 {
     int rc;
     struct shast_block *block = (struct shast_block *)ast;
@@ -39,12 +42,10 @@ int block_exec(struct environment *env, struct shast *ast, struct exception_catc
 
     // perform redirections
     struct redir_undo_stack undo_stack = UNDO_STACK_INIT;
-    for (size_t i = 0; i < redir_vect_size(&block->redirs); i++)
-    {
-        struct redir_undo cur_undo = { .count = 0 };
+    for (size_t i = 0; i < redir_vect_size(&block->redirs); i++) {
+        struct redir_undo cur_undo = {.count = 0};
         // do the redirection
-        if ((rc = redirection_exec(redir_vect_get(&block->redirs, i), &cur_undo)))
-        {
+        if ((rc = redirection_exec(redir_vect_get(&block->redirs, i), &cur_undo))) {
             redir_undo_stack_cancel(&undo_stack);
             return rc;
         }
@@ -68,7 +69,8 @@ int block_exec(struct environment *env, struct shast *ast, struct exception_catc
 }
 
 
-int list_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
+int list_exec(struct environment *env, struct shast *ast,
+              struct exception_catcher *catcher)
 {
     struct shast_list *list = (struct shast_list *)ast;
     int res = 0;

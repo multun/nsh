@@ -32,7 +32,8 @@ Writing end:
    often smaller than needed, and doesn't even work properly on all
    architectures. */
 
-#if defined(__x86_64__) || defined(__aarch64__) || defined(__m68k__) || defined(__mips__) || defined(__arm__) || defined(__sparc__)
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__m68k__)                     \
+    || defined(__mips__) || defined(__arm__) || defined(__sparc__)
 typedef uintptr_t lsig_atomic_t;
 #else
 typedef sig_atomic_t lsig_atomic_t;
@@ -40,10 +41,11 @@ typedef sig_atomic_t lsig_atomic_t;
 
 /* Some architectures do not have a good enough sig_atomic_t */
 #if defined(__AVR__)
-#define SIG_ATOMIC_MISSING
+#    define SIG_ATOMIC_MISSING
 #endif
 
-struct signal_lut {
+struct signal_lut
+{
     /* when a signal is received, the handler sets this flag. other signal
        handlers have to spin, waiting for the lock to be released */
     atomic_flag producer_lock;
@@ -64,4 +66,5 @@ struct signal_lut {
 extern void signal_pipe_lut_handler(int signum);
 extern void signal_lut_handler(int signum);
 extern int signal_lut_read(struct signal_list *events);
-extern int signal_lut_setup_handler(struct sigaction *oldact, int signum, int flags, void (*handler)(int));
+extern int signal_lut_setup_handler(struct sigaction *oldact, int signum, int flags,
+                                    void (*handler)(int));

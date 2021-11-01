@@ -42,7 +42,7 @@ static int parse_options(int *opt, char **argv)
     return pos;
 }
 
-static size_t echo_parse_base(const char * const str, int base, size_t len)
+static size_t echo_parse_base(const char *const str, int base, size_t len)
 {
     /* the 'x' or '0' in '\x' or '\0'*/
     char basis_tag = *str;
@@ -148,7 +148,8 @@ static void echo_print(const char *c, int opt)
     }
 }
 
-int builtin_echo(struct environment *env, struct exception_catcher *catcher __unused, int argc, char **argv)
+int builtin_echo(struct environment *env, struct exception_catcher *catcher __unused,
+                 int argc, char **argv)
 {
     int options = 0;
     if (env->shopts[SHOPT_XPG_ECHO])

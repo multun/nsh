@@ -10,7 +10,8 @@
 #include "history.h"
 
 
-static f_builtin find_builtin_with_history(const char *name) {
+static f_builtin find_builtin_with_history(const char *name)
+{
     if (strcmp(name, "history") == 0)
         return builtin_history;
     return find_default_builtin(name);
@@ -59,13 +60,13 @@ static bool load_all_rc(struct repl *ctx)
 #define WINDOW_TITLE_END "\\a\\]"
 #define ANSI_GRAY "\\[\\033[1;90m\\]"
 #define ANSI_RESET "\\[\\033[0m\\]"
-static const char default_ps1[] = {
-    WINDOW_TITLE_START "\\u@\\h: \\w" WINDOW_TITLE_END
-    ANSI_GRAY "[\\u@\\h:\\w]\\$ " ANSI_RESET
-};
+static const char default_ps1[] = {WINDOW_TITLE_START
+                                   "\\u@\\h: \\w" WINDOW_TITLE_END ANSI_GRAY
+                                   "[\\u@\\h:\\w]\\$ " ANSI_RESET};
 
 
-static bool repl_load(int *rc, struct repl *ctx, struct cstream *cs, struct cli_options *arg_ctx)
+static bool repl_load(int *rc, struct repl *ctx, struct cstream *cs,
+                      struct cli_options *arg_ctx)
 {
     struct environment *env = environment_load(arg_ctx);
     repl_init(ctx, cs, env);
@@ -90,11 +91,12 @@ static bool repl_load(int *rc, struct repl *ctx, struct cstream *cs, struct cli_
 }
 
 
-int interactive_repl_init(struct repl *repl, struct cli_options *options, struct cstream **cs)
+int interactive_repl_init(struct repl *repl, struct cli_options *options,
+                          struct cstream **cs)
 {
     int rc;
 
-   /* initialize IO */
+    /* initialize IO */
     if ((rc = cstream_dispatch_init(repl, cs, options)))
         goto err_cstream;
 

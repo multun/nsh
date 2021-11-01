@@ -60,14 +60,12 @@ static inline void list_del(struct list_head *list)
 #endif
 }
 
-#define list_for_each_entry(pos, head, type, member)            \
-    for (pos = container_of((head)->next, type, member);        \
-         &pos->member != (head);                                \
+#define list_for_each_entry(pos, head, type, member)                                     \
+    for (pos = container_of((head)->next, type, member); &pos->member != (head);         \
          pos = container_of(pos->member.next, type, member))
 
-#define list_for_each_entry_safe(pos, tmp, head, type, member)  \
-    for (pos = container_of((head)->next, type, member),        \
-         tmp = container_of(pos->member.next, type, member);    \
-         &pos->member != (head);                                \
-         pos = tmp,                                             \
-         tmp = container_of(tmp->member.next, type, member))
+#define list_for_each_entry_safe(pos, tmp, head, type, member)                           \
+    for (pos = container_of((head)->next, type, member),                                 \
+        tmp = container_of(pos->member.next, type, member);                              \
+         &pos->member != (head);                                                         \
+         pos = tmp, tmp = container_of(tmp->member.next, type, member))

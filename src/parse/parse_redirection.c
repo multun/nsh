@@ -14,7 +14,8 @@ static void negate_ast(struct shast **ast, struct lexer *lexer, bool neg)
     *ast = &neg_ast->base;
 }
 
-void parse_pipeline(struct shast **res, struct lexer *lexer, struct exception_catcher *catcher)
+void parse_pipeline(struct shast **res, struct lexer *lexer,
+                    struct exception_catcher *catcher)
 {
     /* detect pipeline negation: '! foo | bar' */
     const struct token *tok = lexer_peek(lexer, catcher);
@@ -73,7 +74,8 @@ static enum redir_type parse_redir_type(const struct token *tok)
     return REDIR_NONE;
 }
 
-int parse_redirection(struct redir_vect *vect, struct lexer *lexer, struct exception_catcher *catcher)
+int parse_redirection(struct redir_vect *vect, struct lexer *lexer,
+                      struct exception_catcher *catcher)
 {
     struct token *tok = lexer_peek(lexer, catcher);
     int left = -1;
@@ -84,8 +86,7 @@ int parse_redirection(struct redir_vect *vect, struct lexer *lexer, struct excep
     }
 
     enum redir_type type = parse_redir_type(tok);
-    if (type == REDIR_NONE)
-    {
+    if (type == REDIR_NONE) {
         assert(left == -1);
         return 1;
     }

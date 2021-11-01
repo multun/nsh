@@ -126,7 +126,8 @@ struct repl_result
 
 static inline bool repl_called_exit(const struct repl_result *repl_res)
 {
-    return repl_res->status == REPL_EXCEPTION && repl_res->exception_class == &g_clean_exit;
+    return repl_res->status == REPL_EXCEPTION
+        && repl_res->exception_class == &g_clean_exit;
 }
 
 

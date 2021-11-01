@@ -3,8 +3,7 @@
 #include <nsh_utils/macros.h>
 
 
-static const char *g_token_type_tab[] =
-{
+static const char *g_token_type_tab[] = {
 #define X(TokName, Value) #TokName,
 #include <nsh_lex/tokens.defs>
 #undef X

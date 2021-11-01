@@ -25,17 +25,17 @@ static inline bool static_ref_put(struct static_refcnt *refcnt)
 }
 
 
-#define STATIC_REFCNT_DEFINE(Struct, Name, Field, Free)    \
-    static inline void Name ## _get(Struct *item)       \
-    {                                                   \
-        static_ref_get(&item->Field);                   \
-    }                                                   \
-                                                        \
-    static inline void Name ## _put(Struct *item)       \
-    {                                                   \
-        if (!item)                                      \
-            return;                                     \
-                                                        \
-        if (static_ref_put(&item->Field))               \
-            Free(item);                                 \
+#define STATIC_REFCNT_DEFINE(Struct, Name, Field, Free)                                  \
+    static inline void Name##_get(Struct *item)                                          \
+    {                                                                                    \
+        static_ref_get(&item->Field);                                                    \
+    }                                                                                    \
+                                                                                         \
+    static inline void Name##_put(Struct *item)                                          \
+    {                                                                                    \
+        if (!item)                                                                       \
+            return;                                                                      \
+                                                                                         \
+        if (static_ref_put(&item->Field))                                                \
+            Free(item);                                                                  \
     }

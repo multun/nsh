@@ -189,7 +189,8 @@ int expand_name(struct expansion_state *exp_state, const char *var_name)
         return 0;
 
     struct sh_string *env_var;
-    if ((env_var = environment_var_get_string(expansion_state_env(exp_state), var_name)) == NULL)
+    if ((env_var = environment_var_get_string(expansion_state_env(exp_state), var_name))
+        == NULL)
         return 1;
 
     /* tell the expansion_state we're currently holding a reference to this variable.

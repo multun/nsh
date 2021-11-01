@@ -75,10 +75,10 @@ static inline struct lineinfo *lexer_line_info(struct lexer *lexer)
 }
 
 typedef enum wlexer_op (*sublexer)(struct lexer *lexer, struct wlexer *wlexer,
-                                  struct token *token, struct wtoken *wtoken);
+                                   struct token *token, struct wtoken *wtoken);
 
 enum wlexer_op sublexer_regular(struct lexer *lexer, struct wlexer *wlexer,
-                               struct token *token, struct wtoken *wtoken);
+                                struct token *token, struct wtoken *wtoken);
 
 __noreturn void lexer_err(struct lexer *lexer, const char *fmt, ...);
 
@@ -141,7 +141,8 @@ static inline void lexer_discard(struct lexer *lexer, struct exception_catcher *
 ** \param lexer the lexer to peek at
 ** \param tok the token to peek after
 */
-struct token *lexer_peek_at(struct lexer *lexer, struct token *tok, struct exception_catcher *catcher);
+struct token *lexer_peek_at(struct lexer *lexer, struct token *tok,
+                            struct exception_catcher *catcher);
 
 /**
 ** \brief read a word lexer stream and shove it into a string

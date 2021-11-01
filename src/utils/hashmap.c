@@ -43,7 +43,8 @@ static struct hashmap_item **head_tab_insertpos(struct hashmap *table, const cha
     return &table->tab[hashmap_hash(key) % table->capacity];
 }
 
-static void hashmap_insert_noincr(struct hashmap_item **insertion_point, struct hashmap_item *head)
+static void hashmap_insert_noincr(struct hashmap_item **insertion_point,
+                                  struct hashmap_item *head)
 {
     // initialize the new node
     head->next = *insertion_point;
@@ -82,7 +83,8 @@ void hashmap_init(struct hashmap *htab, size_t capacity)
     htab->tab = xcalloc(capacity, sizeof(struct hashmap_item *));
 }
 
-struct hashmap_item *hashmap_find(struct hashmap *htab, struct hashmap_item ***insertion_point, const char *key)
+struct hashmap_item *hashmap_find(struct hashmap *htab,
+                                  struct hashmap_item ***insertion_point, const char *key)
 {
     if (htab->size + 1 > htab->capacity * RESIZE_TRIGGER)
         expand_table(htab);
@@ -100,7 +102,8 @@ struct hashmap_item *hashmap_find(struct hashmap *htab, struct hashmap_item ***i
     return NULL;
 }
 
-void hashmap_insert(struct hashmap *htab, struct hashmap_item **insertion_point, struct hashmap_item *head)
+void hashmap_insert(struct hashmap *htab, struct hashmap_item **insertion_point,
+                    struct hashmap_item *head)
 {
     htab->size++;
     hashmap_check(htab);

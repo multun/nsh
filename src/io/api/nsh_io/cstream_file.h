@@ -3,7 +3,8 @@
 #include <nsh_io/cstream.h>
 
 
-struct cstream_file {
+struct cstream_file
+{
     struct cstream base;
 
     bool close_on_exit;

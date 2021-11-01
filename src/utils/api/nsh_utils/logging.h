@@ -16,28 +16,34 @@ enum nsh_loglevel
 };
 
 #ifndef NSH_LOG_DOMAIN
-#define NSH_LOG_DOMAIN_FMT NULL
+#    define NSH_LOG_DOMAIN_FMT NULL
 #else
-#define NSH_LOG_DOMAIN_FMT XSTRINGIFY(NSH_LOG_DOMAIN)
+#    define NSH_LOG_DOMAIN_FMT XSTRINGIFY(NSH_LOG_DOMAIN)
 #endif
 
 
 #ifndef NDEBUG
-#define nsh_trace(...) nsh_log(NSH_LOG_TRACE, NSH_LOG_DOMAIN_FMT, __FILE__, __LINE__, __VA_ARGS__)
-#define nsh_debug(...) nsh_log(NSH_LOG_DEBUG, NSH_LOG_DOMAIN_FMT, __FILE__, __LINE__, __VA_ARGS__)
-#define nsh_info(...)  nsh_log(NSH_LOG_INFO,  NSH_LOG_DOMAIN_FMT, __FILE__, __LINE__, __VA_ARGS__)
-#define nsh_warn(...)  nsh_log(NSH_LOG_WARN,  NSH_LOG_DOMAIN_FMT, __FILE__, __LINE__, __VA_ARGS__)
-#define nsh_error(...) nsh_log(NSH_LOG_ERROR, NSH_LOG_DOMAIN_FMT, __FILE__, __LINE__, __VA_ARGS__)
-#else  // NDEBUG
-#define nsh_trace(...)
-#define nsh_debug(...)
-#define nsh_info(...)
-#define nsh_warn(...)
-#define nsh_error(...)
+#    define nsh_trace(...)                                                               \
+        nsh_log(NSH_LOG_TRACE, NSH_LOG_DOMAIN_FMT, __FILE__, __LINE__, __VA_ARGS__)
+#    define nsh_debug(...)                                                               \
+        nsh_log(NSH_LOG_DEBUG, NSH_LOG_DOMAIN_FMT, __FILE__, __LINE__, __VA_ARGS__)
+#    define nsh_info(...)                                                                \
+        nsh_log(NSH_LOG_INFO, NSH_LOG_DOMAIN_FMT, __FILE__, __LINE__, __VA_ARGS__)
+#    define nsh_warn(...)                                                                \
+        nsh_log(NSH_LOG_WARN, NSH_LOG_DOMAIN_FMT, __FILE__, __LINE__, __VA_ARGS__)
+#    define nsh_error(...)                                                               \
+        nsh_log(NSH_LOG_ERROR, NSH_LOG_DOMAIN_FMT, __FILE__, __LINE__, __VA_ARGS__)
+#else // NDEBUG
+#    define nsh_trace(...)
+#    define nsh_debug(...)
+#    define nsh_info(...)
+#    define nsh_warn(...)
+#    define nsh_error(...)
 #endif // NDEBUG
 
 
-void nsh_log(enum nsh_loglevel level, const char *domain, const char *file, int line, const char *fmt, ...);
+void nsh_log(enum nsh_loglevel level, const char *domain, const char *file, int line,
+             const char *fmt, ...);
 
 
 /**

@@ -23,8 +23,7 @@ __noreturn void lexer_err(struct lexer *lexer, const char *fmt, ...)
     va_end(ap);
 }
 
-int lexer_lex_untyped(struct token *token, struct wlexer *wlexer,
-                             struct lexer *lexer)
+int lexer_lex_untyped(struct token *token, struct wlexer *wlexer, struct lexer *lexer)
 {
     token->type = TOK_WORD;
     while (true) {
@@ -60,18 +59,16 @@ static const char *g_keywords[] = {
 
 static int compare_keyword(const void *va, const void *vb)
 {
-    const char * const *a = va;
-    const char * const *b = vb;
+    const char *const *a = va;
+    const char *const *b = vb;
     return strcmp(*a, *b);
 }
 
 enum token_type keyword_search(const char *keyword)
 {
     size_t keyword_count = ARR_SIZE(g_keywords);
-    const char **search_res = bsearch(
-        &keyword, g_keywords,
-        keyword_count, sizeof(g_keywords[0]),
-        compare_keyword);
+    const char **search_res = bsearch(&keyword, g_keywords, keyword_count,
+                                      sizeof(g_keywords[0]), compare_keyword);
 
     if (search_res == NULL)
         return TOK_UNDEF;
@@ -133,7 +130,8 @@ static const char *tok_repr(struct token *tok)
     return tok_buf(tok);
 }
 
-static void lexer_lex(struct token **tres, struct lexer *lexer, struct exception_catcher *catcher)
+static void lexer_lex(struct token **tres, struct lexer *lexer,
+                      struct exception_catcher *catcher)
 {
     // the lexer and the IO stream both have their own global error contexts
     lexer->catcher = catcher;
@@ -145,7 +143,8 @@ static void lexer_lex(struct token **tres, struct lexer *lexer, struct exception
 
     lexer_type_token(lexer, res);
 
-    nsh_info("token { type: %-10s repr: '%s' }", token_type_to_string(res->type), tok_repr(res));
+    nsh_info("token { type: %-10s repr: '%s' }", token_type_to_string(res->type),
+             tok_repr(res));
 }
 
 char *lexer_lex_string(struct exception_catcher *catcher, struct wlexer *wlexer)
@@ -163,7 +162,8 @@ char *lexer_lex_string(struct exception_catcher *catcher, struct wlexer *wlexer)
     return buf;
 }
 
-struct token *lexer_peek_at(struct lexer *lexer, struct token *tok, struct exception_catcher *catcher)
+struct token *lexer_peek_at(struct lexer *lexer, struct token *tok,
+                            struct exception_catcher *catcher)
 {
     if (!tok->next)
         lexer_lex(&tok->next, lexer, catcher);

@@ -2,7 +2,8 @@
 #include <nsh_lex/print.h>
 #include <nsh_utils/alloc.h>
 
-static void parse_pattern(struct wordlist *res, struct lexer *lexer, struct exception_catcher *catcher)
+static void parse_pattern(struct wordlist *res, struct lexer *lexer,
+                          struct exception_catcher *catcher)
 {
     while (true) {
         wordlist_push(res, parse_word(lexer, catcher));
@@ -13,7 +14,8 @@ static void parse_pattern(struct wordlist *res, struct lexer *lexer, struct exce
     }
 }
 
-static void parse_case_item(struct case_item_vect *vect, struct lexer *lexer, struct exception_catcher *catcher)
+static void parse_case_item(struct case_item_vect *vect, struct lexer *lexer,
+                            struct exception_catcher *catcher)
 {
     while (true) {
         parse_newlines(lexer, catcher);
@@ -49,7 +51,8 @@ static void parse_case_item(struct case_item_vect *vect, struct lexer *lexer, st
     }
 }
 
-void parse_rule_case(struct shast **res, struct lexer *lexer, struct exception_catcher *catcher)
+void parse_rule_case(struct shast **res, struct lexer *lexer,
+                     struct exception_catcher *catcher)
 {
     lexer_discard(lexer, catcher);
     struct shword *case_name = parse_word(lexer, catcher);

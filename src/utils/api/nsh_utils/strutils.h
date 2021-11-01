@@ -13,12 +13,11 @@
 ** log10(n) <= log2(n) / 3 + 1
 ** log8(n) <= log2(n) / 3 + 1
 */
-#define UINT_MAX_CHARS(IntegerType)                     \
-    ((sizeof(IntegerType) * CHAR_BIT) / 3               \
+#define UINT_MAX_CHARS(IntegerType)                                                      \
+    ((sizeof(IntegerType) * CHAR_BIT) / 3                                                \
      + 1 /* last digit (round to the upper decimal) */)
 
-#define INT_MAX_CHARS(IntegerType)                      \
-    (1 /* - sign */ + UINT_MAX_CHARS(IntegerType))
+#define INT_MAX_CHARS(IntegerType) (1 /* - sign */ + UINT_MAX_CHARS(IntegerType))
 
 
 static inline bool startswith(const char *str, const char *prefix)
@@ -48,8 +47,7 @@ static inline int parse_int(const char *str, int *val)
     if (parse_long(str, &res) != 0)
         return -1;
 
-    if (res > INT_MAX || res < INT_MIN)
-    {
+    if (res > INT_MAX || res < INT_MIN) {
         errno = ERANGE;
         return -1;
     }
@@ -61,10 +59,6 @@ static inline int parse_int(const char *str, int *val)
 
 static inline bool portable_filename_char(char c)
 {
-    return ((c >= 'A' && c <= 'Z') ||
-            (c >= '0' && c <= '9') ||
-            (c >= 'a' && c <= 'z') ||
-            (c == '.') ||
-            (c == '_') ||
-            (c == '-'));
+    return ((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z')
+            || (c == '.') || (c == '_') || (c == '-'));
 }

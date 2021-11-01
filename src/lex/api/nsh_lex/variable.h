@@ -8,7 +8,8 @@
 #include <stdbool.h>
 
 
-struct variable_name {
+struct variable_name
+{
     struct evect simple_var;
     bool is_special;
 };
@@ -54,12 +55,12 @@ static inline bool simple_variable_name_check_body(char c)
 
 static inline bool simple_variable_name_check_at(size_t i, char c)
 {
-    return (i == 0
-            ? simple_variable_name_check_first
-            : simple_variable_name_check_body)(c);
+    return (i == 0 ? simple_variable_name_check_first
+                   : simple_variable_name_check_body)(c);
 }
 
-static inline bool simple_variable_name_check(struct evect *var, char c) {
+static inline bool simple_variable_name_check(struct evect *var, char c)
+{
     if (var == NULL || var->size == 0)
         return simple_variable_name_check_first(c);
 
@@ -67,7 +68,8 @@ static inline bool simple_variable_name_check(struct evect *var, char c) {
 }
 
 
-static inline bool variable_name_check(struct variable_name *var, char c) {
+static inline bool variable_name_check(struct variable_name *var, char c)
+{
     if (var->is_special)
         // ${#foo} isn't valid
         return false;
@@ -83,8 +85,7 @@ static inline int variable_name_check_string(const char *str, size_t size)
     if (size == 0)
         return 1;
 
-    for (size_t i = 0; i < size; i++)
-    {
+    for (size_t i = 0; i < size; i++) {
         if (!simple_variable_name_check_at(i, str[i]))
             return 1;
     }

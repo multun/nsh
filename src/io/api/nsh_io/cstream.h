@@ -68,12 +68,14 @@ struct cstream
 };
 
 
-static inline void cstream_set_catcher(struct cstream *cs, struct exception_catcher *catcher)
+static inline void cstream_set_catcher(struct cstream *cs,
+                                       struct exception_catcher *catcher)
 {
     cs->catcher = catcher;
 }
 
-static inline void cstream_check(struct cstream *cs) {
+static inline void cstream_check(struct cstream *cs)
+{
     assert(cs->backend != NULL);
     assert(cs->line_info.source != NULL);
 }

@@ -9,7 +9,8 @@
 #include <fcntl.h>
 #include <string.h>
 
-static int source_file(struct exception_catcher *catcher, struct environment *env, char *path)
+static int source_file(struct exception_catcher *catcher, struct environment *env,
+                       char *path)
 {
     int rc;
     FILE *file;
@@ -35,7 +36,8 @@ static int source_file(struct exception_catcher *catcher, struct environment *en
     return rc;
 }
 
-int builtin_source(struct environment *env, struct exception_catcher *catcher, int argc, char **argv)
+int builtin_source(struct environment *env, struct exception_catcher *catcher, int argc,
+                   char **argv)
 {
     if (argc > 2) {
         warnx("source: missing source");

@@ -52,7 +52,7 @@ char **environment_array(struct environment *env)
         if (!sh_value_is_string(value))
             continue;
 
-        struct sh_string *str_value = (struct sh_string*)value;
+        struct sh_string *str_value = (struct sh_string *)value;
         cpvect_push(&res, mprintf("%s=%s", it.cur->key, sh_string_data(str_value)));
     }
     cpvect_push(&res, NULL);
@@ -100,7 +100,8 @@ struct sh_value *environment_var_get(struct environment *env, const char *name)
     return var->value;
 }
 
-void environment_var_assign(struct environment *env, char *name, struct sh_value *value, bool export)
+void environment_var_assign(struct environment *env, char *name, struct sh_value *value,
+                            bool export)
 {
     struct hashmap_item **insertion_pos;
     struct hashmap_item *prev = hashmap_find(&env->variables, &insertion_pos, name);

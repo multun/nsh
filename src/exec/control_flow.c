@@ -25,14 +25,15 @@ int if_exec(struct environment *env, struct shast *ast, struct exception_catcher
 }
 
 
-int case_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
+int case_exec(struct environment *env, struct shast *ast,
+              struct exception_catcher *catcher)
 {
     struct shast_case *case_node = (struct shast_case *)ast;
-    char *case_var = expand_nosplit(&case_node->base.line_info, shword_buf(case_node->var), 0, env, catcher);
+    char *case_var = expand_nosplit(&case_node->base.line_info,
+                                    shword_buf(case_node->var), 0, env, catcher);
     for (size_t case_i = 0; case_i < case_item_vect_size(&case_node->cases); case_i++) {
         struct shast_case_item *case_item = case_item_vect_get(&case_node->cases, case_i);
-        for (size_t i = 0; i < wordlist_size(&case_item->pattern); i++)
-        {
+        for (size_t i = 0; i < wordlist_size(&case_item->pattern); i++) {
             char *pattern = shword_buf(wordlist_get(&case_item->pattern, i));
             if (fnmatch(pattern, case_var, 0) != 0)
                 continue;
@@ -52,8 +53,7 @@ struct exception_type g_ex_continue;
 
 
 static int builtin_generic_break(struct environment *env,
-                                 struct exception_catcher *catcher,
-                                 int argc, char **argv)
+                                 struct exception_catcher *catcher, int argc, char **argv)
 {
     if (argc > 2) {
         warnx("%s: too many arguments", argv[0]);
@@ -91,8 +91,8 @@ static int builtin_generic_break(struct environment *env,
 }
 
 
-int builtin_break(struct environment *env, struct exception_catcher *catcher,
-                  int argc, char **argv)
+int builtin_break(struct environment *env, struct exception_catcher *catcher, int argc,
+                  char **argv)
 {
     int rc;
     if ((rc = builtin_generic_break(env, catcher, argc, argv)) >= 0)
@@ -101,8 +101,8 @@ int builtin_break(struct environment *env, struct exception_catcher *catcher,
 }
 
 
-int builtin_continue(struct environment *env, struct exception_catcher *catcher,
-                     int argc, char **argv)
+int builtin_continue(struct environment *env, struct exception_catcher *catcher, int argc,
+                     char **argv)
 {
     int rc;
     if ((rc = builtin_generic_break(env, catcher, argc, argv)) >= 0)

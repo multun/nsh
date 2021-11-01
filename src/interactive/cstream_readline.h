@@ -4,7 +4,8 @@
 #include <nsh_exec/repl.h>
 
 
-struct cstream_readline {
+struct cstream_readline
+{
     struct cstream base;
 
     // This is useful for getting the prompt,

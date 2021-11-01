@@ -26,7 +26,8 @@ void parse(struct shast **res, struct lexer *lexer, struct exception_catcher *ca
                TOKT_STR(tok));
 }
 
-void parse_and_or(struct shast **res, struct lexer *lexer, struct exception_catcher *catcher)
+void parse_and_or(struct shast **res, struct lexer *lexer,
+                  struct exception_catcher *catcher)
 {
     while (true) {
         parse_pipeline(res, lexer, catcher);

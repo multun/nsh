@@ -29,8 +29,10 @@ static inline bool sh_value_is_string(struct sh_value *val)
     }
 }
 
-#define STATIC_SH_VALUE(Type)                   \
-    { .type = (Type) }
+#define STATIC_SH_VALUE(Type)                                                            \
+    {                                                                                    \
+        .type = (Type)                                                                   \
+    }
 
 
 static inline void sh_value_init(struct sh_value *shval, enum sh_value_type type)
@@ -47,8 +49,10 @@ struct sh_string
     char *__str;
 };
 
-#define STATIC_SH_STRING(Type)                   \
-    { .type = (Type) }
+#define STATIC_SH_STRING(Type)                                                           \
+    {                                                                                    \
+        .type = (Type)                                                                   \
+    }
 
 
 static inline const char *sh_string_data(struct sh_string *shstr)

@@ -42,13 +42,11 @@ int parse_cli_options(struct cli_options *res, int argc, char *argv[])
     res->norc = false;
 
     int print_ast = false;
-    struct option long_options[] = {
-        {"norc", no_argument, &res->norc, true},
-        {"ast-print", no_argument, &print_ast, true},
-        {"version", no_argument, 0, 'v'},
-        {"help", no_argument, 0, 'h'},
-        {0, 0, 0, 0}
-    };
+    struct option long_options[] = {{"norc", no_argument, &res->norc, true},
+                                    {"ast-print", no_argument, &print_ast, true},
+                                    {"version", no_argument, 0, 'v'},
+                                    {"help", no_argument, 0, 'h'},
+                                    {0, 0, 0, 0}};
 
     // replace +O into -o so getopt_long can process it
     for (int i = 1; i < argc; i++)

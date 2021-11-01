@@ -8,12 +8,14 @@
 #include "break.h"
 
 
-struct for_data {
+struct for_data
+{
     struct shast_for *for_node;
     int rc;
 };
 
-static void for_expansion_callback(void *data, char *var_value, struct environment *env, struct exception_catcher *catcher)
+static void for_expansion_callback(void *data, char *var_value, struct environment *env,
+                                   struct exception_catcher *catcher)
 {
     struct for_data *for_data = data;
     struct shast_for *for_node = for_data->for_node;
@@ -36,7 +38,8 @@ static void for_expansion_callback(void *data, char *var_value, struct environme
     for_data->rc = ast_exec(env, for_node->body, &sub_catcher);
 }
 
-int for_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
+int for_exec(struct environment *env, struct shast *ast,
+             struct exception_catcher *catcher)
 {
     struct shast_for *for_node = (struct shast_for *)ast;
     struct for_data for_data = {
@@ -61,7 +64,8 @@ int for_exec(struct environment *env, struct shast *ast, struct exception_catche
         if (env->break_count != 0)
             goto reraise;
     } else {
-        expand_wordlist_callback(&for_callback, &for_node->collection, 0, env, &sub_catcher);
+        expand_wordlist_callback(&for_callback, &for_node->collection, 0, env,
+                                 &sub_catcher);
     }
 
     env->depth--;
@@ -73,7 +77,8 @@ reraise:
 }
 
 
-int while_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
+int while_exec(struct environment *env, struct shast *ast,
+               struct exception_catcher *catcher)
 {
     struct shast_while *while_node = (struct shast_while *)ast;
     struct exception_context *ex_context = catcher->context;

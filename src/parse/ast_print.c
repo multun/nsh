@@ -59,8 +59,7 @@ void for_print(FILE *f, struct shast *ast)
     print_label_start(f);
     fprintf(f, "FOR %s in", shword_buf(for_node->var));
     struct wordlist *wl = &for_node->collection;
-    for (size_t i = 0; i < wordlist_size(wl); i++)
-    {
+    for (size_t i = 0; i < wordlist_size(wl); i++) {
         fputc(' ', f);
         fputs(wordlist_get_str(wl, i), f);
     }
@@ -74,13 +73,12 @@ void for_print(FILE *f, struct shast *ast)
 
 void cmd_print(FILE *f, struct shast *ast)
 {
-    struct shast_cmd *command = (struct shast_cmd*)ast;
+    struct shast_cmd *command = (struct shast_cmd *)ast;
     print_id(f, ast);
     print_label_start(f);
     struct wordlist *wl = &command->arguments;
     fputs("CMD\\n", f);
-    for (size_t i = 0; i < wordlist_size(wl); i++)
-    {
+    for (size_t i = 0; i < wordlist_size(wl); i++) {
         if (i > 0)
             fputc(' ', f);
         fprintf(f, "%s", wordlist_get_str(wl, i));
@@ -191,8 +189,7 @@ static void assignment_print(FILE *f, struct shast_assignment *assignment)
 
 void assign_vect_print(FILE *f, struct assign_vect *vect, void *parent)
 {
-    for (size_t i = 0; i < assign_vect_size(vect); i++)
-    {
+    for (size_t i = 0; i < assign_vect_size(vect); i++) {
         struct shast_assignment *assign = assign_vect_get(vect, i);
         assignment_print(f, assign);
         print_rel(f, parent, assign, "ASSIGN");
@@ -229,8 +226,7 @@ void case_print(FILE *f, struct shast *ast)
         ast_print_rec(f, case_item->action);
         print_raw_rel(f, case_node, case_item->action);
         print_label_start(f);
-        for (size_t i = 0; i < wordlist_size(&case_item->pattern); i++)
-        {
+        for (size_t i = 0; i < wordlist_size(&case_item->pattern); i++) {
             if (i > 0)
                 fputc('|', f);
             fputs(wordlist_get_str(&case_item->pattern, i), f);
@@ -262,20 +258,16 @@ static void redirection_print(FILE *f, struct shast_redirection *redir)
 
 void redir_vect_print(FILE *f, struct redir_vect *vect, void *id)
 {
-    for (size_t i = 0; i < redir_vect_size(vect); i++)
-    {
+    for (size_t i = 0; i < redir_vect_size(vect); i++) {
         struct shast_redirection *redir = redir_vect_get(vect, i);
         redirection_print(f, redir);
-        fprintf(f, "\"%p\" -> \"%p\";\n", id, (void*)redir);
+        fprintf(f, "\"%p\" -> \"%p\";\n", id, (void *)redir);
     }
 }
 
-#define AST_PRINT_UTILS(EnumName, Name) \
-    [EnumName] = Name ## _print,
-static void (*ast_print_utils[])(FILE *f, struct shast *ast) =
-{
-    AST_TYPE_APPLY(AST_PRINT_UTILS)
-};
+#define AST_PRINT_UTILS(EnumName, Name) [EnumName] = Name##_print,
+static void (*ast_print_utils[])(FILE *f,
+                                 struct shast *ast) = {AST_TYPE_APPLY(AST_PRINT_UTILS)};
 
 void ast_print_rec(FILE *f, struct shast *ast)
 {

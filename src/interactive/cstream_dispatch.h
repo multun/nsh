@@ -4,4 +4,5 @@
 #include <nsh_exec/repl.h>
 
 
-int cstream_dispatch_init(struct repl *repl, struct cstream **cs, struct cli_options *arg_cont);
+int cstream_dispatch_init(struct repl *repl, struct cstream **cs,
+                          struct cli_options *arg_cont);

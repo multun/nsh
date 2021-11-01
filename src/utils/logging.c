@@ -40,9 +40,7 @@ static void (*g_log_header)(struct log_event *ev, FILE *fp) = NULL;
 static struct domain_conf_vec g_log_config;
 
 
-static const char *level_strings[] = {
-    "TRACE", "DEBUG", "INFO", "WARN", "ERROR"
-};
+static const char *level_strings[] = {"TRACE", "DEBUG", "INFO", "WARN", "ERROR"};
 
 
 #define BRIGHT_BLUE "\x1b[94m"
@@ -54,29 +52,25 @@ static const char *level_strings[] = {
 #define GRAY "\x1b[90m"
 #define RESET "\x1b[0m"
 
-static const char *level_colors[] = {
-    BRIGHT_BLUE, CYAN, GREEN, YELLOW, RED, MAGENTA
-};
+static const char *level_colors[] = {BRIGHT_BLUE, CYAN, GREEN, YELLOW, RED, MAGENTA};
 
 static void log_header_simple(struct log_event *ev, FILE *fp)
 {
-    fprintf(
-        fp, "%-7d %-5s %s:%d: ",
-        getpid(), level_strings[ev->level], ev->file, ev->line);
+    fprintf(fp, "%-7d %-5s %s:%d: ", getpid(), level_strings[ev->level], ev->file,
+            ev->line);
 }
 
 
 static void log_header_color(struct log_event *ev, FILE *fp)
 {
-    fprintf(
-        fp, GRAY"%-7d %s%-5s"RESET" "GRAY"%s:%d:"RESET" ",
-        getpid(), level_colors[ev->level], level_strings[ev->level],
-        ev->file, ev->line);
+    fprintf(fp, GRAY "%-7d %s%-5s" RESET " " GRAY "%s:%d:" RESET " ", getpid(),
+            level_colors[ev->level], level_strings[ev->level], ev->file, ev->line);
 }
 
 static bool should_log(enum nsh_loglevel level, const char *domain);
 
-void nsh_log(enum nsh_loglevel level, const char *domain, const char *file, int line, const char *fmt, ...)
+void nsh_log(enum nsh_loglevel level, const char *domain, const char *file, int line,
+             const char *fmt, ...)
 {
     if (g_logfile == NULL)
         return;
@@ -86,8 +80,8 @@ void nsh_log(enum nsh_loglevel level, const char *domain, const char *file, int 
 
     struct log_event ev = {
         .domain = domain,
-        .file  = file,
-        .line  = line,
+        .file = file,
+        .line = line,
         .level = level,
     };
 

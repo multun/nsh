@@ -5,7 +5,8 @@
 #include <nsh_utils/exception.h>
 
 
-void parse_rule_if(struct shast **res, struct lexer *lexer, struct exception_catcher *catcher)
+void parse_rule_if(struct shast **res, struct lexer *lexer,
+                   struct exception_catcher *catcher)
 {
     // consume the if
     lexer_discard(lexer, catcher);
@@ -29,8 +30,7 @@ void parse_rule_if(struct shast **res, struct lexer *lexer, struct exception_cat
     }
 
     // else case
-    if (tok_is(tok, TOK_ELSE))
-    {
+    if (tok_is(tok, TOK_ELSE)) {
         lexer_discard(lexer, catcher);
         parse_compound_list(&if_node->branch_false, lexer, catcher);
     }

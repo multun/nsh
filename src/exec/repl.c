@@ -18,14 +18,16 @@ enum repl_action
     REPL_ACTION_CONTINUE,
 };
 
-static enum repl_action handle_repl_exception(struct repl_result *res, struct repl *ctx, struct exception_context *ex_context)
+static enum repl_action handle_repl_exception(struct repl_result *res, struct repl *ctx,
+                                              struct exception_context *ex_context)
 {
     if (ex_context->class == &g_clean_exit) {
         ctx->env->code = ex_context->retcode;
         goto exception_stop;
     }
 
-    if (ex_context->class == &g_keyboard_interrupt || ex_context->class == &g_runtime_error) {
+    if (ex_context->class == &g_keyboard_interrupt
+        || ex_context->class == &g_runtime_error) {
         ctx->env->code = ex_context->retcode;
         goto exception_continue_if_interactive;
     }
@@ -55,7 +57,8 @@ exception_stop:
 enum repl_action repl_eof(struct repl_result *res, struct repl *ctx)
 {
     struct exception_context exception_context;
-    struct exception_catcher exception_catcher = EXCEPTION_CATCHER(&exception_context, NULL);
+    struct exception_catcher exception_catcher =
+        EXCEPTION_CATCHER(&exception_context, NULL);
 
     /* handle keyboard interupts in initial EOF check */
     if (setjmp(exception_catcher.env)) {
@@ -93,7 +96,8 @@ enum repl_action repl_eof(struct repl_result *res, struct repl *ctx)
 void repl_run(struct repl_result *res, struct repl *ctx)
 {
     struct exception_context exception_context;
-    struct exception_catcher exception_catcher = EXCEPTION_CATCHER(&exception_context, NULL);
+    struct exception_catcher exception_catcher =
+        EXCEPTION_CATCHER(&exception_context, NULL);
 
     while (true) {
         ctx->line_start = true;
@@ -105,7 +109,7 @@ void repl_run(struct repl_result *res, struct repl *ctx)
         if (action == REPL_ACTION_STOP)
             break;
 
-         /* parse and execute */
+        /* parse and execute */
         if (setjmp(exception_catcher.env)) {
             /* decide whether to stop running the repl */
             if (handle_repl_exception(res, ctx, &exception_context) == REPL_ACTION_STOP)

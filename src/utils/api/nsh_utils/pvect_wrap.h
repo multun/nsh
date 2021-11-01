@@ -3,15 +3,15 @@
 #include "gvect_common.h"
 
 #ifndef PVECT_INCLUDED
-#error missing pvect include before pvect_wrap include
+#    error missing pvect include before pvect_wrap include
 #endif
 
 #ifndef GVECT_NAME
-#error undefined GVECT_NAME in generic vector
+#    error undefined GVECT_NAME in generic vector
 #endif
 
 #ifndef GVECT_TYPE
-#error undefined GVECT_TYPE in generic vector
+#    error undefined GVECT_TYPE in generic vector
 #endif
 
 struct GVECT_NAME
@@ -51,7 +51,7 @@ static inline void GVECT_FNAME(destroy)(struct GVECT_NAME *vect)
 {
 #ifdef GVECT_DESTROY_ITEM
     for (size_t i = 0; i < GVECT_FNAME(size)(vect); i++)
-        GVECT_DESTROY_ITEM (GVECT_FNAME(get)(vect, i));
+        GVECT_DESTROY_ITEM(GVECT_FNAME(get)(vect, i));
 #endif
     pvect_destroy(&vect->base);
 }
@@ -68,7 +68,7 @@ static inline GVECT_TYPE GVECT_FNAME(pop)(struct GVECT_NAME *vect)
 
 static inline GVECT_TYPE *GVECT_FNAME(last)(struct GVECT_NAME *vect)
 {
-    return (GVECT_TYPE*)pvect_last(&vect->base);
+    return (GVECT_TYPE *)pvect_last(&vect->base);
 }
 
 static inline void GVECT_FNAME(reset)(struct GVECT_NAME *vect)

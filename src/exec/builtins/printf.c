@@ -112,7 +112,7 @@ struct conversion_specifier
     enum conversion_type
     {
         CONV_CHAR = 0, /* c */
-        CONV_ESCAPE_STR,  /* shell-specific 'b' */
+        CONV_ESCAPE_STR, /* shell-specific 'b' */
         CONV_STR, /* s */
         CONV_OCTAL, /* o */
         CONV_INT, /* i */
@@ -160,7 +160,7 @@ struct conversion_specifier
 
 int parse_conversion_specifier(struct conversion_specifier *spec, const char *format)
 {
-    const char * const format_start = format;
+    const char *const format_start = format;
 
     spec->sign_policy = SIGN_NEG;
     spec->upper = false;
@@ -208,7 +208,8 @@ parse_flag:
             spec->dynamic_precision = true;
             format++;
         } else {
-            if ((parsed_chars = parse_integer(&spec->precision, 10, format, SIZE_MAX)) < 0)
+            if ((parsed_chars = parse_integer(&spec->precision, 10, format, SIZE_MAX))
+                < 0)
                 return -1;
             format += parsed_chars;
         }
@@ -260,7 +261,8 @@ static const char *pop_arg(int *arg_i, int argc, char *argv[])
     return res;
 }
 
-static void pad(struct evect *dest, const struct conversion_specifier *spec, size_t data_width)
+static void pad(struct evect *dest, const struct conversion_specifier *spec,
+                size_t data_width)
 {
     if (data_width >= spec->width)
         return;
@@ -269,14 +271,16 @@ static void pad(struct evect *dest, const struct conversion_specifier *spec, siz
         write_char(dest, spec->pad_char);
 }
 
-static void pad_pre(struct evect *dest, const struct conversion_specifier *spec, size_t data_width)
+static void pad_pre(struct evect *dest, const struct conversion_specifier *spec,
+                    size_t data_width)
 {
     if (spec->left_justify)
         return;
     pad(dest, spec, data_width);
 }
 
-static void pad_post(struct evect *dest, const struct conversion_specifier *spec, size_t data_width)
+static void pad_post(struct evect *dest, const struct conversion_specifier *spec,
+                     size_t data_width)
 {
     if (!spec->left_justify)
         return;
@@ -348,13 +352,14 @@ char integer_sign_prefix(enum sign_policy policy, bool negative)
 }
 
 
-int builtin_printf(struct environment *env, struct exception_catcher *catcher __unused, int argc, char *argv[])
+int builtin_printf(struct environment *env, struct exception_catcher *catcher __unused,
+                   int argc, char *argv[])
 {
     if (argc < /* {"printf", "stuff"} */ 2)
         return printf_help(argv);
 
     /* the result buffer used with -v */
-    struct evect result = { 0 };
+    struct evect result = {0};
 
     /* the index of the format string argument */
     int format_start = 1;
@@ -384,8 +389,7 @@ int builtin_printf(struct environment *env, struct exception_catcher *catcher __
     size_t specifiers;
     do {
         specifiers = 0;
-        for (int i = 0; format[i]; i++)
-        {
+        for (int i = 0; format[i]; i++) {
             /* handle \ escapes */
             if (format[i] == '\\') {
                 i += printf_escape(dest, &format[i + 1]);
@@ -420,8 +424,10 @@ int builtin_printf(struct environment *env, struct exception_catcher *catcher __
             /* handle %.*s */
             if (spec.dynamic_precision) {
                 const char *dynamic_precision_str = pop_arg(&arg_i, argc, argv);
-                if (parse_pure_integer(&spec.precision, 10, dynamic_precision_str) == -1) {
-                    fprintf(stderr, "%s: argument %d should be a decimal integer\n", argv[0], arg_i - 1);
+                if (parse_pure_integer(&spec.precision, 10, dynamic_precision_str)
+                    == -1) {
+                    fprintf(stderr, "%s: argument %d should be a decimal integer\n",
+                            argv[0], arg_i - 1);
                     goto error;
                 }
             }
@@ -461,13 +467,15 @@ int builtin_printf(struct environment *env, struct exception_catcher *catcher __
                 size_t arg_value;
                 bool negative;
                 if (parse_integer_argument(arg_str, &arg_value, &negative) == -1) {
-                    fprintf(stderr, "%s: argument %d should be an integer\n", argv[0], arg_i - 1);
+                    fprintf(stderr, "%s: argument %d should be an integer\n", argv[0],
+                            arg_i - 1);
                     goto error;
                 }
 
                 /* disallow signed to unsigned casts */
                 if (!signed_conv && negative) {
-                    fprintf(stderr, "%s: negative argument with an unsigned conversion\n", argv[0]);
+                    fprintf(stderr, "%s: negative argument with an unsigned conversion\n",
+                            argv[0]);
                     goto error;
                 }
 
@@ -509,7 +517,7 @@ int builtin_printf(struct environment *env, struct exception_catcher *catcher __
 
                 const char *prefix = "";
                 if (spec.alternative_form) {
-                /* the alternative form of octal forces a 0 prefix */
+                    /* the alternative form of octal forces a 0 prefix */
                     if (target_basis == 8 && precision <= integer_size)
                         precision = integer_size + 1;
                     if (target_basis == 16)
@@ -522,8 +530,8 @@ int builtin_printf(struct environment *env, struct exception_catcher *catcher __
                 size_t char_count = 0;
                 if (sign_prefix)
                     char_count += /* - */ 1;
-                char_count +=  /* 0x */ strlen(prefix);
-                char_count +=  /* 000042 */ precision;
+                char_count += /* 0x */ strlen(prefix);
+                char_count += /* 000042 */ precision;
 
                 pad_pre(dest, &spec, char_count);
 

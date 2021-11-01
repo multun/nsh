@@ -9,8 +9,10 @@ struct redir_undo_op
         REDIR_RESTORE,
         REDIR_CLOSE,
     } type;
-    union {
-        struct {
+    union
+    {
+        struct
+        {
             int src;
             int dst;
         } move;
@@ -31,9 +33,14 @@ struct redir_undo_stack
     struct redir_undo_op *last_op;
 };
 
-#define UNDO_STACK_INIT { .last_op = NULL }
+#define UNDO_STACK_INIT                                                                  \
+    {                                                                                    \
+        .last_op = NULL                                                                  \
+    }
 
-static inline void redir_undo_stack_push(struct redir_undo_stack *stack, struct redir_undo *undo, int i, struct redir_undo_op *dst)
+static inline void redir_undo_stack_push(struct redir_undo_stack *stack,
+                                         struct redir_undo *undo, int i,
+                                         struct redir_undo_op *dst)
 {
     struct redir_undo_op *cur_undo_op = &undo->ops[undo->count - i - 1];
     *dst = *cur_undo_op;
@@ -41,7 +48,7 @@ static inline void redir_undo_stack_push(struct redir_undo_stack *stack, struct 
     stack->last_op = dst;
 }
 
-#define redir_undo_stack_push(Stack, Undo, I) \
+#define redir_undo_stack_push(Stack, Undo, I)                                            \
     redir_undo_stack_push(Stack, Undo, I, alloca(sizeof(struct redir_undo_op)))
 
 int redirection_exec(struct shast_redirection *redir, struct redir_undo *undo);

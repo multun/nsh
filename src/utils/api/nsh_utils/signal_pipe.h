@@ -9,13 +9,17 @@
 #define SIGNAL_READ_SIZE 1024
 
 
-struct signal_pipe {
+struct signal_pipe
+{
     int consumer_pipe;
     int producer_pipe;
 };
 
 
-#define SIGNAL_PIPE_INIT { .consumer_pipe = -1, .producer_pipe = -1 }
+#define SIGNAL_PIPE_INIT                                                                 \
+    {                                                                                    \
+        .consumer_pipe = -1, .producer_pipe = -1                                         \
+    }
 
 
 extern int signal_pipe_write(int signum);

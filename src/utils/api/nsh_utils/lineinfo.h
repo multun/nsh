@@ -29,8 +29,8 @@ struct lineinfo
 
 void lineinfo_print(const struct lineinfo *li, FILE *stream);
 
-#define LINEINFO(Source, Parent)                                        \
-    (struct lineinfo)                                                   \
-    {                                                                   \
-        .line = 1, .column = 1, .source = (Source), .parent = (Parent)  \
+#define LINEINFO(Source, Parent)                                                         \
+    (struct lineinfo)                                                                    \
+    {                                                                                    \
+        .line = 1, .column = 1, .source = (Source), .parent = (Parent)                   \
     }

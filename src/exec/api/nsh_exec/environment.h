@@ -45,9 +45,11 @@ struct environment;
     F(unset)
 
 #define BUILTINS_DECLARE(Name)                                                           \
-    int builtin_##Name(struct environment *env, struct exception_catcher *catcher, int argc, char **argv);
+    int builtin_##Name(struct environment *env, struct exception_catcher *catcher,       \
+                       int argc, char **argv);
 
-typedef int (*f_builtin)(struct environment *env, struct exception_catcher *catcher, int argc, char **argv);
+typedef int (*f_builtin)(struct environment *env, struct exception_catcher *catcher,
+                         int argc, char **argv);
 
 BUILTINS_APPLY(BUILTINS_DECLARE)
 
@@ -121,7 +123,8 @@ char **environment_array(struct environment *env);
 
 struct sh_value *environment_var_get(struct environment *env, const char *name);
 
-static inline struct sh_string *environment_var_get_string(struct environment *env, const char *name)
+static inline struct sh_string *environment_var_get_string(struct environment *env,
+                                                           const char *name)
 {
     struct sh_value *res = environment_var_get(env, name);
     if (res == NULL)
@@ -130,10 +133,11 @@ static inline struct sh_string *environment_var_get_string(struct environment *e
     if (!sh_value_is_string(res))
         return NULL;
 
-    return (struct sh_string*)res;
+    return (struct sh_string *)res;
 }
 
-static inline const char *environment_var_get_cstring(struct environment *env, const char *name)
+static inline const char *environment_var_get_cstring(struct environment *env,
+                                                      const char *name)
 {
     struct sh_string *res = environment_var_get_string(env, name);
     if (res == NULL)
@@ -141,14 +145,18 @@ static inline const char *environment_var_get_cstring(struct environment *env, c
     return sh_string_data(res);
 }
 
-void environment_var_assign(struct environment *env, char *name, struct sh_value *value, bool export);
+void environment_var_assign(struct environment *env, char *name, struct sh_value *value,
+                            bool export);
 
-static inline void environment_var_assign_cstring(struct environment *env, char *name, char *value, bool export)
+static inline void environment_var_assign_cstring(struct environment *env, char *name,
+                                                  char *value, bool export)
 {
     environment_var_assign(env, name, &sh_string_create(value)->base, export);
 }
 
-static inline void environment_var_assign_const_cstring(struct environment *env, char *name, const char *value, bool export)
+static inline void environment_var_assign_const_cstring(struct environment *env,
+                                                        char *name, const char *value,
+                                                        bool export)
 {
     environment_var_assign(env, name, &sh_const_string_create(value)->base, export);
 }

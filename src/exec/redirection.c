@@ -106,10 +106,8 @@ static void redir_undo_plan_restore(struct redir_undo *undo, int src, int dst)
     op->data.move.dst = dst;
 }
 
-static int redir_simple(struct shast_redirection *redir,
-                        struct redir_undo *undo,
-                        int default_src,
-                        int open_flags)
+static int redir_simple(struct shast_redirection *redir, struct redir_undo *undo,
+                        int default_src, int open_flags)
 {
     /* choose what file descriptor to redirect */
     int src = redir->left;
@@ -126,29 +124,24 @@ static int redir_simple(struct shast_redirection *redir,
 
     redir_undo_plan_restore(undo, src_copy, src);
     return 0;
-
 }
 
-static int redir_great(struct shast_redirection *redir,
-                       struct redir_undo *undo)
+static int redir_great(struct shast_redirection *redir, struct redir_undo *undo)
 {
     return redir_simple(redir, undo, STDOUT_FILENO, O_CREAT | O_WRONLY | O_TRUNC);
 }
 
-static int redir_dgreat(struct shast_redirection *redir,
-                        struct redir_undo *undo)
+static int redir_dgreat(struct shast_redirection *redir, struct redir_undo *undo)
 {
     return redir_simple(redir, undo, STDOUT_FILENO, O_CREAT | O_WRONLY | O_APPEND);
 }
 
-static int redir_less(struct shast_redirection *redir,
-                      struct redir_undo *undo)
+static int redir_less(struct shast_redirection *redir, struct redir_undo *undo)
 {
     return redir_simple(redir, undo, STDIN_FILENO, O_RDONLY);
 }
 
-static int redir_lessgreat(struct shast_redirection *redir,
-                           struct redir_undo *undo)
+static int redir_lessgreat(struct shast_redirection *redir, struct redir_undo *undo)
 {
     return redir_simple(redir, undo, STDIN_FILENO, O_CREAT | O_RDWR | O_TRUNC);
 }
@@ -168,8 +161,7 @@ static int redir_close(struct redir_undo *undo, int fd)
 
 // [n]>&word or [n]<&word (> makes n default to stdout, < to stdin)
 // basicaly means fd(n) = fd[word], or dup2(word, n)
-static int redir_dup(struct shast_redirection *redir,
-                     struct redir_undo *undo,
+static int redir_dup(struct shast_redirection *redir, struct redir_undo *undo,
                      int default_fd)
 {
     int left = redir->left;
@@ -204,27 +196,23 @@ static int redir_dup(struct shast_redirection *redir,
     return 0;
 }
 
-static int redir_lessand(struct shast_redirection *redir,
-                         struct redir_undo *undo)
+static int redir_lessand(struct shast_redirection *redir, struct redir_undo *undo)
 {
     return redir_dup(redir, undo, STDIN_FILENO);
 }
 
-static int redir_greatand(struct shast_redirection *redir,
-                          struct redir_undo *undo)
+static int redir_greatand(struct shast_redirection *redir, struct redir_undo *undo)
 {
     return redir_dup(redir, undo, STDOUT_FILENO);
 }
 
-static int redir_unimplemented(struct shast_redirection *redir,
-                               struct redir_undo *undo);
+static int redir_unimplemented(struct shast_redirection *redir, struct redir_undo *undo);
 
 static const struct redir_meta
 {
     const char *repr;
     int (*func)(struct shast_redirection *redir, struct redir_undo *undo);
-} g_redir_list[] =
-{
+} g_redir_list[] = {
 #define REDIRECTIONS_LIST(EName, Repr, Func) [EName] = {Repr, Func},
     REDIRECTIONS_APPLY(REDIRECTIONS_LIST)
 #undef REDIRECTIONS_LIST
@@ -252,8 +240,7 @@ int redirection_exec(struct shast_redirection *redir, struct redir_undo *undo)
 int redirection_op_cancel(struct redir_undo_op *undo_op)
 {
     nsh_info("undoing redirection:");
-    switch (undo_op->type)
-    {
+    switch (undo_op->type) {
     case REDIR_RESTORE:
         return fd_move_close(undo_op->data.move.src, undo_op->data.move.dst);
     case REDIR_CLOSE:

@@ -10,11 +10,13 @@
 // it can start an unquoted section, and / or stop one.
 // beware, a char can stop a section even though no section
 // was opened.
-enum expansion_meta {
+enum expansion_meta
+{
     EXPANSION_UNQUOTED = 1,
 };
 
-struct expansion_result {
+struct expansion_result
+{
     /* the expanded bytes */
     struct evect string;
 
@@ -56,12 +58,14 @@ static inline char *expansion_result_meta(struct expansion_result *result)
     return evect_data(&result->metadata);
 }
 
-static inline bool expansion_result_getflag(struct expansion_result *result, size_t i, int flag)
+static inline bool expansion_result_getflag(struct expansion_result *result, size_t i,
+                                            int flag)
 {
     return evect_get(&result->metadata, i) & flag;
 }
 
-static inline void expansion_result_setflag(struct expansion_result *result, size_t i, int flag)
+static inline void expansion_result_setflag(struct expansion_result *result, size_t i,
+                                            int flag)
 {
     evect_data(&result->metadata)[i] |= flag;
 }
@@ -84,7 +88,8 @@ static inline void expansion_result_destroy(struct expansion_result *result)
     evect_destroy(&result->metadata);
 }
 
-static inline void expansion_result_push(struct expansion_result *result, char c, int flags)
+static inline void expansion_result_push(struct expansion_result *result, char c,
+                                         int flags)
 {
     evect_push(&result->string, c);
     evect_push(&result->metadata, flags);

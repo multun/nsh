@@ -60,7 +60,8 @@ enum glob_class_type
     GLOB_CLASS_RANGE,
 };
 
-int glob_class_type_size(enum glob_class_type type) {
+int glob_class_type_size(enum glob_class_type type)
+{
     switch (type) {
     case GLOB_CLASS_INVALID:
         abort();
@@ -81,7 +82,8 @@ static inline bool glob_class_type_is_start(enum glob_class_type type)
     return type == GLOB_CLASS_START || type == GLOB_CLASS_NOT;
 }
 
-static inline enum glob_class_type glob_class_lex(struct glob_pattern *pattern, size_t i, enum glob_class_type prev)
+static inline enum glob_class_type glob_class_lex(struct glob_pattern *pattern, size_t i,
+                                                  enum glob_class_type prev)
 {
     const char *pattern_data = &pattern->data[i];
     const char *meta_data = &pattern->meta[i];
@@ -111,7 +113,8 @@ static inline enum glob_class_type glob_class_lex(struct glob_pattern *pattern, 
     return GLOB_CLASS_RANGE;
 }
 
-enum glob_status glob_match(struct glob_pattern *pattern, size_t pattern_i, const char *string, int flags)
+enum glob_status glob_match(struct glob_pattern *pattern, size_t pattern_i,
+                            const char *string, int flags)
 {
     if (*string == '.' && (flags & GLOB_FLAGS_PERIOD) && pattern->data[pattern_i] != '.')
         return GLOB_NOMATCH;
@@ -143,7 +146,8 @@ enum glob_status glob_match(struct glob_pattern *pattern, size_t pattern_i, cons
 
             enum glob_status rc;
             for (; *string; string++)
-                if ((rc = glob_match(pattern, pattern_i + 1, string, flags & ~GLOB_FLAGS_PERIOD))
+                if ((rc = glob_match(pattern, pattern_i + 1, string,
+                                     flags & ~GLOB_FLAGS_PERIOD))
                     != GLOB_NOMATCH)
                     return rc;
             break;
@@ -157,7 +161,8 @@ enum glob_status glob_match(struct glob_pattern *pattern, size_t pattern_i, cons
             pattern_i++;
             bool matched = false;
             /* continue until ] */
-            while ((class_type = glob_class_lex(pattern, pattern_i, class_type)) != GLOB_CLASS_END) {
+            while ((class_type = glob_class_lex(pattern, pattern_i, class_type))
+                   != GLOB_CLASS_END) {
                 int class_size = glob_class_type_size(class_type);
                 switch (class_type) {
                 case GLOB_CLASS_START:
@@ -207,7 +212,8 @@ enum glob_type glob_parse_trivial(struct glob_pattern *pattern, size_t *pattern_
             enum glob_class_type class_type = GLOB_CLASS_START;
 
             (*pattern_i)++;
-            while ((class_type = glob_class_lex(pattern, *pattern_i, class_type)) != GLOB_CLASS_END) {
+            while ((class_type = glob_class_lex(pattern, *pattern_i, class_type))
+                   != GLOB_CLASS_END) {
                 if (class_type == GLOB_CLASS_INVALID)
                     return GLOB_TYPE_INVALID;
 
@@ -221,7 +227,8 @@ enum glob_type glob_parse_trivial(struct glob_pattern *pattern, size_t *pattern_
     return glob_type;
 }
 
-enum glob_type glob_parse_path(struct gpath_vect *res, struct glob_pattern *pattern) {
+enum glob_type glob_parse_path(struct gpath_vect *res, struct glob_pattern *pattern)
+{
     size_t pattern_i = 0;
     enum glob_type status = GLOB_TYPE_TRIVIAL;
     do {
@@ -262,12 +269,14 @@ enum glob_type glob_parse_path(struct gpath_vect *res, struct glob_pattern *patt
 
 static void path_element_end(struct glob_state *glob_state, size_t path_i)
 {
-    struct glob_path_element *path_elem = gpath_vect_get(&glob_state->path_elements, path_i);
+    struct glob_path_element *path_elem =
+        gpath_vect_get(&glob_state->path_elements, path_i);
     for (size_t i = 0; i < path_elem->sep_count; i++)
         evect_push(&glob_state->path_buffer, '/');
 }
 
-static void glob_callback(struct glob_state *state, struct expansion_callback_ctx *callback)
+static void glob_callback(struct glob_state *state,
+                          struct expansion_callback_ctx *callback)
 {
     struct evect *path_buffer = &state->path_buffer;
     char *word = strdup(evect_data(path_buffer));
@@ -276,11 +285,11 @@ static void glob_callback(struct glob_state *state, struct expansion_callback_ct
 
 static size_t glob_recurse_dir(struct glob_state *glob_state,
                                struct expansion_callback_ctx *callback,
-                               struct glob_pattern *pattern,
-                               DIR *directory,
+                               struct glob_pattern *pattern, DIR *directory,
                                size_t path_i)
 {
-    struct glob_path_element *path_elem = gpath_vect_get(&glob_state->path_elements, path_i);
+    struct glob_path_element *path_elem =
+        gpath_vect_get(&glob_state->path_elements, path_i);
     struct evect *path_buffer = &glob_state->path_buffer;
     bool last_path_elem = (path_i + 1 == gpath_vect_size(&glob_state->path_elements));
     bool dir_only = (last_path_elem && path_elem->sep_count > 0);
@@ -298,13 +307,15 @@ static size_t glob_recurse_dir(struct glob_state *glob_state,
         if (dirent->d_type != DT_DIR && dir_only)
             continue;
 
-        bool is_special = (strcmp(dirent->d_name, ".") == 0 || strcmp(dirent->d_name, "..") == 0);
+        bool is_special =
+            (strcmp(dirent->d_name, ".") == 0 || strcmp(dirent->d_name, "..") == 0);
         /* special directories should be skipped unless in the echo a/.* case */
         if (is_special && !last_path_elem)
             continue;
 
         /* skip non matches */
-        if (glob_match(pattern, path_elem->offset, dirent->d_name, GLOB_FLAGS_PERIOD) != GLOB_MATCH)
+        if (glob_match(pattern, path_elem->offset, dirent->d_name, GLOB_FLAGS_PERIOD)
+            != GLOB_MATCH)
             continue;
 
         /* three cases at that point:
@@ -328,7 +339,8 @@ static size_t glob_recurse_dir(struct glob_state *glob_state,
             match_count++;
         } else {
             /* open and recurse */
-            int subdir_fd = openat(dirfd(directory), dirent->d_name, O_RDONLY | O_DIRECTORY, 0);
+            int subdir_fd =
+                openat(dirfd(directory), dirent->d_name, O_RDONLY | O_DIRECTORY, 0);
             if (subdir_fd == -1) {
                 warn("couldn't open %s", dirent->d_name);
                 continue;
@@ -360,7 +372,8 @@ static size_t glob_recurse(struct glob_state *glob_state,
         return 0;
     }
 
-    size_t match_count = glob_recurse_dir(glob_state, callback, glob_pattern, directory, start_offset);
+    size_t match_count =
+        glob_recurse_dir(glob_state, callback, glob_pattern, directory, start_offset);
     closedir(directory);
     return match_count;
 }
@@ -376,8 +389,7 @@ void glob_expand(struct glob_state *glob_state, struct expansion_result *result,
     enum glob_type glob_type = glob_parse_path(NULL, &pattern);
 
     /* if the glob is invalid, or only has trivial sections, don't glob at all */
-    if (expansion_result_size(result) == 0
-        || glob_type == GLOB_TYPE_INVALID
+    if (expansion_result_size(result) == 0 || glob_type == GLOB_TYPE_INVALID
         || glob_type == GLOB_TYPE_TRIVIAL) {
         expansion_callback_ctx_call(callback, expansion_result_dup(result));
         return;

@@ -5,7 +5,8 @@
 #include <string.h>
 
 
-int builtin_unset(struct environment *env, struct exception_catcher *catcher __unused, int argc, char **argv)
+int builtin_unset(struct environment *env, struct exception_catcher *catcher __unused,
+                  int argc, char **argv)
 {
     for (int i = 1; i < argc; i++) {
         const char *var_name = argv[i];
@@ -16,7 +17,8 @@ int builtin_unset(struct environment *env, struct exception_catcher *catcher __u
             return 1;
         }
 
-        struct hashmap_item *variable_head = hashmap_find(&env->variables, NULL, var_name);
+        struct hashmap_item *variable_head =
+            hashmap_find(&env->variables, NULL, var_name);
 
         /* unsetting already unset variables is fine, is just does nothing */
         if (variable_head == NULL)
@@ -26,7 +28,8 @@ int builtin_unset(struct environment *env, struct exception_catcher *catcher __u
         hashmap_remove(&env->variables, variable_head);
 
         /* destroy the variable */
-        struct shexec_variable *variable = container_of(variable_head, struct shexec_variable, hash);
+        struct shexec_variable *variable =
+            container_of(variable_head, struct shexec_variable, hash);
         shexec_variable_destroy(variable);
         free(variable);
     }

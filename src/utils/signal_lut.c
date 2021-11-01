@@ -80,8 +80,8 @@ int signal_lut_read(struct signal_list *events)
 #endif // SIG_ATOMIC_MISSING
 
 
-
-int signal_lut_setup_handler(struct sigaction *oldact, int signum, int flags, void (*handler)(int))
+int signal_lut_setup_handler(struct sigaction *oldact, int signum, int flags,
+                             void (*handler)(int))
 {
     struct sigaction action = {
         .sa_handler = handler,

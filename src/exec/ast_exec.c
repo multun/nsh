@@ -25,17 +25,14 @@ f_builtin find_default_builtin(const char *name)
 }
 
 
-#define AST_EXEC_UTILS(EnumName, Name) \
-    [EnumName] = Name ## _exec,
+#define AST_EXEC_UTILS(EnumName, Name) [EnumName] = Name##_exec,
 
-static int (*ast_exec_utils[])(struct environment *env,
-                               struct shast *ast,
-                               struct exception_catcher *catcher) =
-{
-    AST_TYPE_APPLY(AST_EXEC_UTILS)
-};
+static int (*ast_exec_utils[])(struct environment *env, struct shast *ast,
+                               struct exception_catcher *catcher) = {
+    AST_TYPE_APPLY(AST_EXEC_UTILS)};
 
-int ast_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
+int ast_exec(struct environment *env, struct shast *ast,
+             struct exception_catcher *catcher)
 {
     if (ast) {
         //printf("executing an asynchronous node\n");
@@ -44,4 +41,3 @@ int ast_exec(struct environment *env, struct shast *ast, struct exception_catche
         env->code = 0;
     return env->code;
 }
- 

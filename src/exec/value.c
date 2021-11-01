@@ -17,7 +17,7 @@ void sh_value_free(struct sh_value *shval)
     switch (shval->type) {
     case SH_VALUE_STRING:
     case SH_VALUE_CONST_STRING:
-        sh_string_free((struct sh_string*)shval);
+        sh_string_free((struct sh_string *)shval);
         break;
     default:
         abort();

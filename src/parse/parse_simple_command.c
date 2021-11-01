@@ -5,7 +5,8 @@
 #include <nsh_utils/alloc.h>
 #include <nsh_lex/print.h>
 
-static void parse_assignment(struct assign_vect *vect, struct lexer *lexer, struct exception_catcher *catcher)
+static void parse_assignment(struct assign_vect *vect, struct lexer *lexer,
+                             struct exception_catcher *catcher)
 {
     struct shast_assignment *assign = zalloc(sizeof(*assign));
     assign->line_info = *lexer_line_info(lexer);
@@ -18,7 +19,8 @@ static void parse_assignment(struct assign_vect *vect, struct lexer *lexer, stru
     assign_vect_push(vect, assign);
 }
 
-static bool prefix_loop(struct lexer *lexer, struct exception_catcher *catcher, struct shast_block *block)
+static bool prefix_loop(struct lexer *lexer, struct exception_catcher *catcher,
+                        struct shast_block *block)
 {
     while (true) {
         const struct token *tok = lexer_peek(lexer, catcher);
@@ -54,7 +56,8 @@ static bool element_loop(struct lexer *lexer, struct exception_catcher *catcher,
     return true;
 }
 
-void parse_simple_command(struct shast **res, struct lexer *lexer, struct exception_catcher *catcher)
+void parse_simple_command(struct shast **res, struct lexer *lexer,
+                          struct exception_catcher *catcher)
 {
     struct shast_block *block = shast_block_attach(res, lexer);
     struct shast_cmd *cmd = NULL;
@@ -65,8 +68,7 @@ void parse_simple_command(struct shast **res, struct lexer *lexer, struct except
     if (!element_loop(lexer, catcher, block, &cmd))
         return;
 
-    if (redir_vect_size(&block->redirs) == 0
-        && assign_vect_size(&block->assigns) == 0
+    if (redir_vect_size(&block->redirs) == 0 && assign_vect_size(&block->assigns) == 0
         && cmd == NULL) {
         const struct token *tok = lexer_peek(lexer, catcher);
         parser_err(&tok->lineinfo, catcher, "parsing error %s", TOKT_STR(tok));

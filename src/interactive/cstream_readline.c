@@ -37,7 +37,8 @@ static char *prompt_get(struct cstream_readline *cs)
         return strdup(default_prompt);
 
     struct exception_context exception_context;
-    struct exception_catcher exception_catcher = EXCEPTION_CATCHER(&exception_context, NULL);
+    struct exception_catcher exception_catcher =
+        EXCEPTION_CATCHER(&exception_context, NULL);
 
     sh_string_get(unexpanded);
 
@@ -48,7 +49,8 @@ static char *prompt_get(struct cstream_readline *cs)
         return res;
     }
 
-    char *res = expand_nosplit(&cs->base.line_info, sh_string_data(unexpanded), EXP_FLAGS_PROMPT, repl->env, &exception_catcher);
+    char *res = expand_nosplit(&cs->base.line_info, sh_string_data(unexpanded),
+                               EXP_FLAGS_PROMPT, repl->env, &exception_catcher);
     sh_string_put(unexpanded);
     return res;
 }

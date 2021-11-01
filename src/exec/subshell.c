@@ -9,7 +9,8 @@
 #include <stdio.h>
 #include <sys/wait.h>
 
-int subshell_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
+int subshell_exec(struct environment *env, struct shast *ast,
+                  struct exception_catcher *catcher)
 {
     struct shast_subshell *subshell = (struct shast_subshell *)ast;
 

@@ -78,7 +78,7 @@ void case_free(struct shast *ast)
 
 void cmd_free(struct shast *ast)
 {
-    struct shast_cmd *command = (struct shast_cmd*)ast;
+    struct shast_cmd *command = (struct shast_cmd *)ast;
     wordlist_destroy(&command->arguments);
     free(command);
 }
@@ -115,12 +115,8 @@ void function_free(struct shast *ast)
     free(func);
 }
 
-#define AST_FREE_UTILS(EnumName, Name) \
-    [EnumName] = Name ## _free,
-static void (*ast_free_utils[])(struct shast *ast) =
-{
-    AST_TYPE_APPLY(AST_FREE_UTILS)
-};
+#define AST_FREE_UTILS(EnumName, Name) [EnumName] = Name##_free,
+static void (*ast_free_utils[])(struct shast *ast) = {AST_TYPE_APPLY(AST_FREE_UTILS)};
 
 void ast_ref_free(struct refcnt *refcnt)
 {

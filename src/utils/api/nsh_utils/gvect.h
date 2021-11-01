@@ -3,11 +3,11 @@
 #include <nsh_utils/attr.h>
 #include "gvect_common.h"
 #ifndef GVECT_NAME
-#error undefined GVECT_NAME in generic vector
+#    error undefined GVECT_NAME in generic vector
 #endif
 
 #ifndef GVECT_TYPE
-#error undefined GVECT_TYPE in generic vector
+#    error undefined GVECT_TYPE in generic vector
 #endif
 
 /**

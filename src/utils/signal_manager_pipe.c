@@ -6,7 +6,8 @@
 #include <string.h>
 
 
-static int signal_manager_pipe_read(struct signal_manager *sigman, struct signal_list *events);
+static int signal_manager_pipe_read(struct signal_manager *sigman,
+                                    struct signal_list *events);
 static int signal_manager_pipe_signal_enabled(struct signal_manager *sigman, int signal);
 static int signal_manager_pipe_signal_disabled(struct signal_manager *sigman, int signal);
 static int signal_manager_pipe_pre_fork_hook(struct signal_manager *sigman);
@@ -32,7 +33,8 @@ int signal_manager_pipe_init(struct signal_manager *sigman)
     return 0;
 }
 
-static int signal_manager_pipe_read(struct signal_manager *sigman __unused, struct signal_list *events __unused)
+static int signal_manager_pipe_read(struct signal_manager *sigman __unused,
+                                    struct signal_list *events __unused)
 {
     if (signal_pipe_read(events) == -1)
         return -1;
@@ -41,17 +43,20 @@ static int signal_manager_pipe_read(struct signal_manager *sigman __unused, stru
     return 0;
 }
 
-static int signal_manager_pipe_signal_enabled(struct signal_manager *sigman __unused, int signal)
+static int signal_manager_pipe_signal_enabled(struct signal_manager *sigman __unused,
+                                              int signal)
 {
     int rc;
-    if ((rc = signal_lut_setup_handler(&sigman->saved_handlers[signal], signal, SA_RESTART, signal_pipe_lut_handler))) {
+    if ((rc = signal_lut_setup_handler(&sigman->saved_handlers[signal], signal,
+                                       SA_RESTART, signal_pipe_lut_handler))) {
         warn("failed to setup the %s handler", strsignal(signal));
         return -1;
     }
     return 0;
 }
 
-static int signal_manager_pipe_signal_disabled(struct signal_manager *sigman __unused, int signal)
+static int signal_manager_pipe_signal_disabled(struct signal_manager *sigman __unused,
+                                               int signal)
 {
     int rc;
     if ((rc = sigaction(signal, &sigman->saved_handlers[signal], NULL)) == -1) {
@@ -66,7 +71,8 @@ static int signal_manager_pipe_pre_fork_hook(struct signal_manager *sigman __unu
     return signal_pipe_pre_fork();
 }
 
-static int signal_manager_pipe_post_fork_hook(struct signal_manager *sigman __unused, pid_t pid)
+static int signal_manager_pipe_post_fork_hook(struct signal_manager *sigman __unused,
+                                              pid_t pid)
 {
     return signal_pipe_post_fork(pid);
 }

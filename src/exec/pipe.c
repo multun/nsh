@@ -123,7 +123,8 @@ static int pipeline_enqueue_pipe(struct fd_queue *queue)
     return 0;
 }
 
-int pipeline_exec(struct environment *env, struct shast *ast, struct exception_catcher *catcher)
+int pipeline_exec(struct environment *env, struct shast *ast,
+                  struct exception_catcher *catcher)
 {
     int status = 0;
     struct shast_pipeline *pipe = (struct shast_pipeline *)ast;
@@ -137,7 +138,7 @@ int pipeline_exec(struct environment *env, struct shast *ast, struct exception_c
         children_pids[i] = -1;
 
     /* this is the state of the pipeline */
-    struct fd_queue queue = { 0 };
+    struct fd_queue queue = {0};
 
     size_t child_i = 0;
     for (; child_i < pipeline_size; child_i++) {

@@ -37,7 +37,8 @@ struct subshell_state
     struct exception_catcher *parent_scope;
 };
 
-static inline void subshell_state_cleanup(volatile struct subshell_state *state, struct expansion_state *exp_state)
+static inline void subshell_state_cleanup(volatile struct subshell_state *state,
+                                          struct expansion_state *exp_state)
 {
     fclose(state->child_stream);
 
@@ -89,7 +90,8 @@ void expand_subshell(struct expansion_state *exp_state, char *subshell_content)
        It doesn't quite fit here, so the current exception handler for the expansion
        is saved, and restored upon function return. */
     state.parent_scope = expansion_state_catcher(exp_state);
-    struct exception_catcher sub_catcher = EXCEPTION_CATCHER(state.parent_scope->context, state.parent_scope);
+    struct exception_catcher sub_catcher =
+        EXCEPTION_CATCHER(state.parent_scope->context, state.parent_scope);
     expansion_state_set_catcher(exp_state, &sub_catcher);
 
     if (setjmp(sub_catcher.env)) {

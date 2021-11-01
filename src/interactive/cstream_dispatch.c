@@ -7,7 +7,8 @@
 #include "cstream_readline.h"
 
 
-int cstream_dispatch_init(struct repl *repl, struct cstream **cs, struct cli_options *arg_cont)
+int cstream_dispatch_init(struct repl *repl, struct cstream **cs,
+                          struct cli_options *arg_cont)
 {
     int remaining_argc = arg_cont->argc - arg_cont->argc_base;
 

@@ -3,7 +3,8 @@
 #include <nsh_io/cstream.h>
 
 
-struct cstream_string {
+struct cstream_string
+{
     struct cstream base;
     const char *string;
 };

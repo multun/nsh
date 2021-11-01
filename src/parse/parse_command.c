@@ -3,7 +3,8 @@
 #include <nsh_utils/alloc.h>
 #include <nsh_utils/exception.h>
 
-static int switch_first_keyword(struct shast **res, struct lexer *lexer, struct exception_catcher *catcher)
+static int switch_first_keyword(struct shast **res, struct lexer *lexer,
+                                struct exception_catcher *catcher)
 {
     const struct token *tok = lexer_peek(lexer, catcher);
     if (tok_is(tok, TOK_IF))
@@ -21,7 +22,8 @@ static int switch_first_keyword(struct shast **res, struct lexer *lexer, struct 
     return 0;
 }
 
-static int parse_compound_command(struct shast **res, struct lexer *lexer, struct exception_catcher *catcher)
+static int parse_compound_command(struct shast **res, struct lexer *lexer,
+                                  struct exception_catcher *catcher)
 {
     const struct token *tok = lexer_peek(lexer, catcher);
     if (tok_is(tok, TOK_LPAR)) {
@@ -42,7 +44,8 @@ static int parse_compound_command(struct shast **res, struct lexer *lexer, struc
     return switch_first_keyword(res, lexer, catcher);
 }
 
-static int parse_base_command(struct lexer *lexer, struct exception_catcher *catcher, struct shast **res)
+static int parse_base_command(struct lexer *lexer, struct exception_catcher *catcher,
+                              struct shast **res)
 {
     const struct token *tok = lexer_peek(lexer, catcher);
     if (parse_compound_command(res, lexer, catcher) == 0)
@@ -63,7 +66,8 @@ static int parse_base_command(struct lexer *lexer, struct exception_catcher *cat
     return 1;
 }
 
-void parse_command(struct shast **res, struct lexer *lexer, struct exception_catcher *catcher)
+void parse_command(struct shast **res, struct lexer *lexer,
+                   struct exception_catcher *catcher)
 {
     if (parse_base_command(lexer, catcher, res) != 0) {
         // redirections are aready handled down there, as
@@ -87,7 +91,8 @@ void parse_command(struct shast **res, struct lexer *lexer, struct exception_cat
     }
 }
 
-void parse_funcdec(struct shast **res, struct lexer *lexer, struct exception_catcher *catcher)
+void parse_funcdec(struct shast **res, struct lexer *lexer,
+                   struct exception_catcher *catcher)
 {
     struct shast_function *func = shast_function_attach(res, lexer);
     struct token *word = lexer_pop(lexer, catcher);

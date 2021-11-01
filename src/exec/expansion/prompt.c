@@ -30,7 +30,8 @@ static void expand_strftime(struct expansion_state *exp_state, const char *forma
 }
 
 
-enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state, struct wlexer *wlexer, char c)
+enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
+                                    struct wlexer *wlexer, char c)
 {
     /*
       TODO: implement the remaining prompt escapes
@@ -69,14 +70,16 @@ enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state, struct wl
     switch (c) {
     case 'w':
     case 'W': {
-        const char *PWD = environment_var_get_cstring(expansion_state_env(exp_state), "PWD");
+        const char *PWD =
+            environment_var_get_cstring(expansion_state_env(exp_state), "PWD");
         if (PWD == NULL || strlen(PWD) == 0) {
             expansion_push_nosplit_string(exp_state, "<unknown PWD>");
             break;
         }
 
         bool replaced_tilde = false;
-        const char *HOME = environment_var_get_cstring(expansion_state_env(exp_state), "HOME");
+        const char *HOME =
+            environment_var_get_cstring(expansion_state_env(exp_state), "HOME");
         if (HOME != NULL) {
             /* the n first characters must be the same */
             const char *trimmed_pwd = path_remove_prefix(PWD, HOME);
@@ -88,7 +91,8 @@ enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state, struct wl
         }
 
         if (c == 'w') {
-            const char *DIRTRIM = environment_var_get_cstring(expansion_state_env(exp_state), "PROMPT_DIRTRIM");
+            const char *DIRTRIM = environment_var_get_cstring(
+                expansion_state_env(exp_state), "PROMPT_DIRTRIM");
             /* ignore trimming if PROMPT_DIRTRIM is unset */
             if (DIRTRIM == NULL)
                 goto push_path;

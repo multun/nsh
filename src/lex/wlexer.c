@@ -9,7 +9,8 @@
 
 static void wlexer_lex(struct wtoken *res, struct wlexer *lex);
 
-enum wtoken_type wlexer_peek_type(struct wlexer *lex) {
+enum wtoken_type wlexer_peek_type(struct wlexer *lex)
+{
     if (!wlexer_has_lookahead(lex))
         wlexer_lex(&lex->lookahead, lex);
 
@@ -66,20 +67,20 @@ struct wlexer_rule
 
 #define EXP_MODES ~MODE_SINGLE_QUOTED
 static struct wlexer_rule rules[] = {
-    { "'",   WTOK_SQUOTE,    ~MODE_DOUBLE_QUOTED },
-    { "`",   WTOK_BTICK,     ~MODE_SINGLE_QUOTED },
-    { "\"",  WTOK_DQUOTE,    ~MODE_SINGLE_QUOTED },
-    { "}",   WTOK_EXP_CLOSE, MODE_EXPANSION },
-    { "${",  WTOK_EXP_OPEN,       EXP_MODES },
-    { "$((", WTOK_ARITH_OPEN,     EXP_MODES },
-    { "))",  WTOK_ARITH_CLOSE,    MODE_ARITH },
-    { "$(",  WTOK_EXP_SUBSH_OPEN, EXP_MODES },
-    { ")",   WTOK_EXP_SUBSH_CLOSE, MODE_EXP_SUBSHELL },
-    { "$",   WTOK_VARIABLE,            EXP_MODES },
-    { "(",   WTOK_ARITH_GROUP_OPEN, MODE_ARITH | MODE_ARITH_GROUP },
-    { ")",   WTOK_ARITH_GROUP_CLOSE, MODE_ARITH_GROUP },
-    { "(",   WTOK_SUBSH_OPEN,  MODE_UNQUOTED | MODE_SUBSHELL | MODE_EXP_SUBSHELL },
-    { ")",   WTOK_SUBSH_CLOSE, MODE_UNQUOTED | MODE_SUBSHELL },
+    {"'", WTOK_SQUOTE, ~MODE_DOUBLE_QUOTED},
+    {"`", WTOK_BTICK, ~MODE_SINGLE_QUOTED},
+    {"\"", WTOK_DQUOTE, ~MODE_SINGLE_QUOTED},
+    {"}", WTOK_EXP_CLOSE, MODE_EXPANSION},
+    {"${", WTOK_EXP_OPEN, EXP_MODES},
+    {"$((", WTOK_ARITH_OPEN, EXP_MODES},
+    {"))", WTOK_ARITH_CLOSE, MODE_ARITH},
+    {"$(", WTOK_EXP_SUBSH_OPEN, EXP_MODES},
+    {")", WTOK_EXP_SUBSH_CLOSE, MODE_EXP_SUBSHELL},
+    {"$", WTOK_VARIABLE, EXP_MODES},
+    {"(", WTOK_ARITH_GROUP_OPEN, MODE_ARITH | MODE_ARITH_GROUP},
+    {")", WTOK_ARITH_GROUP_CLOSE, MODE_ARITH_GROUP},
+    {"(", WTOK_SUBSH_OPEN, MODE_UNQUOTED | MODE_SUBSHELL | MODE_EXP_SUBSHELL},
+    {")", WTOK_SUBSH_CLOSE, MODE_UNQUOTED | MODE_SUBSHELL},
 };
 
 
@@ -100,7 +101,7 @@ static bool match_rule(struct wtoken *tok, struct wlexer *lex, struct wlexer_rul
     if (!(rule->valid_modes & lex->mode))
         return false;
 
-    for (int i = 0; ; i++) {
+    for (int i = 0;; i++) {
         // if the end of the pattern is reached, it matched
         unsigned char pat_char = rule->pattern[i];
         if (pat_char == '\0')
@@ -193,7 +194,8 @@ static void wlexer_lex(struct wtoken *res, struct wlexer *lex)
 
     res->type = WTOK_REGULAR;
 lexing_done:
-    nsh_debug("wtoken { type: %-10s repr: '%s' }", wtoken_type_to_string(res->type), wtoken_repr_data(res));
+    nsh_debug("wtoken { type: %-10s repr: '%s' }", wtoken_type_to_string(res->type),
+              wtoken_repr_data(res));
 }
 
 

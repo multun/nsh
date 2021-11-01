@@ -17,15 +17,15 @@
 #include "arithmetic_expansion.h"
 
 
-static void expand_guarded(struct expansion_state *exp_state,
-                           struct wlexer *wlexer);
+static void expand_guarded(struct expansion_state *exp_state, struct wlexer *wlexer);
 
 void __noreturn expansion_error(struct expansion_state *exp_state, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
 
-    vsherror(exp_state->line_info, expansion_state_catcher(exp_state), &g_lexer_error, fmt, ap);
+    vsherror(exp_state->line_info, expansion_state_catcher(exp_state), &g_lexer_error,
+             fmt, ap);
 
     va_end(ap);
 }
@@ -58,7 +58,8 @@ enum expansion_sep_type
 };
 
 
-static enum expansion_sep_type expansion_separator(struct expansion_state *exp_state, char c)
+static enum expansion_sep_type expansion_separator(struct expansion_state *exp_state,
+                                                   char c)
 {
     if (!char_bitset_get(&exp_state->ifs, c))
         return EXPANSION_SEP_NONE;
@@ -120,15 +121,13 @@ void expansion_push_splitable_string(struct expansion_state *exp_state, const ch
 }
 
 
-static void expand_guarded(struct expansion_state *exp_state,
-                           struct wlexer *wlexer);
+static void expand_guarded(struct expansion_state *exp_state, struct wlexer *wlexer);
 
 typedef enum wlexer_op (*f_expander)(struct expansion_state *exp_state,
                                      struct wlexer *wlexer, struct wtoken *wtoken);
 
 static enum wlexer_op expand_dollar(struct expansion_state *exp_state,
-                                    struct wlexer *wlexer,
-                                    struct wtoken *wtoken)
+                                    struct wlexer *wlexer, struct wtoken *wtoken)
 {
     struct wlexer exp_wlexer = WLEXER_FORK(wlexer, MODE_EXPANSION);
     variable_name_reset(&exp_state->scratch_variable_name);
@@ -140,11 +139,13 @@ static enum wlexer_op expand_dollar(struct expansion_state *exp_state,
             break;
 
         if (wtoken->type != WTOK_REGULAR)
-            expansion_error(exp_state, "invalid character type in ${} section: %s", wtoken_type_to_string(wtoken->type));
+            expansion_error(exp_state, "invalid character type in ${} section: %s",
+                            wtoken_type_to_string(wtoken->type));
 
         char c = wtoken->ch[0];
         if (!variable_name_check(&exp_state->scratch_variable_name, c))
-            expansion_error(exp_state, "invalid character in ${} section: `%c' (%#x)", c, c);
+            expansion_error(exp_state, "invalid character in ${} section: `%c' (%#x)", c,
+                            c);
 
         variable_name_push(&exp_state->scratch_variable_name, c);
     } while (true);
@@ -158,8 +159,7 @@ static enum wlexer_op expand_dollar(struct expansion_state *exp_state,
 }
 
 static enum wlexer_op expand_variable(struct expansion_state *exp_state,
-                                      struct wlexer *wlexer,
-                                      struct wtoken *wtoken)
+                                      struct wlexer *wlexer, struct wtoken *wtoken)
 {
     // fetch the longest valid variable name
     variable_name_reset(&exp_state->scratch_variable_name);
@@ -189,8 +189,7 @@ static enum wlexer_op expand_variable(struct expansion_state *exp_state,
 }
 
 static enum wlexer_op expand_tilde(struct expansion_state *exp_state,
-                                   struct wlexer *wlexer,
-                                   struct wtoken *wtoken)
+                                   struct wlexer *wlexer, struct wtoken *wtoken)
 {
     /* push a tilde */
     expansion_push_nosplit(exp_state, '~');
@@ -236,8 +235,7 @@ static enum wlexer_op expand_tilde(struct expansion_state *exp_state,
 }
 
 static enum wlexer_op expand_regular(struct expansion_state *exp_state,
-                                     struct wlexer *wlexer,
-                                     struct wtoken *wtoken)
+                                     struct wlexer *wlexer, struct wtoken *wtoken)
 {
     /* handle special meaning of regular characters */
     switch (wtoken->ch[0]) {
@@ -251,8 +249,8 @@ static enum wlexer_op expand_regular(struct expansion_state *exp_state,
             return expand_tilde(exp_state, wlexer, wtoken);
 
         /* or right after a colon during an assignment */
-        if ((exp_state->flags & EXP_FLAGS_ASSIGNMENT) &&
-            expansion_result_last(&exp_state->result) == ':')
+        if ((exp_state->flags & EXP_FLAGS_ASSIGNMENT)
+            && expansion_result_last(&exp_state->result) == ':')
             return expand_tilde(exp_state, wlexer, wtoken);
         break;
     }
@@ -285,7 +283,8 @@ static enum wlexer_op expand_squote(struct expansion_state *exp_state,
         return LEXER_OP_RETURN;
 
     exp_state->allow_empty_word = true;
-    enum expansion_quoting prev_mode = expansion_switch_quoting(exp_state, EXPANSION_QUOTING_QUOTED);
+    enum expansion_quoting prev_mode =
+        expansion_switch_quoting(exp_state, EXPANSION_QUOTING_QUOTED);
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_SINGLE_QUOTED));
     exp_state->quoting_mode = prev_mode;
     return LEXER_OP_CONTINUE;
@@ -298,7 +297,8 @@ static enum wlexer_op expand_dquote(struct expansion_state *exp_state __unused,
         return LEXER_OP_RETURN;
 
     exp_state->allow_empty_word = true;
-    enum expansion_quoting prev_mode = expansion_switch_quoting(exp_state, EXPANSION_QUOTING_QUOTED);
+    enum expansion_quoting prev_mode =
+        expansion_switch_quoting(exp_state, EXPANSION_QUOTING_QUOTED);
     expand_guarded(exp_state, &WLEXER_FORK(wlexer, MODE_DOUBLE_QUOTED));
     exp_state->quoting_mode = prev_mode;
     return LEXER_OP_CONTINUE;
@@ -366,7 +366,8 @@ static enum wlexer_op expand_exp_subshell_open(struct expansion_state *exp_state
                                                struct wtoken *wtoken __unused)
 {
     struct wlexer sub_wlexer = WLEXER_FORK(wlexer, MODE_SUBSHELL);
-    char *subshell_content = lexer_lex_string(expansion_state_catcher(exp_state), &sub_wlexer);
+    char *subshell_content =
+        lexer_lex_string(expansion_state_catcher(exp_state), &sub_wlexer);
     expand_subshell(exp_state, subshell_content);
     subshell_content = NULL; // the ownership was transfered to expand_subshell
     return LEXER_OP_CONTINUE;
@@ -377,7 +378,8 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
                                         struct wtoken *wtoken __unused)
 {
     // switch to nosplit quoted mode to avoid buffer flushes
-    enum expansion_quoting prev_mode = expansion_switch_quoting(exp_state, EXPANSION_QUOTING_NOSPLIT);
+    enum expansion_quoting prev_mode =
+        expansion_switch_quoting(exp_state, EXPANSION_QUOTING_NOSPLIT);
 
     int rc;
 
@@ -462,8 +464,8 @@ static enum wlexer_op expand_arith_group_open(struct expansion_state *exp_state,
 }
 
 static enum wlexer_op expand_arith_group_close(struct expansion_state *exp_state __unused,
-                                              struct wlexer *wlexer,
-                                              struct wtoken *wtoken __unused)
+                                               struct wlexer *wlexer,
+                                               struct wtoken *wtoken __unused)
 {
     assert(wlexer->mode == MODE_ARITH_GROUP);
     return LEXER_OP_RETURN;
@@ -490,8 +492,7 @@ static f_expander expanders[] = {
     [WTOK_ARITH_GROUP_CLOSE] = expand_arith_group_close,
 };
 
-static void expand_guarded(struct expansion_state *exp_state,
-                           struct wlexer *wlexer)
+static void expand_guarded(struct expansion_state *exp_state, struct wlexer *wlexer)
 {
     while (true) {
         struct wtoken wtoken;
@@ -505,8 +506,7 @@ static void expand_guarded(struct expansion_state *exp_state,
     }
 }
 
-void expand(struct expansion_state *exp_state,
-            struct wlexer *wlexer,
+void expand(struct expansion_state *exp_state, struct wlexer *wlexer,
             struct exception_catcher *catcher)
 {
     /* on exception, free the expansion buffer */
@@ -523,7 +523,8 @@ void expand(struct expansion_state *exp_state,
         expansion_end_word(exp_state);
 }
 
-char *expand_nosplit(struct lineinfo *line_info, const char *str, int flags, struct environment *env, struct exception_catcher *catcher)
+char *expand_nosplit(struct lineinfo *line_info, const char *str, int flags,
+                     struct environment *env, struct exception_catcher *catcher)
 {
     /* initialize the character stream */
     struct cstream_string cs;
@@ -555,7 +556,9 @@ char *expand_nosplit(struct lineinfo *line_info, const char *str, int flags, str
     return evect_data(&res);
 }
 
-static void expand_word_callback(struct expansion_callback *callback, struct shword *word, int flags, struct environment *env, struct exception_catcher *catcher)
+static void expand_word_callback(struct expansion_callback *callback, struct shword *word,
+                                 int flags, struct environment *env,
+                                 struct exception_catcher *catcher)
 {
     /* initialize the character stream */
     struct cstream_string cs;
@@ -583,19 +586,24 @@ static void expand_word_callback(struct expansion_callback *callback, struct shw
     expansion_state_destroy(&exp_state);
 }
 
-void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl, int flags, struct environment *env, struct exception_catcher *catcher)
+void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl,
+                              int flags, struct environment *env,
+                              struct exception_catcher *catcher)
 {
     for (size_t i = 0; i < wordlist_size(wl); i++)
         expand_word_callback(callback, wordlist_get(wl, i), flags, env, catcher);
 }
 
-static void expansion_word_callback(void *data, char *word, struct environment *env __unused, struct exception_catcher *catcher __unused)
+static void expansion_word_callback(void *data, char *word,
+                                    struct environment *env __unused,
+                                    struct exception_catcher *catcher __unused)
 {
     struct cpvect *res = data;
     cpvect_push(res, word);
 }
 
-void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags, struct environment *env, struct exception_catcher *catcher)
+void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags,
+                     struct environment *env, struct exception_catcher *catcher)
 {
     struct expansion_callback callback = {
         .func = expansion_word_callback,

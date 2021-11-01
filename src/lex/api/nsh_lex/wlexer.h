@@ -11,25 +11,25 @@ enum wtoken_type
     // used as a placeholder
     WTOK_UNKNOWN = 0,
     WTOK_REGULAR, // a simple character
-    WTOK_ESCAPE,  // <backslash>
-    WTOK_EOF,     // models the end of file
+    WTOK_ESCAPE, // <backslash>
+    WTOK_EOF, // models the end of file
 
     // various single chars
-    WTOK_SQUOTE,  // '
-    WTOK_DQUOTE,  // "
-    WTOK_BTICK,   // `
+    WTOK_SQUOTE, // '
+    WTOK_DQUOTE, // "
+    WTOK_BTICK, // `
 
-    WTOK_VARIABLE,          // $
-    WTOK_EXP_SUBSH_OPEN,    // $(
-    WTOK_EXP_SUBSH_CLOSE,   // )
-    WTOK_SUBSH_OPEN,        // (
-    WTOK_SUBSH_CLOSE,       // )
-    WTOK_ARITH_OPEN,        // $((
-    WTOK_ARITH_CLOSE,       // ))
-    WTOK_ARITH_GROUP_OPEN,  // (
+    WTOK_VARIABLE, // $
+    WTOK_EXP_SUBSH_OPEN, // $(
+    WTOK_EXP_SUBSH_CLOSE, // )
+    WTOK_SUBSH_OPEN, // (
+    WTOK_SUBSH_CLOSE, // )
+    WTOK_ARITH_OPEN, // $((
+    WTOK_ARITH_CLOSE, // ))
+    WTOK_ARITH_GROUP_OPEN, // (
     WTOK_ARITH_GROUP_CLOSE, // )
-    WTOK_EXP_OPEN,          // ${
-    WTOK_EXP_CLOSE,         // }
+    WTOK_EXP_OPEN, // ${
+    WTOK_EXP_CLOSE, // }
 };
 
 struct wtoken
@@ -43,12 +43,12 @@ enum wlexer_mode
     MODE_UNQUOTED = 1,
     MODE_SINGLE_QUOTED = 2, // 'test'
     MODE_DOUBLE_QUOTED = 4, // "test"
-    MODE_EXP_SUBSHELL = 8,  // $(echo a)
-    MODE_SUBSHELL = 16,     // (echo a)
-    MODE_ARITH = 32,        // $((1 + 1))
-    MODE_ARITH_GROUP = 64,  // $(( .. (1 + 2) .. ))
-    MODE_EXPANSION = 128,   // ${a}
-    MODE_BTICK = 256,       // `echo a`
+    MODE_EXP_SUBSHELL = 8, // $(echo a)
+    MODE_SUBSHELL = 16, // (echo a)
+    MODE_ARITH = 32, // $((1 + 1))
+    MODE_ARITH_GROUP = 64, // $(( .. (1 + 2) .. ))
+    MODE_EXPANSION = 128, // ${a}
+    MODE_BTICK = 256, // `echo a`
 };
 
 #define WLEXER_ARITH_MODES (MODE_ARITH | MODE_ARITH_GROUP)
@@ -60,7 +60,8 @@ struct wlexer
     struct wtoken lookahead;
 };
 
-static inline void wlexer_set_catcher(struct wlexer *wlex, struct exception_catcher *catcher)
+static inline void wlexer_set_catcher(struct wlexer *wlex,
+                                      struct exception_catcher *catcher)
 {
     cstream_set_catcher(wlex->cs, catcher);
 }
