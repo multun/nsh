@@ -36,7 +36,7 @@
         apps.nsh = flake-utils.lib.mkApp { drv = packages.nsh; };
         defaultApp = apps.nsh;
         devShell = pkgs.mkShell {
-          inherit (self.checks.${system}.pre-commit-check) shellHook;
+          inherit (checks.pre-commit-check) shellHook;
           # toolchain hardening injects unwanted compiler flags.
           # fortify injects -O2 along with -D_FORTIFY_SOURCE=2,
           # which breaks the debugging experience
