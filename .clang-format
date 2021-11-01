@@ -45,10 +45,12 @@ DerivePointerAlignment: false
 FixNamespaceComments: true
 IncludeBlocks: Regroup
 IncludeCategories:
-    - Regex: '<.*>'
+    - Regex: '<nsh_.*>'
       Priority: 1
-    - Regex: '.*'
+    - Regex: '<.*>'
       Priority: 2
+    - Regex: '.*'
+      Priority: 3
 IndentCaseLabels: false
 IndentPPDirectives: AfterHash
 IndentWidth: 4
@@ -57,7 +59,7 @@ KeepEmptyLinesAtTheStartOfBlocks: false
 Language: Cpp
 NamespaceIndentation: All
 PointerAlignment: Right
-ReflowComments: true
+ReflowComments: false
 SortIncludes: false
 SortUsingDeclarations: false
 SpaceAfterCStyleCast: false
@@ -76,3 +78,4 @@ SpacesInParentheses: false
 SpacesInSquareBrackets: false
 TabWidth: 4
 UseTab: Never
+MaxEmptyLinesToKeep: 2
