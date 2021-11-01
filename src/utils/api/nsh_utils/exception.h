@@ -47,8 +47,7 @@ struct exception_catcher
 #define EXCEPTION_CATCHER(Man, Father)                                                   \
     (struct exception_catcher)                                                           \
     {                                                                                    \
-        .context = (Man),                                                                \
-        .father = (Father)                                                               \
+        .context = (Man), .father = (Father)                                             \
     }
 
 /**
@@ -58,13 +57,14 @@ struct exception_catcher
 ** \param catcher the exception scope to raise into
 ** \param class the exception class to raise
 */
-void ATTR(noreturn) shraise(struct exception_catcher *catcher, const struct exception_type *class);
+void __noreturn shraise(struct exception_catcher *catcher,
+                        const struct exception_type *class);
 
 /**
 ** \fn void shraise(struct exception_catcher *catcher)
 ** \brief re-raises the last thrown exception for the context
 */
-void ATTR(noreturn) shreraise(struct exception_catcher *catcher);
+void __noreturn shreraise(struct exception_catcher *catcher);
 
 /**
 ** \brief prints line information, a message, and exit using shraise
@@ -73,11 +73,14 @@ void ATTR(noreturn) shreraise(struct exception_catcher *catcher);
 ** \param exception_type the exception class being thrown
 ** \param format the error message's format string
 */
-void ATTR(noreturn) sherror(const struct lineinfo *lineinfo, struct exception_catcher *catcher,
-                            const struct exception_type *exception_type, const char *format, ...);
+void __noreturn sherror(const struct lineinfo *lineinfo,
+                        struct exception_catcher *catcher,
+                        const struct exception_type *exception_type, const char *format,
+                        ...);
 
-void ATTR(noreturn) vsherror(const struct lineinfo *li, struct exception_catcher *catcher,
-                             const struct exception_type *exception_type, const char *format, va_list ap);
+void __noreturn vsherror(const struct lineinfo *li, struct exception_catcher *catcher,
+                         const struct exception_type *exception_type, const char *format,
+                         va_list ap);
 
 void shwarn(const struct lineinfo *li, const char *format, ...);
 

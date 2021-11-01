@@ -9,7 +9,8 @@
 #include <err.h>
 
 
-void ATTR(noreturn) shraise(struct exception_catcher *catcher, const struct exception_type *class)
+void __noreturn shraise(struct exception_catcher *catcher,
+                        const struct exception_type *class)
 {
     if (class)
         catcher->context->class = class;
@@ -17,7 +18,7 @@ void ATTR(noreturn) shraise(struct exception_catcher *catcher, const struct exce
 }
 
 
-void ATTR(noreturn) shreraise(struct exception_catcher *catcher)
+void __noreturn shreraise(struct exception_catcher *catcher)
 {
     shraise(catcher, NULL);
 }
@@ -41,8 +42,9 @@ void shwarn(const struct lineinfo *li, const char *format, ...)
     va_end(ap);
 }
 
-void ATTR(noreturn) vsherror(const struct lineinfo *li, struct exception_catcher *catcher,
-                             const struct exception_type *exception_type, const char *format, va_list ap)
+void __noreturn vsherror(const struct lineinfo *li, struct exception_catcher *catcher,
+                         const struct exception_type *exception_type, const char *format,
+                         va_list ap)
 {
     assert(catcher);
     catcher->context->class = exception_type;
@@ -50,8 +52,9 @@ void ATTR(noreturn) vsherror(const struct lineinfo *li, struct exception_catcher
     shraise(catcher, NULL);
 }
 
-void ATTR(noreturn) sherror(const struct lineinfo *li, struct exception_catcher *catcher,
-                            const struct exception_type *exception_type, const char *format, ...)
+void __noreturn sherror(const struct lineinfo *li, struct exception_catcher *catcher,
+                        const struct exception_type *exception_type, const char *format,
+                        ...)
 {
     va_list ap;
     va_start(ap, format);

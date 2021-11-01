@@ -7,7 +7,8 @@
 
 struct exception_type g_clean_exit;
 
-void ATTR(noreturn) clean_err(struct exception_catcher *catcher, int retcode, const char *fmt, ...)
+void __noreturn clean_err(struct exception_catcher *catcher, int retcode, const char *fmt,
+                          ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -18,7 +19,8 @@ void ATTR(noreturn) clean_err(struct exception_catcher *catcher, int retcode, co
     va_end(ap);
 }
 
-void ATTR(noreturn) clean_errx(struct exception_catcher *catcher, int retcode, const char *fmt, ...)
+void __noreturn clean_errx(struct exception_catcher *catcher, int retcode,
+                           const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -29,14 +31,15 @@ void ATTR(noreturn) clean_errx(struct exception_catcher *catcher, int retcode, c
     va_end(ap);
 }
 
-void ATTR(noreturn) clean_exit(struct exception_catcher *catcher, int retcode)
+void __noreturn clean_exit(struct exception_catcher *catcher, int retcode)
 {
     catcher->context->retcode = retcode;
     shraise(catcher, &g_clean_exit);
 }
 
 
-int builtin_exit(struct environment *env, struct exception_catcher *catcher, int argc, char **argv)
+int builtin_exit(struct environment *env, struct exception_catcher *catcher, int argc,
+                 char **argv)
 {
     if (!env)
         warnx("exit: missing context elements");
