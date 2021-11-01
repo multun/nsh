@@ -38,6 +38,7 @@ nsh = executable(
         nsh_interactive,
         nsh_exec,
         nsh_utils,
+        readline_dep,
     ],
 )
 

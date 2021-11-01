@@ -9,7 +9,9 @@
 
   outputs = { self, nixpkgs, flake-utils, pre-commit-hooks }:
     flake-utils.lib.eachDefaultSystem (system:
-      let pkgs = nixpkgs.legacyPackages.${system}; in
+      let pkgs = nixpkgs.legacyPackages.${system};
+          # switch it to pkgs.stdenv if you want to build with gcc
+          stdenv = pkgs.clangStdenv; in
       rec {
         checks = {
           pre-commit-check = pre-commit-hooks.lib.${system}.run {
@@ -24,7 +26,7 @@
           };
         };
         packages = flake-utils.lib.flattenTree {
-          nsh = pkgs.stdenv.mkDerivation {
+          nsh = stdenv.mkDerivation {
             pname = "nsh";
             version = "1.0";
             src = ./.;
@@ -35,7 +37,7 @@
         defaultPackage = packages.nsh;
         apps.nsh = flake-utils.lib.mkApp { drv = packages.nsh; };
         defaultApp = apps.nsh;
-        devShell = pkgs.mkShell {
+        devShell = pkgs.mkShell.override { inherit stdenv; } {
           inherit (checks.pre-commit-check) shellHook;
           # toolchain hardening injects unwanted compiler flags.
           # fortify injects -O2 along with -D_FORTIFY_SOURCE=2,

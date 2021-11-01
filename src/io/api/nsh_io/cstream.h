@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <nsh_utils/attr.h>
 #include <nsh_utils/evect.h>

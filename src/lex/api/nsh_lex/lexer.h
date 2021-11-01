@@ -13,18 +13,20 @@
 
 #define TOK_BUF_MIN_SIZE 10
 
+enum token_type
+{
+#define X(TokName, Value) TokName,
+#include "tokens.defs"
+#undef X
+};
+
 /**
 ** \brief represents a token. it features a type, a delimiter, a
 **   string representation and a pointer to the next token in the stream.
 */
 struct token
 {
-    enum token_type
-    {
-#define X(TokName, Value) TokName,
-#include "tokens.defs"
-#undef X
-    } type;
+    enum token_type type;
 
     struct lineinfo lineinfo;
     int delim;
