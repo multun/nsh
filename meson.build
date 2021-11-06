@@ -21,6 +21,10 @@ summary({
 cflags = ['-D_GNU_SOURCE', '-D_POSIX_C_SOURCE=200809L']
 add_project_arguments(cflags, language: 'c')
 
+# try to find readline, which some of the modules below link with
+cc = meson.get_compiler('c')
+readline_dep = cc.find_library('readline', required: true)
+
 subdir('src/utils')
 subdir('src/io')
 subdir('src/lex')
@@ -34,27 +38,25 @@ nsh = executable(
     install: true,
     c_args: ['-DNSH_LOG_DOMAIN=nsh'],
     dependencies: [
-        nsh_io,
         nsh_interactive,
         nsh_exec,
         nsh_utils,
-        readline_dep,
     ],
 )
 
 test_runner = meson.source_root() / 'tests/run_tests'
 check = custom_target(
-		'check',
-		command: [test_runner, nsh] + get_option('check_args'),
+        'check',
+        command: [test_runner, nsh] + get_option('check_args'),
         console: true,  # otherwise, the output is captured and nothing works
         # setting -Dforce_check=true forces the tests to run on built
         build_by_default: get_option('force_check'),
         # this rule doesn't actually output a file called check,
         # but it doesn't matter as the rule is always built
-		output: 'check',
+        output: 'check',
         build_always_stale: true,
 )
 
 if get_option('doc')
-	subdir('doc')
+    subdir('doc')
 endif

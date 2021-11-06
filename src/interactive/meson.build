@@ -7,15 +7,11 @@ interactive_sources = [
     'cstream_dispatch.c',
 ]
 
-cc = meson.get_compiler('c')
-readline_dep = cc.find_library('readline', required: true)
-
 conf_data = configuration_data()
 conf_data.set_quoted('VERSION', meson.project_version())
 configure_file(output: 'config.h', configuration : conf_data)
 
 interactive_api = include_directories('api', is_system: true)
-interactive_api_includes = exec_api_includes + [interactive_api]
 interactive_lib = library(
     'nsh_interactive',
     interactive_sources,
@@ -26,6 +22,9 @@ interactive_lib = library(
 )
 
 nsh_interactive = declare_dependency(
-    include_directories: interactive_api_includes,
+    include_directories: interactive_api,
     link_with: interactive_lib,
+    dependencies: [
+        nsh_exec.partial_dependency(includes: true),
+    ]
 )

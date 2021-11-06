@@ -16,16 +16,15 @@ utils_sources = [
 ]
 
 utils_api = include_directories('api', is_system: true)
-utils_api_includes = [utils_api]
 utils_lib = library(
     'nsh_utils',
     utils_sources,
     install: true,
     c_args: ['-DNSH_LOG_DOMAIN=utils'],
-    include_directories: utils_api_includes,
+    include_directories: utils_api,
 )
 
 nsh_utils = declare_dependency(
     link_with: utils_lib,
-    include_directories: utils_api_includes,
+    include_directories: utils_api,
 )

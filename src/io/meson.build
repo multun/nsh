@@ -5,21 +5,20 @@ io_sources = [
     'keyboard_interrupt.c',
 ]
 
-cc = meson.get_compiler('c')
-readline_dep = cc.find_library('readline', required: true)
-
 io_api = include_directories('api', is_system: true)
-io_api_includes = utils_api_includes + [io_api]
 io_lib = library(
     'nsh_io',
     io_sources,
     install: true,
     c_args: ['-DNSH_LOG_DOMAIN=io'],
-    include_directories: io_api_includes,
-    dependencies: [nsh_utils, readline_dep],
+    include_directories: io_api,
+    dependencies: [nsh_utils],
 )
 
 nsh_io = declare_dependency(
-    include_directories: io_api_includes,
+    include_directories: io_api,
     link_with: io_lib,
+    dependencies: [
+        nsh_utils.partial_dependency(includes: true),
+    ],
 )
