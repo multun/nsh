@@ -1,4 +1,4 @@
-parser_sources = [
+parse_sources = [
     'parser_error.c',
     'parse.c',
     'parse_case.c',
@@ -17,7 +17,7 @@ parser_sources = [
 parse_api = include_directories('api', is_system: true)
 parse_lib = library(
     'nsh_parse',
-    parser_sources,
+    parse_sources,
     install: true,
     c_args: ['-DNSH_LOG_DOMAIN=parse'],
     include_directories: parse_api,

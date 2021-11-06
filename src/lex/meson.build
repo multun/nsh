@@ -1,4 +1,4 @@
-lexer_sources = [
+lex_sources = [
     'lexer.c',
     'lexer_error.c',
     'print.c',
@@ -11,7 +11,7 @@ lexer_sources = [
 lex_api = include_directories('api', is_system: true)
 lex_lib = library(
     'nsh_lex',
-    lexer_sources,
+    lex_sources,
     install: true,
     c_args: ['-DNSH_LOG_DOMAIN=lex'],
     include_directories: lex_api,
