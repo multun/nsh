@@ -1,3 +1,6 @@
+# Based upon https://github.com/kracejic/cleanCppProject (MIT Licensed)
+
+
 # For modern doxygen style uncomment these three lines:
 HTML_EXTRA_STYLESHEET = @CUR_SOURCE_DIR@/doxygen-awesome.css
 
@@ -9,7 +12,7 @@ PROJECT_NAME           = "@PROJECT_NAME@"
 PROJECT_NUMBER         = @PROJECT_VERSION@
 STRIP_FROM_PATH        = @SRC_ROOT@
 INPUT                  = @SRC_ROOT@
-                         
+
 FILE_PATTERNS          = *.h \
                          *.h.in \
                          *.c \
@@ -72,8 +75,6 @@ TEMPLATE_RELATIONS     = NO
 # Also they will be bigger
 UML_LOOK               = YES
 UML_LIMIT_NUM_FIELDS   = 6
-
-
 
 # should all pictures be collapsed?
 HTML_DYNAMIC_SECTIONS = NO

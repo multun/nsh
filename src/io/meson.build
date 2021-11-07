@@ -20,5 +20,5 @@ nsh_io = declare_dependency(
     link_with: io_lib,
     dependencies: [
         nsh_utils.partial_dependency(includes: true),
-    ],
+    ]
 )

@@ -10,6 +10,8 @@ project(
     ],
 )
 
+
+# print a summary of the build configuration before each build starts
 summary({
     'optimization': get_option('optimization'),
     'debug': get_option('debug'),
@@ -18,19 +20,26 @@ summary({
     'werror': get_option('werror'),
 })
 
+
+# add some project-wide flags
 cflags = ['-D_GNU_SOURCE', '-D_POSIX_C_SOURCE=200809L']
 add_project_arguments(cflags, language: 'c')
 
-# try to find readline, which some of the modules below link with
+
+# find readline, which some of the modules below link with
 cc = meson.get_compiler('c')
 readline_dep = cc.find_library('readline', required: true)
 
+
+# load the meson.build of every folder below. Every module
+# provides a dependency called nsh_{module}
 subdir('src/utils')
 subdir('src/io')
 subdir('src/lex')
 subdir('src/parse')
 subdir('src/exec')
 subdir('src/interactive')
+
 
 nsh = executable(
     'nsh',
@@ -41,20 +50,23 @@ nsh = executable(
         nsh_interactive,
         nsh_exec,
         nsh_utils,
-    ],
+    ]
 )
 
-test_runner = meson.source_root() / 'tests/run_tests'
-check = custom_target(
-        'check',
-        command: [test_runner, nsh] + get_option('check_args'),
-        console: true,  # otherwise, the output is captured and nothing works
-        # setting -Dforce_check=true forces the tests to run on built
-        build_by_default: get_option('force_check'),
-        # this rule doesn't actually output a file called check,
-        # but it doesn't matter as the rule is always built
-        output: 'check',
-        build_always_stale: true,
+
+run_tests = meson.source_root() / 'tests/run_tests'
+custom_target(
+    'check',
+    command: [run_tests, nsh] + get_option('check_args'),
+    # give the testsuite exclusive access to the terminal, which enables
+    # pretty colors and live testsuite results (meson buffers it all otherwise)
+    console: true,
+    # eventhough this rule output no file, we have to the output file of the rule is mandatory, but as
+    # but it doesn't matter as the rule is always built
+    output: 'check',
+    build_always_stale: true,
+    # if this option is enabled, tests will run for all builds
+    build_by_default: get_option('force_check'),
 )
 
 if get_option('doc')

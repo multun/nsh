@@ -24,5 +24,5 @@ nsh_lex = declare_dependency(
     dependencies: [
         nsh_io.partial_dependency(includes: true),
         nsh_utils.partial_dependency(includes: true),
-    ],
+    ]
 )
