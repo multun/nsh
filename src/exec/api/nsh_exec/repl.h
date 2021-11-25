@@ -58,11 +58,6 @@ struct repl
     // the runtime environment, such as functions and variables
     struct environment *env;
 
-    // whether we should display the ps1 instead of the ps2
-    // it may feel awkward to store this here, but it wouldn't
-    // make much sense either to store it inside the stream structure.
-    bool line_start;
-
     struct evect line_buffer;
 
     void (*add_history)(const char *command);

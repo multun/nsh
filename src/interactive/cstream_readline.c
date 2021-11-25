@@ -23,10 +23,10 @@ static char *prompt_get(struct cstream_readline *cs)
 
     const char *prompt_var_name;
     const char *default_prompt;
-    if (repl->line_start) {
+    if (cs->line_start) {
         prompt_var_name = "PS1";
         default_prompt = default_unset_ps1;
-        repl->line_start = false;
+        cs->line_start = false;
     } else {
         prompt_var_name = "PS2";
         default_prompt = default_unset_ps2;
@@ -104,6 +104,7 @@ static void readline_io_reset(struct cstream *base_cs)
     free(cs->current_line);
     cs->current_line = NULL;
     cs->line_position = 0;
+    cs->line_start = true;
 }
 
 
@@ -120,5 +121,6 @@ struct cstream_readline *cstream_readline_create(struct repl *repl)
     cs->repl = repl;
     cs->base.line_info = LINEINFO("<tty>", NULL);
     readline_wrapped_setup();
+    cs->line_start = true;
     return cs;
 }

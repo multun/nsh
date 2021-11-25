@@ -99,9 +99,7 @@ void repl_run(struct repl_result *res, struct repl *ctx)
     struct exception_catcher exception_catcher =
         EXCEPTION_CATCHER(&exception_context, NULL);
 
-    while (true) {
-        ctx->line_start = true;
-
+    for (;; repl_reset(ctx)) {
         /* check for EOF */
         enum repl_action action = repl_eof(res, ctx);
         if (action == REPL_ACTION_CONTINUE)
@@ -114,9 +112,6 @@ void repl_run(struct repl_result *res, struct repl *ctx)
             /* decide whether to stop running the repl */
             if (handle_repl_exception(res, ctx, &exception_context) == REPL_ACTION_STOP)
                 break;
-
-            /* when an interactive non-fatal interupt occurs, cleanup temporary data (tokens, buffers, ...) */
-            repl_reset(ctx);
 
             /* restart all over again */
             continue;
@@ -144,13 +139,6 @@ void repl_run(struct repl_result *res, struct repl *ctx)
 
         /* reset the error handler */
         cstream_set_catcher(ctx->cs, NULL);
-
-        /* prepare the lexer to handle a new line, forgetting all the remaining tokens
-         TODO: check whether is it needed, and document the reason */
-        lexer_reset(ctx->lexer);
     }
-
-    /* reset the error handler */
-    cstream_set_catcher(ctx->cs, NULL);
     return;
 }

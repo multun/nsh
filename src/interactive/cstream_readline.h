@@ -16,6 +16,9 @@ struct cstream_readline
 
     // position in the current line
     size_t line_position;
+
+    // this is used to keep track of whether we should ps1 or ps2
+    bool line_start;
 };
 
 /**

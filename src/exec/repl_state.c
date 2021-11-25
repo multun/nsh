@@ -30,7 +30,6 @@ void repl_destroy(struct repl *ctx)
 
 void repl_reset(struct repl *ctx)
 {
-    ctx->line_start = true;
     cstream_reset(ctx->cs);
     lexer_reset(ctx->lexer);
     evect_reset(&ctx->line_buffer);
