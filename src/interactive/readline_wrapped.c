@@ -41,10 +41,11 @@ static void readline_callback(char *line)
 
 
 /** Checks whether user input was interupted */
-static void check_interrupt(struct exception_catcher *catcher);
+static void check_interrupt(struct environment *env, struct exception_catcher *catcher);
 
 
-char *readline_wrapped(struct exception_catcher *catcher, char *prompt)
+char *readline_wrapped(struct environment *env, struct exception_catcher *catcher,
+                       char *prompt)
 {
     int rc;
 
@@ -64,7 +65,7 @@ char *readline_wrapped(struct exception_catcher *catcher, char *prompt)
                 continue;
 
             if (errno == EINTR) {
-                check_interrupt(catcher);
+                check_interrupt(env, catcher);
                 continue;
             }
 
@@ -80,7 +81,7 @@ char *readline_wrapped(struct exception_catcher *catcher, char *prompt)
         }
 
         // check again if the user pressed CTRL + C
-        check_interrupt(catcher);
+        check_interrupt(env, catcher);
     }
 }
 
@@ -95,7 +96,7 @@ void readline_wrapped_setup(void)
     signal(SIGINT, sigint_handler);
 }
 
-static void check_interrupt(struct exception_catcher *catcher)
+static void check_interrupt(struct environment *env, struct exception_catcher *catcher)
 {
     if (!interrupted)
         return;
@@ -114,6 +115,6 @@ static void check_interrupt(struct exception_catcher *catcher)
     fputs("^C\n", stderr);
 
     // return an error
-    catcher->context->retcode = 128 + SIGINT;
+    env->code = 128 + SIGINT;
     shraise(catcher, &g_keyboard_interrupt);
 }

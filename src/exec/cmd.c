@@ -54,7 +54,7 @@ static int cmd_fork_exec(struct environment *env, struct exception_catcher *catc
     int status;
     pid_t pid = managed_fork(env);
     if (pid < 0)
-        clean_err(catcher, errno, "cmd_exec: error while forking");
+        clean_err(env, catcher, errno, "cmd_exec: error while forking");
 
     /* parent branch */
     if (pid != 0) {
@@ -71,7 +71,7 @@ static int cmd_fork_exec(struct environment *env, struct exception_catcher *catc
         free(penv[i]);
     free(penv);
 
-    clean_err(catcher, 125 + errno, "couldn't exec \"%s\"", env->argv[0]);
+    clean_err(env, catcher, 125 + errno, "couldn't exec \"%s\"", env->argv[0]);
 }
 
 static void function_call_cleanup(struct environment *env, struct shast_function *func)
@@ -97,7 +97,7 @@ static int cmd_run_command(struct environment *env, struct exception_catcher *ca
 
         if (env->call_depth >= MAX_CALL_DEPTH) {
             warnx("maximum call depth of %d reached", MAX_CALL_DEPTH);
-            runtime_error(catcher, 1);
+            runtime_error(env, catcher, 1);
         }
 
         return ast_exec(env, (*func)->body, catcher);

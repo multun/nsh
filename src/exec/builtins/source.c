@@ -29,7 +29,7 @@ static int source_file(struct exception_catcher *catcher, struct environment *en
     rc = repl_status(&ctx);
 
     if (repl_called_exit(&repl_res))
-        clean_exit(catcher, rc);
+        clean_exit(env, catcher, rc);
 
     repl_destroy(&ctx);
     cstream_destroy(&cs.base);

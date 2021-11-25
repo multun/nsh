@@ -1,5 +1,6 @@
 #pragma once
 
+#include <nsh_exec/repl.h>
 #include <nsh_utils/exception.h>
 
 /**
@@ -8,8 +9,9 @@
 */
 extern struct exception_type g_runtime_error;
 
-__noreturn static inline void runtime_error(struct exception_catcher *scope, int code)
+__noreturn static inline void runtime_error(struct environment *env,
+                                            struct exception_catcher *scope, int code)
 {
-    scope->context->retcode = code;
+    env->code = code;
     shraise(scope, &g_runtime_error);
 }

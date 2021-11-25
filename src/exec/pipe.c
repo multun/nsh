@@ -167,7 +167,7 @@ int pipeline_exec(struct environment *env, struct shast *ast,
                 struct shast *ast = shast_vect_get(&pipe->children, child_i);
                 res = ast_exec(env, ast, catcher);
             }
-            clean_exit(catcher, res);
+            clean_exit(env, catcher, res);
             abort();
         }
 
@@ -205,6 +205,5 @@ runtime_error:
     }
     free(children_pids);
 
-    catcher->context->retcode = status;
-    shraise(catcher, &g_runtime_error);
+    runtime_error(env, catcher, status);
 }

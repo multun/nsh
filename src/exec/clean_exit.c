@@ -7,33 +7,34 @@
 
 struct exception_type g_clean_exit;
 
-void __noreturn clean_err(struct exception_catcher *catcher, int retcode, const char *fmt,
-                          ...)
+void __noreturn clean_err(struct environment *env, struct exception_catcher *catcher,
+                          int retcode, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
 
     vwarn(fmt, ap);
-    clean_exit(catcher, retcode);
+    clean_exit(env, catcher, retcode);
 
     va_end(ap);
 }
 
-void __noreturn clean_errx(struct exception_catcher *catcher, int retcode,
-                           const char *fmt, ...)
+void __noreturn clean_errx(struct environment *env, struct exception_catcher *catcher,
+                           int retcode, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
 
     vwarnx(fmt, ap);
-    clean_exit(catcher, retcode);
+    clean_exit(env, catcher, retcode);
 
     va_end(ap);
 }
 
-void __noreturn clean_exit(struct exception_catcher *catcher, int retcode)
+void __noreturn clean_exit(struct environment *env, struct exception_catcher *catcher,
+                           int retcode)
 {
-    catcher->context->retcode = retcode;
+    env->code = retcode;
     shraise(catcher, &g_clean_exit);
 }
 
@@ -58,5 +59,5 @@ int builtin_exit(struct environment *env, struct exception_catcher *catcher, int
     } else
         rc = env->code;
 
-    clean_exit(catcher, rc);
+    clean_exit(env, catcher, rc);
 }

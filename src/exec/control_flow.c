@@ -57,12 +57,12 @@ static int builtin_generic_break(struct environment *env,
 {
     if (argc > 2) {
         warnx("%s: too many arguments", argv[0]);
-        runtime_error(catcher, 1);
+        runtime_error(env, catcher, 1);
     }
 
     if (env->depth == 0) {
         warnx("%s: only meaningful in a loop", argv[0]);
-        runtime_error(catcher, 1);
+        runtime_error(env, catcher, 1);
     }
 
     if (argc < 2)
@@ -71,7 +71,7 @@ static int builtin_generic_break(struct environment *env,
         unsigned long int res = strtoul(argv[1], NULL, 10);
         if (res == ULONG_MAX || res == 0) {
             warnx("%s: `%s': invalid break count", argv[0], argv[1]);
-            runtime_error(catcher, 1);
+            runtime_error(env, catcher, 1);
         }
 
         /* clamp to INT_MAX to make the convertion safe */

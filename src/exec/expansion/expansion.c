@@ -406,7 +406,8 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
     case ARITH_SYNTAX_ERROR:
         shraise(expansion_state_catcher(exp_state), &g_lexer_error);
     case ARITH_RUNTIME_ERROR:
-        runtime_error(expansion_state_catcher(exp_state), 1);
+        runtime_error(expansion_state_env(exp_state), expansion_state_catcher(exp_state),
+                      1);
     case ARITH_OK:
         break;
     }

@@ -21,14 +21,11 @@ enum repl_action
 static enum repl_action handle_repl_exception(struct repl_result *res, struct repl *ctx,
                                               struct exception_context *ex_context)
 {
-    if (ex_context->class == &g_clean_exit) {
-        ctx->env->code = ex_context->retcode;
+    if (ex_context->class == &g_clean_exit)
         goto exception_stop;
-    }
 
     if (ex_context->class == &g_keyboard_interrupt
         || ex_context->class == &g_runtime_error) {
-        ctx->env->code = ex_context->retcode;
         goto exception_continue_if_interactive;
     }
 
@@ -64,9 +61,6 @@ enum repl_action repl_eof(struct repl_result *res, struct repl *ctx)
     if (setjmp(exception_catcher.env)) {
         if (exception_context.class != &g_keyboard_interrupt)
             errx(2, "received an unknown exception in EOF check");
-
-        /* propagate the status code from the exception to the repl */
-        ctx->env->code = exception_context.retcode;
 
         /* just stop if not interactive */
         if (!repl_is_interactive(ctx)) {

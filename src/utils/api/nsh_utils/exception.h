@@ -28,7 +28,6 @@ struct exception_type
 struct exception_context
 {
     const struct exception_type *class;
-    int retcode;
 };
 
 /**

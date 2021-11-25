@@ -61,7 +61,8 @@ static int readline_io_reader_unwrapped(struct cstream_readline *cs)
 
     if (!str) {
         char *prompt = prompt_get(cs);
-        str = cs->current_line = readline_wrapped(cs->base.catcher, prompt);
+        str = cs->current_line =
+            readline_wrapped(cs->repl->env, cs->base.catcher, prompt);
         cs->line_position = 0;
     }
 

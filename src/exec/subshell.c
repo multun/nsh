@@ -17,11 +17,11 @@ int subshell_exec(struct environment *env, struct shast *ast,
     int cpid = managed_fork(env);
     if (cpid == -1) {
         shwarn(&subshell->base.line_info, "fork() failed: %s", strerror(errno));
-        runtime_error(catcher, 1);
+        runtime_error(env, catcher, 1);
     }
 
     if (cpid == 0)
-        clean_exit(catcher, ast_exec(env, subshell->action, catcher));
+        clean_exit(env, catcher, ast_exec(env, subshell->action, catcher));
 
 
     int status;

@@ -56,13 +56,15 @@ void expand_subshell(struct expansion_state *exp_state, char *subshell_content)
     int pipe_fds[2];
     if (pipe(pipe_fds) < 0) {
         expansion_warning(exp_state, "pipe() failed: %s", strerror(errno));
-        runtime_error(expansion_state_catcher(exp_state), 1);
+        runtime_error(expansion_state_env(exp_state), expansion_state_catcher(exp_state),
+                      1);
     }
 
     state.child_pid = managed_fork(expansion_state_env(exp_state));
     if (state.child_pid < 0) {
         expansion_warning(exp_state, "fork() failed: %s", strerror(errno));
-        runtime_error(expansion_state_catcher(exp_state), 1);
+        runtime_error(expansion_state_env(exp_state), expansion_state_catcher(exp_state),
+                      1);
     }
 
     /* child branch */
@@ -75,7 +77,8 @@ void expand_subshell(struct expansion_state *exp_state, char *subshell_content)
         /* run the subshell and exit */
         int res = subshell_child(exp_state, subshell_content);
         free(subshell_content);
-        clean_exit(expansion_state_catcher(exp_state), res);
+        clean_exit(expansion_state_env(exp_state), expansion_state_catcher(exp_state),
+                   res);
     }
 
     /* parent branch */
