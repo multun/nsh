@@ -68,8 +68,7 @@ enum repl_action repl_eof(struct repl_result *res, struct repl *ctx)
             return REPL_ACTION_STOP;
         }
 
-        /* if the stream is interactive, clear the cached EOF and restart parsing */
-        cstream_reset(ctx->cs);
+        /* if the stream is interactive, restart parsing */
         return REPL_ACTION_CONTINUE;
     }
 
