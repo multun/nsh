@@ -86,6 +86,8 @@ static bool repl_load(int *rc, struct repl *ctx, struct cstream *cs,
         return true;
     }
 
+    // this is part of readline
+    using_history();
     history_init(ctx, history_open());
     return false;
 }

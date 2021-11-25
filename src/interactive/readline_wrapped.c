@@ -11,8 +11,8 @@
 #include <stdlib.h>
 
 // readline's header requires including stdio beforehand
-#include <readline/history.h>
 #include <readline/readline.h>
+
 
 /*
 ** This mess must be the worst part of the whole project.
@@ -24,38 +24,25 @@
 **  - periodically check for the flag. When present, reset readline, print ^C and redraw the prompt.
 */
 
-static volatile bool ctrl_c;
-static void handler_sigint(int signal __unused)
-{
-    ctrl_c = true;
-}
+/** When the user presses CTRL + C, this flag is set by the signal handler */
+static volatile bool interrupted;
 
-static bool readline_called_back;
-static char *readline_result;
+/** The newly completed line (NULL encodes CTRL + D) */
+static char *user_input;
+static bool user_input_complete;
 
-static void process_line(char *line)
+/** This is called by readline when it has read an entire line */
+static void readline_callback(char *line)
 {
-    readline_called_back = true;
-    readline_result = line;
+    user_input = line;
+    user_input_complete = true;
     rl_callback_handler_remove();
 }
 
-static void check_interrupt(struct exception_catcher *catcher)
-{
-    if (!ctrl_c)
-        return;
 
-    ctrl_c = false;
-    rl_free_line_state();
-    rl_cleanup_after_signal();
-    RL_UNSETSTATE(RL_STATE_ISEARCH | RL_STATE_NSEARCH | RL_STATE_VIMOTION
-                  | RL_STATE_NUMERICARG | RL_STATE_MULTIKEY);
-    rl_done = 1;
-    rl_callback_handler_remove();
-    fputs("^C\n", stderr);
-    catcher->context->retcode = 128 + SIGINT;
-    shraise(catcher, &g_keyboard_interrupt);
-}
+/** Checks whether user input was interupted */
+static void check_interrupt(struct exception_catcher *catcher);
+
 
 char *readline_wrapped(struct exception_catcher *catcher, char *prompt)
 {
@@ -66,10 +53,12 @@ char *readline_wrapped(struct exception_catcher *catcher, char *prompt)
     FD_SET(fileno(stdin), &rfds);
 
     // reset the interupt flag
-    ctrl_c = false;
-    rl_callback_handler_install(prompt, process_line);
+    interrupted = false;
+    rl_callback_handler_install(prompt, readline_callback);
     free(prompt);
     while (true) {
+        // wait for data to be available on stdin. if the user presses CTRL + C,
+        // select will instead fail and errno be set to EINTR
         if ((rc = select(1, &rfds, NULL, NULL, NULL)) < 0) {
             if (errno == EAGAIN)
                 continue;
@@ -82,17 +71,49 @@ char *readline_wrapped(struct exception_catcher *catcher, char *prompt)
             err(1, "select failed in readline loop");
         }
 
+        // tell readline a character is available on stdin
         rl_callback_read_char();
-        if (readline_called_back) {
-            readline_called_back = false;
-            return readline_result;
+
+        if (user_input_complete) {
+            user_input_complete = false;
+            return user_input;
         }
+
+        // check again if the user pressed CTRL + C
         check_interrupt(catcher);
     }
 }
 
+
+static void sigint_handler(int signal __unused)
+{
+    interrupted = true;
+}
+
 void readline_wrapped_setup(void)
 {
-    using_history();
-    signal(SIGINT, handler_sigint);
+    signal(SIGINT, sigint_handler);
+}
+
+static void check_interrupt(struct exception_catcher *catcher)
+{
+    if (!interrupted)
+        return;
+
+    interrupted = false;
+
+    // reset the prompt
+    rl_free_line_state();
+    rl_cleanup_after_signal();
+    RL_UNSETSTATE(RL_STATE_ISEARCH | RL_STATE_NSEARCH | RL_STATE_VIMOTION
+                  | RL_STATE_NUMERICARG | RL_STATE_MULTIKEY);
+    rl_done = 1;
+    rl_callback_handler_remove();
+
+    // let the user know what happened
+    fputs("^C\n", stderr);
+
+    // return an error
+    catcher->context->retcode = 128 + SIGINT;
+    shraise(catcher, &g_keyboard_interrupt);
 }

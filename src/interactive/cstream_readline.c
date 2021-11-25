@@ -113,10 +113,12 @@ struct io_backend io_readline_backend = {
     .reset = readline_io_reset,
 };
 
-void cstream_readline_init(struct cstream_readline *cs, struct repl *repl)
+struct cstream_readline *cstream_readline_create(struct repl *repl)
 {
+    struct cstream_readline *cs = zalloc(sizeof(*cs));
     cstream_init(&cs->base, &io_readline_backend, true);
     cs->repl = repl;
     cs->base.line_info = LINEINFO("<tty>", NULL);
     readline_wrapped_setup();
+    return cs;
 }

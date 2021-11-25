@@ -45,8 +45,7 @@ int cstream_dispatch_init(struct repl *repl, struct cstream **cs,
 
     // if the input is interactive, use readline
     if (isatty(STDIN_FILENO)) {
-        struct cstream_readline *res = zalloc(sizeof(*res));
-        cstream_readline_init(res, repl);
+        struct cstream_readline *res = cstream_readline_create(repl);
         res->base.line_info = LINEINFO("<interactive input>", NULL);
         *cs = &res->base;
         return 0;

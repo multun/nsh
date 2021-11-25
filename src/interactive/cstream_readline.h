@@ -22,4 +22,4 @@ struct cstream_readline
 ** \brief initializes a readline stream
 ** \return a readline stream
 */
-void cstream_readline_init(struct cstream_readline *cs, struct repl *repl);
+struct cstream_readline *cstream_readline_create(struct repl *repl);
