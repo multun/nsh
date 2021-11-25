@@ -13,6 +13,7 @@ utils_sources = [
     'signal_pipe.c',
     'xalloc.c',
     'logging.c',
+    'error.c',
 ]
 
 utils_api = include_directories('api', is_system: true)
