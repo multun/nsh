@@ -2,6 +2,7 @@
 
 #include <nsh_utils/lineinfo.h>
 #include <nsh_utils/attr.h>
+#include <nsh_utils/error.h>
 
 #include <setjmp.h>
 #include <stdbool.h>
@@ -15,9 +16,8 @@
 */
 struct exception_type
 {
-    // this structure isn't useful for anything but to use the
-    // linker as a way to differentiate exceptions
-    char reserved[1];
+    // the error type this kind of exception maps to
+    nsh_err_t compat_error;
 };
 
 /**
@@ -84,3 +84,35 @@ void __noreturn vsherror(const struct lineinfo *li, struct exception_catcher *ca
 void shwarn(const struct lineinfo *li, const char *format, ...);
 
 void vshwarn(const struct lineinfo *li, const char *format, va_list ap);
+
+
+#define EXCEPTION_COMPAT_STUB(...)                                                       \
+    do {                                                                                 \
+        struct exception_context _context;                                               \
+        struct exception_catcher _catcher;                                               \
+        _catcher.context = &_context;                                                    \
+        _catcher.father = NULL;                                                          \
+        if (setjmp(_catcher.env)) {                                                      \
+            return _context.class->compat_error;                                         \
+        } else {                                                                         \
+            struct exception_catcher *compat_catcher = &_catcher;                        \
+            __VA_ARGS__;                                                                 \
+            return NSH_OK;                                                               \
+        }                                                                                \
+    } while (0)
+
+
+#define EXCEPTION_COMPAT_STUB_RETVAL(Res, ...)                                           \
+    do {                                                                                 \
+        struct exception_context _context;                                               \
+        struct exception_catcher _catcher;                                               \
+        _catcher.context = &_context;                                                    \
+        _catcher.father = NULL;                                                          \
+        if (setjmp(_catcher.env)) {                                                      \
+            return _context.class->compat_error;                                         \
+        } else {                                                                         \
+            struct exception_catcher *compat_catcher = &_catcher;                        \
+            *Res = __VA_ARGS__;                                                          \
+            return NSH_OK;                                                               \
+        }                                                                                \
+    } while (0)

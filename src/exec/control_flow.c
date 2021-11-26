@@ -48,8 +48,12 @@ int case_exec(struct environment *env, struct shast *ast,
 
 
 /* break and continue are implemented as builtins, which raise exceptions */
-struct exception_type g_ex_break;
-struct exception_type g_ex_continue;
+struct exception_type g_ex_break = {
+    .compat_error = NSH_BREAK_INTERUPT,
+};
+struct exception_type g_ex_continue = {
+    .compat_error = NSH_CONTINUE_INTERUPT,
+};
 
 
 static int builtin_generic_break(struct environment *env,

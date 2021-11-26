@@ -5,7 +5,9 @@
 #include <errno.h>
 #include <stdarg.h>
 
-struct exception_type g_clean_exit;
+struct exception_type g_clean_exit = {
+    .compat_error = NSH_EXIT_INTERUPT,
+};
 
 void __noreturn clean_err(struct environment *env, struct exception_catcher *catcher,
                           int retcode, const char *fmt, ...)
