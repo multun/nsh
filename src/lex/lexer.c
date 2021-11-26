@@ -147,6 +147,11 @@ static void lexer_lex(struct token **tres, struct lexer *lexer,
              tok_repr(res));
 }
 
+static nsh_err_t compat_lexer_lex(struct token **res, struct lexer *lexer)
+{
+    EXCEPTION_COMPAT_STUB(lexer_lex(res, lexer, compat_catcher));
+}
+
 char *lexer_lex_string(struct exception_catcher *catcher, struct wlexer *wlexer)
 {
     struct lexer lexer = {
@@ -162,29 +167,44 @@ char *lexer_lex_string(struct exception_catcher *catcher, struct wlexer *wlexer)
     return buf;
 }
 
-struct token *lexer_peek_at(struct lexer *lexer, struct token *tok,
-                            struct exception_catcher *catcher)
+nsh_err_t lexer_peek_at(struct token **res, struct lexer *lexer, struct token *tok)
 {
-    if (!tok->next)
-        lexer_lex(&tok->next, lexer, catcher);
-    return tok->next;
+    nsh_err_t err;
+
+    if (!tok->next) {
+        if ((err = compat_lexer_lex(&tok->next, lexer)))
+            return err;
+    }
+
+    *res = tok->next;
+    return NSH_OK;
 }
 
-struct token *lexer_peek(struct lexer *lexer, struct exception_catcher *catcher)
+nsh_err_t lexer_peek(struct token **res, struct lexer *lexer)
 {
-    if (!lexer->head)
-        lexer_lex(&lexer->head, lexer, catcher);
-    return lexer->head;
+    nsh_err_t err;
+
+    if (!lexer->head) {
+        if ((err = compat_lexer_lex(&lexer->head, lexer)))
+            return err;
+    }
+
+    *res = lexer->head;
+    return NSH_OK;
 }
 
-struct token *lexer_pop(struct lexer *lexer, struct exception_catcher *catcher)
-{
-    if (!lexer->head)
-        lexer_lex(&lexer->head, lexer, catcher);
 
-    struct token *ret = lexer->head;
-    lexer->head = ret->next;
-    return ret;
+nsh_err_t lexer_pop(struct token **res, struct lexer *lexer)
+{
+    nsh_err_t err;
+    if (!lexer->head) {
+        if ((err = compat_lexer_lex(&lexer->head, lexer)))
+            return err;
+    }
+
+    *res = lexer->head;
+    lexer->head = lexer->head->next;
+    return NSH_OK;
 }
 
 struct lexer *lexer_create(struct cstream *stream)

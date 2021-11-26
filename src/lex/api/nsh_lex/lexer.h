@@ -6,6 +6,7 @@
 
 #include <nsh_io/cstream.h>
 #include <nsh_utils/attr.h>
+#include <nsh_utils/error.h>
 #include <nsh_utils/exception.h>
 #include <nsh_utils/evect.h>
 #include <nsh_lex/lexer_error.h>
@@ -122,7 +123,7 @@ void lexer_reset(struct lexer *lexer);
 ** \param catcher the error context
 ** \return the next token to be read
 */
-struct token *lexer_peek(struct lexer *lexer, struct exception_catcher *catcher);
+nsh_err_t lexer_peek(struct token **res, struct lexer *lexer);
 
 /**
 ** \brief peeks a token and removes it from the stack
@@ -130,11 +131,18 @@ struct token *lexer_peek(struct lexer *lexer, struct exception_catcher *catcher)
 ** \param catcher the error context
 ** \return the next token
 */
-struct token *lexer_pop(struct lexer *lexer, struct exception_catcher *catcher);
+nsh_err_t lexer_pop(struct token **res, struct lexer *lexer);
 
-static inline void lexer_discard(struct lexer *lexer, struct exception_catcher *catcher)
+
+static inline nsh_err_t lexer_discard(struct lexer *lexer)
 {
-    tok_free(lexer_pop(lexer, catcher), true);
+    struct token *tok;
+    nsh_err_t err;
+
+    if ((err = lexer_pop(&tok, lexer)))
+        return err;
+
+    tok_free(tok, true);
 }
 
 /**
@@ -143,8 +151,7 @@ static inline void lexer_discard(struct lexer *lexer, struct exception_catcher *
 ** \param lexer the lexer to peek at
 ** \param tok the token to peek after
 */
-struct token *lexer_peek_at(struct lexer *lexer, struct token *tok,
-                            struct exception_catcher *catcher);
+nsh_err_t lexer_peek_at(struct token **res, struct lexer *lexer, struct token *tok);
 
 /**
 ** \brief read a word lexer stream and shove it into a string
