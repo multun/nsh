@@ -1,67 +1,58 @@
 #include <stdbool.h>
 
 #include <nsh_parse/parse.h>
-#include <nsh_lex/print.h>
 #include <nsh_utils/exception.h>
 
-static void for_word_loop(struct wordlist *target, struct lexer *lexer,
-                          struct exception_catcher *catcher)
+#include "parse.h"
+
+static int parse_in_words(struct wordlist *target, struct lexer *lexer)
 {
+    int rc;
     while (true) {
-        const struct token *tok = lexer_peek(lexer, catcher);
-        if (tok_is(tok, TOK_SEMI) || tok_is(tok, TOK_NEWLINE))
-            break;
-        wordlist_push(target, parse_word(lexer, catcher));
+        const struct token *tok;
+        if ((rc = lexer_peek(&tok, lexer)))
+            return rc;
+
+        if (!tok_is(tok, TOK_WORD))
+            return NSH_OK;
+
+        struct shword *word;
+        if ((rc = parse_word(&word, lexer)))
+            return rc;
+        wordlist_push(target, word);
     }
-    lexer_discard(lexer, catcher);
 }
 
-static void parse_in(struct wordlist *words, struct lexer *lexer,
-                     struct exception_catcher *catcher)
+int parse_for(struct shast **res, struct lexer *lexer)
 {
-    const struct token *tok = lexer_peek(lexer, catcher);
-    if (tok_is(tok, TOK_NEWLINE) || tok_is(tok, TOK_IN)) {
-        parse_newlines(lexer, catcher);
-        tok = lexer_peek(lexer, catcher);
-        if (tok_is(tok, TOK_IN)) {
-            lexer_discard(lexer, catcher);
-            for_word_loop(words, lexer, catcher);
-            tok = lexer_peek(lexer, catcher);
-        }
-    }
-    if (tok_is(tok, TOK_SEMI))
-        lexer_discard(lexer, catcher);
-}
+    int rc;
+    if ((rc = parser_match_discard(TOK_FOR, lexer)))
+        return rc;
 
-static bool parse_collection(struct lexer *lexer, struct exception_catcher *catcher,
-                             struct shast_for *for_node)
-{
-    const struct token *tok = lexer_peek(lexer, catcher);
-    if (!tok_is(tok, TOK_DO)) {
-        if (!tok_is(tok, TOK_NEWLINE) && !tok_is(tok, TOK_SEMI) && !tok_is(tok, TOK_IN))
-            parser_err(&tok->lineinfo, catcher,
-                       "unexpected token %s, expected 'do', ';' or '\\n'", TOKT_STR(tok));
-        parse_in(&for_node->collection, lexer, catcher);
-        parse_newlines(lexer, catcher);
-        tok = lexer_peek(lexer, catcher);
-    }
-    return true;
-}
-
-void parse_rule_for(struct shast **res, struct lexer *lexer,
-                    struct exception_catcher *catcher)
-{
-    // TODO: safer discard
-    lexer_discard(lexer, catcher);
+    /* Parse the variable */
     struct shast_for *for_node = shast_for_attach(res, lexer);
-    for_node->var = parse_word(lexer, catcher);
+    if ((rc = parse_word(&for_node->var, lexer)))
+        return rc;
 
-    if (!parse_collection(lexer, catcher, for_node))
-        return;
+    if ((rc = parse_newlines(lexer)))
+        return rc;
 
-    const struct token *tok = lexer_peek(lexer, catcher);
-    if (!tok_is(tok, TOK_DO))
-        parser_err(&tok->lineinfo, catcher, "unexpected token %s, expected 'do'",
-                   TOKT_STR(tok));
-    parse_do_group(&for_node->body, lexer, catcher);
+    /* Parse the optional in group */
+    if ((rc = parser_consume_optional(lexer, TOK_IN)) < 0)
+        return rc;
+    if (rc == NSH_OK) {
+        if ((rc = parse_in_words(&for_node->collection, lexer)))
+            return rc;
+        if ((rc = parse_newlines(lexer)))
+            return rc;
+    }
+
+    /* Parse ; \n* */
+    if ((rc = parser_consume_optional(lexer, TOK_SEMI)) < 0)
+        return rc;
+    if ((rc = parse_newlines(lexer)))
+        return rc;
+
+    /* Parse the loop body */
+    return parse_do_group(&for_node->body, lexer);
 }

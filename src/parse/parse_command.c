@@ -1,105 +1,109 @@
 #include <nsh_parse/parse.h>
-#include <nsh_lex/print.h>
 #include <nsh_utils/alloc.h>
 #include <nsh_utils/exception.h>
+#include <assert.h>
 
-static int switch_first_keyword(struct shast **res, struct lexer *lexer,
-                                struct exception_catcher *catcher)
+#include "parse.h"
+
+
+static int parse_subshell(struct shast **res, struct lexer *lexer)
 {
-    const struct token *tok = lexer_peek(lexer, catcher);
-    if (tok_is(tok, TOK_IF))
-        parse_rule_if(res, lexer, catcher);
-    else if (tok_is(tok, TOK_FOR))
-        parse_rule_for(res, lexer, catcher);
-    else if (tok_is(tok, TOK_WHILE))
-        parse_rule_while(res, lexer, catcher);
-    else if (tok_is(tok, TOK_UNTIL))
-        parse_rule_until(res, lexer, catcher);
-    else if (tok_is(tok, TOK_CASE))
-        parse_rule_case(res, lexer, catcher);
-    else
-        return 1;
-    return 0;
+    int rc;
+    if ((rc = parser_match_discard(TOK_LPAR, lexer)))
+        return rc;
+
+    struct shast_subshell *subshell = shast_subshell_attach(res, lexer);
+    if ((rc = parse_compound_list(&subshell->action, lexer)))
+        return rc;
+
+    return parser_consume(lexer, TOK_RPAR);
 }
 
-static int parse_compound_command(struct shast **res, struct lexer *lexer,
-                                  struct exception_catcher *catcher)
+static int parse_block(struct shast **res, struct lexer *lexer)
 {
-    const struct token *tok = lexer_peek(lexer, catcher);
-    if (tok_is(tok, TOK_LPAR)) {
-        lexer_discard(lexer, catcher);
-        struct shast_subshell *subshell = shast_subshell_attach(res, lexer);
-        parse_compound_list(&subshell->action, lexer, catcher);
-        parser_consume(lexer, TOK_RPAR, catcher);
-        return 0;
-    }
+    int rc;
+    if ((rc = parser_match_discard(TOK_LBRACE, lexer)))
+        return rc;
 
-    if (tok_is(tok, TOK_LBRACE)) {
-        lexer_discard(lexer, catcher);
-        parse_compound_list(res, lexer, catcher);
-        parser_consume(lexer, TOK_RBRACE, catcher);
-        return 0;
-    }
+    if ((rc = parse_compound_list(res, lexer)))
+        return rc;
 
-    return switch_first_keyword(res, lexer, catcher);
+    return parser_consume(lexer, TOK_RBRACE);
 }
 
-static int parse_base_command(struct lexer *lexer, struct exception_catcher *catcher,
-                              struct shast **res)
+
+int (*compound_command_parsers[])(struct shast **res, struct lexer *lexer) = {
+    parse_subshell, parse_block, parse_if,   parse_for,
+    parse_while,    parse_until, parse_case,
+};
+
+
+static int parse_compound_command(struct shast **res, struct lexer *lexer)
 {
-    const struct token *tok = lexer_peek(lexer, catcher);
-    if (parse_compound_command(res, lexer, catcher) == 0)
-        return 0;
-
-    if (tok_is(tok, TOK_FUNC)) {
-        lexer_discard(lexer, catcher);
-        parse_funcdec(res, lexer, catcher);
-        return 0;
+    int rc;
+    for (size_t i = 0; i < ARR_SIZE(compound_command_parsers); i++) {
+        if ((rc = compound_command_parsers[i](res, lexer)) < 0)
+            return rc;
+        if (rc == PARSER_NOMATCH)
+            continue;
+        assert(rc == NSH_OK);
+        return parse_redirections(NULL, &res, lexer);
     }
-
-    struct token *word = lexer_peek(lexer, catcher);
-    tok = lexer_peek_at(lexer, word, catcher);
-    if (tok_is(tok, TOK_LPAR)) {
-        parse_funcdec(res, lexer, catcher);
-        return 0;
-    }
-    return 1;
+    return PARSER_NOMATCH;
 }
 
-void parse_command(struct shast **res, struct lexer *lexer,
-                   struct exception_catcher *catcher)
+int parse_command(struct shast **res, struct lexer *lexer)
 {
-    if (parse_base_command(lexer, catcher, res) != 0) {
-        // redirections are aready handled down there, as
-        // they can be in the middle of the command as well
-        parse_simple_command(res, lexer, catcher);
-        return;
-    }
+    int rc;
 
-    struct shast *old_root = *res;
-    struct shast_block *block = shast_block_attach(res, lexer);
-    block->command = old_root;
+    /* Continue parsing if the command didn't fail nor succeed */
+    if ((rc = parse_compound_command(res, lexer)) <= 0)
+        return rc;
 
-    while (parse_redirection(&block->redirs, lexer, catcher) == 0)
-        continue;
+    /* Continue parsing if the command didn't fail nor succeed */
+    if ((rc = parse_funcdec(res, lexer)) <= 0)
+        return rc;
 
-    if (old_root->type == SHNODE_FUNCTION) {
-        struct shast_function *func = (struct shast_function *)old_root;
-        block->command = func->body;
-        func->body = &block->base;
-        *res = &func->base;
-    }
+    return parse_simple_command(res, lexer);
 }
 
-void parse_funcdec(struct shast **res, struct lexer *lexer,
-                   struct exception_catcher *catcher)
+int parse_funcdec(struct shast **res, struct lexer *lexer)
 {
+    int rc;
+    const struct token *tok;
+
+    /* The next token must be a word */
+    if ((rc = lexer_peek(&tok, lexer)))
+        return rc;
+    if (!tok_is(tok, TOK_WORD))
+        return PARSER_NOMATCH;
+
+    /* The one after must be a ( */
+    const struct token *paren_tok;
+    if ((rc = lexer_peek_at(&paren_tok, lexer, tok)))
+        return rc;
+    if (!tok_is(paren_tok, TOK_LPAR))
+        return PARSER_NOMATCH;
+
+    struct token *function_name;
+    if ((rc = lexer_pop(&function_name, lexer)))
+        return rc;
+
     struct shast_function *func = shast_function_attach(res, lexer);
-    struct token *word = lexer_pop(lexer, catcher);
-    hashmap_item_init(&func->hash, tok_buf(word));
-    tok_free(word, false);
-    parser_consume(lexer, TOK_LPAR, catcher);
-    parser_consume(lexer, TOK_RPAR, catcher);
-    parse_newlines(lexer, catcher);
-    parse_compound_command(&func->body, lexer, catcher);
+    hashmap_item_init(&func->hash, tok_deconstruct(function_name));
+
+    /* Get rid of the parenthesis */
+    if ((rc = parser_consume(lexer, TOK_LPAR)))
+        return rc;
+    if ((rc = parser_consume(lexer, TOK_RPAR)))
+        return rc;
+
+    if ((rc = parse_newlines(lexer)))
+        return rc;
+
+    if ((rc = parse_compound_command(&func->body, lexer)))
+        return rc;
+
+    struct shast **ast = &func->body;
+    return parse_redirections(NULL, &ast, lexer);
 }

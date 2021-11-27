@@ -5,7 +5,6 @@
 #include <nsh_utils/attr.h>
 #include <nsh_utils/macros.h>
 #include <nsh_utils/logging.h>
-#include <nsh_lex/print.h>
 
 #include <assert.h>
 #include <ctype.h>
@@ -167,12 +166,14 @@ char *lexer_lex_string(struct exception_catcher *catcher, struct wlexer *wlexer)
     return buf;
 }
 
-nsh_err_t lexer_peek_at(struct token **res, struct lexer *lexer, struct token *tok)
+nsh_err_t lexer_peek_at(const struct token **res, struct lexer *lexer,
+                        const struct token *tok)
 {
     nsh_err_t err;
 
+    struct token *rw_tok = (struct token *)tok;
     if (!tok->next) {
-        if ((err = compat_lexer_lex(&tok->next, lexer)))
+        if ((err = compat_lexer_lex(&rw_tok->next, lexer)))
             return err;
     }
 
@@ -180,7 +181,7 @@ nsh_err_t lexer_peek_at(struct token **res, struct lexer *lexer, struct token *t
     return NSH_OK;
 }
 
-nsh_err_t lexer_peek(struct token **res, struct lexer *lexer)
+nsh_err_t lexer_peek(const struct token **res, struct lexer *lexer)
 {
     nsh_err_t err;
 
@@ -234,4 +235,18 @@ void lexer_free(struct lexer *lexer)
 {
     lexer_reset_tokens(lexer);
     free(lexer);
+}
+
+
+static const char *g_token_type_tab[] = {
+#define X(TokName, Value) #TokName,
+#include <nsh_lex/tokens.defs>
+#undef X
+};
+
+const char *token_type_to_string(enum token_type type)
+{
+    if (type > ARR_SIZE(g_token_type_tab))
+        return NULL;
+    return g_token_type_tab[type];
 }

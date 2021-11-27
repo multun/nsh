@@ -35,7 +35,7 @@ void expansion_warning(struct expansion_state *exp_state, const char *fmt, ...)
     va_list ap;
     va_start(ap, fmt);
 
-    vshwarn(exp_state->line_info, fmt, ap);
+    lineinfo_vwarn(exp_state->line_info, fmt, ap);
 
     va_end(ap);
 }

@@ -81,10 +81,6 @@ void __noreturn vsherror(const struct lineinfo *li, struct exception_catcher *ca
                          const struct exception_type *exception_type, const char *format,
                          va_list ap);
 
-void shwarn(const struct lineinfo *li, const char *format, ...);
-
-void vshwarn(const struct lineinfo *li, const char *format, va_list ap);
-
 
 #define EXCEPTION_COMPAT_STUB(...)                                                       \
     do {                                                                                 \

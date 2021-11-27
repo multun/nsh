@@ -1,31 +1,40 @@
 #include <nsh_parse/parse.h>
-#include <nsh_lex/print.h>
 #include <nsh_utils/alloc.h>
 
-void parse_rule_while(struct shast **res, struct lexer *lexer,
-                      struct exception_catcher *catcher)
+#include "parse.h"
+
+int parse_while(struct shast **res, struct lexer *lexer)
 {
-    lexer_discard(lexer, catcher);
+    int rc;
+    if ((rc = parser_match_discard(TOK_WHILE, lexer)))
+        return rc;
+
     struct shast_while *while_node = shast_while_attach(res, lexer);
     while_node->is_until = false;
-    parse_compound_list(&while_node->condition, lexer, catcher);
-    parse_do_group(&while_node->body, lexer, catcher);
+    if ((rc = parse_compound_list(&while_node->condition, lexer)))
+        return rc;
+    return parse_do_group(&while_node->body, lexer);
 }
 
-void parse_rule_until(struct shast **res, struct lexer *lexer,
-                      struct exception_catcher *catcher)
+int parse_until(struct shast **res, struct lexer *lexer)
 {
-    lexer_discard(lexer, catcher);
+    int rc;
+    if ((rc = parser_match_discard(TOK_UNTIL, lexer)))
+        return rc;
+
     struct shast_while *until_node = shast_while_attach(res, lexer);
     until_node->is_until = true;
-    parse_compound_list(&until_node->condition, lexer, catcher);
-    parse_do_group(&until_node->body, lexer, catcher);
+    if ((rc = parse_compound_list(&until_node->condition, lexer)))
+        return rc;
+    return parse_do_group(&until_node->body, lexer);
 }
 
-void parse_do_group(struct shast **res, struct lexer *lexer,
-                    struct exception_catcher *catcher)
+int parse_do_group(struct shast **res, struct lexer *lexer)
 {
-    parser_consume(lexer, TOK_DO, catcher);
-    parse_compound_list(res, lexer, catcher);
-    parser_consume(lexer, TOK_DONE, catcher);
+    int rc;
+    if ((rc = parser_consume(lexer, TOK_DO)))
+        return rc;
+    if ((rc = parse_compound_list(res, lexer)))
+        return rc;
+    return parser_consume(lexer, TOK_DONE);
 }

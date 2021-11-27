@@ -16,7 +16,7 @@ int subshell_exec(struct environment *env, struct shast *ast,
 
     int cpid = managed_fork(env);
     if (cpid == -1) {
-        shwarn(&subshell->base.line_info, "fork() failed: %s", strerror(errno));
+        lineinfo_warn(&subshell->base.line_info, "fork() failed: %s", strerror(errno));
         runtime_error(env, catcher, 1);
     }
 

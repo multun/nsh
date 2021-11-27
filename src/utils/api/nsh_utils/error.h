@@ -2,6 +2,10 @@
 
 #include <stdio.h>
 
+/**
+ * Error codes are negative to allow compatibility with positive integer
+ * Return codes
+ */
 enum nsh_error
 {
     // when a function returns NSH_OK, everything went well.
@@ -10,18 +14,18 @@ enum nsh_error
 
     // these errors signal something went wrong in
     // one of these modules
-    NSH_IO_ERROR,
-    NSH_LEXER_ERROR,
-    NSH_PARSER_ERROR,
-    NSH_EXECUTION_ERROR,
+    NSH_IO_ERROR = -1,
+    NSH_LEXER_ERROR = -2,
+    NSH_PARSER_ERROR = -3,
+    NSH_EXECUTION_ERROR = -4,
 
     // these aren't really errors, but behave in a similar way:
     // they interrupt normal program operation. The only difference
     // with other error kinds is that they are part of normal execution.
-    NSH_KEYBOARD_INTERUPT,
-    NSH_BREAK_INTERUPT,
-    NSH_CONTINUE_INTERUPT,
-    NSH_EXIT_INTERUPT,
+    NSH_KEYBOARD_INTERUPT = -5,
+    NSH_BREAK_INTERUPT = -6,
+    NSH_CONTINUE_INTERUPT = -7,
+    NSH_EXIT_INTERUPT = -8,
 };
 
 typedef enum nsh_error nsh_err_t;

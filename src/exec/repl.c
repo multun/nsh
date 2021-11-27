@@ -7,9 +7,12 @@
 #include <nsh_exec/runtime_error.h>
 #include <nsh_lex/lexer.h>
 #include <nsh_parse/parse.h>
+#include <nsh_parse/parser_error.h>
 #include <nsh_utils/exception.h>
 
 #include <err.h>
+
+#include "error_compat.h"
 
 enum repl_action
 {
@@ -110,7 +113,9 @@ void repl_run(struct repl_result *res, struct repl *ctx)
             continue;
         }
 
-        parse(&ctx->ast, ctx->lexer, &exception_catcher);
+        nsh_err_t err;
+        if ((err = parse(&ctx->ast, ctx->lexer)))
+            raise_from_error(&exception_catcher, err);
 
         if (ctx->ast != NULL) {
             /* pretty-print the ast */

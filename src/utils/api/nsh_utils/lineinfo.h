@@ -34,3 +34,8 @@ void lineinfo_print(const struct lineinfo *li, FILE *stream);
     {                                                                                    \
         .line = 1, .column = 1, .source = (Source), .parent = (Parent)                   \
     }
+
+
+void lineinfo_warn(const struct lineinfo *li, const char *format, ...);
+
+void lineinfo_vwarn(const struct lineinfo *li, const char *format, va_list ap);

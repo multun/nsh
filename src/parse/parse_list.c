@@ -3,6 +3,7 @@
 #include <nsh_parse/parse.h>
 #include <nsh_utils/alloc.h>
 
+#include "parse.h"
 
 static bool compound_list_block_end(const struct token *tok)
 {
@@ -24,92 +25,92 @@ static bool compound_list_block_end(const struct token *tok)
 }
 
 
-static bool parse_compound_list_end(struct shast *prev_ast, struct lexer *lexer,
-                                    struct exception_catcher *catcher)
+nsh_err_t parse_compound_list(struct shast **res, struct lexer *lexer)
 {
-    /* stop if there's no command separator */
-    const struct token *tok = lexer_peek(lexer, catcher);
+    nsh_err_t err;
 
-    if (tok_is(tok, TOK_AND)) {
-        /* mark the last ast as asynchronous */
-        prev_ast->async = true;
-    } else if (!tok_is(tok, TOK_SEMI) && !tok_is(tok, TOK_NEWLINE))
-        /* stop parsing the list if an unexpected token is met */
-        return true;
-
-    lexer_discard(lexer, catcher);
-    parse_newlines(lexer, catcher);
-
-    /* stop if there's a compound list terminator keyword */
-    tok = lexer_peek(lexer, catcher);
-    return compound_list_block_end(tok);
-}
-
-
-void parse_compound_list(struct shast **res, struct lexer *lexer,
-                         struct exception_catcher *catcher)
-{
     /* start by parsing a pipeline, and stopping right away if we can */
-    parse_newlines(lexer, catcher);
-    parse_and_or(res, lexer, catcher);
-    if (parse_compound_list_end(*res, lexer, catcher))
-        return;
+    if ((err = parse_newlines(lexer)))
+        return err;
 
-    /* if the list doesn't end there, inject a list node */
-    struct shast *first_child = *res;
-    struct shast_list *list = shast_list_attach(res, lexer);
-    shast_vect_push(&list->commands, first_child);
-
+    struct shast_list *list = NULL;
     while (true) {
-        struct shast **last_ast = shast_vect_tail_slot(&list->commands);
-        parse_and_or(last_ast, lexer, catcher);
-        if (parse_compound_list_end(*last_ast, lexer, catcher))
+        if ((err = parse_and_or(res, lexer)))
+            return err;
+
+        /* stop if there's no command separator */
+        const struct token *tok;
+        if ((err = lexer_peek(&tok, lexer)))
+            return err;
+
+        if (tok_is(tok, TOK_AND)) {
+            /* mark the last ast as asynchronous */
+            (*res)->async = true;
+        } else if (!tok_is(tok, TOK_SEMI) && !tok_is(tok, TOK_NEWLINE))
+            /* stop parsing the list if an unexpected token is met */
             break;
+
+        if ((err = lexer_discard(lexer)))
+            return err;
+
+        if ((err = parse_newlines(lexer)))
+            return err;
+
+        /* stop if there's a compound list terminator keyword */
+        if ((err = lexer_peek(&tok, lexer)))
+            return err;
+        if (compound_list_block_end(tok))
+            break;
+
+        /* if the list wasn't started, create it */
+        if (list == NULL) {
+            struct shast *first_child = *res;
+            list = shast_list_attach(res, lexer);
+            shast_vect_push(&list->commands, first_child);
+        }
+        res = shast_vect_tail_slot(&list->commands);
     }
+    return NSH_OK;
 }
 
 
-static bool parse_list_end(struct shast *prev_ast, struct lexer *lexer,
-                           struct exception_catcher *catcher)
+nsh_err_t parse_list(struct shast **res, struct lexer *lexer)
 {
-    const struct token *tok = lexer_peek(lexer, catcher);
-    if (tok_is(tok, TOK_AND)) {
-        /* mark the last ast as asynchronous */
-        prev_ast->async = true;
-    } else if (tok_is(tok, TOK_SEMI)) {
-        /* do nothing */
-    } else
-        /* stop parsing the list */
-        return true;
+    nsh_err_t err;
 
-    lexer_discard(lexer, catcher);
-
-    /* stop when:
-    **  - COMMAND ; EOF
-    **  - COMMAND ; NEWLINE
-    */
-    tok = lexer_peek(lexer, catcher);
-    return tok_is(tok, TOK_EOF) || tok_is(tok, TOK_NEWLINE);
-}
-
-
-void parse_list(struct shast **res, struct lexer *lexer,
-                struct exception_catcher *catcher)
-{
-    /* start by parsing a pipeline, and stopping right away if we can */
-    parse_and_or(res, lexer, catcher);
-    if (parse_list_end(*res, lexer, catcher))
-        return;
-
-    /* if the list doesn't end there, inject a list node */
-    struct shast *first_child = *res;
-    struct shast_list *list = shast_list_attach(res, lexer);
-    shast_vect_push(&list->commands, first_child);
-
+    struct shast_list *list = NULL;
     while (true) {
-        struct shast **last_ast = shast_vect_tail_slot(&list->commands);
-        parse_and_or(last_ast, lexer, catcher);
-        if (parse_list_end(*last_ast, lexer, catcher))
+        /* start by parsing a pipeline, and stopping right away if we can */
+        if ((err = parse_and_or(res, lexer)))
+            return err;
+
+        /* handle parsing of ; and & */
+        const struct token *tok;
+        if ((err = lexer_peek(&tok, lexer)))
+            return err;
+        if (tok_is(tok, TOK_AND))
+            (*res)->async = true;
+        if (!tok_is(tok, TOK_AND) && !tok_is(tok, TOK_SEMI))
             break;
+        if ((err = lexer_discard(lexer)))
+            return err;
+        if ((err = lexer_peek(&tok, lexer)))
+            return err;
+
+        /* stop when:
+        **  - COMMAND ; EOF
+        **  - COMMAND ; NEWLINE
+        */
+        if (tok_is(tok, TOK_EOF) || tok_is(tok, TOK_NEWLINE))
+            break;
+
+        /* if the list wasn't started, create it */
+        if (list == NULL) {
+            struct shast *first_child = *res;
+            list = shast_list_attach(res, lexer);
+            shast_vect_push(&list->commands, first_child);
+        }
+        res = shast_vect_tail_slot(&list->commands);
     }
+    return NSH_OK;
 }

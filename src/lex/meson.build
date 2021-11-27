@@ -1,7 +1,6 @@
 lex_sources = [
     'lexer.c',
     'lexer_error.c',
-    'print.c',
     'sublexers.c',
     'sublexer_regular.c',
     'tok.c',

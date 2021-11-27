@@ -123,7 +123,7 @@ void lexer_reset(struct lexer *lexer);
 ** \param catcher the error context
 ** \return the next token to be read
 */
-nsh_err_t lexer_peek(struct token **res, struct lexer *lexer);
+nsh_err_t lexer_peek(const struct token **res, struct lexer *lexer);
 
 /**
 ** \brief peeks a token and removes it from the stack
@@ -143,6 +143,7 @@ static inline nsh_err_t lexer_discard(struct lexer *lexer)
         return err;
 
     tok_free(tok, true);
+    return NSH_OK;
 }
 
 /**
@@ -151,7 +152,8 @@ static inline nsh_err_t lexer_discard(struct lexer *lexer)
 ** \param lexer the lexer to peek at
 ** \param tok the token to peek after
 */
-nsh_err_t lexer_peek_at(struct token **res, struct lexer *lexer, struct token *tok);
+nsh_err_t lexer_peek_at(const struct token **res, struct lexer *lexer,
+                        const struct token *tok);
 
 /**
 ** \brief read a word lexer stream and shove it into a string
@@ -200,3 +202,17 @@ static inline bool tok_is(const struct token *tok, enum token_type type)
         return tok->type == type;
     }
 }
+
+static inline char *tok_deconstruct(struct token *token)
+{
+    char *buf = tok_buf(token);
+    tok_free(token, false);
+    return buf;
+}
+
+#define TOKT_STR(Tok) (token_type_to_string(Tok->type))
+
+/**
+** \brief retrieves the string representation of a type
+*/
+const char *token_type_to_string(enum token_type);
