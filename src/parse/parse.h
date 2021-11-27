@@ -42,7 +42,7 @@ static inline int parser_match(enum token_type tok_type, struct lexer *lexer)
     if ((rc = lexer_peek(&tok, lexer)))
         return rc;
 
-    if (!tok_is(tok, tok_type))
+    if (!token_is(tok, tok_type))
         return PARSER_NOMATCH;
 
     return NSH_OK;

@@ -5,6 +5,9 @@
 #include <nsh_utils/attr.h>
 #include <nsh_utils/macros.h>
 
+#include "lexer.h"
+
+
 #include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -17,7 +20,7 @@ static enum wlexer_op sublexer_eof(struct lexer *lexer, struct wlexer *wlexer,
 {
     if (wlexer->mode != MODE_UNQUOTED)
         lexer_err(lexer, "EOF while expecting quote");
-    if (tok_size(token) == 0)
+    if (token_size(token) == 0)
         token->type = TOK_EOF;
     return LEXER_OP_RETURN;
 }
@@ -101,7 +104,7 @@ static enum wlexer_op sublexer_subsh_open(struct lexer *lexer, struct wlexer *wl
     if (wlexer->mode == MODE_UNQUOTED) {
         /* oops(echo test) */
         /*     ^           */
-        if (tok_size(token) != 0)
+        if (token_size(token) != 0)
             /* break the first token appart */
             return LEXER_OP_CANCEL;
         wtoken_push(token, wtoken);
@@ -131,7 +134,7 @@ static enum wlexer_op sublexer_subsh_close(struct lexer *lexer __unused,
     if (wlexer->mode == MODE_UNQUOTED) {
         /* oops(echo test) */
         /*               ^ */
-        if (tok_size(token) != 0)
+        if (token_size(token) != 0)
             return LEXER_OP_CANCEL;
 
         wtoken_push(token, wtoken);
@@ -220,7 +223,7 @@ static enum wlexer_op sublexer_variable(struct lexer *lexer __unused,
 }
 
 
-sublexer sublexers[] = {
+sublexer_f sublexers[] = {
     [WTOK_EOF] = sublexer_eof,
     [WTOK_REGULAR] = sublexer_regular,
     [WTOK_VARIABLE] = sublexer_variable,

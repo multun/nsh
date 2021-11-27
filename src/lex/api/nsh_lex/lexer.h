@@ -9,62 +9,21 @@
 #include <nsh_utils/error.h>
 #include <nsh_utils/exception.h>
 #include <nsh_utils/evect.h>
+#include <nsh_utils/ring_buffer.h>
 #include <nsh_lex/lexer_error.h>
 #include <nsh_lex/wlexer.h>
+#include <nsh_lex/token.h>
 
-#define TOK_BUF_MIN_SIZE 10
 
-enum token_type
-{
-#define X(TokName, Value) TokName,
-#include "tokens.defs"
-#undef X
-};
+#define LEXER_LOOKAHEAD 2
 
-/**
-** \brief represents a token. it features a type, a delimiter, a
-**   string representation and a pointer to the next token in the stream.
-*/
-struct token
-{
-    enum token_type type;
 
-    struct lineinfo lineinfo;
-    int delim;
-    struct evect str;
-    struct token *next;
-};
-
-static inline char *tok_buf(const struct token *token)
-{
-    return token->str.data;
-}
-
-static inline size_t tok_size(const struct token *token)
-{
-    return token->str.size;
-}
-
-static inline void wtoken_push(struct token *token, struct wtoken *wtok)
-{
-    for (char *cur = wtok->ch; *cur; cur++) {
-        assert(cur < wtok->ch + sizeof(wtok->ch));
-        evect_push(&token->str, *cur);
-    }
-}
-
-static inline void tok_push(struct token *token, char c)
-{
-    evect_push(&token->str, c);
-}
-
-/**
-** \brief represents a fully featured lexer
-*/
 struct lexer
 {
-    /* the head of the token stack */
-    struct token *head;
+    /* the upcoming tokens */
+    struct token *next_tokens[LEXER_LOOKAHEAD];
+    struct ring_buffer_meta buffer_meta;
+
     /* the toplevel word lexer */
     struct wlexer wlexer;
     /* using a global per lexer catcher avoids passing it around all functions
@@ -72,88 +31,24 @@ struct lexer
     struct exception_catcher *catcher;
 };
 
-static inline struct lineinfo *lexer_line_info(struct lexer *lexer)
-{
-    return wlexer_line_info(&lexer->wlexer);
-}
 
-typedef enum wlexer_op (*sublexer)(struct lexer *lexer, struct wlexer *wlexer,
-                                   struct token *token, struct wtoken *wtoken);
-
-enum wlexer_op sublexer_regular(struct lexer *lexer, struct wlexer *wlexer,
-                                struct token *token, struct wtoken *wtoken);
-
-__noreturn void lexer_err(struct lexer *lexer, const char *fmt, ...);
-
-int lexer_lex_untyped(struct token *token, struct wlexer *wlexer, struct lexer *lexer);
-
-extern sublexer sublexers[];
-
-
-/**
-** \brief allocates a new token
-*/
-struct token *tok_alloc(struct lexer *lexer);
-
-/**
-** \brief frees an allocated token
-** \arg free_buf whether to free the underlying buffer
-*/
-void tok_free(struct token *free, bool free_buf);
-
-/**
-** \brief allocates a new lexer
-** \param stream the character stream to bind the lexer to
-*/
 struct lexer *lexer_create(struct cstream *stream);
-
-/**
-** \brief frees a lexer
-*/
 void lexer_free(struct lexer *lexer);
 
-/**
-** \brief resets the lexer, which includes destroying all the pending tokens
-*/
+/** \brief Resets the lexer to its initial state */
 void lexer_reset(struct lexer *lexer);
 
-/**
-** \brief peeks a token without removing it from the stack
-** \param lexer the lexer to peek at
-** \param catcher the error context
-** \return the next token to be read
-*/
+/** \brief Returns the next token */
 nsh_err_t lexer_peek(const struct token **res, struct lexer *lexer);
+/** \brief Returns the nth next token */
+nsh_err_t lexer_peek_at(const struct token **res, struct lexer *lexer, size_t i);
 
-/**
-** \brief peeks a token and removes it from the stack
-** \param lexer the lexer to pop from
-** \param catcher the error context
-** \return the next token
-*/
+/** \brief Returns the next token and removes it from the queue */
 nsh_err_t lexer_pop(struct token **res, struct lexer *lexer);
 
+/** \brief Discards the next token in the queue */
+nsh_err_t lexer_discard(struct lexer *lexer);
 
-static inline nsh_err_t lexer_discard(struct lexer *lexer)
-{
-    struct token *tok;
-    nsh_err_t err;
-
-    if ((err = lexer_pop(&tok, lexer)))
-        return err;
-
-    tok_free(tok, true);
-    return NSH_OK;
-}
-
-/**
-** \brief peeks after an unpoped token
-** \details peeking after a poped token is UB
-** \param lexer the lexer to peek at
-** \param tok the token to peek after
-*/
-nsh_err_t lexer_peek_at(const struct token **res, struct lexer *lexer,
-                        const struct token *tok);
 
 /**
 ** \brief read a word lexer stream and shove it into a string
@@ -163,56 +58,7 @@ nsh_err_t lexer_peek_at(const struct token **res, struct lexer *lexer,
 */
 char *lexer_lex_string(struct exception_catcher *catcher, struct wlexer *wlexer);
 
-static inline bool token_type_keyword(enum token_type type)
+static inline struct lineinfo *lexer_line_info(struct lexer *lexer)
 {
-    switch (type) {
-#define X(TypeName, ...) case TypeName:
-#include <nsh_lex/keywords.defs>
-#undef X
-        return true;
-    default:
-        return false;
-    }
+    return wlexer_line_info(&lexer->wlexer);
 }
-
-static inline bool token_type_name_keyword(enum token_type type)
-{
-    switch (type) {
-#define X(TypeName, ...) case TypeName:
-#include <nsh_lex/name_keywords.defs>
-#undef X
-        return true;
-    default:
-        return false;
-    }
-}
-
-/**
-** \brief tests whether a token can be of the requested type
-*/
-static inline bool tok_is(const struct token *tok, enum token_type type)
-{
-    switch (type) {
-    case TOK_WORD:
-        return tok->type == TOK_ASSIGNMENT_WORD || tok->type == TOK_NAME
-            || tok->type == TOK_WORD || token_type_keyword(tok->type);
-    case TOK_NAME:
-        return tok->type == TOK_NAME || token_type_name_keyword(tok->type);
-    default:
-        return tok->type == type;
-    }
-}
-
-static inline char *tok_deconstruct(struct token *token)
-{
-    char *buf = tok_buf(token);
-    tok_free(token, false);
-    return buf;
-}
-
-#define TOKT_STR(Tok) (token_type_to_string(Tok->type))
-
-/**
-** \brief retrieves the string representation of a type
-*/
-const char *token_type_to_string(enum token_type);

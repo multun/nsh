@@ -75,14 +75,14 @@ int parse_funcdec(struct shast **res, struct lexer *lexer)
     /* The next token must be a word */
     if ((rc = lexer_peek(&tok, lexer)))
         return rc;
-    if (!tok_is(tok, TOK_WORD))
+    if (!token_is(tok, TOK_WORD))
         return PARSER_NOMATCH;
 
     /* The one after must be a ( */
     const struct token *paren_tok;
-    if ((rc = lexer_peek_at(&paren_tok, lexer, tok)))
+    if ((rc = lexer_peek_at(&paren_tok, lexer, 1)))
         return rc;
-    if (!tok_is(paren_tok, TOK_LPAR))
+    if (!token_is(paren_tok, TOK_LPAR))
         return PARSER_NOMATCH;
 
     struct token *function_name;
@@ -90,7 +90,7 @@ int parse_funcdec(struct shast **res, struct lexer *lexer)
         return rc;
 
     struct shast_function *func = shast_function_attach(res, lexer);
-    hashmap_item_init(&func->hash, tok_deconstruct(function_name));
+    hashmap_item_init(&func->hash, token_deconstruct(function_name));
 
     /* Get rid of the parenthesis */
     if ((rc = parser_consume(lexer, TOK_LPAR)))

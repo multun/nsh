@@ -25,7 +25,7 @@ nsh_err_t parse_pipeline(struct shast **res, struct lexer *lexer)
     const struct token *tok;
     if ((err = lexer_peek(&tok, lexer)))
         return err;
-    bool negation = tok_is(tok, TOK_BANG);
+    bool negation = token_is(tok, TOK_BANG);
     if (negation) {
         if ((err = lexer_discard(lexer)))
             return err;
@@ -38,7 +38,7 @@ nsh_err_t parse_pipeline(struct shast **res, struct lexer *lexer)
     /* if the command isn't followed by a pipe, apply negation and stop there */
     if ((err = lexer_peek(&tok, lexer)))
         return err;
-    if (!tok_is(tok, TOK_PIPE)) {
+    if (!token_is(tok, TOK_PIPE)) {
         negate_ast(res, lexer, negation);
         return NSH_OK;
     }
@@ -63,29 +63,29 @@ nsh_err_t parse_pipeline(struct shast **res, struct lexer *lexer)
 
         if ((err = lexer_peek(&tok, lexer)))
             return err;
-    } while (tok_is(tok, TOK_PIPE));
+    } while (token_is(tok, TOK_PIPE));
     return NSH_OK;
 }
 
 static enum redir_type parse_redir_type(const struct token *tok)
 {
-    if (tok_is(tok, TOK_LESS))
+    if (token_is(tok, TOK_LESS))
         return REDIR_LESS;
-    if (tok_is(tok, TOK_DLESS))
+    if (token_is(tok, TOK_DLESS))
         return REDIR_DLESS;
-    if (tok_is(tok, TOK_GREAT))
+    if (token_is(tok, TOK_GREAT))
         return REDIR_GREAT;
-    if (tok_is(tok, TOK_DGREAT))
+    if (token_is(tok, TOK_DGREAT))
         return REDIR_DGREAT;
-    if (tok_is(tok, TOK_LESSAND))
+    if (token_is(tok, TOK_LESSAND))
         return REDIR_LESSAND;
-    if (tok_is(tok, TOK_GREATAND))
+    if (token_is(tok, TOK_GREATAND))
         return REDIR_GREATAND;
-    if (tok_is(tok, TOK_LESSDASH))
+    if (token_is(tok, TOK_LESSDASH))
         return REDIR_LESSDASH;
-    if (tok_is(tok, TOK_LESSGREAT))
+    if (token_is(tok, TOK_LESSGREAT))
         return REDIR_LESSGREAT;
-    if (tok_is(tok, TOK_CLOBBER))
+    if (token_is(tok, TOK_CLOBBER))
         return REDIR_CLOBBER;
     return REDIR_NONE;
 }
@@ -99,8 +99,8 @@ int parse_redirection(struct shast_redirection **res, struct lexer *lexer)
         return rc;
 
     int left = -1;
-    if (tok_is(tok, TOK_IO_NUMBER)) {
-        left = atoi(tok_buf(tok));
+    if (token_is(tok, TOK_IO_NUMBER)) {
+        left = atoi(token_buf(tok));
         if ((rc = lexer_discard(lexer)))
             return rc;
         if ((rc = lexer_peek(&tok, lexer)))

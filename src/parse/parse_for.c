@@ -13,7 +13,7 @@ static int parse_in_words(struct wordlist *target, struct lexer *lexer)
         if ((rc = lexer_peek(&tok, lexer)))
             return rc;
 
-        if (!tok_is(tok, TOK_WORD))
+        if (!token_is(tok, TOK_WORD))
             return NSH_OK;
 
         struct shword *word;

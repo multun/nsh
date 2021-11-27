@@ -1,6 +1,9 @@
 #include <nsh_lex/lexer.h>
 #include <nsh_utils/macros.h>
 
+#include "lexer.h"
+
+
 #include <assert.h>
 #include <ctype.h>
 
@@ -36,7 +39,7 @@ static const struct sh_operator *tok_find_operator(const struct token *token, in
 {
     if (next_ch == EOF)
         return NULL;
-    return find_operator(tok_buf(token), tok_size(token), next_ch);
+    return find_operator(token_buf(token), token_size(token), next_ch);
 }
 
 static const struct sh_operator *find_simple_operator(int c)
@@ -51,7 +54,7 @@ static enum wlexer_op word_breaker_space(struct lexer *lexer __unused,
     if (!isblank(wtoken->ch[0]))
         return LEXER_OP_FALLTHROUGH;
 
-    if (tok_size(token) != 0)
+    if (token_size(token) != 0)
         return LEXER_OP_CANCEL;
 
     // then wtoken isn't pushed by default
@@ -66,7 +69,7 @@ static enum wlexer_op word_breaker_operator(struct lexer *lexer __unused,
     if (cur_operator == NULL)
         return LEXER_OP_FALLTHROUGH;
 
-    if (tok_size(token) != 0)
+    if (token_size(token) != 0)
         return LEXER_OP_CANCEL;
 
     // we already found an operator, push it so we can use the token as a buffer
@@ -94,7 +97,7 @@ static enum wlexer_op word_breaker_newline(struct lexer *lexer __unused,
     if (ch != '\n')
         return LEXER_OP_FALLTHROUGH;
 
-    if (tok_size(token) != 0)
+    if (token_size(token) != 0)
         return LEXER_OP_CANCEL;
 
     token->type = TOK_NEWLINE;
@@ -109,7 +112,7 @@ static enum wlexer_op word_breaker_comment(struct lexer *lexer __unused,
     if (wtoken->ch[0] != '#')
         return LEXER_OP_FALLTHROUGH;
 
-    if (tok_size(token) != 0)
+    if (token_size(token) != 0)
         return LEXER_OP_FALLTHROUGH;
 
     assert(!wlexer_has_lookahead(wlexer));
@@ -145,7 +148,7 @@ static enum wlexer_op word_breaker_quoting(struct lexer *lexer __unused,
     return LEXER_OP_CONTINUE;
 }
 
-static sublexer word_breakers[] = {
+static sublexer_f word_breakers[] = {
     word_breaker_quoting, word_breaker_space,    word_breaker_comment,
     word_breaker_newline, word_breaker_operator, word_breaker_regular,
 };

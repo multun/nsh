@@ -15,7 +15,7 @@ static int parse_assignment(struct shast_assignment **res, struct lexer *lexer)
         if ((rc = lexer_peek(&tok, lexer)))
             return rc;
 
-        if (!tok_is(tok, TOK_ASSIGNMENT_WORD))
+        if (!token_is(tok, TOK_ASSIGNMENT_WORD))
             return PARSER_NOMATCH;
     }
 
@@ -25,11 +25,11 @@ static int parse_assignment(struct shast_assignment **res, struct lexer *lexer)
 
     struct shast_assignment *assign = zalloc(sizeof(*assign));
     assign->line_info = *lexer_line_info(lexer);
-    char *val = strchr(tok_buf(tok), '=');
+    char *val = strchr(token_buf(tok), '=');
     *(val++) = '\0';
-    assign->name = tok_buf(tok);
+    assign->name = token_buf(tok);
     assign->value = val;
-    tok_free(tok, false);
+    token_free(tok, false);
     *res = assign;
     return NSH_OK;
 }
@@ -69,7 +69,7 @@ static int parse_argument(struct shword **res, struct lexer *lexer)
     if ((rc = lexer_peek(&tok, lexer)))
         return rc;
 
-    if (!tok_is(tok, TOK_WORD))
+    if (!token_is(tok, TOK_WORD))
         return PARSER_NOMATCH;
 
     return parse_word(res, lexer);
@@ -163,5 +163,5 @@ nsh_err_t parse_simple_command(struct shast **res, struct lexer *lexer)
     const struct token *tok;
     if ((rc = lexer_peek(&tok, lexer)))
         return rc;
-    return parser_err(tok, "unexpected token in command: %s", TOKT_STR(tok));
+    return parser_err(tok, "unexpected token in command: %s", token_type_repr(tok->type));
 }

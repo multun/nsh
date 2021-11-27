@@ -26,11 +26,11 @@ nsh_err_t parser_consume(struct lexer *lexer, enum token_type type)
     if ((err = lexer_peek(&tok, lexer)))
         return err;
 
-    if (tok_is(tok, type))
+    if (token_is(tok, type))
         return lexer_discard(lexer);
 
-    return parser_err(tok, "unexpected token %s, expected %s", tok_buf(tok),
-                      token_type_to_string(type));
+    return parser_err(tok, "unexpected token %s, expected %s", token_buf(tok),
+                      token_type_repr(type));
 }
 
 int parser_consume_optional(struct lexer *lexer, enum token_type type)
@@ -40,7 +40,7 @@ int parser_consume_optional(struct lexer *lexer, enum token_type type)
     if ((rc = lexer_peek(&tok, lexer)))
         return rc;
 
-    if (tok_is(tok, type))
+    if (token_is(tok, type))
         return lexer_discard(lexer);
 
     return PARSER_NOMATCH;
@@ -54,7 +54,7 @@ nsh_err_t parse_newlines(struct lexer *lexer)
         const struct token *tok;
         if ((err = lexer_peek(&tok, lexer)))
             return err;
-        if (!tok_is(tok, TOK_NEWLINE))
+        if (!token_is(tok, TOK_NEWLINE))
             return NSH_OK;
         if ((err = lexer_discard(lexer)))
             return err;
@@ -71,7 +71,7 @@ nsh_err_t parse(struct shast **res, struct lexer *lexer)
     // return imediatly if the first token is a newline or EOF
     if ((err = lexer_peek(&tok, lexer)))
         return err;
-    if (tok_is(tok, TOK_EOF) || tok_is(tok, TOK_NEWLINE))
+    if (token_is(tok, TOK_EOF) || token_is(tok, TOK_NEWLINE))
         return NSH_OK;
 
     // parse the rest of the grammar
@@ -81,11 +81,12 @@ nsh_err_t parse(struct shast **res, struct lexer *lexer)
     // expect a newline or eof after parsing the main list
     if ((err = lexer_peek(&tok, lexer)))
         return err;
-    if (tok_is(tok, TOK_EOF) || tok_is(tok, TOK_NEWLINE))
+    if (token_is(tok, TOK_EOF) || token_is(tok, TOK_NEWLINE))
         return NSH_OK;
 
     // otherwise, return
-    return parser_err(tok, "unexpected token %s, expected 'EOF' or '\\n'", TOKT_STR(tok));
+    return parser_err(tok, "unexpected token %s, expected 'EOF' or '\\n'",
+                      token_type_repr(tok->type));
 }
 
 nsh_err_t parse_and_or(struct shast **res, struct lexer *lexer)
@@ -100,9 +101,9 @@ nsh_err_t parse_and_or(struct shast **res, struct lexer *lexer)
         // if the next token is a && or ||, continue parsing here
         if (((err = lexer_peek(&tok, lexer))))
             return err;
-        if (!tok_is(tok, TOK_OR_IF) && !tok_is(tok, TOK_AND_IF))
+        if (!token_is(tok, TOK_OR_IF) && !token_is(tok, TOK_AND_IF))
             break;
-        bool is_or = tok_is(tok, TOK_OR_IF);
+        bool is_or = token_is(tok, TOK_OR_IF);
         if ((err = lexer_discard(lexer)))
             return err;
 

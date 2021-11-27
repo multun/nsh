@@ -3,7 +3,7 @@ lex_sources = [
     'lexer_error.c',
     'sublexers.c',
     'sublexer_regular.c',
-    'tok.c',
+    'token.c',
     'wlexer.c',
 ]
 

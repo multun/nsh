@@ -43,10 +43,10 @@ nsh_err_t parse_compound_list(struct shast **res, struct lexer *lexer)
         if ((err = lexer_peek(&tok, lexer)))
             return err;
 
-        if (tok_is(tok, TOK_AND)) {
+        if (token_is(tok, TOK_AND)) {
             /* mark the last ast as asynchronous */
             (*res)->async = true;
-        } else if (!tok_is(tok, TOK_SEMI) && !tok_is(tok, TOK_NEWLINE))
+        } else if (!token_is(tok, TOK_SEMI) && !token_is(tok, TOK_NEWLINE))
             /* stop parsing the list if an unexpected token is met */
             break;
 
@@ -88,9 +88,9 @@ nsh_err_t parse_list(struct shast **res, struct lexer *lexer)
         const struct token *tok;
         if ((err = lexer_peek(&tok, lexer)))
             return err;
-        if (tok_is(tok, TOK_AND))
+        if (token_is(tok, TOK_AND))
             (*res)->async = true;
-        if (!tok_is(tok, TOK_AND) && !tok_is(tok, TOK_SEMI))
+        if (!token_is(tok, TOK_AND) && !token_is(tok, TOK_SEMI))
             break;
         if ((err = lexer_discard(lexer)))
             return err;
@@ -101,7 +101,7 @@ nsh_err_t parse_list(struct shast **res, struct lexer *lexer)
         **  - COMMAND ; EOF
         **  - COMMAND ; NEWLINE
         */
-        if (tok_is(tok, TOK_EOF) || tok_is(tok, TOK_NEWLINE))
+        if (token_is(tok, TOK_EOF) || token_is(tok, TOK_NEWLINE))
             break;
 
         /* if the list wasn't started, create it */
