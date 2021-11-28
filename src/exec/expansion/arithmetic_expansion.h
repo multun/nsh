@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include <nsh_io/cstream.h>
+#include "expansion.h"
 
 enum arith_status
 {

@@ -3,7 +3,6 @@
 #include <nsh_exec/environment.h>
 #include <nsh_exec/managed_fork.h>
 #include <nsh_exec/runtime_error.h>
-#include <nsh_exec/expansion.h>
 #include <nsh_utils/exception.h>
 #include <nsh_utils/evect.h>
 
@@ -13,6 +12,7 @@
 #include <unistd.h>
 
 #include "../error_compat.h"
+#include "expansion.h"
 
 
 static int subshell_child(struct expansion_state *exp_state, const char *str)
@@ -52,7 +52,7 @@ static inline void subshell_state_cleanup(volatile struct subshell_state *state,
     expansion_state_set_catcher(exp_state, state->parent_scope);
 }
 
-void expand_subshell(struct expansion_state *exp_state, char *subshell_content)
+void expand_subshell(struct expansion_state *exp_state, char *subshell_program)
 {
     volatile struct subshell_state state;
     int pipe_fds[2];
@@ -77,14 +77,14 @@ void expand_subshell(struct expansion_state *exp_state, char *subshell_content)
         close(pipe_fds[1]);
 
         /* run the subshell and exit */
-        int res = subshell_child(exp_state, subshell_content);
-        free(subshell_content);
+        int res = subshell_child(exp_state, subshell_program);
+        free(subshell_program);
         nsh_err_t err = execution_error(expansion_state_env(exp_state), res);
         raise_from_error(expansion_state_catcher(exp_state), err);
     }
 
     /* parent branch */
-    free(subshell_content);
+    free(subshell_program);
     close(pipe_fds[1]);
 
     /* open a buffered reader */

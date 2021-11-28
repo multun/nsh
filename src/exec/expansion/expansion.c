@@ -1,6 +1,5 @@
 #include <nsh_exec/environment.h>
 #include <nsh_exec/runtime_error.h>
-#include <nsh_exec/expansion.h>
 #include <nsh_utils/evect.h>
 #include <nsh_utils/strutils.h>
 #include <nsh_lex/wlexer.h>
@@ -15,6 +14,7 @@
 #include <stdarg.h>
 
 #include "arithmetic_expansion.h"
+#include "expansion.h"
 #include "../error_compat.h"
 
 static void expand_guarded(struct expansion_state *exp_state, struct wlexer *wlexer);

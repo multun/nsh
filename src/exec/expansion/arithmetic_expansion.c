@@ -1,5 +1,4 @@
 #include <nsh_lex/variable.h>
-#include <nsh_exec/expansion.h>
 #include <nsh_utils/mprintf.h>
 #include <nsh_utils/parsing.h>
 

@@ -5,12 +5,13 @@
 #include <err.h>
 
 #include <nsh_exec/environment.h>
-#include <nsh_exec/expansion.h>
 #include <nsh_lex/variable.h>
 #include <nsh_utils/alloc.h>
 #include <nsh_utils/evect.h>
 #include <nsh_utils/mprintf.h>
 #include <nsh_utils/strutils.h>
+
+#include "expansion.h"
 
 
 static int expand_pid(struct expansion_state *exp_state)

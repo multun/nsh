@@ -1,4 +1,3 @@
-#include <nsh_exec/expansion.h>
 #include <nsh_utils/parsing.h>
 #include <nsh_utils/pathutils.h>
 
@@ -8,6 +7,8 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+
+#include "expansion.h"
 
 
 static void expand_strftime(struct expansion_state *exp_state, const char *format)
