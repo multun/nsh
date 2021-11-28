@@ -32,6 +32,9 @@ enum expansion_flags
 char *expand_nosplit(struct lineinfo *line_info, const char *str, int flags,
                      struct environment *env, struct exception_catcher *catcher);
 
+nsh_err_t expand_nosplit_compat(char **res, struct lineinfo *line_info, const char *str,
+                                int flags, struct environment *env);
+
 struct expansion_state;
 struct expansion_result;
 
@@ -41,10 +44,16 @@ void expand(struct expansion_state *exp_state, struct wlexer *wlexer,
 
 void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags,
                      struct environment *env, struct exception_catcher *catcher);
+nsh_err_t expand_wordlist_compat(struct cpvect *res, struct wordlist *wl,
+                                 struct environment *env, int flags);
 
 void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl,
                               int flags, struct environment *env,
                               struct exception_catcher *catcher);
+
+nsh_err_t expand_wordlist_callback_compat(struct expansion_callback *callback,
+                                          struct wordlist *wl, int flags,
+                                          struct environment *env);
 
 enum expansion_quoting
 {

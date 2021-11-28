@@ -105,26 +105,28 @@ static void print_shopts(struct environment *env, struct shopt_options *options,
     }
 }
 
-int builtin_shopt(struct environment *env, struct exception_catcher *catcher __unused,
-                  int argc, char **argv)
+nsh_err_t builtin_shopt(struct environment *env, int argc, char **argv)
 {
     struct shopt_options opt;
-    if (!parse_builtin_shopt_opt(&opt, argc, argv))
-        return 2;
+    if (!parse_builtin_shopt_opt(&opt, argc, argv)) {
+        env->code = 2;
+        return NSH_OK;
+    }
 
     for (int i = opt.pos_args_start; i < argc; i++)
         if (shopt_from_string(argv[i]) == SHOPT_COUNT) {
             warnx("shopt: %s: invalid shell option name", argv[i]);
-            return 1;
+            env->code = 1;
+            return NSH_OK;
         }
 
     if (opt.action == SHOPT_ACTION_PRINT) {
         print_shopts(env, &opt, argc, argv);
-        return 0;
+        return NSH_OK;
     }
 
     bool value = opt.action == SHOPT_ACTION_SET;
     for (int i = opt.pos_args_start; i < argc; i++)
         env->shopts[shopt_from_string(argv[i])] = value;
-    return 0;
+    return NSH_OK;
 }

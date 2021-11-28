@@ -20,34 +20,39 @@
 */
 
 
-static void assignment_exec(struct environment *env, struct shast_assignment *assign,
-                            struct exception_catcher *catcher)
+static nsh_err_t assignment_exec(struct environment *env, struct shast_assignment *assign)
 {
+    nsh_err_t err;
     char *name = strdup(assign->name);
-    char *value = expand_nosplit(&assign->line_info, assign->value, EXP_FLAGS_ASSIGNMENT,
-                                 env, catcher);
+    char *value;
+
+    if ((err = expand_nosplit_compat(&value, &assign->line_info, assign->value,
+                                     EXP_FLAGS_ASSIGNMENT, env)))
+        return err;
+
     environment_var_assign(env, name, &sh_string_create(value)->base, false);
+    return NSH_OK;
 }
 
 
-int block_exec(struct environment *env, struct shast *ast,
-               struct exception_catcher *catcher)
+nsh_err_t block_exec(struct environment *env, struct shast *ast)
 {
-    int rc;
+    nsh_err_t err;
     struct shast_block *block = (struct shast_block *)ast;
 
     // perform variable assignments
     for (size_t i = 0; i < assign_vect_size(&block->assigns); i++)
-        assignment_exec(env, assign_vect_get(&block->assigns, i), catcher);
+        if ((err = assignment_exec(env, assign_vect_get(&block->assigns, i))))
+            return err;
 
     // perform redirections
     struct redir_undo_stack undo_stack = UNDO_STACK_INIT;
     for (size_t i = 0; i < redir_vect_size(&block->redirs); i++) {
         struct redir_undo cur_undo = {.count = 0};
         // do the redirection
-        if ((rc = redirection_exec(redir_vect_get(&block->redirs, i), &cur_undo))) {
+        if ((err = redirection_exec(redir_vect_get(&block->redirs, i), &cur_undo))) {
             redir_undo_stack_cancel(&undo_stack);
-            return rc;
+            return err;
         }
 
         // push planned undo operation onto the stack **with alloca**
@@ -55,26 +60,24 @@ int block_exec(struct environment *env, struct shast *ast,
             redir_undo_stack_push(&undo_stack, &cur_undo, undo_i);
     }
 
-    struct exception_catcher sub_catcher = EXCEPTION_CATCHER(catcher->context, catcher);
-    if (setjmp(sub_catcher.env)) {
-        // on exceptions, undo redirections and re-raise
-        redir_undo_stack_cancel(&undo_stack);
-        shraise(catcher, NULL);
-    }
-
     // run the command block and undo redirections
-    rc = ast_exec(env, block->command, &sub_catcher);
+    if (block->command)
+        err = ast_exec(env, block->command);
+    else {
+        env->code = 0;
+        err = NSH_OK;
+    }
     redir_undo_stack_cancel(&undo_stack);
-    return rc;
+    return err;
 }
 
 
-int list_exec(struct environment *env, struct shast *ast,
-              struct exception_catcher *catcher)
+nsh_err_t list_exec(struct environment *env, struct shast *ast)
 {
     struct shast_list *list = (struct shast_list *)ast;
-    int res = 0;
+    nsh_err_t err;
     for (size_t i = 0; i < shast_vect_size(&list->commands); i++)
-        res = ast_exec(env, shast_vect_get(&list->commands, i), catcher);
-    return res;
+        if ((err = ast_exec(env, shast_vect_get(&list->commands, i))))
+            return err;
+    return NSH_OK;
 }

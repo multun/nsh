@@ -27,17 +27,11 @@ f_builtin find_default_builtin(const char *name)
 
 #define AST_EXEC_UTILS(EnumName, Name) [EnumName] = Name##_exec,
 
-static int (*ast_exec_utils[])(struct environment *env, struct shast *ast,
-                               struct exception_catcher *catcher) = {
+
+static nsh_err_t (*ast_exec_utils[])(struct environment *env, struct shast *ast) = {
     AST_TYPE_APPLY(AST_EXEC_UTILS)};
 
-int ast_exec(struct environment *env, struct shast *ast,
-             struct exception_catcher *catcher)
+nsh_err_t ast_exec(struct environment *env, struct shast *ast)
 {
-    if (ast) {
-        //printf("executing an asynchronous node\n");
-        env->code = ast_exec_utils[ast->type](env, ast, catcher);
-    } else
-        env->code = 0;
-    return env->code;
+    return ast_exec_utils[ast->type](env, ast);
 }

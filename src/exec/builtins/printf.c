@@ -105,30 +105,33 @@ not_an_escape:
     return 0;
 }
 
+enum conversion_type
+{
+    CONV_CHAR = 0, /* c */
+    CONV_ESCAPE_STR, /* shell-specific 'b' */
+    CONV_STR, /* s */
+    CONV_OCTAL, /* o */
+    CONV_INT, /* i */
+    CONV_UINT, /* u */
+    CONV_HEX, /* x */
+};
+
+enum sign_policy
+{
+    /* only print - */
+    SIGN_NEG = 0,
+    /* pad with a space when there's a + */
+    SIGN_SPACE,
+    /* always add a sign */
+    SIGN_ALWAYS,
+};
 
 struct conversion_specifier
 {
     /* /!\ conversion specifiers must consume arguments /!\ */
-    enum conversion_type
-    {
-        CONV_CHAR = 0, /* c */
-        CONV_ESCAPE_STR, /* shell-specific 'b' */
-        CONV_STR, /* s */
-        CONV_OCTAL, /* o */
-        CONV_INT, /* i */
-        CONV_UINT, /* u */
-        CONV_HEX, /* x */
-    } type;
+    enum conversion_type type;
 
-    enum sign_policy
-    {
-        /* only print - */
-        SIGN_NEG = 0,
-        /* pad with a space when there's a + */
-        SIGN_SPACE,
-        /* always add a sign */
-        SIGN_ALWAYS,
-    } sign_policy;
+    enum sign_policy sign_policy;
 
     /* use upper chars for hex printing */
     bool upper;
@@ -352,11 +355,10 @@ char integer_sign_prefix(enum sign_policy policy, bool negative)
 }
 
 
-int builtin_printf(struct environment *env, struct exception_catcher *catcher __unused,
-                   int argc, char *argv[])
+nsh_err_t builtin_printf(struct environment *env, int argc, char *argv[])
 {
     if (argc < /* {"printf", "stuff"} */ 2)
-        return printf_help(argv);
+        goto print_help;
 
     /* the result buffer used with -v */
     struct evect result = {0};
@@ -368,7 +370,7 @@ int builtin_printf(struct environment *env, struct exception_catcher *catcher __
     const char *dest_var = NULL;
     if (strcmp(argv[1], "-v") == 0) {
         if (argc < /* {"printf", "-v", "var", "stuff"} */ 4)
-            return printf_help(argv);
+            goto print_help;
 
         evect_init(&result, 10);
         dest_var = argv[2];
@@ -567,10 +569,15 @@ int builtin_printf(struct environment *env, struct exception_catcher *catcher __
     if (dest_var)
         environment_var_assign_cstring(env, strdup(dest_var), evect_data(&result), false);
 
-    return 0;
+    return NSH_OK;
+
+print_help:
+    env->code = printf_help(argv);
+    return NSH_OK;
 
 error:
     if (dest)
         evect_destroy(dest);
-    return 1;
+    env->code = 1;
+    return NSH_OK;
 }

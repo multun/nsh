@@ -61,26 +61,25 @@ static int parse_arguments(struct cd_options *opts, int argc, char *argv[])
 }
 
 
-int builtin_cd(struct environment *env, struct exception_catcher *catcher __unused,
-               int argc, char *argv[])
+nsh_err_t builtin_cd(struct environment *env, int argc, char *argv[])
 {
     /* The standard cd algorithm is way more complicated than you'd think.
        It's probably implemented wrong, but it least it isn't too unreadable.
        https://pubs.opengroup.org/onlinepubs/9699919799/utilities/cd.html */
 
     int rc;
+    char *curpath = NULL;
+
     struct cd_options options;
     if ((rc = parse_arguments(&options, argc, argv)))
-        return rc;
+        goto error;
 
     if ((argc - options.args_start) > 1) {
         warnx("%s: too many arguments", argv[0]);
-        return 1;
+        goto error;
     }
 
     const char *directory = argv[options.args_start];
-
-    char *curpath = NULL;
 
     if (options.previous_dir) {
         curpath = strdup(environment_var_get_cstring(env, "OLDPWD"));
@@ -93,7 +92,7 @@ int builtin_cd(struct environment *env, struct exception_catcher *catcher __unus
         /* step 1 */
         if (HOME == NULL) {
             warnx("%s: HOME not set", argv[0]);
-            return 1;
+            goto error;
         }
         /* step 2 */
         directory = HOME;
@@ -191,10 +190,13 @@ process_curpath:
     if (newpwd)
         environment_var_assign(env, strdup("PWD"), &sh_string_create(newpwd)->base, true);
 
+    /* Success */
     rc = 0;
+
 cleanup:
     free(curpath);
-    return rc;
+    env->code = rc;
+    return NSH_OK;
 
 error:
     rc = 1;

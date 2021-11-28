@@ -129,7 +129,8 @@ void repl_run(struct repl_result *res, struct repl *ctx)
             history_update(ctx);
 
             /* execute the parsed AST */
-            ctx->env->code = ast_exec(ctx->env, ctx->ast, &exception_catcher);
+            if ((err = ast_exec(ctx->env, ctx->ast)))
+                raise_from_error(&exception_catcher, err);
 
             /* drop the AST reference */
             repl_drop_ast(ctx);

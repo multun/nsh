@@ -123,8 +123,7 @@ static int pipeline_enqueue_pipe(struct fd_queue *queue)
     return 0;
 }
 
-int pipeline_exec(struct environment *env, struct shast *ast,
-                  struct exception_catcher *catcher)
+int pipeline_exec(struct environment *env, struct shast *ast)
 {
     int status = 0;
     struct shast_pipeline *pipe = (struct shast_pipeline *)ast;
@@ -156,7 +155,7 @@ int pipeline_exec(struct environment *env, struct shast *ast,
             warn("pipe_exec: fork() failed");
             /* copied from bash's */
             status = 254;
-            goto runtime_error;
+            goto execution_error;
         }
 
         /* child branch */
@@ -165,10 +164,9 @@ int pipeline_exec(struct environment *env, struct shast *ast,
             int res = pipeline_setup_child(&queue);
             if (res == 0) {
                 struct shast *ast = shast_vect_get(&pipe->children, child_i);
-                res = ast_exec(env, ast, catcher);
+                res = ast_exec(env, ast);
             }
-            clean_exit(env, catcher, res);
-            abort();
+            return clean_exit(env, res);
         }
 
         /* parent branch */
@@ -195,7 +193,7 @@ int pipeline_exec(struct environment *env, struct shast *ast,
     free(children_pids);
     return status;
 
-runtime_error:
+execution_error:
     if (fd_queue_flush(&queue) < 0)
         warnx("pipeline_exec: failed to cleanup pipe FDs on error");
 
@@ -205,5 +203,5 @@ runtime_error:
     }
     free(children_pids);
 
-    runtime_error(env, catcher, status);
+    return execution_error(env, status);
 }

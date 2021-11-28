@@ -1,0 +1,7 @@
+{
+  "desc": "The first command fails so the status code of the second one is preserved",
+  "stdin": "(exit 42) || (exit 31)",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 31
+}

@@ -5,8 +5,7 @@
 #include <nsh_utils/hashmap.h>
 
 
-int function_exec(struct environment *env, struct shast *ast,
-                  struct exception_catcher *catcher __unused)
+nsh_err_t function_exec(struct environment *env, struct shast *ast)
 {
     struct shast_function *function = (struct shast_function *)ast;
     char *function_name = function->hash.key;
@@ -27,5 +26,5 @@ int function_exec(struct environment *env, struct shast *ast,
     // insert the new function
     hashmap_insert(&env->functions, insertion_point, &function->hash);
     shast_ref_get(&function->base);
-    return 0;
+    return NSH_OK;
 }

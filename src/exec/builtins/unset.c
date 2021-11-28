@@ -5,8 +5,7 @@
 #include <string.h>
 
 
-int builtin_unset(struct environment *env, struct exception_catcher *catcher __unused,
-                  int argc, char **argv)
+nsh_err_t builtin_unset(struct environment *env, int argc, char **argv)
 {
     for (int i = 1; i < argc; i++) {
         const char *var_name = argv[i];
@@ -14,7 +13,8 @@ int builtin_unset(struct environment *env, struct exception_catcher *catcher __u
         /* check that the variable name is valid */
         if (variable_name_check_string(var_name, strlen(var_name)) != 0) {
             warnx("%s: `%s': invalid identifier", argv[0], var_name);
-            return 1;
+            env->code = 1;
+            return NSH_OK;
         }
 
         struct hashmap_item *variable_head =
@@ -34,5 +34,6 @@ int builtin_unset(struct environment *env, struct exception_catcher *catcher __u
         free(variable);
     }
 
-    return 0;
+    env->code = 0;
+    return NSH_OK;
 }

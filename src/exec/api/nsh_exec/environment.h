@@ -45,11 +45,9 @@ struct environment;
     F(unset)
 
 #define BUILTINS_DECLARE(Name)                                                           \
-    int builtin_##Name(struct environment *env, struct exception_catcher *catcher,       \
-                       int argc, char **argv);
+    nsh_err_t builtin_##Name(struct environment *env, int argc, char **argv);
 
-typedef int (*f_builtin)(struct environment *env, struct exception_catcher *catcher,
-                         int argc, char **argv);
+typedef nsh_err_t (*f_builtin)(struct environment *env, int argc, char **argv);
 
 BUILTINS_APPLY(BUILTINS_DECLARE)
 

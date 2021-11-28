@@ -9,40 +9,38 @@ struct exception_type g_clean_exit = {
     .compat_error = NSH_EXIT_INTERUPT,
 };
 
-void __noreturn clean_err(struct environment *env, struct exception_catcher *catcher,
-                          int retcode, const char *fmt, ...)
+__unused_result int clean_err(struct environment *env, int retcode, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
 
     vwarn(fmt, ap);
-    clean_exit(env, catcher, retcode);
 
     va_end(ap);
+
+    return clean_exit(env, retcode);
 }
 
-void __noreturn clean_errx(struct environment *env, struct exception_catcher *catcher,
-                           int retcode, const char *fmt, ...)
+__unused_result int clean_errx(struct environment *env, int retcode, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
 
     vwarnx(fmt, ap);
-    clean_exit(env, catcher, retcode);
 
     va_end(ap);
+
+    return clean_exit(env, retcode);
 }
 
-void __noreturn clean_exit(struct environment *env, struct exception_catcher *catcher,
-                           int retcode)
+__unused_result int clean_exit(struct environment *env, int retcode)
 {
     env->code = retcode;
-    shraise(catcher, &g_clean_exit);
+    return NSH_EXIT_INTERUPT;
 }
 
 
-int builtin_exit(struct environment *env, struct exception_catcher *catcher, int argc,
-                 char **argv)
+int builtin_exit(struct environment *env, int argc, char **argv)
 {
     if (!env)
         warnx("exit: missing context elements");
@@ -61,5 +59,5 @@ int builtin_exit(struct environment *env, struct exception_catcher *catcher, int
     } else
         rc = env->code;
 
-    clean_exit(env, catcher, rc);
+    return clean_exit(env, rc);
 }

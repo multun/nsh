@@ -15,7 +15,7 @@
 #include <stdarg.h>
 
 #include "arithmetic_expansion.h"
-
+#include "../error_compat.h"
 
 static void expand_guarded(struct expansion_state *exp_state, struct wlexer *wlexer);
 
@@ -406,8 +406,8 @@ static enum wlexer_op expand_arith_open(struct expansion_state *exp_state,
     case ARITH_SYNTAX_ERROR:
         shraise(expansion_state_catcher(exp_state), &g_lexer_error);
     case ARITH_RUNTIME_ERROR:
-        runtime_error(expansion_state_env(exp_state), expansion_state_catcher(exp_state),
-                      1);
+        raise_from_error(expansion_state_catcher(exp_state),
+                         execution_error(expansion_state_env(exp_state), 1));
     case ARITH_OK:
         break;
     }
@@ -557,6 +557,13 @@ char *expand_nosplit(struct lineinfo *line_info, const char *str, int flags,
     return evect_data(&res);
 }
 
+nsh_err_t expand_nosplit_compat(char **res, struct lineinfo *line_info, const char *str,
+                                int flags, struct environment *env)
+{
+    EXCEPTION_COMPAT_STUB_RETVAL(
+        res, expand_nosplit(line_info, str, flags, env, compat_catcher));
+}
+
 static void expand_word_callback(struct expansion_callback *callback, struct shword *word,
                                  int flags, struct environment *env,
                                  struct exception_catcher *catcher)
@@ -595,6 +602,15 @@ void expand_wordlist_callback(struct expansion_callback *callback, struct wordli
         expand_word_callback(callback, wordlist_get(wl, i), flags, env, catcher);
 }
 
+nsh_err_t expand_wordlist_callback_compat(struct expansion_callback *callback,
+                                          struct wordlist *wl, int flags,
+                                          struct environment *env)
+{
+    EXCEPTION_COMPAT_STUB(
+        expand_wordlist_callback(callback, wl, flags, env, compat_catcher));
+}
+
+
 static void expansion_word_callback(void *data, char *word,
                                     struct environment *env __unused,
                                     struct exception_catcher *catcher __unused)
@@ -611,4 +627,10 @@ void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags,
         .data = res,
     };
     expand_wordlist_callback(&callback, wl, flags, env, catcher);
+}
+
+nsh_err_t expand_wordlist_compat(struct cpvect *res, struct wordlist *wl,
+                                 struct environment *env, int flags)
+{
+    EXCEPTION_COMPAT_STUB(expand_wordlist(res, wl, flags, env, compat_catcher));
 }

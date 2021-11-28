@@ -1,0 +1,7 @@
+{
+  "desc": "The first command succeeds so the second does not run",
+  "stdin": "(exit 0) || (echo does not run; exit 31)",
+  "stdout": "",
+  "stderr": "",
+  "retcode": 0
+}

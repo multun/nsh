@@ -9,22 +9,25 @@
 #include <stdio.h>
 #include <sys/wait.h>
 
-int subshell_exec(struct environment *env, struct shast *ast,
-                  struct exception_catcher *catcher)
+nsh_err_t subshell_exec(struct environment *env, struct shast *ast)
 {
+    nsh_err_t err;
     struct shast_subshell *subshell = (struct shast_subshell *)ast;
 
     int cpid = managed_fork(env);
     if (cpid == -1) {
         lineinfo_warn(&subshell->base.line_info, "fork() failed: %s", strerror(errno));
-        runtime_error(env, catcher, 1);
+        return execution_error(env, 1);
     }
 
-    if (cpid == 0)
-        clean_exit(env, catcher, ast_exec(env, subshell->action, catcher));
-
+    if (cpid == 0) {
+        if ((err = ast_exec(env, subshell->action)))
+            return err;
+        return clean_exit(env, err);
+    }
 
     int status;
     waitpid(cpid, &status, 0);
-    return WEXITSTATUS(status);
+    env->code = WEXITSTATUS(status);
+    return NSH_OK;
 }

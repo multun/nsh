@@ -148,8 +148,7 @@ static void echo_print(const char *c, int opt)
     }
 }
 
-int builtin_echo(struct environment *env, struct exception_catcher *catcher __unused,
-                 int argc, char **argv)
+nsh_err_t builtin_echo(struct environment *env, int argc, char **argv)
 {
     int options = 0;
     if (env->shopts[SHOPT_XPG_ECHO])
@@ -166,5 +165,6 @@ int builtin_echo(struct environment *env, struct exception_catcher *catcher __un
     if (!(options & SHECHO_NL))
         putchar('\n');
 
-    return 0;
+    env->code = 0;
+    return NSH_OK;
 }

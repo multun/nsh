@@ -8,12 +8,11 @@
 ** \param env the current environment
 ** \param ast the tree
 **/
-int ast_exec(struct environment *env, struct shast *ast,
-             struct exception_catcher *catcher);
+nsh_err_t ast_exec(struct environment *env, struct shast *ast);
 
 
 #define DECLARE_AST_EXEC_UTILS(EnumName, Name)                                           \
-    int Name##_exec(struct environment *env, struct shast *ast,                          \
-                    struct exception_catcher *catcher);
+    int Name##_exec(struct environment *env, struct shast *ast);
+
 
 AST_TYPE_APPLY(DECLARE_AST_EXEC_UTILS)

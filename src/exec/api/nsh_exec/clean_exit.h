@@ -14,20 +14,18 @@ extern struct exception_type g_clean_exit;
 ** \brief prints a formated error message and exits using clean_exit, just like err
 ** \param fmt a format string
 */
-void __noreturn clean_err(struct environment *env, struct exception_catcher *catcher,
-                          int retcode, const char *fmt, ...);
+__unused_result int clean_err(struct environment *env, int retcode, const char *fmt, ...);
 
 /**
 ** \brief prints a formated error message and exits using clean_exit, just like errx
 ** \param fmt a format string
 */
-void __noreturn clean_errx(struct environment *env, struct exception_catcher *catcher,
-                           int retcode, const char *fmt, ...);
+__unused_result int clean_errx(struct environment *env, int retcode, const char *fmt,
+                               ...);
 
 /**
 ** \brief cleanly exit by raising an exception
 ** \param cont the error context to raise into
 ** \param retcode the status code to return with
 */
-void __noreturn clean_exit(struct environment *env, struct exception_catcher *catcher,
-                           int retcode);
+__unused_result int clean_exit(struct environment *env, int retcode);

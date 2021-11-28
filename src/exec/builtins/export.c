@@ -8,11 +8,16 @@
 #include <nsh_utils/alloc.h>
 #include <nsh_utils/macros.h>
 
-static int export_var(struct environment *env, char *raw_export_expr, bool exported,
-                      struct exception_catcher *catcher)
+static int export_var(int *retcode, struct environment *env, char *raw_export_expr,
+                      bool exported)
 {
+    nsh_err_t err;
+
     // expand the variable name
-    char *export_expr = expand_nosplit(NULL, raw_export_expr, 0, env, catcher);
+    char *export_expr;
+    if ((err = expand_nosplit_compat(&export_expr, NULL, raw_export_expr, 0, env)))
+        return err;
+
     char *var_sep = strchr(export_expr, '=');
     char *var_name_end = var_sep;
     if (var_name_end == NULL)
@@ -24,7 +29,8 @@ static int export_var(struct environment *env, char *raw_export_expr, bool expor
     if (variable_name_check_string(export_expr, var_name_len) != 0) {
         warnx("export: invalid identifier");
         free(export_expr);
-        return 1;
+        *retcode = 1;
+        return NSH_OK;
     }
 
     // allocate new values
@@ -53,7 +59,7 @@ static int export_var(struct environment *env, char *raw_export_expr, bool expor
             var->value = var_value;
         }
     }
-    return 0;
+    return NSH_OK;
 }
 
 
@@ -78,10 +84,10 @@ static void export_print(struct environment *env)
     }
 }
 
-int builtin_export(struct environment *env, struct exception_catcher *catcher, int argc,
-                   char **argv)
+nsh_err_t builtin_export(struct environment *env, int argc, char **argv)
 {
-    int res = 0;
+    nsh_err_t err;
+    int retcode = 0;
     bool print = true;
     bool exported = true;
     for (int i = 1; i < argc; i++) {
@@ -89,10 +95,15 @@ int builtin_export(struct environment *env, struct exception_catcher *catcher, i
             exported = false;
         else if (strcmp("-p", argv[i])) {
             print = false;
-            res |= export_var(env, argv[i], exported, catcher);
+
+            if ((err = export_var(&retcode, env, argv[i], exported)))
+                return err;
         }
     }
+
     if (print)
         export_print(env);
-    return res;
+
+    env->code = retcode;
+    return NSH_OK;
 }
