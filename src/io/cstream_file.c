@@ -34,8 +34,7 @@ static int file_io_reader(struct cstream *cs)
 static void file_io_dest(struct cstream *base_cs)
 {
     struct cstream_file *cs = (struct cstream_file *)base_cs;
-    if (cs->close_on_exit)
-        fclose(cs->file);
+    fclose(cs->file);
 }
 
 struct io_backend io_file_backend = {
@@ -43,9 +42,8 @@ struct io_backend io_file_backend = {
     .dest = file_io_dest,
 };
 
-void cstream_file_init(struct cstream_file *cs, FILE *stream, bool close_on_exit)
+void cstream_file_init(struct cstream_file *cs, FILE *stream)
 {
     cstream_init(&cs->base, &io_file_backend, false);
-    cs->close_on_exit = close_on_exit;
     cs->file = stream;
 }

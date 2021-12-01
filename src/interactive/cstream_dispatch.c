@@ -37,7 +37,7 @@ int cstream_dispatch_init(struct repl *repl, struct cstream **cs,
             return errcode;
 
         struct cstream_file *res = zalloc(sizeof(*res));
-        cstream_file_init(res, file, true);
+        cstream_file_init(res, file);
         res->base.line_info = LINEINFO(program_name, NULL);
         *cs = &res->base;
         return 0;
@@ -53,7 +53,7 @@ int cstream_dispatch_init(struct repl *repl, struct cstream **cs,
 
     // otherwise, read stdin in a non-interactive way
     struct cstream_file *res = zalloc(sizeof(*res));
-    cstream_file_init(res, stdin, false);
+    cstream_file_init(res, stdin);
     res->base.line_info = LINEINFO("<stdin>", NULL);
     *cs = &res->base;
     return 0;

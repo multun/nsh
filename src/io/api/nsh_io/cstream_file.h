@@ -7,8 +7,6 @@ struct cstream_file
 {
     struct cstream base;
 
-    bool close_on_exit;
-
     // a backend specific data pointer
     FILE *file;
 };
@@ -20,4 +18,4 @@ struct cstream_file
 ** \param exit_close whether to close the stream on error
 ** \return a file stream
 */
-void cstream_file_init(struct cstream_file *cs, FILE *stream, bool close_on_exit);
+void cstream_file_init(struct cstream_file *cs, FILE *stream);

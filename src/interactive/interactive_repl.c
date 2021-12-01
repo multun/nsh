@@ -28,7 +28,7 @@ static bool load_rc(struct environment *env, const char *path, const char *sourc
         return 0; // not being able to load an rc file is ok
 
     struct cstream_file cs;
-    cstream_file_init(&cs, file, true);
+    cstream_file_init(&cs, file);
     cs.base.line_info = LINEINFO(source, NULL);
 
     repl_init(&ctx, &cs.base, env);

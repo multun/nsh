@@ -1,0 +1,7 @@
+{
+  "desc": "Executing an unknown command should not break stuff",
+  "stdin": "/i/do/not/exist\necho printed once\necho printed once, again\n",
+  "stdout": "printed once\nprinted once, again\n",
+  "stderr": "an error about ",
+  "retcode": 0
+}

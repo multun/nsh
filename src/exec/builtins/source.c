@@ -18,7 +18,7 @@ static nsh_err_t source_file(struct environment *env, char *path)
         goto error;
 
     struct cstream_file cs;
-    cstream_file_init(&cs, file, true);
+    cstream_file_init(&cs, file);
 
     struct repl ctx;
     repl_init(&ctx, &cs.base, env);
