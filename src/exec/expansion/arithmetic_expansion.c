@@ -686,9 +686,8 @@ enum arith_status arith_lex(struct expansion_state *exp_state, struct cstream *c
         res->type = &arith_type_integer;
         return arith_lex_number(exp_state, cs, &res->value);
     }
-    if (arith_starts_operator(c)) {
+    if (arith_starts_operator(c))
         return arith_lex_operator(cs, res);
-    }
 
     expansion_warning(exp_state, "unknown character: %c", c);
     return ARITH_SYNTAX_ERROR;

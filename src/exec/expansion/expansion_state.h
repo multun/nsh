@@ -126,21 +126,9 @@ static inline void expansion_state_set_field_sep(struct expansion_state *exp_sta
         char_bitset_set(&exp_state->ifs, IFS[i], true);
 }
 
-static inline struct exception_catcher *
-expansion_state_catcher(struct expansion_state *exp_state)
-{
-    return exp_state->callback_ctx.catcher;
-}
-
 static inline struct environment *expansion_state_env(struct expansion_state *exp_state)
 {
     return exp_state->callback_ctx.env;
-}
-
-static inline void expansion_state_set_catcher(struct expansion_state *exp_state,
-                                               struct exception_catcher *catcher)
-{
-    exp_state->callback_ctx.catcher = catcher;
 }
 
 __unused_result static inline enum expansion_quoting

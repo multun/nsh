@@ -26,8 +26,8 @@ static nsh_err_t assignment_exec(struct environment *env, struct shast_assignmen
     char *name = strdup(assign->name);
     char *value;
 
-    if ((err = expand_nosplit_compat(&value, &assign->line_info, assign->value,
-                                     EXP_FLAGS_ASSIGNMENT, env)))
+    if ((err = expand_nosplit(&value, &assign->line_info, assign->value, env,
+                              EXP_FLAGS_ASSIGNMENT)))
         return err;
 
     environment_var_assign(env, name, &sh_string_create(value)->base, false);

@@ -4,8 +4,8 @@
 #include <nsh_utils/exception.h>
 
 
-typedef void (*expansion_callback_f)(void *data, char *word, struct environment *env,
-                                     struct exception_catcher *catcher);
+typedef nsh_err_t (*expansion_callback_f)(void *data, char *word,
+                                          struct environment *env);
 
 struct expansion_callback
 {
@@ -17,13 +17,11 @@ struct expansion_callback_ctx
 {
     struct expansion_callback callback;
     struct environment *env;
-    struct exception_catcher *catcher;
 };
 
 static inline void expansion_callback_ctx_init(struct expansion_callback_ctx *ctx,
                                                struct expansion_callback *callback,
-                                               struct environment *env,
-                                               struct exception_catcher *catcher)
+                                               struct environment *env)
 {
     if (callback) {
         ctx->callback = *callback;
@@ -31,13 +29,12 @@ static inline void expansion_callback_ctx_init(struct expansion_callback_ctx *ct
         ctx->callback.func = NULL;
     }
     ctx->env = env;
-    ctx->catcher = catcher;
 }
 
-static inline void expansion_callback_ctx_call(struct expansion_callback_ctx *ctx,
-                                               char *word)
+static inline nsh_err_t expansion_callback_ctx_call(struct expansion_callback_ctx *ctx,
+                                                    char *word) __unused_result
 {
-    ctx->callback.func(ctx->callback.data, word, ctx->env, ctx->catcher);
+    return ctx->callback.func(ctx->callback.data, word, ctx->env);
 }
 
 static inline bool expansion_callback_ctx_available(struct expansion_callback_ctx *ctx)

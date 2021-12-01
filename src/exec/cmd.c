@@ -28,7 +28,7 @@ static nsh_err_t wordlist_expand(struct cpvect *res, struct wordlist *wl,
     cpvect_init(res, wordlist_size(wl) + 1);
 
     /* expand the argument list */
-    if ((err = expand_wordlist_compat(res, wl, env, 0)))
+    if ((err = expand_wordlist(res, wl, env, 0)))
         goto expansion_error;
     return NSH_OK;
 

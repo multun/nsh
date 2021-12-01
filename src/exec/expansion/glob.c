@@ -275,19 +275,19 @@ static void path_element_end(struct glob_state *glob_state, size_t path_i)
         evect_push(&glob_state->path_buffer, '/');
 }
 
-static void glob_callback(struct glob_state *state,
-                          struct expansion_callback_ctx *callback)
+static nsh_err_t __unused_result glob_callback(struct glob_state *state,
+                                               struct expansion_callback_ctx *callback)
 {
     struct evect *path_buffer = &state->path_buffer;
     char *word = strdup(evect_data(path_buffer));
-    expansion_callback_ctx_call(callback, word);
+    return expansion_callback_ctx_call(callback, word);
 }
 
-static size_t glob_recurse_dir(struct glob_state *glob_state,
-                               struct expansion_callback_ctx *callback,
-                               struct glob_pattern *pattern, DIR *directory,
-                               size_t path_i)
+static int glob_recurse_dir(struct glob_state *glob_state,
+                            struct expansion_callback_ctx *callback,
+                            struct glob_pattern *pattern, DIR *directory, size_t path_i)
 {
+    int rc;
     struct glob_path_element *path_elem =
         gpath_vect_get(&glob_state->path_elements, path_i);
     struct evect *path_buffer = &glob_state->path_buffer;
@@ -335,7 +335,8 @@ static size_t glob_recurse_dir(struct glob_state *glob_state,
         if (last_path_elem) {
             evect_push(path_buffer, '\0');
             /* callback on matches */
-            glob_callback(glob_state, callback);
+            if ((rc = glob_callback(glob_state, callback)) < 0)
+                return rc;
             match_count++;
         } else {
             /* open and recurse */
@@ -347,7 +348,9 @@ static size_t glob_recurse_dir(struct glob_state *glob_state,
             }
 
             DIR *subdir = fdopendir(subdir_fd);
-            glob_recurse_dir(glob_state, callback, pattern, subdir, path_i + 1);
+            if ((rc = glob_recurse_dir(glob_state, callback, pattern, subdir, path_i + 1))
+                < 0)
+                return rc;
             closedir(subdir);
         }
     }
@@ -378,9 +381,11 @@ static size_t glob_recurse(struct glob_state *glob_state,
     return match_count;
 }
 
-void glob_expand(struct glob_state *glob_state, struct expansion_result *result,
-                 struct expansion_callback_ctx *callback)
+nsh_err_t glob_expand(struct glob_state *glob_state, struct expansion_result *result,
+                      struct expansion_callback_ctx *callback)
 {
+    nsh_err_t err;
+
     struct glob_pattern pattern;
     pattern.data = expansion_result_data(result);
     pattern.meta = expansion_result_meta(result);
@@ -390,10 +395,8 @@ void glob_expand(struct glob_state *glob_state, struct expansion_result *result,
 
     /* if the glob is invalid, or only has trivial sections, don't glob at all */
     if (expansion_result_size(result) == 0 || glob_type == GLOB_TYPE_INVALID
-        || glob_type == GLOB_TYPE_TRIVIAL) {
-        expansion_callback_ctx_call(callback, expansion_result_dup(result));
-        return;
-    }
+        || glob_type == GLOB_TYPE_TRIVIAL)
+        return expansion_callback_ctx_call(callback, expansion_result_dup(result));
 
     glob_state_reset(glob_state);
 
@@ -402,5 +405,8 @@ void glob_expand(struct glob_state *glob_state, struct expansion_result *result,
 
     if (glob_recurse(glob_state, callback, &pattern) == 0)
         // TODO: nullglob support
-        expansion_callback_ctx_call(callback, expansion_result_dup(result));
+        if ((err = expansion_callback_ctx_call(callback, expansion_result_dup(result))))
+            return err;
+
+    return NSH_OK;
 }

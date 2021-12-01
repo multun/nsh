@@ -31,8 +31,7 @@ static void expand_strftime(struct expansion_state *exp_state, const char *forma
 }
 
 
-enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
-                                    struct wlexer *wlexer, char c)
+int expand_prompt_escape(struct expansion_state *exp_state, struct wlexer *wlexer, char c)
 {
     /*
       TODO: implement the remaining prompt escapes
@@ -209,7 +208,8 @@ enum wlexer_op expand_prompt_escape(struct expansion_state *exp_state,
         while (true) {
             int next_c = cstream_peek(wlexer->cs);
             if (next_c == EOF)
-                expansion_error(exp_state, "unexpected EOF in \\D{format} prompt escape");
+                return expansion_error(exp_state,
+                                       "unexpected EOF in \\D{format} prompt escape");
             if (next_c == '}') {
                 cstream_pop(wlexer->cs);
                 break;

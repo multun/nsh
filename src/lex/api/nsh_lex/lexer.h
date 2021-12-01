@@ -53,10 +53,9 @@ nsh_err_t lexer_discard(struct lexer *lexer);
 /**
 ** \brief read a word lexer stream and shove it into a string
 ** \details this is needed to parse and run subshells
-** \param catcher the error context
 ** \param wlexer word lexer to pull words from
 */
-char *lexer_lex_string(struct exception_catcher *catcher, struct wlexer *wlexer);
+nsh_err_t lexer_lex_string(char **res, struct wlexer *wlexer);
 
 static inline struct lineinfo *lexer_line_info(struct lexer *lexer)
 {

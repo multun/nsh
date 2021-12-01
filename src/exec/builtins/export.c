@@ -15,7 +15,7 @@ static int export_var(int *retcode, struct environment *env, char *raw_export_ex
 
     // expand the variable name
     char *export_expr;
-    if ((err = expand_nosplit_compat(&export_expr, NULL, raw_export_expr, 0, env)))
+    if ((err = expand_nosplit(&export_expr, NULL, raw_export_expr, env, 0)))
         return err;
 
     char *var_sep = strchr(export_expr, '=');

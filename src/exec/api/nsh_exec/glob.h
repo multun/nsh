@@ -95,5 +95,5 @@ static inline void glob_state_destroy(struct glob_state *state)
     evect_destroy(&state->path_buffer);
 }
 
-void glob_expand(struct glob_state *glob_state, struct expansion_result *result,
-                 struct expansion_callback_ctx *callback);
+nsh_err_t glob_expand(struct glob_state *glob_state, struct expansion_result *result,
+                      struct expansion_callback_ctx *callback);

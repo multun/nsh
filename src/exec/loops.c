@@ -42,15 +42,6 @@ static nsh_err_t for_expansion_callback(void *data, char *var_value,
     return err;
 }
 
-static void for_expansion_callback_compat(void *data, char *var_value,
-                                          struct environment *env,
-                                          struct exception_catcher *catcher)
-{
-    nsh_err_t err;
-    if ((err = for_expansion_callback(data, var_value, env)))
-        raise_from_error(catcher, err);
-}
-
 nsh_err_t for_exec(struct environment *env, struct shast *ast)
 {
     nsh_err_t err;
@@ -62,12 +53,12 @@ nsh_err_t for_exec(struct environment *env, struct shast *ast)
     env->depth++;
 
     struct expansion_callback for_callback = {
-        .func = for_expansion_callback_compat,
+        .func = for_expansion_callback,
         .data = for_node,
     };
 
     /* expand_wordlist_callback calls the loop body for each expanded argument */
-    err = expand_wordlist_callback_compat(&for_callback, &for_node->collection, 0, env);
+    err = expand_wordlist_callback(&for_callback, &for_node->collection, env, 0);
     if (err && !stops_loop(env, err))
         goto err_callback;
 

@@ -35,8 +35,8 @@ nsh_err_t case_exec(struct environment *env, struct shast *ast)
     struct shast_case *case_node = (struct shast_case *)ast;
     char *case_var;
 
-    if ((err = expand_nosplit_compat(&case_var, &case_node->base.line_info,
-                                     shword_buf(case_node->var), 0, env)))
+    if ((err = expand_nosplit(&case_var, &case_node->base.line_info,
+                              shword_buf(case_node->var), env, 0)))
         return err;
 
     for (size_t case_i = 0; case_i < case_item_vect_size(&case_node->cases); case_i++) {

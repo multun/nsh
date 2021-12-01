@@ -179,17 +179,19 @@ static nsh_err_t compat_lexer_lex(struct lexer *lexer)
     EXCEPTION_COMPAT_STUB(lexer_lex(lexer, compat_catcher));
 }
 
-char *lexer_lex_string(struct exception_catcher *catcher, struct wlexer *wlexer)
+nsh_err_t lexer_lex_string(char **res, struct wlexer *wlexer)
 {
+    nsh_err_t err;
+
     struct lexer lexer = {
         .wlexer = *wlexer,
-        .catcher = catcher,
         .buffer_meta = {0},
     };
-
-    lexer_lex(&lexer, catcher);
+    if ((err = compat_lexer_lex(&lexer)))
+        return err;
     struct token *tok = lexer_queue_get(&lexer, 0);
-    return token_deconstruct(tok);
+    *res = token_deconstruct(tok);
+    return NSH_OK;
 }
 
 nsh_err_t lexer_peek_at(const struct token **res, struct lexer *lexer, size_t i)

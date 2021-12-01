@@ -49,8 +49,8 @@ static char *prompt_get(struct cstream_readline *cs)
         return res;
     }
 
-    char *res = expand_nosplit(&cs->base.line_info, sh_string_data(unexpanded),
-                               EXP_FLAGS_PROMPT, repl->env, &exception_catcher);
+    char *res = expand_nosplit_exception(&cs->base.line_info, sh_string_data(unexpanded),
+                                         EXP_FLAGS_PROMPT, repl->env, &exception_catcher);
     sh_string_put(unexpanded);
     return res;
 }

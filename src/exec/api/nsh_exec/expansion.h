@@ -23,31 +23,18 @@ enum expansion_flags
 /**
 ** \brief expands a string
 ** \param env the environment used within the expansion
-** \param catcher the exception scope to work with
 ** \return a malloc allocated expanded string
 */
-char *expand_nosplit(struct lineinfo *line_info, const char *str, int flags,
-                     struct environment *env, struct exception_catcher *catcher);
+nsh_err_t expand_nosplit(char **res, struct lineinfo *line_info, const char *str,
+                         struct environment *env, int flags) __unused_result;
 
-nsh_err_t expand_nosplit_compat(char **res, struct lineinfo *line_info, const char *str,
-                                int flags, struct environment *env);
+char *expand_nosplit_exception(struct lineinfo *line_info, const char *str, int flags,
+                               struct environment *env,
+                               struct exception_catcher *catcher);
 
-struct expansion_state;
-struct expansion_result;
+nsh_err_t expand_wordlist(struct cpvect *res, struct wordlist *wl,
+                          struct environment *env, int flags) __unused_result;
 
-void expand(struct expansion_state *exp_state, struct wlexer *wlexer,
-            struct exception_catcher *catcher);
-
-
-void expand_wordlist(struct cpvect *res, struct wordlist *wl, int flags,
-                     struct environment *env, struct exception_catcher *catcher);
-nsh_err_t expand_wordlist_compat(struct cpvect *res, struct wordlist *wl,
-                                 struct environment *env, int flags);
-
-void expand_wordlist_callback(struct expansion_callback *callback, struct wordlist *wl,
-                              int flags, struct environment *env,
-                              struct exception_catcher *catcher);
-
-nsh_err_t expand_wordlist_callback_compat(struct expansion_callback *callback,
-                                          struct wordlist *wl, int flags,
-                                          struct environment *env);
+nsh_err_t expand_wordlist_callback(struct expansion_callback *callback,
+                                   struct wordlist *wl, struct environment *env,
+                                   int flags) __unused_result;
