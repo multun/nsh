@@ -101,7 +101,7 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
     exp_state->allow_empty_word = false;
     glob_state_init(&exp_state->glob_state);
     // reasonable variable name size
-    variable_name_init(&exp_state->scratch_variable_name, 16);
+    variable_name_init(&exp_state->scratch_variable_name, 0);
 }
 
 static inline void expansion_state_set_field_sep(struct expansion_state *exp_state,
