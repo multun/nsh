@@ -5,7 +5,10 @@ void GVECT_FNAME(init)(struct GVECT_NAME *vect, size_t capacity)
 {
     vect->size = 0;
     vect->capacity = capacity;
-    vect->data = xmalloc(capacity * sizeof(GVECT_TYPE));
+    if (capacity == 0)
+        vect->data = NULL;
+    else
+        vect->data = xmalloc(capacity * sizeof(GVECT_TYPE));
 }
 
 void GVECT_FNAME(destroy)(struct GVECT_NAME *vect)
@@ -13,10 +16,17 @@ void GVECT_FNAME(destroy)(struct GVECT_NAME *vect)
     free(vect->data);
 }
 
+static size_t increase_capacity(size_t old_capacity)
+{
+    if (old_capacity == 0)
+        return 10;
+    return old_capacity * 2;
+}
+
 void GVECT_FNAME(push)(struct GVECT_NAME *vect, GVECT_TYPE c)
 {
     if (vect->size == vect->capacity) {
-        vect->capacity = 2 * vect->capacity + 1; // TODO: check for overflow
+        vect->capacity = increase_capacity(vect->capacity + 1);
         vect->data = xrealloc(vect->data, vect->capacity * sizeof(GVECT_TYPE));
     }
     vect->data[vect->size++] = c;
