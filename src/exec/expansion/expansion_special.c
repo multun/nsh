@@ -207,7 +207,7 @@ static int builtin_var_lookup(struct expansion_state *exp_state, const char *var
 
 int expand_name(struct expansion_state *exp_state, const char *var_name)
 {
-    nsh_err_t err;
+    int rc;
 
     if (special_var_lookup(exp_state, var_name) == EXPANSION_SUCCESS)
         return EXPANSION_SUCCESS;
@@ -222,11 +222,15 @@ int expand_name(struct expansion_state *exp_state, const char *var_name)
     /* tell the expansion_state we're currently holding a reference to this variable.
        if this step is skipped, a reference will be lost when an exception occurs in
        expansion_push_splitable. */
-    exp_state->scratch_value = &env_var->base;
     sh_string_get(env_var);
-    if ((err = expansion_push_splitable_string(exp_state, sh_string_data(env_var))))
-        return err;
+
+    if ((rc = expansion_push_splitable_string(exp_state, sh_string_data(env_var))))
+        goto err_expand;
+
+    /* Success */
+    rc = EXPANSION_SUCCESS;
+
+err_expand:
     sh_string_put(env_var);
-    exp_state->scratch_value = NULL;
-    return EXPANSION_SUCCESS;
+    return rc;
 }

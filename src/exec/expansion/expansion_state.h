@@ -56,12 +56,6 @@ struct expansion_state
     /* some globbing specific state */
     struct glob_state glob_state;
 
-    /* a pointer to a value that should be dropped when destroying the state.
-       if the expansion is manipulating some value and an exception is raised,
-       it doesn't have to setup an exception handler to drop its reference:
-       the expansion context can do it. */
-    struct sh_value *scratch_value;
-
     /* the same buffer is re-used during expansion */
     struct variable_name scratch_variable_name;
 };
@@ -70,8 +64,6 @@ static inline void expansion_state_destroy(struct expansion_state *exp_state)
 {
     expansion_result_destroy(&exp_state->result);
     glob_state_destroy(&exp_state->glob_state);
-    if (exp_state->scratch_value)
-        sh_value_put(exp_state->scratch_value);
     variable_name_destroy(&exp_state->scratch_variable_name);
 }
 
@@ -108,9 +100,8 @@ static inline void expansion_state_init(struct expansion_state *exp_state,
     exp_state->quoting_mode = quoting_mode;
     exp_state->allow_empty_word = false;
     glob_state_init(&exp_state->glob_state);
-    exp_state->scratch_value = NULL;
-    variable_name_init(&exp_state->scratch_variable_name,
-                       16); // reasonable variable name size
+    // reasonable variable name size
+    variable_name_init(&exp_state->scratch_variable_name, 16);
 }
 
 static inline void expansion_state_set_field_sep(struct expansion_state *exp_state,
