@@ -29,6 +29,8 @@ nsh_err_t __unused_result expansion_error(struct expansion_state *exp_state,
     lineinfo_vwarn(exp_state->line_info, fmt, ap);
 
     va_end(ap);
+
+    expansion_state_env(exp_state)->code = 1;
     return NSH_EXECUTION_ERROR;
 }
 
@@ -437,14 +439,8 @@ static int expand_arith_open(struct expansion_state *exp_state, struct wlexer *w
     };
 
     struct arith_value res_val;
-    switch (arith_parse(&res_val, &alexer, 0)) {
-    case ARITH_SYNTAX_ERROR:
-        return NSH_EXPANSION_ERROR;
-    case ARITH_RUNTIME_ERROR:
-        return execution_error(expansion_state_env(exp_state), 1);
-    case ARITH_OK:
-        break;
-    }
+    if ((rc = arith_parse(&res_val, &alexer, 0)))
+        return rc;
 
     struct arith_token next_tok;
     if ((rc = arith_lexer_peek(&next_tok, &alexer)))

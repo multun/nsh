@@ -37,16 +37,12 @@ int expand_subshell(struct expansion_state *exp_state, char *subshell_program)
     int err;
 
     int pipe_fds[2];
-    if (pipe(pipe_fds) < 0) {
-        expansion_warning(exp_state, "pipe() failed: %s", strerror(errno));
-        return execution_error(expansion_state_env(exp_state), 1);
-    }
+    if (pipe(pipe_fds) < 0)
+        return expansion_error(exp_state, "pipe() failed: %s", strerror(errno));
 
     int child_pid = managed_fork(expansion_state_env(exp_state));
-    if (child_pid < 0) {
-        expansion_warning(exp_state, "fork() failed: %s", strerror(errno));
-        return execution_error(expansion_state_env(exp_state), 1);
-    }
+    if (child_pid < 0)
+        return expansion_error(exp_state, "fork() failed: %s", strerror(errno));
 
     /* child branch */
     if (child_pid == 0) {

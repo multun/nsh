@@ -6,13 +6,6 @@
 #include <nsh_io/cstream.h>
 #include "expansion.h"
 
-enum arith_status
-{
-    ARITH_OK = 0,
-    ARITH_SYNTAX_ERROR = 1,
-    ARITH_RUNTIME_ERROR = 2,
-};
-
 enum arith_value_type
 {
     ARITH_VALUE_UNDEFINED,
@@ -72,12 +65,12 @@ struct arith_lexer
 
 struct arith_token;
 
-typedef enum arith_status (*f_arith_handler_nul)(struct arith_value *res,
-                                                 struct arith_token *self,
-                                                 struct arith_lexer *alexer);
-typedef enum arith_status (*f_arith_handler_left)(struct arith_value *left,
-                                                  struct arith_token *self,
-                                                  struct arith_lexer *alexer);
+typedef nsh_err_t (*f_arith_handler_nul)(struct arith_value *res,
+                                         struct arith_token *self,
+                                         struct arith_lexer *alexer);
+typedef nsh_err_t (*f_arith_handler_left)(struct arith_value *left,
+                                          struct arith_token *self,
+                                          struct arith_lexer *alexer);
 
 struct arith_token_type
 {
@@ -88,11 +81,11 @@ struct arith_token_type
     const char *name;
 };
 
-enum arith_status arith_lex(struct expansion_state *exp_state, struct cstream *cs,
-                            struct arith_token *res);
-enum arith_status arith_parse(struct arith_value *res, struct arith_lexer *alexer,
-                              int parent_priority);
-enum arith_status arith_lexer_peek(struct arith_token *res, struct arith_lexer *alexer);
+nsh_err_t arith_lex(struct expansion_state *exp_state, struct cstream *cs,
+                    struct arith_token *res);
+nsh_err_t arith_parse(struct arith_value *res, struct arith_lexer *alexer,
+                      int parent_priority);
+nsh_err_t arith_lexer_peek(struct arith_token *res, struct arith_lexer *alexer);
 int arith_value_to_int(struct expansion_state *exp_state, struct arith_value *value);
 
 extern struct arith_token_type arith_type_eof;

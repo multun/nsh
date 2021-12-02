@@ -8,7 +8,6 @@
 
 nsh_err_t expansion_error(struct expansion_state *exp_state, const char *fmt,
                           ...) __unused_result;
-void expansion_warning(struct expansion_state *exp_state, const char *fmt, ...);
 
 // flush the buffer even if the word is empty
 nsh_err_t expansion_end_word(struct expansion_state *exp_state) __unused_result;
