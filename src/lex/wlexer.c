@@ -7,46 +7,49 @@
 #include <stdlib.h>
 
 
-static void wlexer_lex(struct wtoken *res, struct wlexer *lex);
+static int wlexer_lex(struct wtoken *res, struct wlexer *lex);
 
-enum wtoken_type wlexer_peek_type(struct wlexer *lex)
+static int ensure_lookahead(struct wlexer *lex)
 {
-    if (!wlexer_has_lookahead(lex))
-        wlexer_lex(&lex->lookahead, lex);
+    if (wlexer_has_lookahead(lex))
+        return NSH_OK;
+    return wlexer_lex(&lex->lookahead, lex);
+}
+
+int wlexer_peek(struct wtoken *res, struct wlexer *lex)
+{
+    int rc;
+    if ((rc = ensure_lookahead(lex)))
+        return rc;
+
+    *res = lex->lookahead;
+    return NSH_OK;
+}
+
+int wlexer_peek_type(struct wlexer *lex)
+{
+    int rc;
+    if ((rc = ensure_lookahead(lex)))
+        return rc;
 
     return lex->lookahead.type;
 }
 
-void wlexer_peek(struct wtoken *res, struct wlexer *lex)
-{
-    if (!wlexer_has_lookahead(lex))
-        wlexer_lex(&lex->lookahead, lex);
-
-    *res = lex->lookahead;
-}
 
 void wlexer_discard(struct wlexer *lex)
 {
-    if (!wlexer_has_lookahead(lex)) {
-        struct wtoken res;
-        wlexer_lex(&res, lex);
-        return;
-    }
-
+    assert(wlexer_has_lookahead(lex));
     wlexer_clear_lookahead(lex);
-    return;
 }
 
-void wlexer_pop(struct wtoken *res, struct wlexer *lex)
+int wlexer_pop(struct wtoken *res, struct wlexer *lex)
 {
-    if (!wlexer_has_lookahead(lex)) {
-        wlexer_lex(res, lex);
-        return;
-    }
+    if (!wlexer_has_lookahead(lex))
+        return wlexer_lex(res, lex);
 
     *res = lex->lookahead;
     wlexer_clear_lookahead(lex);
-    return;
+    return NSH_OK;
 }
 
 void wlexer_push(const struct wtoken *res, struct wlexer *lex)
@@ -96,8 +99,10 @@ static bool char_starts_rule(enum wlexer_mode mode, char c)
 }
 
 
-static bool match_rule(struct wtoken *tok, struct wlexer *lex, struct wlexer_rule *rule)
+static int match_rule(struct wtoken *tok, struct wlexer *lex, struct wlexer_rule *rule)
 {
+    int rc;
+
     if (!(rule->valid_modes & lex->mode))
         return false;
 
@@ -111,12 +116,16 @@ static bool match_rule(struct wtoken *tok, struct wlexer *lex, struct wlexer_rul
         // only pull the next character if it matches
         if (tok->ch[i] == '\0') {
             assert(i < 4);
-            int next_char = cstream_peek(lex->cs);
-            if (next_char == EOF)
+            if ((rc = cstream_peek(lex->cs)) < 0)
+                return rc;
+            int next_char = rc;
+            if (next_char == CSTREAM_EOF)
                 return false;
             if (next_char != pat_char)
                 return false;
-            tok->ch[i] = cstream_pop(lex->cs);
+            if ((rc = cstream_pop(lex->cs)) < 0)
+                return rc;
+            tok->ch[i] = rc;
         }
 
         if (tok->ch[i] != pat_char)
@@ -124,8 +133,10 @@ static bool match_rule(struct wtoken *tok, struct wlexer *lex, struct wlexer_rul
     }
 }
 
-static void wlexer_lex_escape(struct wtoken *res, struct wlexer *lex)
+static int wlexer_lex_escape(struct wtoken *res, struct wlexer *lex)
 {
+    int rc;
+
     if (lex->mode == MODE_SINGLE_QUOTED)
         goto regular;
 
@@ -135,8 +146,10 @@ static void wlexer_lex_escape(struct wtoken *res, struct wlexer *lex)
     if (lex->mode == MODE_UNQUOTED)
         goto escape;
 
-    int next_char = cstream_peek(lex->cs);
-    if (next_char == EOF)
+    if ((rc = cstream_peek(lex->cs)) < 0)
+        return rc;
+    int next_char = rc;
+    if (next_char == CSTREAM_EOF)
         // TODO: raise an error when this occurs
         goto escape;
 
@@ -158,35 +171,43 @@ static void wlexer_lex_escape(struct wtoken *res, struct wlexer *lex)
 
 regular:
     res->type = WTOK_REGULAR;
-    return;
+    return NSH_OK;
 
 escape:
     res->type = WTOK_ESCAPE;
-    res->ch[1] = cstream_pop(lex->cs);
-    return;
+    if ((rc = cstream_pop(lex->cs)) < 0)
+        return rc;
+    res->ch[1] = rc;
+    return NSH_OK;
 }
 
-static void wlexer_lex(struct wtoken *res, struct wlexer *lex)
+static int wlexer_lex(struct wtoken *res, struct wlexer *lex)
 {
+    int rc;
+
     memset(res->ch, 0, sizeof(res->ch));
     res->type = WTOK_UNKNOWN;
 
-    int c = cstream_pop(lex->cs);
-    if (c == EOF) {
+    if ((rc = cstream_pop(lex->cs)) < 0)
+        return rc;
+    if (rc == CSTREAM_EOF) {
         res->type = WTOK_EOF;
         goto lexing_done;
     }
-    res->ch[0] = c;
+    res->ch[0] = rc;
 
     if (res->ch[0] == '\\') {
-        wlexer_lex_escape(res, lex);
+        if ((rc = wlexer_lex_escape(res, lex)) < 0)
+            return rc;
         assert(res->type != WTOK_UNKNOWN);
         goto lexing_done;
     }
 
     for (size_t i = 0; i < ARR_SIZE(rules); i++) {
         struct wlexer_rule *cur_rule = &rules[i];
-        if (match_rule(res, lex, cur_rule)) {
+        if ((rc = match_rule(res, lex, cur_rule)) < 0)
+            return rc;
+        if (rc) {
             res->type = cur_rule->type;
             goto lexing_done;
         }
@@ -196,6 +217,7 @@ static void wlexer_lex(struct wtoken *res, struct wlexer *lex)
 lexing_done:
     nsh_debug("wtoken { type: %-10s repr: '%s' }", wtoken_type_to_string(res->type),
               wtoken_repr_data(res));
+    return NSH_OK;
 }
 
 

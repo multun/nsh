@@ -104,33 +104,11 @@ void repl_drop_ast(struct repl *ctx);
 void repl_reset(struct repl *ctx);
 
 
-enum repl_status
-{
-    REPL_OK = 0,
-    REPL_EXCEPTION = 1,
-};
-
-
-struct repl_result
-{
-    enum repl_status status;
-
-    /* the class of the exception that stopped the loop, if any */
-    const struct exception_type *exception_class;
-};
-
-static inline bool repl_called_exit(const struct repl_result *repl_res)
-{
-    return repl_res->status == REPL_EXCEPTION
-        && repl_res->exception_class == &g_clean_exit;
-}
-
-
 /**
 ** \brief runs shell command from an already setup context
 ** \param ctx a runtime context
 */
-void repl_run(struct repl_result *res, struct repl *ctx);
+nsh_err_t repl_run(struct repl *ctx);
 
 /**
 ** \brief destroys an exiting context and all the ressources allocated

@@ -24,8 +24,7 @@ static int subshell_child(struct expansion_state *exp_state, const char *str)
     struct repl ctx;
     repl_init(&ctx, &cs.base, expansion_state_env(exp_state));
 
-    struct repl_result repl_res;
-    repl_run(&repl_res, &ctx);
+    repl_run(&ctx);
     int rc = repl_status(&ctx);
     repl_destroy(&ctx);
     cstream_destroy(&cs.base);

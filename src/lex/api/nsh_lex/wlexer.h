@@ -113,10 +113,10 @@ enum wlexer_op
 };
 
 
-void wlexer_peek(struct wtoken *res, struct wlexer *lex);
-enum wtoken_type wlexer_peek_type(struct wlexer *lex);
+int wlexer_peek(struct wtoken *res, struct wlexer *lex) __unused_result;
+int wlexer_peek_type(struct wlexer *lex) __unused_result;
 void wlexer_discard(struct wlexer *lex);
-void wlexer_pop(struct wtoken *res, struct wlexer *lex);
+int wlexer_pop(struct wtoken *res, struct wlexer *lex) __unused_result;
 void wlexer_push(const struct wtoken *res, struct wlexer *lex);
 
 

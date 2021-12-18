@@ -40,32 +40,36 @@ static inline struct token *lexer_queue_pop(struct lexer *lex)
     return res;
 }
 
-__noreturn void lexer_err(struct lexer *lexer, const char *fmt, ...)
+nsh_err_t lexer_err(struct lexer *lexer, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
 
-    vsherror(lexer_line_info(lexer), lexer->catcher, &g_lexer_error, fmt, ap);
+    lineinfo_vwarn(&lexer->wlexer.cs->line_info, fmt, ap);
 
     va_end(ap);
+    return NSH_LEXER_ERROR;
 }
 
 int lexer_lex_untyped(struct token *token, struct wlexer *wlexer, struct lexer *lexer)
 {
+    int rc;
     token->type = TOK_WORD;
     while (true) {
         struct wtoken wtoken;
         memset(&wtoken, 0, sizeof(wtoken));
 
-        wlexer_pop(&wtoken, wlexer);
-        enum wlexer_op op = sublexers[wtoken.type](lexer, wlexer, token, &wtoken);
+        if ((rc = wlexer_pop(&wtoken, wlexer)))
+            return rc;
+        if ((rc = sublexers[wtoken.type](lexer, wlexer, token, &wtoken)) < 0)
+            return rc;
         // fallthrough doesn't make sense here
-        assert(op != LEXER_OP_FALLTHROUGH);
-        if (op & LEXER_OP_PUSH)
+        assert(rc != LEXER_OP_FALLTHROUGH);
+        if (rc & LEXER_OP_PUSH)
             wlexer_push(&wtoken, wlexer);
-        if (op & LEXER_OP_RETURN)
+        if (rc & LEXER_OP_RETURN)
             return 0;
-        if (op & LEXER_OP_CONTINUE)
+        if (rc & LEXER_OP_CONTINUE)
             continue;
     }
 }
@@ -104,24 +108,26 @@ enum token_type keyword_search(const char *keyword)
     return (search_res - g_keywords) + 1 + TOK_KEYWORD_START_;
 }
 
-static void lexer_type_token(struct lexer *lexer, struct token *tok)
+static nsh_err_t lexer_type_token(struct lexer *lexer, struct token *tok)
 {
+    nsh_err_t err;
     if (tok->type != TOK_WORD)
-        return;
+        return NSH_OK;
 
     size_t tok_len = token_size(tok) - 1;
 
     for (size_t i = 0; i < tok_len; i++)
         if (token_buf(tok)[i] == '\0')
-            lexer_err(lexer, "no input NUL bytes are allowed");
+            return lexer_err(lexer, "no input NUL bytes are allowed");
 
     if (is_only_digits(tok, tok_len)) {
         struct wtoken next_tok;
-        wlexer_peek(&next_tok, &lexer->wlexer);
+        if ((err = wlexer_peek(&next_tok, &lexer->wlexer)))
+            return err;
         int ch = next_tok.ch[0];
         if (ch == '>' || ch == '<')
             tok->type = TOK_IO_NUMBER;
-        return;
+        return NSH_OK;
     }
 
     char *var_sep = strchr(token_buf(tok), '=');
@@ -132,7 +138,7 @@ static void lexer_type_token(struct lexer *lexer, struct token *tok)
         /* in case something has an '=' char but no valid name,
         ** preserve the current TOK_WORD value of tok->type.
         */
-        return;
+        return NSH_OK;
     }
 
     /* for name keywords, the type will first be set as TOK_NAME,
@@ -146,6 +152,7 @@ static void lexer_type_token(struct lexer *lexer, struct token *tok)
     enum token_type search_type = keyword_search(token_buf(tok));
     if (search_type != TOK_UNDEF)
         tok->type = search_type;
+    return NSH_OK;
 }
 
 static const char *token_repr(struct token *tok)
@@ -157,26 +164,29 @@ static const char *token_repr(struct token *tok)
     return token_buf(tok);
 }
 
-static void lexer_lex(struct lexer *lexer, struct exception_catcher *catcher)
+static nsh_err_t lexer_lex(struct lexer *lexer)
 {
+    nsh_err_t err;
     // the lexer and the IO stream both have their own global error contexts
-    lexer->catcher = catcher;
-    wlexer_set_catcher(&lexer->wlexer, catcher);
-
     struct token *res = token_alloc(lexer);
     lexer_queue_push(lexer, res);
-    lexer_lex_untyped(res, &lexer->wlexer, lexer);
+
+    if ((err = lexer_lex_untyped(res, &lexer->wlexer, lexer)))
+        goto err_lex_untyped;
+
     token_push(res, '\0');
 
-    lexer_type_token(lexer, res);
+    if ((err = lexer_type_token(lexer, res)))
+        goto err_typing;
 
     nsh_info("token { type: %-10s repr: '%s' }", token_type_repr(res->type),
              token_repr(res));
-}
+    return NSH_OK;
 
-static nsh_err_t compat_lexer_lex(struct lexer *lexer)
-{
-    EXCEPTION_COMPAT_STUB(lexer_lex(lexer, compat_catcher));
+err_lex_untyped:
+err_typing:
+    token_free(lexer_queue_pop(lexer), true);
+    return err;
 }
 
 nsh_err_t lexer_lex_string(char **res, struct wlexer *wlexer)
@@ -187,7 +197,7 @@ nsh_err_t lexer_lex_string(char **res, struct wlexer *wlexer)
         .wlexer = *wlexer,
         .buffer_meta = {0},
     };
-    if ((err = compat_lexer_lex(&lexer)))
+    if ((err = lexer_lex(&lexer)))
         return err;
     struct token *tok = lexer_queue_get(&lexer, 0);
     *res = token_deconstruct(tok);
@@ -198,7 +208,7 @@ nsh_err_t lexer_peek_at(const struct token **res, struct lexer *lexer, size_t i)
 {
     nsh_err_t err;
     while (i >= lexer_queue_size(lexer)) {
-        if ((err = compat_lexer_lex(lexer)))
+        if ((err = lexer_lex(lexer)))
             return err;
     }
 
@@ -215,7 +225,7 @@ nsh_err_t lexer_pop(struct token **res, struct lexer *lexer)
 {
     nsh_err_t err;
     if (lexer_queue_size(lexer) == 0) {
-        if ((err = compat_lexer_lex(lexer)))
+        if ((err = lexer_lex(lexer)))
             return err;
     }
 

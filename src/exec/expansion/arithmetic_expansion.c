@@ -52,13 +52,14 @@ static nsh_err_t arith_read_name(struct expansion_state *exp_state,
 
     int c;
     do {
-        c = cstream_peek(cs);
-        if (c == EOF)
+        if ((c = cstream_peek(cs)) < 0)
+            return c;
+        if (c == CSTREAM_EOF)
             break;
         if (!simple_variable_name_check(var_name, c))
             break;
         simple_variable_name_push(var_name, c);
-        cstream_pop(cs);
+        cstream_discard(cs);
     } while (true);
 
     if (evect_size(var_name) == 0) {
@@ -151,17 +152,22 @@ static bool arith_breaks_expression(char c)
 static int arith_lex_number_base(struct cstream *cs)
 {
     int c = cstream_peek(cs);
+    if (c < 0)
+        return c;
+
     assert(isdigit(c));
     if (c != '0')
         return 10;
 
-    cstream_pop(cs);
+    cstream_discard(cs);
 
-    c = cstream_peek(cs);
+    if ((c = cstream_peek(cs)) < 0)
+        return c;
+
     if (c != 'x' && c != 'X')
         return 8;
 
-    cstream_pop(cs);
+    cstream_discard(cs);
     return 16;
 }
 
@@ -169,11 +175,15 @@ static nsh_err_t arith_lex_number(struct expansion_state *exp_state, struct cstr
                                   struct arith_value *res)
 {
     int base = arith_lex_number_base(cs);
+    if (base < 0)
+        return base;
     res->type = ARITH_VALUE_INTEGER;
     res->data.integer = 0;
     while (true) {
         int c = cstream_peek(cs);
-        if (c == EOF || arith_breaks_expression(c))
+        if (c < 0)
+            return c;
+        if (c == CSTREAM_EOF || arith_breaks_expression(c))
             break;
 
         int new_digit = parse_digit(c);
@@ -182,7 +192,7 @@ static nsh_err_t arith_lex_number(struct expansion_state *exp_state, struct cstr
                                    c, c, base);
 
         res->data.integer = res->data.integer * base + new_digit;
-        cstream_pop(cs);
+        cstream_discard(cs);
     }
     return NSH_OK;
 }
@@ -575,7 +585,9 @@ static nsh_err_t arith_lex_operator(struct cstream *cs, struct arith_token *res)
     const struct arith_operator *cur_operator = NULL;
     for (size_t size = 0;; size++) {
         int c = cstream_peek(cs);
-        if (c == EOF)
+        if (c < 0)
+            return c;
+        if (c == CSTREAM_EOF)
             break;
 
         const struct arith_operator *better_operator = find_operator(data, size, c);
@@ -584,7 +596,7 @@ static nsh_err_t arith_lex_operator(struct cstream *cs, struct arith_token *res)
 
         cur_operator = better_operator;
         data = better_operator->value;
-        cstream_pop(cs);
+        cstream_discard(cs);
     }
     assert(cur_operator != NULL);
     res->type = cur_operator->type;
@@ -647,12 +659,18 @@ struct arith_token_type arith_type_eof = {
 nsh_err_t arith_lex(struct expansion_state *exp_state, struct cstream *cs,
                     struct arith_token *res)
 {
-    // skip spaces
-    int c = cstream_peek(cs);
-    for (; isspace(c); (c = cstream_peek(cs)))
-        cstream_pop(cs);
+    int c;
 
-    if (c == EOF) {
+    // skip spaces
+    while (true) {
+        if ((c = cstream_peek(cs)) < 0)
+            return c;
+        if (!isspace(c))
+            break;
+        cstream_discard(cs);
+    }
+
+    if (c == CSTREAM_EOF) {
         res->type = &arith_type_eof;
         res->value = ARITH_VALUE_UND;
         return NSH_OK;

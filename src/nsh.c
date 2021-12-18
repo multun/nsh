@@ -63,8 +63,7 @@ int main(int argc, char *argv[])
         return rc;
 
     /* run the repl */
-    struct repl_result repl_res;
-    repl_run(&repl_res, &repl);
+    repl_run(&repl);
     rc = repl_status(&repl);
 
     /* cleanup */

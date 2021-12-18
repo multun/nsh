@@ -21,123 +21,113 @@ enum repl_action
     REPL_ACTION_CONTINUE,
 };
 
-static enum repl_action handle_repl_exception(struct repl_result *res, struct repl *ctx,
-                                              struct exception_context *ex_context)
+static enum repl_action repl_handle_err(nsh_err_t err, struct repl *ctx)
 {
-    if (ex_context->class == &g_clean_exit)
-        goto exception_stop;
-
-    if (ex_context->class == &g_keyboard_interrupt
-        || ex_context->class == &g_runtime_error) {
+    switch (err) {
+    case NSH_OK:
+        return REPL_ACTION_NONE;
+    case NSH_IO_ERROR:
+    case NSH_LEXER_ERROR:
+    case NSH_PARSER_ERROR:
+        // with bash, syntax errors don't always yield the same error code
+        // bash -c '('; echo $?       -> 1
+        // echo '(' | bash; echo $?   -> 2
+        // INTERACTIVE ) THEN echo $?'-> 2
+        // we just ignore this madness
+        ctx->env->code = 2;
         goto exception_continue_if_interactive;
+    case NSH_EXECUTION_ERROR:
+    case NSH_EXPANSION_ERROR:
+    case NSH_KEYBOARD_INTERUPT:
+        goto exception_continue_if_interactive;
+    case NSH_BREAK_INTERUPT:
+    case NSH_CONTINUE_INTERUPT:
+        abort();
+    case NSH_EXIT_INTERUPT:
+        return REPL_ACTION_STOP;
     }
 
-    if (ex_context->class != &g_parser_error && ex_context->class != &g_lexer_error)
-        errx(2, "received an unknown exception");
-
-    // with bash, syntax errors don't always yield the same error code
-    // bash -c '('; echo $?       -> 1
-    // echo '(' | bash; echo $?   -> 2
-    // INTERACTIVE ) THEN echo $?'-> 2
-    // we just ignore this madness
-    ctx->env->code = 2;
+    /* unknown error */
+    abort();
 
 exception_continue_if_interactive:
     /* continue if the repl is interactive */
     if (repl_is_interactive(ctx))
         return REPL_ACTION_CONTINUE;
-
-exception_stop:
-    res->status = REPL_EXCEPTION;
-    res->exception_class = ex_context->class;
     return REPL_ACTION_STOP;
 }
 
 
-enum repl_action repl_eof(struct repl_result *res, struct repl *ctx)
+enum repl_action repl_eof(nsh_err_t *err, struct repl *ctx)
 {
-    struct exception_context exception_context;
-    struct exception_catcher exception_catcher =
-        EXCEPTION_CATCHER(&exception_context, NULL);
-
-    /* handle keyboard interupts in initial EOF check */
-    if (setjmp(exception_catcher.env)) {
-        if (exception_context.class != &g_keyboard_interrupt)
-            errx(2, "received an unknown exception in EOF check");
-
-        /* just stop if not interactive */
-        if (!repl_is_interactive(ctx)) {
-            res->status = REPL_OK;
-            return REPL_ACTION_STOP;
-        }
+    int rc;
+    if ((rc = cstream_eof(ctx->cs)) < 0) {
+        assert(rc == NSH_KEYBOARD_INTERUPT);
 
         /* if the stream is interactive, restart parsing */
-        return REPL_ACTION_CONTINUE;
-    }
-
-    /* check for EOF with the above context */
-    cstream_set_catcher(ctx->cs, &exception_catcher);
-    if (cstream_eof(ctx->cs)) {
-        /* if interactive, print the exit message */
         if (repl_is_interactive(ctx))
-            printf("exit\n");
-        res->status = REPL_OK;
+            return REPL_ACTION_CONTINUE;
+
+        /* just stop if not interactive */
+        *err = rc;
         return REPL_ACTION_STOP;
     }
-    cstream_set_catcher(ctx->cs, NULL);
-    return REPL_ACTION_NONE;
+
+    /* if there's no EOF, do nothing */
+    if (!rc)
+        return REPL_ACTION_NONE;
+
+    /* if interactive, print the exit message */
+    if (repl_is_interactive(ctx))
+        printf("exit\n");
+    *err = NSH_OK;
+    return REPL_ACTION_STOP;
 }
 
 
-void repl_run(struct repl_result *res, struct repl *ctx)
+nsh_err_t repl_run(struct repl *ctx)
 {
-    struct exception_context exception_context;
-    struct exception_catcher exception_catcher =
-        EXCEPTION_CATCHER(&exception_context, NULL);
+    nsh_err_t err = NSH_OK;
+    enum repl_action action;
 
     for (;; repl_reset(ctx)) {
         /* check for EOF */
-        enum repl_action action = repl_eof(res, ctx);
-        if (action == REPL_ACTION_CONTINUE)
+        if ((action = repl_eof(&err, ctx)))
+            goto handle_repl_action;
+
+        /* parse an AST */
+        if ((err = parse(&ctx->ast, ctx->lexer))) {
+            if ((action = repl_handle_err(err, ctx)))
+                goto handle_repl_action;
+        }
+
+        /* skip empty ASTs */
+        if (ctx->ast == NULL)
             continue;
+
+        /* pretty-print the ast */
+        if (ctx->env->shopts[SHOPT_AST_PRINT]) {
+            FILE *f = fopen("nsh_ast.dot", "w+");
+            ast_print(f, ctx->ast);
+            fclose(f);
+        }
+
+        /* update the shell history */
+        history_update(ctx);
+
+        /* execute the parsed AST */
+        if ((err = ast_exec(ctx->env, ctx->ast))) {
+            if ((action = repl_handle_err(err, ctx)))
+                goto handle_repl_action;
+        }
+
+        /* drop the AST reference */
+        repl_drop_ast(ctx);
+        continue;
+
+    handle_repl_action:
         if (action == REPL_ACTION_STOP)
             break;
-
-        /* parse and execute */
-        if (setjmp(exception_catcher.env)) {
-            /* decide whether to stop running the repl */
-            if (handle_repl_exception(res, ctx, &exception_context) == REPL_ACTION_STOP)
-                break;
-
-            /* restart all over again */
-            continue;
-        }
-
-        nsh_err_t err;
-        if ((err = parse(&ctx->ast, ctx->lexer)))
-            raise_from_error(&exception_catcher, err);
-
-        if (ctx->ast != NULL) {
-            /* pretty-print the ast */
-            if (ctx->env->shopts[SHOPT_AST_PRINT]) {
-                FILE *f = fopen("nsh_ast.dot", "w+");
-                ast_print(f, ctx->ast);
-                fclose(f);
-            }
-
-            /* update the shell history */
-            history_update(ctx);
-
-            /* execute the parsed AST */
-            if ((err = ast_exec(ctx->env, ctx->ast)))
-                raise_from_error(&exception_catcher, err);
-
-            /* drop the AST reference */
-            repl_drop_ast(ctx);
-        }
-
-        /* reset the error handler */
-        cstream_set_catcher(ctx->cs, NULL);
     }
-    return;
+    return err;
 }

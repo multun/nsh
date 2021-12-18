@@ -13,29 +13,44 @@ void cstream_init(struct cstream *cs, struct io_backend *backend, bool interacti
     };
 }
 
-bool cstream_eof(struct cstream *cs)
+nsh_err_t cstream_free(struct cstream *cs)
 {
-    return cstream_peek(cs) == EOF;
+    nsh_err_t err = cstream_destroy(cs);
+    free(cs);
+    return err;
+}
+
+int cstream_eof(struct cstream *cs)
+{
+    int rc;
+    if ((rc = cstream_peek(cs)) < 0)
+        return rc;
+    return rc == CSTREAM_EOF;
 }
 
 static inline int cstream_get(struct cstream *cs)
 {
+    int rc;
     nsh_trace("started reading...");
-    int c = cs->backend->reader(cs);
-    nsh_debug("read `%c' (%d)", c, c);
-    return c;
+    if ((rc = cs->backend->reader(cs)) < 0) {
+        nsh_debug("read failed");
+        return rc;
+    }
+    nsh_debug("read `%c' (%d)", rc, rc);
+    return rc;
 }
 
 int cstream_peek(struct cstream *cs)
 {
-    if (!cs->has_buf) {
-        /* /!\\ cstream_get can raise an exception. be careful /!\\ */
-        /* swapping the following two lines results in an awful bug */
-        cs->buf = cstream_get(cs);
-        cs->has_buf = true;
-    }
+    if (cs->has_buf)
+        return cs->buf;
 
-    return cs->buf;
+    int res;
+    if ((res = cstream_get(cs)) < 0)
+        return res;
+    cs->buf = res;
+    cs->has_buf = true;
+    return res;
 }
 
 int cstream_pop(struct cstream *cs)
@@ -45,9 +60,10 @@ int cstream_pop(struct cstream *cs)
     if (cs->has_buf) {
         cs->has_buf = false;
         res = cs->buf;
-    } else
-        /* /!\\ cstream_get can raise an exception. be careful /!\\ */
-        res = cstream_get(cs);
+    } else {
+        if ((res = cstream_get(cs)) < 0)
+            return res;
+    }
 
     if (res == '\n') {
         cs->line_info.line++;
@@ -59,8 +75,24 @@ int cstream_pop(struct cstream *cs)
     return res;
 }
 
-void cstream_destroy(struct cstream *cs)
+void cstream_discard(struct cstream *cs)
+{
+    assert(cs->has_buf);
+    cs->has_buf = false;
+}
+
+
+nsh_err_t cstream_destroy(struct cstream *cs)
 {
     if (cs->backend->dest)
-        cs->backend->dest(cs);
+        return cs->backend->dest(cs);
+    return NSH_OK;
+}
+
+nsh_err_t cstream_reset(struct cstream *cs)
+{
+    cs->has_buf = false;
+    if (cs->backend->reset)
+        return cs->backend->reset(cs);
+    return NSH_OK;
 }

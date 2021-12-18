@@ -28,13 +28,17 @@ int cstream_file_setup(FILE **file, const char *path, bool missing_ok)
 
 static int file_io_reader(struct cstream *cs)
 {
-    return getc(((struct cstream_file *)cs)->file);
+    int res = getc(((struct cstream_file *)cs)->file);
+    if (res == EOF)
+        return CSTREAM_EOF;
+    return res;
 }
 
-static void file_io_dest(struct cstream *base_cs)
+static nsh_err_t file_io_dest(struct cstream *base_cs)
 {
     struct cstream_file *cs = (struct cstream_file *)base_cs;
     fclose(cs->file);
+    return NSH_OK;
 }
 
 struct io_backend io_file_backend = {

@@ -18,14 +18,14 @@ static f_builtin find_builtin_with_history(const char *name)
 }
 
 
-static bool load_rc(struct environment *env, const char *path, const char *source)
+static nsh_err_t load_rc(struct environment *env, const char *path, const char *source)
 {
+    nsh_err_t err;
     struct repl ctx;
 
     FILE *file = fopen(path, "r");
-    int res;
-    if ((res = cstream_file_setup(&file, path, true)))
-        return 0; // not being able to load an rc file is ok
+    if (cstream_file_setup(&file, path, true))
+        return NSH_OK; // not being able to load an rc file is ok
 
     struct cstream_file cs;
     cstream_file_init(&cs, file);
@@ -33,26 +33,28 @@ static bool load_rc(struct environment *env, const char *path, const char *sourc
 
     repl_init(&ctx, &cs.base, env);
 
-    struct repl_result repl_res;
-    repl_run(&repl_res, &ctx);
+    err = repl_run(&ctx);
 
     repl_destroy(&ctx);
     cstream_destroy(ctx.cs);
 
     /* exiting in an rc file causes the shell to exit */
-    return repl_called_exit(&repl_res);
+    if (err == NSH_EXIT_INTERUPT)
+        return err;
+    return NSH_OK;
 }
 
-static bool load_all_rc(struct repl *ctx)
+static nsh_err_t load_all_rc(struct repl *ctx)
 {
+    nsh_err_t err;
     const char global_rc[] = "/etc/nshrc";
-    if (load_rc(ctx->env, global_rc, global_rc))
-        return true;
+    if ((err = load_rc(ctx->env, global_rc, global_rc)))
+        return err;
 
     char *rc_path = home_suffix("/.nshrc");
-    bool should_exit = load_rc(ctx->env, rc_path, "~/.nshrc");
+    err = load_rc(ctx->env, rc_path, "~/.nshrc");
     free(rc_path);
-    return should_exit;
+    return err;
 }
 
 // these escaped are used by terminal emulators to get the title of the window
@@ -65,9 +67,10 @@ static const char default_ps1[] = {WINDOW_TITLE_START
                                    "[\\u@\\h:\\w]\\$ " ANSI_RESET};
 
 
-static bool repl_load(int *rc, struct repl *ctx, struct cstream *cs,
-                      struct cli_options *arg_ctx)
+static nsh_err_t repl_load(int *statuscode, struct repl *ctx, struct cstream *cs,
+                           struct cli_options *arg_ctx)
 {
+    nsh_err_t err;
     struct environment *env = environment_load(arg_ctx);
     repl_init(ctx, cs, env);
     environment_put(env);
@@ -75,21 +78,21 @@ static bool repl_load(int *rc, struct repl *ctx, struct cstream *cs,
     // skip loading RC files and setting up the history
     // if the shell isn't interactive
     if (!ctx->cs->interactive)
-        return false;
+        return NSH_OK;
 
     // settup the default PS1 (if running in the interactive mode)
     environment_var_assign_const_cstring(env, strdup("PS1"), default_ps1, false);
 
     // if loading the RC files failed, return the status code of the repl
-    if (!arg_ctx->norc && load_all_rc(ctx)) {
-        *rc = ctx->env->code;
-        return true;
+    if (!arg_ctx->norc && (err = load_all_rc(ctx))) {
+        *statuscode = ctx->env->code;
+        return err;
     }
 
     // this is part of readline
     using_history();
     history_init(ctx, history_open());
-    return false;
+    return NSH_OK;
 }
 
 

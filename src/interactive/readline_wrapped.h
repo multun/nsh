@@ -5,5 +5,4 @@
 
 
 void readline_wrapped_setup(void);
-char *readline_wrapped(struct environment *env, struct exception_catcher *catcher,
-                       char *prompt);
+nsh_err_t readline_wrapped(char **res, struct environment *env, char *prompt);

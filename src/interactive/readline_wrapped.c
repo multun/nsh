@@ -41,13 +41,12 @@ static void readline_callback(char *line)
 
 
 /** Checks whether user input was interupted */
-static void check_interrupt(struct environment *env, struct exception_catcher *catcher);
+static nsh_err_t check_interrupt(struct environment *env);
 
 
-char *readline_wrapped(struct environment *env, struct exception_catcher *catcher,
-                       char *prompt)
+nsh_err_t readline_wrapped(char **res, struct environment *env, char *prompt)
 {
-    int rc;
+    nsh_err_t err;
 
     fd_set rfds;
     FD_ZERO(&rfds);
@@ -60,16 +59,18 @@ char *readline_wrapped(struct environment *env, struct exception_catcher *catche
     while (true) {
         // wait for data to be available on stdin. if the user presses CTRL + C,
         // select will instead fail and errno be set to EINTR
-        if ((rc = select(1, &rfds, NULL, NULL, NULL)) < 0) {
+        if (select(1, &rfds, NULL, NULL, NULL) < 0) {
             if (errno == EAGAIN)
                 continue;
 
             if (errno == EINTR) {
-                check_interrupt(env, catcher);
+                if ((err = check_interrupt(env)))
+                    return err;
                 continue;
             }
 
-            err(1, "select failed in readline loop");
+            warnx("select failed in readline loop");
+            return NSH_IO_ERROR;
         }
 
         // tell readline a character is available on stdin
@@ -77,11 +78,13 @@ char *readline_wrapped(struct environment *env, struct exception_catcher *catche
 
         if (user_input_complete) {
             user_input_complete = false;
-            return user_input;
+            *res = user_input;
+            return NSH_OK;
         }
 
         // check again if the user pressed CTRL + C
-        check_interrupt(env, catcher);
+        if ((err = check_interrupt(env)))
+            return err;
     }
 }
 
@@ -96,10 +99,10 @@ void readline_wrapped_setup(void)
     signal(SIGINT, sigint_handler);
 }
 
-static void check_interrupt(struct environment *env, struct exception_catcher *catcher)
+static nsh_err_t check_interrupt(struct environment *env)
 {
     if (!interrupted)
-        return;
+        return NSH_OK;
 
     interrupted = false;
 
@@ -116,5 +119,5 @@ static void check_interrupt(struct environment *env, struct exception_catcher *c
 
     // return an error
     env->code = 128 + SIGINT;
-    shraise(catcher, &g_keyboard_interrupt);
+    return NSH_KEYBOARD_INTERUPT;
 }

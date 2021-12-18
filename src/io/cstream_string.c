@@ -9,7 +9,7 @@ static int string_io_reader(struct cstream *cs)
 
     const char *str = css->string;
     if (!*str)
-        return EOF;
+        return CSTREAM_EOF;
 
     /* using an unsigned char is required to avoid sign extension */
     unsigned char res = *(str++);

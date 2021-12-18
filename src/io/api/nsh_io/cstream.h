@@ -7,6 +7,12 @@
 #include <nsh_utils/attr.h>
 #include <nsh_utils/evect.h>
 #include <nsh_utils/lineinfo.h>
+#include <nsh_utils/error.h>
+
+
+/** \brief EOF can't be used as it's negative */
+#define CSTREAM_EOF 256
+
 
 struct cstream;
 
@@ -21,13 +27,13 @@ typedef int (*f_io_reader)(struct cstream *cs);
 ** \brief A pointer to a function destructing a specific stream type instance
 ** \param a stream to destruct
 */
-typedef void (*f_io_destructor)(struct cstream *cs);
+typedef nsh_err_t (*f_io_destructor)(struct cstream *cs);
 
 /**
 ** \brief A pointer to a function resetting a stream
 ** \param a stream to reset
 */
-typedef void (*f_io_reset)(struct cstream *cs);
+typedef nsh_err_t (*f_io_reset)(struct cstream *cs);
 
 /**
 ** \brief io backends are structures holding stream type specific routines
@@ -41,7 +47,7 @@ struct io_backend
 
 /**
 ** \brief a cstream is a character stream, similar to FILE*
-** \details it can also read from a readline or string input
+** \details it can also read from readline or a string
 */
 struct cstream
 {
@@ -61,27 +67,10 @@ struct cstream
 
     // a buffer enabling the user to peek data from the stream
     int buf;
-
-    // an error context, which is only needed in a very specific case:
-    // when a readline stream gets a keyboard interupt.
-    // in all other cases, this can be NULL.
-    struct exception_catcher *catcher;
 };
 
 
-static inline void cstream_set_catcher(struct cstream *cs,
-                                       struct exception_catcher *catcher)
-{
-    cs->catcher = catcher;
-}
-
-static inline void cstream_check(struct cstream *cs)
-{
-    assert(cs->backend != NULL);
-    assert(cs->line_info.source != NULL);
-}
-
-int cstream_file_setup(FILE **file, const char *path, bool missing_ok);
+nsh_err_t cstream_file_setup(FILE **file, const char *path, bool missing_ok);
 
 /**
 ** \brief constructs a base stream, initialized with sane default values
@@ -95,17 +84,13 @@ void cstream_init(struct cstream *cs, struct io_backend *backend, bool interacti
 ** \brief destructs a stream and all the underlying resources
 ** \param cs the stream to destroy
 */
-void cstream_destroy(struct cstream *cs);
+nsh_err_t cstream_destroy(struct cstream *cs);
 
 /**
 ** \brief destructs and deallocates a stream
 ** \param cs the struct to destroy and free
 */
-static inline void cstream_free(struct cstream *cs)
-{
-    cstream_destroy(cs);
-    free(cs);
-}
+nsh_err_t cstream_free(struct cstream *cs);
 
 /**
 ** \brief peek a character from a stream
@@ -114,7 +99,7 @@ static inline void cstream_free(struct cstream *cs)
 ** \param cs the stream to peek from
 ** \return the next character on the stream
 */
-int cstream_peek(struct cstream *cs);
+int cstream_peek(struct cstream *cs) __unused_result;
 
 /**
 ** \brief pop a character from a stream
@@ -122,20 +107,23 @@ int cstream_peek(struct cstream *cs);
 ** \param cs the stream to peek from
 ** \return the next character on the stream
 */
-int cstream_pop(struct cstream *cs);
+int cstream_pop(struct cstream *cs) __unused_result;
+
+/**
+ * \brief Discards the next character in the stream.
+ *        Can only be called after a successful peek.
+ */
+void cstream_discard(struct cstream *cs);
 
 /**
 ** \param cs the stream involved
-** \return has the stream reached eof?
+** \return either a negative an error code, or whether the stream reached eof
 */
-bool cstream_eof(struct cstream *cs);
+int cstream_eof(struct cstream *cs);
 
-static inline void cstream_reset(struct cstream *cs)
-{
-    cs->has_buf = false;
-    if (cs->backend->reset)
-        cs->backend->reset(cs);
-}
+/** \brief prepare the stream to read new input, if relevant */
+nsh_err_t cstream_reset(struct cstream *cs);
+
 
 #include <nsh_io/cstream_file.h>
 #include <nsh_io/cstream_string.h>

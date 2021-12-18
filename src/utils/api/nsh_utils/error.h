@@ -36,3 +36,7 @@ nsh_err_t error_warn(nsh_err_t err, const char *fmt, ...);
 
 /** \brief Calls warnx and return err */
 nsh_err_t error_warnx(nsh_err_t err, const char *fmt, ...);
+
+
+/** \brief returns a short description of the error */
+const char *nsh_error_repr(enum nsh_error err);

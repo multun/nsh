@@ -26,9 +26,6 @@ struct lexer
 
     /* the toplevel word lexer */
     struct wlexer wlexer;
-    /* using a global per lexer catcher avoids passing it around all functions
-     * inside the lexer, which doesn't create new contexts anyway */
-    struct exception_catcher *catcher;
 };
 
 

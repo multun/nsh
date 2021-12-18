@@ -15,18 +15,18 @@
 #include <string.h>
 
 
-static enum wlexer_op sublexer_eof(struct lexer *lexer, struct wlexer *wlexer,
-                                   struct token *token, struct wtoken *wtoken __unused)
+static int sublexer_eof(struct lexer *lexer, struct wlexer *wlexer, struct token *token,
+                        struct wtoken *wtoken __unused)
 {
     if (wlexer->mode != MODE_UNQUOTED)
-        lexer_err(lexer, "EOF while expecting quote");
+        return lexer_err(lexer, "EOF while expecting quote");
     if (token_size(token) == 0)
         token->type = TOK_EOF;
     return LEXER_OP_RETURN;
 }
 
-static enum wlexer_op sublexer_squote(struct lexer *lexer, struct wlexer *wlexer,
-                                      struct token *token, struct wtoken *wtoken)
+static int sublexer_squote(struct lexer *lexer, struct wlexer *wlexer,
+                           struct token *token, struct wtoken *wtoken)
 {
     wtoken_push(token, wtoken);
     if (wlexer->mode == MODE_SINGLE_QUOTED)
@@ -36,8 +36,8 @@ static enum wlexer_op sublexer_squote(struct lexer *lexer, struct wlexer *wlexer
     return LEXER_OP_CONTINUE;
 }
 
-static enum wlexer_op sublexer_dquote(struct lexer *lexer, struct wlexer *wlexer,
-                                      struct token *token, struct wtoken *wtoken)
+static int sublexer_dquote(struct lexer *lexer, struct wlexer *wlexer,
+                           struct token *token, struct wtoken *wtoken)
 {
     wtoken_push(token, wtoken);
     if (wlexer->mode == MODE_DOUBLE_QUOTED)
@@ -48,24 +48,25 @@ static enum wlexer_op sublexer_dquote(struct lexer *lexer, struct wlexer *wlexer
 }
 
 
-static enum wlexer_op sublexer_btick(struct lexer *lexer __unused, struct wlexer *wlexer,
-                                     struct token *token, struct wtoken *wtok)
+static int sublexer_btick(struct lexer *lexer __unused, struct wlexer *wlexer,
+                          struct token *token, struct wtoken *wtok)
 {
+    int rc;
     wtoken_push(token, wtok);
     // escaping is directly handled by the word lexer
     do {
         memset(wtok, 0, sizeof(*wtok));
-        wlexer_pop(wtok, wlexer);
+        if ((rc = wlexer_pop(wtok, wlexer)) < 0)
+            return rc;
         if (wtok->type == WTOK_EOF)
-            lexer_err(lexer, "unexpected EOF in ` section");
+            return lexer_err(lexer, "unexpected EOF in ` section");
         evect_push_string(&token->str, wtok->ch);
     } while (wtok->type != WTOK_BTICK);
     return LEXER_OP_CONTINUE;
 }
 
-static enum wlexer_op sublexer_escape(struct lexer *lexer __unused,
-                                      struct wlexer *wlexer __unused, struct token *token,
-                                      struct wtoken *wtoken)
+static int sublexer_escape(struct lexer *lexer __unused, struct wlexer *wlexer __unused,
+                           struct token *token, struct wtoken *wtoken)
 {
     // ignore escaped carriage returns
     if (wtoken->ch[1] != '\n')
@@ -73,8 +74,8 @@ static enum wlexer_op sublexer_escape(struct lexer *lexer __unused,
     return LEXER_OP_CONTINUE;
 }
 
-static enum wlexer_op sublexer_exp_subsh_open(struct lexer *lexer, struct wlexer *wlexer,
-                                              struct token *token, struct wtoken *wtoken)
+static int sublexer_exp_subsh_open(struct lexer *lexer, struct wlexer *wlexer,
+                                   struct token *token, struct wtoken *wtoken)
 {
     wtoken_push(token, wtoken);
     lexer_lex_untyped(token, &WLEXER_FORK(wlexer, MODE_EXP_SUBSHELL), lexer);
@@ -86,18 +87,16 @@ static enum wlexer_op sublexer_exp_subsh_open(struct lexer *lexer, struct wlexer
     return LEXER_OP_CONTINUE;
 }
 
-static enum wlexer_op sublexer_exp_subsh_close(struct lexer *lexer __unused,
-                                               struct wlexer *wlexer,
-                                               struct token *token __unused,
-                                               struct wtoken *wtoken __unused)
+static int sublexer_exp_subsh_close(struct lexer *lexer __unused, struct wlexer *wlexer,
+                                    struct token *token __unused,
+                                    struct wtoken *wtoken __unused)
 {
     assert(wlexer->mode == MODE_EXP_SUBSHELL);
     return LEXER_OP_RETURN;
 }
 
-static enum wlexer_op sublexer_subsh_open(struct lexer *lexer, struct wlexer *wlexer,
-                                          struct token *token __unused,
-                                          struct wtoken *wtoken)
+static int sublexer_subsh_open(struct lexer *lexer, struct wlexer *wlexer,
+                               struct token *token __unused, struct wtoken *wtoken)
 {
     /* (echo test) */
     /* ^           */
@@ -124,10 +123,9 @@ static enum wlexer_op sublexer_subsh_open(struct lexer *lexer, struct wlexer *wl
     return LEXER_OP_CONTINUE;
 }
 
-static enum wlexer_op sublexer_subsh_close(struct lexer *lexer __unused,
-                                           struct wlexer *wlexer,
-                                           struct token *token __unused,
-                                           struct wtoken *wtoken __unused)
+static int sublexer_subsh_close(struct lexer *lexer __unused, struct wlexer *wlexer,
+                                struct token *token __unused,
+                                struct wtoken *wtoken __unused)
 {
     /* (echo test) */
     /*           ^ */
@@ -146,8 +144,8 @@ static enum wlexer_op sublexer_subsh_close(struct lexer *lexer __unused,
     return LEXER_OP_RETURN;
 }
 
-static enum wlexer_op sublexer_arith_open(struct lexer *lexer, struct wlexer *wlexer,
-                                          struct token *token, struct wtoken *wtoken)
+static int sublexer_arith_open(struct lexer *lexer, struct wlexer *wlexer,
+                               struct token *token, struct wtoken *wtoken)
 {
     wtoken_push(token, wtoken);
     lexer_lex_untyped(token, &WLEXER_FORK(wlexer, MODE_ARITH), lexer);
@@ -159,17 +157,16 @@ static enum wlexer_op sublexer_arith_open(struct lexer *lexer, struct wlexer *wl
     return LEXER_OP_CONTINUE;
 }
 
-static enum wlexer_op sublexer_arith_close(struct lexer *lexer __unused,
-                                           struct wlexer *wlexer,
-                                           struct token *token __unused,
-                                           struct wtoken *wtoken __unused)
+static int sublexer_arith_close(struct lexer *lexer __unused, struct wlexer *wlexer,
+                                struct token *token __unused,
+                                struct wtoken *wtoken __unused)
 {
     assert(wlexer->mode == MODE_ARITH);
     return LEXER_OP_RETURN;
 }
 
-static enum wlexer_op sublexer_exp_open(struct lexer *lexer, struct wlexer *wlexer,
-                                        struct token *token, struct wtoken *wtoken)
+static int sublexer_exp_open(struct lexer *lexer, struct wlexer *wlexer,
+                             struct token *token, struct wtoken *wtoken)
 {
     wtoken_push(token, wtoken);
     lexer_lex_untyped(token, &WLEXER_FORK(wlexer, MODE_EXPANSION), lexer);
@@ -181,19 +178,16 @@ static enum wlexer_op sublexer_exp_open(struct lexer *lexer, struct wlexer *wlex
     return LEXER_OP_CONTINUE;
 }
 
-static enum wlexer_op sublexer_exp_close(struct lexer *lexer __unused,
-                                         struct wlexer *wlexer,
-                                         struct token *token __unused,
-                                         struct wtoken *wtoken __unused)
+static int sublexer_exp_close(struct lexer *lexer __unused, struct wlexer *wlexer,
+                              struct token *token __unused,
+                              struct wtoken *wtoken __unused)
 {
     assert(wlexer->mode == MODE_EXPANSION);
     return LEXER_OP_RETURN;
 }
 
-static enum wlexer_op sublexer_arith_group_open(struct lexer *lexer,
-                                                struct wlexer *wlexer,
-                                                struct token *token,
-                                                struct wtoken *wtoken)
+static int sublexer_arith_group_open(struct lexer *lexer, struct wlexer *wlexer,
+                                     struct token *token, struct wtoken *wtoken)
 {
     wtoken_push(token, wtoken);
     lexer_lex_untyped(token, &WLEXER_FORK(wlexer, MODE_ARITH_GROUP), lexer);
@@ -205,18 +199,16 @@ static enum wlexer_op sublexer_arith_group_open(struct lexer *lexer,
     return LEXER_OP_CONTINUE;
 }
 
-static enum wlexer_op sublexer_arith_group_close(struct lexer *lexer __unused,
-                                                 struct wlexer *wlexer,
-                                                 struct token *token __unused,
-                                                 struct wtoken *wtoken __unused)
+static int sublexer_arith_group_close(struct lexer *lexer __unused, struct wlexer *wlexer,
+                                      struct token *token __unused,
+                                      struct wtoken *wtoken __unused)
 {
     assert(wlexer->mode == MODE_ARITH_GROUP);
     return LEXER_OP_RETURN;
 }
 
-static enum wlexer_op sublexer_variable(struct lexer *lexer __unused,
-                                        struct wlexer *wlexer __unused,
-                                        struct token *token, struct wtoken *wtoken)
+static int sublexer_variable(struct lexer *lexer __unused, struct wlexer *wlexer __unused,
+                             struct token *token, struct wtoken *wtoken)
 {
     wtoken_push(token, wtoken);
     return LEXER_OP_CONTINUE;

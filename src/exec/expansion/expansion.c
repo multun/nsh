@@ -34,16 +34,6 @@ nsh_err_t __unused_result expansion_error(struct expansion_state *exp_state,
     return NSH_EXECUTION_ERROR;
 }
 
-void expansion_warning(struct expansion_state *exp_state, const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-
-    lineinfo_vwarn(exp_state->line_info, fmt, ap);
-
-    va_end(ap);
-}
-
 nsh_err_t expansion_end_word(struct expansion_state *exp_state)
 {
     if (!expansion_callback_ctx_available(&exp_state->callback_ctx))
@@ -144,7 +134,8 @@ static int expand_dollar(struct expansion_state *exp_state, struct wlexer *wlexe
 
     do {
         memset(wtoken, 0, sizeof(*wtoken));
-        wlexer_pop(wtoken, &exp_wlexer);
+        if ((rc = wlexer_pop(wtoken, &exp_wlexer)))
+            return rc;
         if (wtoken->type == WTOK_EXP_CLOSE)
             break;
 
@@ -180,7 +171,8 @@ static int expand_variable(struct expansion_state *exp_state, struct wlexer *wle
     variable_name_reset(&exp_state->scratch_variable_name);
     do {
         struct wtoken next_tok;
-        wlexer_peek(&next_tok, wlexer);
+        if ((rc = wlexer_peek(&next_tok, wlexer)))
+            return rc;
         if (next_tok.type != WTOK_REGULAR)
             break;
         if (!variable_name_check(&exp_state->scratch_variable_name, next_tok.ch[0]))
@@ -209,12 +201,14 @@ static int expand_variable(struct expansion_state *exp_state, struct wlexer *wle
 static int expand_tilde(struct expansion_state *exp_state, struct wlexer *wlexer,
                         struct wtoken *wtoken)
 {
+    int rc;
     /* push a tilde */
     expansion_push_nosplit(exp_state, '~');
     size_t start_offset = expansion_result_size(&exp_state->result);
     do {
         memset(wtoken, 0, sizeof(*wtoken));
-        wlexer_peek(wtoken, wlexer);
+        if ((rc = wlexer_peek(wtoken, wlexer)))
+            return rc;
         if (wtoken->type != WTOK_REGULAR)
             break;
         if (!portable_filename_char(wtoken->ch[0]))
@@ -336,7 +330,8 @@ static int expand_btick(struct expansion_state *exp_state, struct wlexer *wlexer
     evect_init(&btick_content, 32); // hopefuly sane default :(
     while (true) {
         memset(wtoken, 0, sizeof(*wtoken));
-        wlexer_pop(wtoken, wlexer);
+        if ((rc = wlexer_pop(wtoken, wlexer)))
+            return rc;
         if (wtoken->type == WTOK_EOF)
             return expansion_error(exp_state,
                                    "unexpected EOF in ` section, during expansion");
@@ -529,7 +524,8 @@ static nsh_err_t expand_internal(struct expansion_state *exp_state, struct wlexe
     while (true) {
         // read a word token
         struct wtoken wtoken;
-        wlexer_pop(&wtoken, wlexer);
+        if ((rc = wlexer_pop(&wtoken, wlexer)))
+            return rc;
 
         // react depending on the token type
         if ((rc = expanders[wtoken.type](exp_state, wlexer, &wtoken)) < 0)

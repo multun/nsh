@@ -23,12 +23,10 @@ static nsh_err_t source_file(struct environment *env, char *path)
     struct repl ctx;
     repl_init(&ctx, &cs.base, env);
 
-    struct repl_result repl_res;
-    repl_run(&repl_res, &ctx);
-    rc = repl_status(&ctx);
-
-    if (repl_called_exit(&repl_res))
+    if (repl_run(&ctx) == NSH_EXIT_INTERUPT)
         return clean_exit(env, rc);
+
+    rc = repl_status(&ctx);
 
     repl_destroy(&ctx);
     cstream_destroy(&cs.base);

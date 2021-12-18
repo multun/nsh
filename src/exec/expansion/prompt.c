@@ -33,6 +33,7 @@ static void expand_strftime(struct expansion_state *exp_state, const char *forma
 
 int expand_prompt_escape(struct expansion_state *exp_state, struct wlexer *wlexer, char c)
 {
+    int rc;
     /*
       TODO: implement the remaining prompt escapes
     \j     the number of jobs currently managed by the shell
@@ -58,9 +59,12 @@ int expand_prompt_escape(struct expansion_state *exp_state, struct wlexer *wlexe
 
         for (size_t i = 1; i < max_size; i++) {
             int next_c = cstream_peek(wlexer->cs);
+            if (next_c < 0)
+                return next_c;
             if (next_c < '0' || next_c > '7')
                 break;
-            res = res * 8 + (cstream_pop(wlexer->cs) - '0');
+            cstream_discard(wlexer->cs);
+            res = res * 8 + (next_c - '0');
         }
 
         expansion_push_nosplit(exp_state, res);
@@ -199,22 +203,25 @@ int expand_prompt_escape(struct expansion_state *exp_state, struct wlexer *wlexe
         break;
     case 'D': {
         assert(!wlexer_has_lookahead(wlexer));
-        if (cstream_peek(wlexer->cs) != '{')
+        if ((rc = cstream_peek(wlexer->cs)) < 0)
+            return rc;
+        if (rc != '{')
             return LEXER_OP_FALLTHROUGH;
-        cstream_pop(wlexer->cs);
+        cstream_discard(wlexer->cs);
 
         struct evect *res = &exp_state->result.string;
         int initial_size = evect_size(res);
         while (true) {
             int next_c = cstream_peek(wlexer->cs);
-            if (next_c == EOF)
+            if (next_c < 0)
+                return next_c;
+            if (next_c == CSTREAM_EOF)
                 return expansion_error(exp_state,
                                        "unexpected EOF in \\D{format} prompt escape");
-            if (next_c == '}') {
-                cstream_pop(wlexer->cs);
+            cstream_discard(wlexer->cs);
+            if (next_c == '}')
                 break;
-            }
-            evect_push(res, cstream_pop(wlexer->cs));
+            evect_push(res, next_c);
         }
 
         evect_push(res, '\0');

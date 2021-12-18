@@ -36,33 +36,28 @@ static char *prompt_get(struct cstream_readline *cs)
     if (unexpanded == NULL)
         return strdup(default_prompt);
 
-    struct exception_context exception_context;
-    struct exception_catcher exception_catcher =
-        EXCEPTION_CATCHER(&exception_context, NULL);
-
     sh_string_get(unexpanded);
 
-    if (setjmp(exception_catcher.env)) {
+    char *res;
+    if (expand_nosplit(&res, &cs->base.line_info, sh_string_data(unexpanded), repl->env,
+                       EXP_FLAGS_PROMPT))
         /* if an error occurs, use the unexpanded prompt */
-        char *res = strdup(sh_string_data(unexpanded));
-        sh_string_put(unexpanded);
-        return res;
-    }
+        res = strdup(sh_string_data(unexpanded));
 
-    char *res = expand_nosplit_exception(&cs->base.line_info, sh_string_data(unexpanded),
-                                         EXP_FLAGS_PROMPT, repl->env, &exception_catcher);
     sh_string_put(unexpanded);
     return res;
 }
 
 static int readline_io_reader_unwrapped(struct cstream_readline *cs)
 {
+    int rc;
     char *str = cs->current_line;
 
     if (!str) {
         char *prompt = prompt_get(cs);
-        str = cs->current_line =
-            readline_wrapped(cs->repl->env, cs->base.catcher, prompt);
+        if ((rc = readline_wrapped(&cs->current_line, cs->repl->env, prompt)))
+            return rc;
+        str = cs->current_line;
         cs->line_position = 0;
     }
 
@@ -73,12 +68,12 @@ static int readline_io_reader_unwrapped(struct cstream_readline *cs)
     }
 
     if (str == NULL)
-        return EOF;
+        return CSTREAM_EOF;
 
     /* using an unsigned char is required to avoid sign extension */
     unsigned char res = str[cs->line_position];
     if (res == '\0')
-        return EOF;
+        return CSTREAM_EOF;
 
     cs->line_position++;
     return res;
@@ -88,24 +83,26 @@ static int readline_io_reader(struct cstream *base_cs)
 {
     struct cstream_readline *cs = (struct cstream_readline *)base_cs;
     int res = readline_io_reader_unwrapped(cs);
-    if (res != EOF)
+    if (res != CSTREAM_EOF)
         evect_push(&cs->repl->line_buffer, res);
     return res;
 }
 
-static void readline_io_dest(struct cstream *base_cs)
+static int readline_io_dest(struct cstream *base_cs)
 {
     struct cstream_readline *cs = (struct cstream_readline *)base_cs;
     free(cs->current_line);
+    return NSH_OK;
 }
 
-static void readline_io_reset(struct cstream *base_cs)
+static nsh_err_t readline_io_reset(struct cstream *base_cs)
 {
     struct cstream_readline *cs = (struct cstream_readline *)base_cs;
     free(cs->current_line);
     cs->current_line = NULL;
     cs->line_position = 0;
     cs->line_start = true;
+    return NSH_OK;
 }
 
 
