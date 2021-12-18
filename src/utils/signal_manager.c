@@ -35,17 +35,19 @@ void signal_manager_setup_handler(struct signal_manager *sigman,
         sigman->signal_enabled(sigman->hook_state, signal);
 }
 
-void signal_manager_dispatch(struct signal_manager *sigman,
-                             struct exception_catcher *catcher, int signal)
+int signal_manager_dispatch(struct signal_manager *sigman, int signal)
 {
+    int rc;
     struct list_head *handler_list = handler_list_get(sigman, signal);
 
     struct signal_handler *handler;
     struct signal_handler *tmp;
     list_for_each_entry_safe(handler, tmp, handler_list, struct signal_handler, __list)
     {
-        handler->handle(catcher, handler);
+        if ((rc = handler->handle(handler)))
+            return rc;
     }
+    return 0;
 }
 
 void signal_handler_del(struct signal_handler *handler)

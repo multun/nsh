@@ -1,5 +1,4 @@
 parse_sources = [
-    'parser_error.c',
     'parse.c',
     'parse_case.c',
     'parse_command.c',

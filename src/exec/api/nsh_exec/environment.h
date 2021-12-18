@@ -4,6 +4,7 @@
 
 #include <nsh_utils/hashmap.h>
 #include <nsh_utils/refcnt.h>
+#include <nsh_utils/error.h>
 #include <nsh_utils/signal_manager.h>
 #include <nsh_exec/value.h>
 #include <nsh_exec/shopt.h>
@@ -81,7 +82,7 @@ struct environment
     int argc;
 
     // the number of loops we need to break out of
-    // this is needed during break / continue exception handling
+    // this is needed for break / continue
     size_t break_count;
 
     // the loop nesting depth

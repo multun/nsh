@@ -8,7 +8,6 @@
 
 #include <nsh_exec/ast_exec.h>
 #include <nsh_exec/clean_exit.h>
-#include <nsh_exec/runtime_error.h>
 #include <nsh_exec/environment.h>
 #include <nsh_exec/managed_fork.h>
 #include <nsh_exec/expansion.h>
@@ -16,6 +15,7 @@
 #include <nsh_utils/macros.h>
 
 
+#include "execution_error.h"
 #include "args.h"
 #include "config.h"
 

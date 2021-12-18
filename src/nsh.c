@@ -11,9 +11,9 @@
 ** nsh could be divided into seven main components:
 **    - utils, a general toolbox
 **    - io, the base IO abstractions
-**    - shlex, the shell lexer
-**    - shparse, the shell parser
-**    - shexec, the shell AST evaluation module
+**    - lex, the shell lexer
+**    - parse, the shell parser
+**    - exec, the shell AST evaluation module
 **    - repl, the main program loop
 **
 **  You may find some more detailed explanations for these components
@@ -32,11 +32,6 @@
 **      module, which will in turn call \ref expand "shexp" when necessary
 **   - the operation is repeated as long as the stream
 **     \ref cstream_eof "isn't exhausted"
-**
-**  In order to ensure all allocated chunks are freed,
-** \ref shraise "an exception mechanism" has been implemented.
-** When an error or a planned exit occurs, a chained sequence of longjmp calls
-** goes up the stack and hopefuly frees all allocated data.
 **
 */
 

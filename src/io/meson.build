@@ -2,7 +2,6 @@ io_sources = [
     'cstream.c',
     'cstream_file.c',
     'cstream_string.c',
-    'keyboard_interrupt.c',
 ]
 
 io_api = include_directories('api', is_system: true)

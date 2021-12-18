@@ -2,7 +2,6 @@
 
 #include <nsh_io/cstream.h>
 #include <nsh_exec/environment.h>
-#include <nsh_utils/exception.h>
 #include <nsh_parse/ast.h>
 #include <nsh_exec/clean_exit.h>
 

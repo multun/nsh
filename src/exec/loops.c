@@ -5,9 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "break.h"
-#include "error_compat.h"
-
 
 static bool stops_loop(struct environment *env, nsh_err_t err)
 {

@@ -1,7 +1,6 @@
 #include <stdbool.h>
 
 #include <nsh_parse/parse.h>
-#include <nsh_utils/exception.h>
 
 #include "parse.h"
 

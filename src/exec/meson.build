@@ -14,7 +14,6 @@ exec_sources = [
     'managed_fork.c',
     'pipe.c',
     'redirection.c',
-    'runtime_error.c',
     'subshell.c',
     'value.c',
     'loops.c',

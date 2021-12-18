@@ -1,18 +1,15 @@
-#include <nsh_io/keyboard_interrupt.h>
 #include <nsh_exec/ast_exec.h>
 #include <nsh_exec/history.h>
 #include <nsh_exec/repl.h>
 #include <nsh_exec/shopt.h>
 #include <nsh_exec/clean_exit.h>
-#include <nsh_exec/runtime_error.h>
 #include <nsh_lex/lexer.h>
 #include <nsh_parse/parse.h>
-#include <nsh_parse/parser_error.h>
-#include <nsh_utils/exception.h>
 
 #include <err.h>
 
-#include "error_compat.h"
+#include "execution_error.h"
+
 
 enum repl_action
 {
@@ -35,11 +32,11 @@ static enum repl_action repl_handle_err(nsh_err_t err, struct repl *ctx)
         // INTERACTIVE ) THEN echo $?'-> 2
         // we just ignore this madness
         ctx->env->code = 2;
-        goto exception_continue_if_interactive;
+        goto continue_if_interactive;
     case NSH_EXECUTION_ERROR:
     case NSH_EXPANSION_ERROR:
     case NSH_KEYBOARD_INTERUPT:
-        goto exception_continue_if_interactive;
+        goto continue_if_interactive;
     case NSH_BREAK_INTERUPT:
     case NSH_CONTINUE_INTERUPT:
         abort();
@@ -50,7 +47,7 @@ static enum repl_action repl_handle_err(nsh_err_t err, struct repl *ctx)
     /* unknown error */
     abort();
 
-exception_continue_if_interactive:
+continue_if_interactive:
     /* continue if the repl is interactive */
     if (repl_is_interactive(ctx))
         return REPL_ACTION_CONTINUE;

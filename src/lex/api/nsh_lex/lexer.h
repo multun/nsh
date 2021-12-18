@@ -7,10 +7,8 @@
 #include <nsh_io/cstream.h>
 #include <nsh_utils/attr.h>
 #include <nsh_utils/error.h>
-#include <nsh_utils/exception.h>
 #include <nsh_utils/evect.h>
 #include <nsh_utils/ring_buffer.h>
-#include <nsh_lex/lexer_error.h>
 #include <nsh_lex/wlexer.h>
 #include <nsh_lex/token.h>
 

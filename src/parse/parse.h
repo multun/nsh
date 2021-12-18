@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nsh_parse/parse.h>
-#include <nsh_parse/parser_error.h>
 
 #include <stdarg.h>
 

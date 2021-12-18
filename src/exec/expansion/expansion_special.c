@@ -219,9 +219,6 @@ int expand_name(struct expansion_state *exp_state, const char *var_name)
         == NULL)
         return EXPANSION_FAILURE;
 
-    /* tell the expansion_state we're currently holding a reference to this variable.
-       if this step is skipped, a reference will be lost when an exception occurs in
-       expansion_push_splitable. */
     sh_string_get(env_var);
 
     if ((rc = expansion_push_splitable_string(exp_state, sh_string_data(env_var))))

@@ -2,12 +2,13 @@
 #include <nsh_utils/hashmap.h>
 #include <nsh_exec/clean_exit.h>
 #include <nsh_exec/managed_fork.h>
-#include <nsh_exec/runtime_error.h>
 
 #include <err.h>
 #include <errno.h>
 #include <stdio.h>
 #include <sys/wait.h>
+
+#include "execution_error.h"
 
 nsh_err_t subshell_exec(struct environment *env, struct shast *ast)
 {

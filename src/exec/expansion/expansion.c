@@ -1,5 +1,4 @@
 #include <nsh_exec/environment.h>
-#include <nsh_exec/runtime_error.h>
 #include <nsh_utils/evect.h>
 #include <nsh_utils/strutils.h>
 #include <nsh_lex/wlexer.h>
@@ -15,7 +14,6 @@
 
 #include "arithmetic_expansion.h"
 #include "expansion.h"
-#include "../error_compat.h"
 
 static nsh_err_t expand_internal(struct expansion_state *exp_state,
                                  struct wlexer *wlexer) __unused_result;
@@ -77,8 +75,7 @@ void expansion_push_nosplit_string(struct expansion_state *exp_state, const char
         expansion_push_nosplit(exp_state, *str);
 }
 
-/* push c into the result, going through IFS splitting
-   beware: when splitting occurs, the callback can raise an exception */
+/* push c into the result, going through IFS splitting */
 nsh_err_t expansion_push_splitable(struct expansion_state *exp_state, char c)
 {
     // IFS splitting is disabled inside quotes
@@ -590,17 +587,6 @@ nsh_err_t expand_nosplit(char **res, struct lineinfo *line_info, const char *str
 err_expand:
     expansion_state_destroy(&exp_state);
     return err;
-}
-
-
-char *expand_nosplit_exception(struct lineinfo *line_info, const char *str, int flags,
-                               struct environment *env, struct exception_catcher *catcher)
-{
-    char *res;
-    nsh_err_t err;
-    if ((err = expand_nosplit(&res, line_info, str, env, flags)))
-        raise_from_error(catcher, err);
-    return res;
 }
 
 

@@ -1,5 +1,4 @@
 #include "readline_wrapped.h"
-#include <nsh_io/keyboard_interrupt.h>
 #include <nsh_utils/attr.h>
 
 #include <err.h>

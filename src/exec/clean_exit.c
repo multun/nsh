@@ -1,13 +1,11 @@
 #include <nsh_exec/environment.h>
 #include <nsh_exec/clean_exit.h>
+#include <nsh_utils/error.h>
 
 #include <err.h>
 #include <errno.h>
 #include <stdarg.h>
 
-struct exception_type g_clean_exit = {
-    .compat_error = NSH_EXIT_INTERUPT,
-};
 
 __unused_result int clean_err(struct environment *env, int retcode, const char *fmt, ...)
 {

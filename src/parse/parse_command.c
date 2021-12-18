@@ -1,6 +1,5 @@
 #include <nsh_parse/parse.h>
 #include <nsh_utils/alloc.h>
-#include <nsh_utils/exception.h>
 #include <assert.h>
 
 #include "parse.h"

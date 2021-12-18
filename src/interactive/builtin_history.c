@@ -59,8 +59,7 @@ static int history_reload(void)
     return 0;
 }
 
-int builtin_history(struct environment *env, struct exception_catcher *catcher __unused,
-                    int argc, char **argv)
+int builtin_history(struct environment *env, int argc, char **argv)
 {
     if (argc == 1)
         return history_format(env);

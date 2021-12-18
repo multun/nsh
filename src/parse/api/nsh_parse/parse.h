@@ -14,6 +14,5 @@
 **
 ** \param res buffer to store the parsing results.
 ** \param lexer lexer to use in parsing.
-** \param catcher error context.
 */
 nsh_err_t parse(struct shast **res, struct lexer *lexer);

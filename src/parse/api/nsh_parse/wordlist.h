@@ -1,10 +1,10 @@
 #pragma once
 
+#include <nsh_utils/lineinfo.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 
-#include <nsh_utils/exception.h>
 #include <nsh_utils/pvect.h>
 #include <nsh_utils/cpvect.h>
 

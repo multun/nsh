@@ -1,7 +1,6 @@
 #include <nsh_exec/ast_exec.h>
 #include <nsh_exec/expansion.h>
 #include <nsh_exec/environment.h>
-#include <nsh_exec/runtime_error.h>
 #include <nsh_utils/alloc.h>
 
 #include <err.h>
@@ -10,7 +9,7 @@
 #include <string.h>
 #include <fnmatch.h>
 
-#include "break.h"
+#include "execution_error.h"
 
 
 int if_exec(struct environment *env, struct shast *ast)
@@ -54,15 +53,6 @@ nsh_err_t case_exec(struct environment *env, struct shast *ast)
     free(case_var);
     return err;
 }
-
-
-/* break and continue are implemented as builtins, which raise exceptions */
-struct exception_type g_ex_break = {
-    .compat_error = NSH_BREAK_INTERUPT,
-};
-struct exception_type g_ex_continue = {
-    .compat_error = NSH_CONTINUE_INTERUPT,
-};
 
 
 static nsh_err_t builtin_generic_break(nsh_err_t break_err, struct environment *env,

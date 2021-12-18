@@ -9,7 +9,6 @@
 #include <nsh_utils/attr.h>
 #include <nsh_utils/attr.h>
 #include <nsh_utils/cpvect.h>
-#include <nsh_utils/exception.h>
 #include <nsh_utils/evect.h>
 #include <nsh_lex/variable.h>
 #include <nsh_utils/char_bitset.h>

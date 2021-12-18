@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nsh_exec/environment.h>
-#include <nsh_utils/exception.h>
 
 
 typedef nsh_err_t (*expansion_callback_f)(void *data, char *word,
