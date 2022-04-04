@@ -29,6 +29,7 @@ exec_sources = [
     'history.c',
     'clean_exit.c',
     'control_flow.c',
+    'proc_utils.c',
 ]
 
 conf_data = configuration_data()

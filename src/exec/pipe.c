@@ -11,6 +11,7 @@
 #include <nsh_utils/safe_syscalls.h>
 
 #include "execution_error.h"
+#include "proc_utils.h"
 
 
 /* The way file descriptors are chained in a pipeline looks like that:
@@ -133,7 +134,7 @@ int pipeline_exec(struct environment *env, struct shast *ast)
     assert(pipeline_size);
 
     /* prepare an array of children PIDs */
-    int *children_pids = xcalloc(sizeof(*children_pids), pipeline_size);
+    pid_t *children_pids = xcalloc(sizeof(*children_pids), pipeline_size);
     for (size_t i = 0; i < pipeline_size; i++)
         children_pids[i] = -1;
 
@@ -186,9 +187,12 @@ int pipeline_exec(struct environment *env, struct shast *ast)
 
     /* wait for children processes to terminate */
     for (size_t i = 0; i < pipeline_size; i++) {
-        int child_status;
-        waitpid(children_pids[i], &child_status, 0);
-        status = WEXITSTATUS(child_status);
+        int child_code = proc_wait_exit(children_pids[i]);
+        if (child_code < 0) {
+            warn("error while waiting for pipeline children to complete");
+            continue;
+        }
+        status = child_code;
     }
 
     free(children_pids);
@@ -198,10 +202,8 @@ execution_error:
     if (fd_queue_flush(&queue) < 0)
         warnx("pipeline_exec: failed to cleanup pipe FDs on error");
 
-    for (size_t i = 0; i < child_i; i++) {
-        int child_status;
-        waitpid(children_pids[i], &child_status, 0);
-    }
+    for (size_t i = 0; i < child_i; i++)
+        proc_wait_exit(children_pids[i]);
     free(children_pids);
 
     return execution_error(env, status);

@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "../execution_error.h"
+#include "../proc_utils.h"
 #include "expansion.h"
 
 
@@ -37,7 +38,7 @@ int expand_subshell(struct expansion_state *exp_state, char *subshell_program)
     if (pipe(pipe_fds) < 0)
         return expansion_error(exp_state, "pipe() failed: %s", strerror(errno));
 
-    int child_pid = managed_fork(expansion_state_env(exp_state));
+    pid_t child_pid = managed_fork(expansion_state_env(exp_state));
     if (child_pid < 0)
         return expansion_error(exp_state, "fork() failed: %s", strerror(errno));
 
@@ -92,8 +93,7 @@ err_expansion:
     fclose(child_stream);
 
     /* cleanup the child process */
-    int status;
-    waitpid(child_pid, &status, 0);
+    proc_wait_exit(child_pid);
 
     return err;
 }

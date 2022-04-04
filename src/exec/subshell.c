@@ -9,26 +9,30 @@
 #include <sys/wait.h>
 
 #include "execution_error.h"
+#include "proc_utils.h"
+
 
 nsh_err_t subshell_exec(struct environment *env, struct shast *ast)
 {
     nsh_err_t err;
     struct shast_subshell *subshell = (struct shast_subshell *)ast;
 
-    int cpid = managed_fork(env);
-    if (cpid == -1) {
+    pid_t child_pid = managed_fork(env);
+    if (child_pid == -1) {
         lineinfo_warn(&subshell->base.line_info, "fork() failed: %s", strerror(errno));
         return execution_error(env, 1);
     }
 
-    if (cpid == 0) {
+    if (child_pid == 0) {
         if ((err = ast_exec(env, subshell->action)))
             return err;
         return clean_exit(env, err);
     }
 
-    int status;
-    waitpid(cpid, &status, 0);
-    env->code = WEXITSTATUS(status);
+    int child_status = proc_wait_exit(child_pid);
+    if (child_status < 0)
+        return clean_err(env, errno,
+                         "error when waiting for the subshell child process to complete");
+    env->code = child_status;
     return NSH_OK;
 }

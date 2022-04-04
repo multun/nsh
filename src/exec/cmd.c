@@ -18,6 +18,7 @@
 #include "execution_error.h"
 #include "args.h"
 #include "config.h"
+#include "proc_utils.h"
 
 
 // this function is here to free the expanded array in case the expansion fails
@@ -50,15 +51,18 @@ static nsh_err_t builtin_exec(struct environment *env, f_builtin builtin)
 
 static nsh_err_t cmd_fork_exec(struct environment *env)
 {
-    int status;
     pid_t pid = managed_fork(env);
     if (pid < 0)
-        return clean_err(env, errno, "cmd_exec: error while forking");
+        return clean_err(env, errno, "error while forking");
 
     /* parent branch */
     if (pid != 0) {
-        waitpid(pid, &status, 0);
-        env->code = WEXITSTATUS(status);
+        int child_status = proc_wait_exit(pid);
+        if (child_status < 0)
+            return clean_err(
+                env, errno,
+                "error when waiting for the command child process to complete");
+        env->code = child_status;
         return NSH_OK;
     }
 
