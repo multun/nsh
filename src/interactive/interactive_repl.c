@@ -51,7 +51,9 @@ static nsh_err_t load_all_rc(struct repl *ctx)
     if ((err = load_rc(ctx->env, global_rc, global_rc)))
         return err;
 
-    char *rc_path = home_suffix("/.nshrc");
+    char *rc_path = home_filepath(".nshrc");
+    if (rc_path == NULL)
+        return NSH_OK;
     err = load_rc(ctx->env, rc_path, "~/.nshrc");
     free(rc_path);
     return err;

@@ -11,7 +11,12 @@
 
 FILE *history_open(void)
 {
-    char *history_path = home_suffix("/.nsh_history");
+    char *history_path = home_filepath(".nsh_history");
+    if (history_path == NULL) {
+        warnx("coudn't find the user's home, no history will be written");
+        return NULL;
+    }
+
     FILE *ret = fopen(history_path, "a+");
     free(history_path);
 

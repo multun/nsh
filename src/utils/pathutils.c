@@ -29,11 +29,14 @@ static bool path_component_eq(struct path_component *cmp_a, struct path_componen
     return true;
 }
 
-char *home_suffix(const char *suffix)
+
+char *home_filepath(const char *filename)
 {
-    char *home = getpwuid(getuid())->pw_dir;
-    char *path = malloc(strlen(home) + strlen(suffix) + 1);
-    return strcat(strcpy(path, home), suffix);
+    // TODO(thread-safety): use getpwuid_r
+    struct passwd *passwd = getpwuid(getuid());
+    if (passwd == NULL)
+        return NULL;
+    return mprintf("%s/%s", passwd->pw_dir, filename);
 }
 
 static void path_component_scan(struct path_component *cmp)

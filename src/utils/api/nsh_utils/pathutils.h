@@ -6,7 +6,8 @@
 #include <nsh_utils/evect.h>
 
 
-char *home_suffix(const char *suffix);
+/** \brief returns the path of the a file in the user's home directory, or NULL */
+char *home_filepath(const char *filename);
 
 struct path_component
 {
