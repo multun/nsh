@@ -152,6 +152,7 @@ struct environment *environment_load(struct cli_options *arg_cont)
     hashmap_init(&env->functions, 10);
     env->code = 0;
     env->forked = false;
+    env->find_builtin = find_default_builtin;
 
     env->break_count = 0;
     env->depth = 0;
