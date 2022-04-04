@@ -66,12 +66,17 @@ static nsh_err_t cmd_fork_exec(struct environment *env)
     char **penv = environment_array(env);
     execvpe(env->argv[0], env->argv, penv);
 
-    /*on failure, free the environment array */
+    /* when the execution fail, exit 127 if the program does not exist, 126 otherwise */
+    int exit_status = 126;
+    if (errno == ENOENT)
+        exit_status = 127;
+
+    /* on failure, free the environment array */
     for (size_t i = 0; penv[i]; i++)
         free(penv[i]);
     free(penv);
 
-    return clean_err(env, 125 + errno, "couldn't exec \"%s\"", env->argv[0]);
+    return clean_err(env, exit_status, "couldn't exec \"%s\"", env->argv[0]);
 }
 
 static nsh_err_t cmd_run_command(struct environment *env)
